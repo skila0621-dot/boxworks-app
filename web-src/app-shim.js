@@ -14,7 +14,22 @@
 
   // 앱에서는 쓰지 않는 웹 전용 메뉴를 숨김: 위젯 모드(PC 바탕화면용)와 그 설명
   var style = document.createElement('style');
-  style.textContent = '.bx-app [data-act="widget"],.bx-app #g-widget{display:none!important}';
+  style.textContent = [
+    '.bx-app [data-act="widget"],.bx-app #g-widget{display:none!important}',
+    // 월간 달력: 웹은 휴대폰 폭에서 점만 보여 주는데, 앱에서는 칸마다 일정 제목을 색 띠로 보여 줌
+    '@media (max-width:719px){',
+    '.bx-app .cell{min-height:86px;align-items:stretch;padding:4px 1px 6px;gap:2px}',
+    '.bx-app .cell .c-top{justify-content:center}',
+    '.bx-app .cell .c-num{width:26px;height:26px;font-size:13.5px}',
+    '.bx-app .cell .c-dots{display:none}',
+    '.bx-app .c-chips{display:flex;flex-direction:column;gap:2px;min-width:0}',
+    '.bx-app .c-chip{display:block;min-width:0;font-size:10.5px;font-weight:600;line-height:1.3;padding:1px 2px 1px 3px;border-left:2px solid var(--c);border-radius:3px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--ink);text-align:left;overflow:hidden;white-space:nowrap}',
+    '.bx-app .c-chip .dot,.bx-app .c-chip .c-t{display:none}',
+    '.bx-app .c-chip span{display:block;overflow:hidden;white-space:nowrap;text-overflow:clip}',
+    '.bx-app .c-chip.done span{text-decoration:line-through;color:var(--ink-3)}',
+    '.bx-app .c-more{font-size:10.5px;font-weight:700;color:var(--ink-3);line-height:1.2;padding-left:3px;text-align:left}',
+    '}'
+  ].join('');
   (document.head || document.documentElement).appendChild(style);
 
   function plugin(name) {
