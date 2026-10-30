@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 시작 화면: 흰 바탕에 파란 로고 -->
+<!-- 시작 화면: 흰 바탕 가운데 박스웍스 로고 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@android:color/white" />
     <item
-        android:width="96dp"
-        android:height="96dp"
-        android:gravity="center">
-        <shape android:shape="rectangle">
-            <solid android:color="#3A5BF0" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
-    <item
-        android:width="96dp"
-        android:height="96dp"
+        android:width="180dp"
+        android:height="180dp"
         android:gravity="center"
         android:drawable="@drawable/ic_launcher_foreground_bx" />
 </layer-list>

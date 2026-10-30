@@ -30,6 +30,36 @@ const patches = [
     name: '저장 위치 설명을 앱에 맞게',
     find: "'저장소에 연결되지 않아 이 브라우저에만 임시로 저장돼요.') + '</p>' +",
     replace: "(window.BX_APP ? '일정은 이 휴대폰 안에만 저장돼요. 휴대폰을 바꿀 때는 구글 백업이나 백업 파일로 옮겨요.' : '저장소에 연결되지 않아 이 브라우저에만 임시로 저장돼요.')) + '</p>' +"
+  },
+  {
+    name: '앱은 처음부터 "일정 관리만" 방식 (Claude 연동 없음, D-04)',
+    find: "function usageMode(){ return M.settings.usage || 'ai'; }",
+    replace: "function usageMode(){ return window.BX_APP ? 'basic' : (M.settings.usage || 'ai'); }"
+  },
+  {
+    name: '앱에서는 처음 실행 때 "어떻게 쓰실 건가요?" 창을 띄우지 않기 (D-01)',
+    find: 'if (S.firstServer && !SH && !S.obShown',
+    replace: 'if (!window.BX_APP && S.firstServer && !SH && !S.obShown'
+  },
+  {
+    name: '설정의 "연동"(AI 서비스·Claude 연동·알림 받을 곳) 묶음을 앱에서 숨기기 (D-01)',
+    find: "'<section class=\"set-sec\" id=\"s-link\" aria-labelledby=\"s-link-h\"><h2 id=\"s-link-h\">연동</h2>' +",
+    replace: "(window.BX_APP ? '' : '<section class=\"set-sec\" id=\"s-link\" aria-labelledby=\"s-link-h\"><h2 id=\"s-link-h\">연동</h2>' +"
+  },
+  {
+    name: '└ 위 묶음의 끝',
+    find: "      '</section>' +\n    '<section class=\"set-sec\" aria-labelledby=\"s-view\">",
+    replace: "      '</section>') +\n    '<section class=\"set-sec\" aria-labelledby=\"s-view\">"
+  },
+  {
+    name: '환영 안내에서 "휴대폰·PC에 설치하기"와 Claude 아침 보고 빼기',
+    find: "    '<li><b>휴대폰·PC에 설치하기</b>",
+    replace: "    (window.BX_APP ? '' : '<li><b>휴대폰·PC에 설치하기</b>"
+  },
+  {
+    name: '└ 위 항목의 끝',
+    find: "data-act=\"report-setup\">만들기</button></li></ol></section>' : '';",
+    replace: "data-act=\"report-setup\">만들기</button></li>') + '</ol></section>' : '';"
   }
 ];
 
