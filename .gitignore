@@ -1,0 +1,5 @@
+node_modules/
+.DS_Store
+*.log
+# www는 scripts/build-web.mjs가 web-src에서 만든다
+www/
