@@ -143,6 +143,56 @@ boot();
     replace: "(its.length > cmax ? '<span class=\"c-more\">+' + (its.length - cmax) + '</span>' : '')"
   },
   {
+    name: '일정 줄의 종 모양 옆에 다음 알람 시각 표시(4안-1)',
+    find: "if (it.remind && !it.done && !late) meta.push('<span class=\"meta\" aria-label=\"알림 있음\">' + ICON.bell + '</span>');",
+    replace: "if (it.remind && !it.done && !late) { const nr = remindAt(it).find(d => d > M.now); const nt = nr ? (ymd(nr) === it.date ? '' : relDay(ymd(nr), M.today) + ' ') + String(nr.getHours()).padStart(2, '0') + ':' + String(nr.getMinutes()).padStart(2, '0') : ''; meta.push('<span class=\"meta bx-rem\" aria-label=\"' + (nt ? '알림 ' + nt : '알림 있음') + '\">' + ICON.bell + nt + '</span>'); }"
+  },
+  {
+    name: '월간 달력에서 날짜를 누르면 오늘 탭처럼 그날 창이 열리게(대표 요청)',
+    find: '\'" data-act="pick-day" data-date="\' + ds',
+    replace: '\'" data-act="\' + (window.BX_APP ? \'day-open\' : \'pick-day\') + \'" data-date="\' + ds'
+  },
+  {
+    name: '└ 창과 겹치는 달력 아래 그날 목록은 앱에서 빼기',
+    find: "'<section id=\"agenda\" aria-labelledby=\"h-agenda\">",
+    replace: "(window.BX_APP ? '' : '<section id=\"agenda\" aria-labelledby=\"h-agenda\">"
+  },
+  {
+    name: '└ 위 목록의 끝',
+    find: "'<div class=\"list\"></div><p class=\"empty\">이 날은 일정이 없어요.</p>') + '</section></div>';",
+    replace: "'<div class=\"list\"></div><p class=\"empty\">이 날은 일정이 없어요.</p>') + '</section>') + '</div>';"
+  },
+  {
+    name: '말로 넣기: 새 일정 제목 칸 옆에 마이크',
+    find: "'<div class=\"fld\"><label class=\"sr\" for=\"f-title\">제목</label><input id=\"f-title\"",
+    replace: "'<div class=\"fld\"><label class=\"sr\" for=\"f-title\">제목</label><div class=\"bx-inrow\"><input id=\"f-title\""
+  },
+  {
+    name: '└ 제목 칸 끝',
+    find: "'\" value=\"' + esc(F.title) + '\"><div id=\"f-hint\"></div></div>' +",
+    replace: "'\" value=\"' + esc(F.title) + '\">' + bxMic('f-title', '예) 내일 오후 3시 치과') + '</div><div id=\"f-hint\"></div></div>' +"
+  },
+  {
+    name: '└ 날짜 창의 할 일 추가 칸에도 마이크',
+    find: "'<button type=\"button\" class=\"btn sm\" data-act=\"new\" data-date=\"' + ds + '\">자세히</button>",
+    replace: "bxMic('day-in', '할 일을 말해 보세요') + '<button type=\"button\" class=\"btn sm\" data-act=\"new\" data-date=\"' + ds + '\">자세히</button>"
+  },
+  {
+    name: '└ 루틴 "말로 만들기"에도 마이크',
+    find: "'<div class=\"rt-make-a\"><span class=\"p small\">키보드 마이크로 말해도 돼요</span>",
+    replace: "'<div class=\"rt-make-a\">' + (window.BX_HAS_MIC ? bxMic('rt-text', '예) 평일 9시까지 출근, 회사까지 45분') : '<span class=\"p small\">키보드 마이크로 말해도 돼요</span>') + '"
+  },
+  {
+    name: '└ 마이크 버튼 만드는 함수와 규칙 해석 시험용 연결',
+    find: '\nwindow.BX_toast = function(msg){ toast(msg); };',
+    replace: "\nfunction bxMic(id, prompt){ return window.BX_HAS_MIC ? '<button type=\"button\" class=\"bx-mic\" data-act=\"bx-mic\" data-for=\"' + id + '\" data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말로 넣기\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"12\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0\"/><path d=\"M12 18v3\"/></svg></button>' : ''; }\nwindow.BX_parse = function(text){ return parseQuick(text, new Date()); };\nwindow.BX_toast = function(msg){ toast(msg); };"
+  },
+  {
+    name: '사용 설명서에서 앱에 없는 장(Claude 연동·AI 정리·아침 보고·링크 공유·바로가기 설치) 빼기',
+    find: "  ['도움말', [['g-faq', '자주 묻는 질문']]]\n];",
+    replace: "  ['도움말', [['g-faq', '자주 묻는 질문']]]\n];\nif (window.BX_APP) { const off = ['g-start', 'g-report', 'g-ai', 'g-share', 'g-devices', 'g-widget']; for (let i = GUIDE.length - 1; i >= 0; i--) { GUIDE[i][1] = GUIDE[i][1].filter(x => !off.includes(x[0])); if (!GUIDE[i][1].length) GUIDE.splice(i, 1); } }"
+  },
+  {
     name: '└ 사용 설명서 목차에서 "PC 바탕화면 위젯으로 쓰기" 빼기',
     find: ", ['g-widget', 'PC 바탕화면 위젯으로 쓰기']]]",
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"

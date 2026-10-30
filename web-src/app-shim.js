@@ -30,7 +30,15 @@
     '.bx-app .c-more{font-size:10.5px;font-weight:700;color:var(--ink-3);line-height:1.2;padding-left:3px;text-align:left}',
     '}',
     // Claude가 보내던 아침 일정 보고 설정은 앱에서 쓰지 않음(앱의 아침 보고는 5단계에서 휴대폰이 직접 만듦)
-    '.bx-app section[aria-labelledby="s-report"]{display:none!important}'
+    '.bx-app section[aria-labelledby="s-report"]{display:none!important}',
+    // 말로 넣기 마이크 버튼
+    '.bx-app .bx-inrow{display:flex;align-items:center;gap:8px}',
+    '.bx-app .bx-inrow > input{flex:1;min-width:0}',
+    '.bx-app .bx-mic{flex:none;width:44px;height:44px;border-radius:22px;border:0;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}',
+    '.bx-app .bx-mic.busy{opacity:.55}',
+    '.bx-app .rt-make-a{justify-content:space-between}',
+    // AI 정리(Claude 연동 필요)는 앱에서 숨김(D-04). 사용 설명서의 Claude 연동 장은 숨김
+    '.bx-app [data-act="ai-capture"],.bx-app #g-ai,.bx-app #g-share,.bx-app #g-start,.bx-app #g-report,.bx-app [data-to="g-ai"],.bx-app [data-to="g-share"],.bx-app [data-to="g-report"]{display:none!important}'
   ].join('');
   (document.head || document.documentElement).appendChild(style);
 
@@ -142,6 +150,36 @@
         if (window.BX_toast) window.BX_toast('10초 뒤 알람이 울려요. 화면을 끄고 기다려 보세요.');
       } catch (e) {
         if (window.BX_toast) window.BX_toast('시험 알람을 예약하지 못했어요.');
+      }
+    }, true);
+  }
+
+  // 말로 넣기(3단계). 휴대폰 기본 음성 인식으로 받은 글자를 칸에 넣고,
+  // 박스웍스가 글자를 칠 때와 똑같이 해석하게 한다(날짜·시각 자동 인식).
+  var speech = plugin('BxSpeech');
+  if (speech) {
+    window.BX_HAS_MIC = true;
+    document.addEventListener('click', async function (ev) {
+      var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-mic"]');
+      if (!b) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (b.classList.contains('busy')) return;
+      var field = document.getElementById(b.getAttribute('data-for'));
+      b.classList.add('busy');
+      try {
+        var r = await speech.listen({ prompt: b.getAttribute('data-prompt') || '말해 보세요' });
+        var text = (r && r.text ? String(r.text) : '').trim();
+        field = document.getElementById(b.getAttribute('data-for')) || field;
+        if (text && field) {
+          field.value = field.value.trim() ? field.value.trim() + ' ' + text : text;
+          field.dispatchEvent(new Event('input', { bubbles: true }));
+          field.focus();
+        }
+      } catch (e) {
+        if (e && e.code === 'unavailable' && window.BX_toast) window.BX_toast('이 휴대폰에서 음성 인식을 쓸 수 없어요. 키보드의 마이크를 써 주세요.');
+      } finally {
+        b.classList.remove('busy');
       }
     }, true);
   }
