@@ -106,6 +106,18 @@ window.BX_alarmPlan = function(days){
       });
     }
   });
+  ttList().forEach(e => {
+    if (e.on === false || e.remind === '' || e.remind == null || !isHM(e.start)) return;
+    const before = +e.remind || 0;
+    for (let k = 0; k <= days; k++) {
+      const day = addDays(sod(new Date(now)), k), ds = ymd(day);
+      if (!ttOn(e, ds)) continue;
+      const t = addMin(day, toMin(e.start) - before).getTime(); if (t <= now || t > until) continue;
+      const lead = before ? before + '분 뒤 시작' : '지금 시작';
+      out.push({id: 'tt_' + e.id + '_' + ds, at: t, kind: 'item', group: '시간표', title: e.name,
+        sub: (e.place ? e.place + ' · ' : '') + lead, body: e.start + (e.end ? '–' + e.end : '') + (e.place ? ' · ' + e.place : '') + ' · ' + lead});
+    }
+  });
   return out.sort((a, b) => a.at - b.at).slice(0, 64);
 };
 function hmOf(m){ m = Math.round(m); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
@@ -193,6 +205,26 @@ boot();
     replace: "  ['도움말', [['g-faq', '자주 묻는 질문']]]\n];\nif (window.BX_APP) { const off = ['g-start', 'g-report', 'g-ai', 'g-share', 'g-devices', 'g-widget']; for (let i = GUIDE.length - 1; i >= 0; i--) { GUIDE[i][1] = GUIDE[i][1].filter(x => !off.includes(x[0])); if (!GUIDE[i][1].length) GUIDE.splice(i, 1); } }"
   },
   {
+    name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
+    find: '\nwindow.BX_back = function(){',
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\nwindow.BX_back = function(){'
+  },
+  {
+    name: '└ 주간 탭: 시간표 보기면 시간표를 그림',
+    find: 'function weekHtml(){\n  const start',
+    replace: "function weekHtml(){\n  if (window.BX_APP && S.weekMode === 'tt') return ttHtml();\n  const start"
+  },
+  {
+    name: '└ 주간 탭 위쪽에 \'주간 일정 | 시간표\' 전환',
+    find: "return '<div class=\"page-head\"><div class=\"ph-t\"><h1>' + label + '</h1><p class=\"tnum\">",
+    replace: "return (window.BX_APP ? ttModeBar('list') : '') + '<div class=\"page-head\"><div class=\"ph-t\"><h1>' + label + '</h1><p class=\"tnum\">"
+  },
+  {
+    name: '└ 오늘 화면에 그날 시간표',
+    find: "'<div class=\"home-col\">' + todaySec + '</div>",
+    replace: "'<div class=\"home-col\">' + todaySec + (window.BX_APP ? ttTodayHtml() : '') + '</div>"
+  },
+  {
     name: '└ 사용 설명서 목차에서 "PC 바탕화면 위젯으로 쓰기" 빼기',
     find: ", ['g-widget', 'PC 바탕화면 위젯으로 쓰기']]]",
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
@@ -205,7 +237,7 @@ for (const p of patches) {
     console.error(`바꿀 곳을 찾지 못했습니다 (${count}곳): ${p.name}`);
     process.exit(1);
   }
-  html = html.replace(p.find, p.replace);
+  html = html.replace(p.find, () => p.replace);
   console.log(`적용: ${p.name}`);
 }
 
