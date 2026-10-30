@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 상태 표시줄 알림 아이콘: 박스웍스 W (흰색 한 가지 색) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M13.19,3.74 Q16,2.2 18.81,3.74 L25.99,7.66 Q28.8,9.2 28.8,12.4 L28.8,19.6 Q28.8,22.8 25.99,24.34 L18.81,28.26 Q16,29.8 13.19,28.26 L6.01,24.34 Q3.2,22.8 3.2,19.6 L3.2,12.4 Q3.2,9.2 6.01,7.66 Z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.2" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M9.2,13.3 L12.4,22.6 L16,17.8 L19.6,22.6 L22.8,13.3"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.4" />
+</vector>

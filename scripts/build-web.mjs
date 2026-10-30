@@ -74,7 +74,58 @@ const patches = [
   {
     name: '휴대폰 뒤로 버튼: 열린 창 닫기 → 앞 창으로 → 오늘 화면으로, 오늘이면 앱을 뒤로 보냄',
     find: '\nboot();\n})();',
-    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\nboot();\n})();"
+    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
+// 앞으로 며칠 동안 울릴 알람 목록. 박스웍스의 알림 규칙(remindAt, 루틴 시간표)을 그대로 쓴다.
+window.BX_alarmPlan = function(days){
+  if (!M || !S.firstServer) return null;
+  days = days || 7;
+  const now = Date.now(), until = now + days * 864e5, out = [];
+  M.items.forEach(it => {
+    if (it.done || it.deletedAt) return;
+    remindAt(it).forEach(r => {
+      const t = r.getTime(); if (t <= now || t > until) return;
+      const when = relDay(it.date, ymd(new Date(t))) + ' ' + timeText(it);
+      out.push({id: 'i_' + it.id + '_' + t, at: t, kind: 'item', group: '일정', title: it.title || '(제목 없음)',
+        sub: when + (it.location ? ' · ' + it.location : ''), body: when + (it.location ? ' · ' + it.location : '')});
+    });
+  });
+  M.routines.forEach(rt => {
+    const p = rtPlan(rt); if (p.bad) return;
+    const rows = p.rows.filter(r => r.kind !== 'wait');
+    for (let k = 0; k <= days; k++) {
+      const day = addDays(sod(new Date(now)), k), ds = ymd(day);
+      if (!rtActiveOn(rt, ds)) continue;
+      rows.forEach((r, i) => {
+        const t = addMin(day, r.at).getTime(); if (t <= now || t > until) return;
+        const nx = rows[i + 1], left = p.leave != null && !r.leave ? Math.round(p.leave - r.at) : null;
+        const sub = r.leave ? '지금 나갈 시간' : left != null ? '출발까지 ' + left + '분' : '';
+        out.push({id: 'r_' + rt.id + '_' + ds + '_' + r.id, at: t, kind: 'routine', group: rt.name || '루틴',
+          title: r.leave ? '출발할 시간' : r.name, sub, body: (rt.name || '루틴') + (sub ? ' · ' + sub : ''),
+          from: addMin(day, p.start).getTime(), to: p.leave != null ? addMin(day, p.leave).getTime() : 0,
+          next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''});
+      });
+    }
+  });
+  return out.sort((a, b) => a.at - b.at).slice(0, 64);
+};
+function hmOf(m){ m = Math.round(m); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+boot();
+})();`
+  },
+  {
+    name: '화면을 다시 그릴 때마다 앱에 알람 목록을 넘기기(앱 쪽에서 바뀐 때만 다시 예약)',
+    find: '  checkAlarms();\n',
+    replace: '  checkAlarms();\n  if (window.BX_afterRender) window.BX_afterRender();\n'
+  },
+  {
+    name: '앱에서는 화면 안 삐 소리를 내지 않기(휴대폰 알람이 울림)',
+    find: 'function beep(){\n  if (!interacted) return;',
+    replace: 'function beep(){\n  if (!interacted || window.BX_APP) return;'
+  },
+  {
+    name: '설정 > 알림에 "휴대폰 알람 시험" 줄 넣기',
+    find: "'<section class=\"set-sec\" aria-labelledby=\"s-alarm\"><h2 id=\"s-alarm\">알림</h2>' +",
+    replace: "'<section class=\"set-sec\" aria-labelledby=\"s-alarm\"><h2 id=\"s-alarm\">알림</h2>' + (window.BX_APP ? '<div class=\"set-menu\"><button type=\"button\" class=\"menu-row\" data-act=\"bx-alarm-test\"><span class=\"mi\">' + ICON.bell + '</span><span class=\"ml\">휴대폰 알람 시험</span><span class=\"mv\">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' : '') +"
   },
   {
     name: '월간 달력 칸의 일정 칩에 분류 색과 시각 표시 자리를 달아 휴대폰에서도 제목이 보이게(스타일은 app-shim.js)',

@@ -37,7 +37,8 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon 2>&1 | tee "$GITHUB_WORKSPACE/build.log"
 
       - name: 파일 이름 정리
         run: cp android/app/build/outputs/apk/debug/app-debug.apk "boxworks-test-${{ github.run_number }}.apk"
@@ -57,3 +58,16 @@ jobs:
           body: |
             박스웍스 안드로이드 시험판입니다. 휴대폰에서 아래 apk 파일을 눌러 받은 뒤 설치하세요.
             커밋: ${{ github.sha }}
+
+      # 저장소를 비공개로 바꿔도 결과(성공·실패, 오류 내용, 설치 파일)를 git으로 받을 수 있게 남긴다
+      - name: 결과를 ci-results 브랜치에 남기기
+        if: always()
+        run: |
+          mkdir -p /tmp/ci && cd /tmp/ci
+          git init -q -b ci-results
+          echo "run=${{ github.run_number }} sha=${{ github.sha }} result=${{ job.status }}" > status.txt
+          if [ -f "$GITHUB_WORKSPACE/build.log" ]; then grep -E "error:|e: |FAILURE|What went wrong|BUILD (SUCCESSFUL|FAILED)" -A6 "$GITHUB_WORKSPACE/build.log" | head -200 > errors.txt || true; tail -80 "$GITHUB_WORKSPACE/build.log" > build-tail.txt; fi
+          cp "$GITHUB_WORKSPACE"/boxworks-test-*.apk . 2>/dev/null || true
+          git add -A
+          git -c user.name="ci" -c user.email="ci@users.noreply.github.com" commit -qm "run ${{ github.run_number }}: ${{ job.status }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-results

@@ -28,7 +28,9 @@
     '.bx-app .c-chip span{display:block;overflow:hidden;white-space:nowrap;text-overflow:clip}',
     '.bx-app .c-chip.done span{text-decoration:line-through;color:var(--ink-3)}',
     '.bx-app .c-more{font-size:10.5px;font-weight:700;color:var(--ink-3);line-height:1.2;padding-left:3px;text-align:left}',
-    '}'
+    '}',
+    // Claude가 보내던 아침 일정 보고 설정은 앱에서 쓰지 않음(앱의 아침 보고는 5단계에서 휴대폰이 직접 만듦)
+    '.bx-app section[aria-labelledby="s-report"]{display:none!important}'
   ].join('');
   (document.head || document.documentElement).appendChild(style);
 
@@ -76,6 +78,72 @@
       try { handled = typeof window.BX_back === 'function' && window.BX_back(); } catch (e) {}
       if (!handled && app.minimizeApp) app.minimizeApp();
     });
+  }
+
+  // 휴대폰 알람(2단계). 박스웍스가 계산한 앞으로 7일의 알람 목록을 휴대폰에 예약한다.
+  // 목록이 바뀐 때만 다시 예약하고, 알림 권한은 알람이 처음 생길 때 한 번만 묻는다(D-01).
+  var alarm = plugin('BxAlarm');
+  var memo = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  if (alarm) {
+    var lastSig = null, timer = null, checked = false;
+    var syncAlarms = async function () {
+      if (typeof window.BX_alarmPlan !== 'function') return;
+      var list = window.BX_alarmPlan(7);
+      if (!list) return;
+      var sig = JSON.stringify(list);
+      if (sig === lastSig) return;
+      lastSig = sig;
+      try { await alarm.sync({ alarms: list }); } catch (e) { lastSig = null; }
+      if (list.length && !checked) { checked = true; askPermissions(false); }
+    };
+    var askPermissions = async function (fromTest) {
+      try {
+        var st = await alarm.status();
+        if (!st.notifications && (fromTest || memo.get('bx:askNotif') !== '1')) {
+          memo.set('bx:askNotif', '1');
+          st = await alarm.requestNotifications();
+          if (!st.notifications && fromTest && window.confirm('알림이 꺼져 있어서 알람이 울리지 않아요. 휴대폰 설정에서 박스웍스 알림을 켤까요?')) {
+            alarm.openSettings({ which: 'notifications' });
+            return false;
+          }
+        }
+        if (st.notifications && !st.exact && (fromTest || memo.get('bx:askExact') !== '1')) {
+          memo.set('bx:askExact', '1');
+          if (window.confirm('알람이 정확한 시각에 울리려면 다음 화면에서 박스웍스를 허용해 주세요.')) alarm.openSettings({ which: 'exact' });
+        }
+        if (st.notifications && !st.fullScreen && (fromTest || memo.get('bx:askFull') !== '1')) {
+          memo.set('bx:askFull', '1');
+          if (window.confirm('잠금 화면에서도 알람을 크게 띄우려면 다음 화면에서 박스웍스를 허용해 주세요.')) alarm.openSettings({ which: 'fullscreen' });
+        }
+        return !!st.notifications;
+      } catch (e) {
+        return false;
+      }
+    };
+    window.BX_afterRender = function () {
+      clearTimeout(timer);
+      timer = setTimeout(syncAlarms, 700);
+    };
+    var app2 = plugin('App');
+    if (app2 && app2.addListener) app2.addListener('resume', function () { lastSig = null; window.BX_afterRender(); });
+    // 설정 > 알림 > 휴대폰 알람 시험
+    document.addEventListener('click', async function (ev) {
+      var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-alarm-test"]');
+      if (!b) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      var ok = await askPermissions(true);
+      if (!ok) return;
+      try {
+        await alarm.test({ seconds: 10 });
+        if (window.BX_toast) window.BX_toast('10초 뒤 알람이 울려요. 화면을 끄고 기다려 보세요.');
+      } catch (e) {
+        if (window.BX_toast) window.BX_toast('시험 알람을 예약하지 못했어요.');
+      }
+    }, true);
   }
 
   window.claude = {
