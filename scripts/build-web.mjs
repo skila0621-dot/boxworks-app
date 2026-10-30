@@ -197,7 +197,7 @@ boot();
   {
     name: '└ 마이크 버튼 만드는 함수와 규칙 해석 시험용 연결',
     find: '\nwindow.BX_toast = function(msg){ toast(msg); };',
-    replace: "\nfunction bxMic(id, prompt){ return window.BX_HAS_MIC ? '<button type=\"button\" class=\"bx-mic\" data-act=\"bx-mic\" data-for=\"' + id + '\" data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말로 넣기\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"12\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0\"/><path d=\"M12 18v3\"/></svg></button>' : ''; }\nwindow.BX_parse = function(text){ return parseQuick(text, new Date()); };\nwindow.BX_toast = function(msg){ toast(msg); };"
+    replace: "\nfunction bxMic(id, prompt){ return window.BX_HAS_MIC ? '<button type=\"button\" class=\"bx-mic\" data-act=\"bx-mic\" data-for=\"' + id + '\" data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말로 넣기\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"12\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0\"/><path d=\"M12 18v3\"/></svg></button>' : ''; }\nwindow.BX_parse = function(text){ return parseQuick(text, new Date()); };\nwindow.BX_parseAt = function(text, now){ return parseQuick(text, now); };\nwindow.BX_toast = function(msg){ toast(msg); };"
   },
   {
     name: '사용 설명서에서 앱에 없는 장(Claude 연동·AI 정리·아침 보고·링크 공유·바로가기 설치) 빼기',
@@ -223,6 +223,40 @@ boot();
     name: '└ 오늘 화면에 그날 시간표',
     find: "'<div class=\"home-col\">' + todaySec + '</div>",
     replace: "'<div class=\"home-col\">' + todaySec + (window.BX_APP ? ttTodayHtml() : '') + '</div>"
+  },
+  {
+    name: '말로 넣기 규칙 보강: "다음 달 5일"·"내일모레", 제목 끝의 "가야 돼"·겹친 말 정리',
+    find: 'function parseQuick(text, now){\n  const today = sod(now);',
+    replace: `function parseQuick(text, now){ return bxQuickFix(parseQuick0(bxQuickPre(text, now), now)); }
+function bxQuickPre(text, now){
+  let s = String(text == null ? '' : text);
+  s = s.replace(/내일\\s*모레/g, '모레');
+  s = s.replace(/(?:다음|담)\\s*달\\s*(\\d{1,2})\\s*일/g, (m, d) => { const x = new Date(now.getFullYear(), now.getMonth() + 1, 1); return (x.getMonth() + 1) + '월 ' + d + '일'; });
+  s = s.replace(/이번\\s*달\\s*(\\d{1,2})\\s*일/g, (m, d) => (now.getMonth() + 1) + '월 ' + d + '일');
+  return s;
+}
+function bxQuickFix(r){
+  if (!r || !r.title || !(r.date || r.start)) return r;
+  let t = ' ' + r.title + ' ';
+  t = t.replace(/\\s(?:가야|해야|와야|봐야|가봐야|들러야)\\s?(?:돼|해|함|됨|된다|한다|지)\\s/g, ' ');
+  t = t.replace(/\\s(?:있어|있음|있다|예정)\\s/g, ' ');
+  if (r.date) t = t.replace(/\\s[월화수목금토일]요일\\s/g, ' ');
+  t = t.replace(/^\\s*(점심|저녁|아침)\\s+(?=\\1)/, ' ');
+  t = t.replace(/\\s+/g, ' ').trim();
+  return t ? Object.assign({}, r, {title: t}) : r;
+}
+function parseQuick0(text, now){
+  const today = sod(now);`
+  },
+  {
+    name: '말한·적은 날짜가 미리 정해진 날짜보다 우선(손으로 고른 날짜만 고정)',
+    find: 'touchedDate: !!preset.date, touchedTime: false',
+    replace: 'touchedDate: false, baseDate: date, touchedTime: false'
+  },
+  {
+    name: '└ 문장에서 날짜를 지우면 처음 날짜로 돌아감',
+    find: 'if (!F.touchedDate) F.date = p.date || (prev && prev.date ? M.today : F.date);',
+    replace: 'if (!F.touchedDate) F.date = p.date || F.baseDate || (prev && prev.date ? M.today : F.date);'
   },
   {
     name: '└ 사용 설명서 목차에서 "PC 바탕화면 위젯으로 쓰기" 빼기',
