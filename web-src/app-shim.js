@@ -12,6 +12,11 @@
   window.BX_APP = true;
   document.documentElement.classList.add('bx-app');
 
+  // 앱에서는 쓰지 않는 웹 전용 메뉴를 숨김: 위젯 모드(PC 바탕화면용)와 그 설명
+  var style = document.createElement('style');
+  style.textContent = '.bx-app [data-act="widget"],.bx-app #g-widget{display:none!important}';
+  (document.head || document.documentElement).appendChild(style);
+
   function plugin(name) {
     return (cap.Plugins && cap.Plugins[name]) || null;
   }
@@ -46,6 +51,17 @@
       }
     }
   };
+
+  // 휴대폰 뒤로 버튼. 박스웍스 안에서 되돌아갈 곳이 있으면 거기로 가고,
+  // 오늘 화면에서 누르면 앱을 끄지 않고 뒤로 보냄(안드로이드 12 이후 기본 동작과 같음)
+  var app = plugin('App');
+  if (app && app.addListener) {
+    app.addListener('backButton', function () {
+      var handled = false;
+      try { handled = typeof window.BX_back === 'function' && window.BX_back(); } catch (e) {}
+      if (!handled && app.minimizeApp) app.minimizeApp();
+    });
+  }
 
   window.claude = {
     use: function (name) {

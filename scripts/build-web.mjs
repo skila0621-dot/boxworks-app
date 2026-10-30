@@ -60,6 +60,26 @@ const patches = [
     name: '└ 위 항목의 끝',
     find: "data-act=\"report-setup\">만들기</button></li></ol></section>' : '';",
     replace: "data-act=\"report-setup\">만들기</button></li>') + '</ol></section>' : '';"
+  },
+  {
+    name: '위젯 모드(PC 바탕화면용)를 앱에서 끄기: 켜는 동작 막기',
+    find: 'function setWidget(on){\n  S.widget = on;',
+    replace: 'function setWidget(on){\n  if (window.BX_APP) on = false;\n  S.widget = on;'
+  },
+  {
+    name: '└ 예전에 켜 둔 위젯 모드로 열리지 않게',
+    find: "if (lsGet('bx:widget') === '1')",
+    replace: "if (!window.BX_APP && lsGet('bx:widget') === '1')"
+  },
+  {
+    name: '휴대폰 뒤로 버튼: 열린 창 닫기 → 앞 창으로 → 오늘 화면으로, 오늘이면 앱을 뒤로 보냄',
+    find: '\nboot();\n})();',
+    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\nboot();\n})();"
+  },
+  {
+    name: '└ 사용 설명서 목차에서 "PC 바탕화면 위젯으로 쓰기" 빼기',
+    find: ", ['g-widget', 'PC 바탕화면 위젯으로 쓰기']]]",
+    replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
 
