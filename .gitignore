@@ -3,3 +3,6 @@ node_modules/
 *.log
 # www는 scripts/build-web.mjs가 web-src에서 만든다
 www/
+
+# Play 업로드 키 원본은 넣지 않는다
+android/app/*.jks

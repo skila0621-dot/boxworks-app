@@ -21,12 +21,22 @@ android {
     }
     signingConfigs {
         // 시험판 전용 고정 키. 매번 같은 키로 서명해야 휴대폰에서 지우지 않고 업데이트됨.
-        // Play 스토어용 키는 따로 만들고 이 저장소에 넣지 않는다.
         test {
             storeFile file('boxworks-test.keystore')
             storePassword 'boxworks-test'
             keyAlias 'boxworks-test'
             keyPassword 'boxworks-test'
+        }
+        // Play 스토어에 올릴 때 쓰는 키(업로드 키). 저장소에는 암호화한 upload.jks.enc만 있고,
+        // CI가 GitHub 비밀값 BX_UPLOAD_PASS로 풀어 BX_UPLOAD_KEYSTORE 경로에 둔다.
+        release {
+            def ks = System.getenv('BX_UPLOAD_KEYSTORE')
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('BX_UPLOAD_PASS')
+                keyAlias 'boxworks-upload'
+                keyPassword System.getenv('BX_UPLOAD_PASS')
+            }
         }
     }
     buildTypes {
@@ -35,6 +45,7 @@ android {
         }
         release {
             minifyEnabled false
+            if (System.getenv('BX_UPLOAD_KEYSTORE')) signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

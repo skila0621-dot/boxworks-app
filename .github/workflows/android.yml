@@ -11,6 +11,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Play 업로드 키를 푸는 비밀값. 넣어 두면 Play용 파일(AAB)도 만든다
+      BX_UPLOAD_PASS: ${{ secrets.BX_UPLOAD_PASS }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,10 +46,24 @@ jobs:
       - name: 파일 이름 정리
         run: cp android/app/build/outputs/apk/debug/app-debug.apk "boxworks-test-${{ github.run_number }}.apk"
 
+      - name: Play용 파일(AAB) 만들기
+        if: env.BX_UPLOAD_PASS != ''
+        working-directory: android
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in app/upload.jks.enc -out "$RUNNER_TEMP/upload.jks" -pass env:BX_UPLOAD_PASS
+          set -o pipefail
+          BX_UPLOAD_KEYSTORE="$RUNNER_TEMP/upload.jks" ./gradlew bundleRelease --no-daemon 2>&1 | tee -a "$GITHUB_WORKSPACE/build.log"
+          cp app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/boxworks-${{ github.run_number }}.aab"
+          rm -f "$RUNNER_TEMP/upload.jks"
+
       - uses: actions/upload-artifact@v4
         with:
           name: boxworks-test-${{ github.run_number }}
-          path: boxworks-test-*.apk
+          path: |
+            boxworks-test-*.apk
+            boxworks-*.aab
 
       - name: 휴대폰에서 받을 수 있게 올리기
         uses: softprops/action-gh-release@v2
@@ -68,6 +85,7 @@ jobs:
           echo "run=${{ github.run_number }} sha=${{ github.sha }} result=${{ job.status }}" > status.txt
           if [ -f "$GITHUB_WORKSPACE/build.log" ]; then grep -E "error:|e: |FAILURE|What went wrong|BUILD (SUCCESSFUL|FAILED)" -A6 "$GITHUB_WORKSPACE/build.log" | head -200 > errors.txt || true; tail -80 "$GITHUB_WORKSPACE/build.log" > build-tail.txt; fi
           cp "$GITHUB_WORKSPACE"/boxworks-test-*.apk . 2>/dev/null || true
+          cp "$GITHUB_WORKSPACE"/boxworks-*.aab . 2>/dev/null || true
           git add -A
           git -c user.name="ci" -c user.email="ci@users.noreply.github.com" commit -qm "run ${{ github.run_number }}: ${{ job.status }}"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-results
