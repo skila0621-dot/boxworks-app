@@ -29,5 +29,10 @@ export default [
     name: '└ 이름을 바꾸면 자동 아이콘도 바로 바뀜',
     find: `    else if (t.id === 'r-name' && R) R.name = t.value;`,
     replace: `    else if (t.id === 'r-name' && R) { R.name = t.value; if (window.BX_APP) bxIconPickRefresh(); }`
+  },
+  {
+    name: '루틴 템플릿에 \'명상 10분\' 넣기(대표 요청)',
+    find: "  {key: 'sleep', name: '취침 루틴', days: RT_ALL, mode: 'start', target: '23:00', steps: [['씻기', 15], ['저녁 약', 0], ['휴대폰 내려놓기', 0], ['잠자리 들기', 0]]}\n];",
+    replace: "  {key: 'sleep', name: '취침 루틴', days: RT_ALL, mode: 'start', target: '23:00', steps: [['씻기', 15], ['저녁 약', 0], ['휴대폰 내려놓기', 0], ['잠자리 들기', 0]]},\n  {key: 'meditate', name: '명상 10분', days: RT_ALL, mode: 'start', target: '07:30', steps: [['휴대폰 방해 금지 켜기', 0], ['편하게 앉기', 1], ['호흡 명상', 10]]}\n];"
   }
 ];

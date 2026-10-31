@@ -101,10 +101,13 @@ window.BX_applyConfirmed = function(map){
   });
   return n;
 };
+// 루틴을 만든 시각(오늘 만든 루틴이면 그 전에 지난 단계는 놓친 것으로 치지 않는다)
+function bxRtBornM(rt, ds){ const d = getDoc(rt.id), c = d && d.createdAt ? new Date(d.createdAt) : null; return c && !isNaN(c) && ymd(c) === ds ? c.getHours() * 60 + c.getMinutes() : -1; }
 function bxRtMissedOf(rt){
   if (!rtActiveOn(rt, M.today)) return [];
   const s = rtToday(rt); if (s.skip || s.finished) return [];
-  return s.rows.filter(r => r.kind !== 'wait' && !r.done && r.at + 10 <= s.nowM);
+  const born = bxRtBornM(rt, M.today);
+  return s.rows.filter(r => r.kind !== 'wait' && !r.done && r.at + 10 <= s.nowM && r.at >= born);
 }
 function bxRtMissed(){ return M && M.routines ? M.routines.reduce((a, rt) => a.concat(bxRtMissedOf(rt).map(r => ({rt, r}))), []) : []; }
 // 오늘 화면 루틴 카드에 주의 줄 붙이기(render 끝의 bxFoldDecorate에서 부름)

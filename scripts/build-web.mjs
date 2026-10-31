@@ -131,7 +131,7 @@ window.BX_alarmPlan = function(days){
         }
       });
       // 루틴이 끝난 10분 뒤: 확인하지 않은 단계가 있으면 휴대폰이 한 번 더 알린다(대표 요청). 다 확인했으면 울리지 않는다
-      const todo = rows.filter(r => !doneMap[r.id]);
+      const born = bxRtBornM(rt, ds), todo = rows.filter(r => !doneMap[r.id] && r.at >= born);
       const endM = p.leave != null ? p.leave : rows.length ? rows[rows.length - 1].at + rows[rows.length - 1].min : null;
       if (todo.length && endM != null) {
         const tc = addMin(day, endM + 10).getTime();
