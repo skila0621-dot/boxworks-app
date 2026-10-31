@@ -125,6 +125,52 @@ final class AlarmNotify {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
+    /**
+     * 명상 종소리(싱잉볼). 화면 전체 알람 없이 소리 한 번과 알림만. 소리마다 알림 채널이 따로다(채널 소리는 바꿀 수 없어서).
+     * sound: bowl(시작), bowl3(끝, 세 번), bowl_soft(중간 종)
+     */
+    static void showSoft(Context c, JSONObject o) {
+        String snd = o.optString("sound", "bowl");
+        int raw = "bowl3".equals(snd) ? R.raw.bx_bowl3 : "bowl_soft".equals(snd) ? R.raw.bx_bowl_soft : R.raw.bx_bowl;
+        String ch = "bx_snd_" + snd + "_v1";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = c.getSystemService(NotificationManager.class);
+            if (nm != null && nm.getNotificationChannel(ch) == null) {
+                String label = "bowl3".equals(snd) ? "명상 끝 종" : "bowl_soft".equals(snd) ? "명상 중간 종" : "명상 시작 종";
+                NotificationChannel nc = new NotificationChannel(ch, label, NotificationManager.IMPORTANCE_HIGH);
+                nc.setDescription("싱잉볼 소리로 명상과 부드러운 루틴 알람을 알려 줘요");
+                nc.setSound(Uri.parse("android.resource://" + c.getPackageName() + "/" + raw), new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build());
+                nc.enableVibration(false);
+                nc.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                nm.createNotificationChannel(nc);
+            }
+        }
+        String id = o.optString("id");
+        Intent open = new Intent(c, MainActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent openPi = PendingIntent.getActivity(c, notifId(id) + 1, open,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        String title = o.optString("title");
+        if (title.isEmpty()) title = "박스웍스";
+        NotificationCompat.Builder b = new NotificationCompat.Builder(c, ch)
+            .setSmallIcon(R.drawable.ic_stat_bx)
+            .setContentTitle(title)
+            .setContentText(o.optString("sub", o.optString("body")))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(true)
+            .setContentIntent(openPi);
+        if (!o.optString("series").isEmpty()) b.addAction(0, "확인", actionPi(c, "ok", o));
+        try {
+            NotificationManagerCompat.from(c).notify(notifId(id), b.build());
+        } catch (SecurityException ignored) {
+        }
+    }
+
     static int notifId(String id) {
         return id == null ? 0 : id.hashCode();
     }

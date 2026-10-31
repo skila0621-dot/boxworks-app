@@ -175,6 +175,27 @@ public final class AlarmStore {
         schedule(c, o);
     }
 
+    /** 앱이 직접 건 알람 가운데 id가 prefix로 시작하는 것을 지운다(명상을 도중에 끝냈을 때) */
+    static synchronized int cancelPrefix(Context c, String prefix) {
+        JSONArray prev = load(c);
+        JSONArray stored = new JSONArray();
+        int n = 0;
+        for (int i = 0; i < prev.length(); i++) {
+            JSONObject o = prev.optJSONObject(i);
+            if (o == null) continue;
+            String id = o.optString("id");
+            if (prefix != null && !prefix.isEmpty() && id.startsWith(prefix)) {
+                cancel(c, id);
+                AlarmNotify.dismiss(c, id);
+                n++;
+            } else {
+                stored.put(o);
+            }
+        }
+        save(c, stored);
+        return n;
+    }
+
     static synchronized void remove(Context c, String id) {
         if (id == null) return;
         JSONArray prev = load(c);
@@ -223,7 +244,7 @@ public final class AlarmStore {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         boolean exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms();
         try {
-            if ("report".equals(o.optString("kind"))) {
+            if ("report".equals(o.optString("kind")) || o.optString("sound").startsWith("bowl")) {
                 // 아침 보고는 알람이 아니라 알림이라 상태 표시줄의 '다음 알람'에 넣지 않는다
                 if (exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
                 else am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);

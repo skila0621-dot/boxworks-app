@@ -12,7 +12,9 @@ public class AlarmReceiver extends BroadcastReceiver {
         JSONObject o = AlarmNotify.fromIntent(intent);
         AlarmStore.remove(context, o.optString("id"));
         String kind = o.optString("kind");
-        if ("report".equals(kind)) {
+        if (o.optString("sound").startsWith("bowl")) {
+            AlarmNotify.showSoft(context, o);
+        } else if ("report".equals(kind)) {
             AlarmNotify.showReport(context, o.optJSONObject("report"));
         } else if ("rcheck".equals(kind)) {
             // 루틴이 끝난 뒤: 확인하지 않은 단계가 있을 때만 알람을 띄운다

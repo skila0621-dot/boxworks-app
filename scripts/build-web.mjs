@@ -79,7 +79,7 @@ const patches = [
   {
     name: '휴대폰 뒤로 버튼: 열린 창 닫기 → 앞 창으로 → 오늘 화면으로, 오늘이면 앱을 뒤로 보냄',
     find: '\nboot();\n})();',
-    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
+    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view === 'med') { go('routines', {}); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
 // 앞으로 며칠 동안 울릴 알람 목록. 박스웍스의 알림 규칙(remindAt, 루틴 시간표)을 그대로 쓴다.
 window.BX_alarmPlan = function(days){
   if (!M || !S.firstServer) return null;
@@ -105,7 +105,8 @@ window.BX_alarmPlan = function(days){
     const p = rtPlan(rt); if (p.bad) return;
     const rows = p.rows.filter(r => r.kind !== 'wait');
     // 다시 알림: 확인을 누르지 않으면 every분마다 times번 더(루틴 창에서 정함). 다음 단계가 울리기 전까지만
-    const rep = Math.max(0, Math.min(12, Math.round(+rt.times || 0))), every = Math.max(1, Math.min(60, Math.round(+rt.every || 5)));
+    const bowl = rt.sound === 'bowl';
+    const rep = bowl ? 0 : Math.max(0, Math.min(12, Math.round(+rt.times || 0))), every = Math.max(1, Math.min(60, Math.round(+rt.every || 5)));
     for (let k = 0; k <= days; k++) {
       const day = addDays(sod(new Date(now)), k), ds = ymd(day);
       if (!rtActiveOn(rt, ds)) continue;
@@ -127,13 +128,19 @@ window.BX_alarmPlan = function(days){
             next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
           // series: 이 단계의 알람 묶음. 휴대폰에서 '확인'을 누르면 남은 다시 알림을 지우고, 앱에 '했어요'로 옮긴다
           a.series = base;
+          if (bowl) a.sound = 'bowl';
           (j ? reps : out).push(a);
         }
       });
       // 루틴이 끝난 10분 뒤: 확인하지 않은 단계가 있으면 휴대폰이 한 번 더 알린다(대표 요청). 다 확인했으면 울리지 않는다
       const born = bxRtBornM(rt, ds), todo = rows.filter(r => !doneMap[r.id] && r.at >= born);
       const endM = p.leave != null ? p.leave : rows.length ? rows[rows.length - 1].at + rows[rows.length - 1].min : null;
-      if (todo.length && endM != null) {
+      // 싱잉볼 루틴(명상 등): 마지막 단계가 끝날 때 끝 종 세 번. 확인 안 한 단계 알림은 하지 않는다
+      if (bowl && endM != null && rows.length && rows[rows.length - 1].min > 0) {
+        const te = addMin(day, endM).getTime();
+        if (te > now && te <= until && !doneMap[rows[rows.length - 1].id]) out.push({id: 'r_' + rt.id + '_' + ds + '_end', at: te, kind: 'item', sound: 'bowl3', group: rt.name || '루틴', title: (rt.name || '루틴') + ' 끝', sub: '잘했어요', body: ''});
+      }
+      if (todo.length && endM != null && !bowl) {
         const tc = addMin(day, endM + 10).getTime();
         if (tc > now && tc <= until) out.push({id: 'rc_' + rt.id + '_' + ds, at: tc, kind: 'rcheck', group: rt.name || '루틴', title: (rt.name || '루틴') + ' · 확인하지 않은 단계가 있어요', sub: '', body: '',
           check: todo.map(r => ({s: 'r_' + rt.id + '_' + ds + '_' + r.id, n: r.leave ? '출발' : r.name})), from: addMin(day, p.start).getTime(), to: addMin(day, endM).getTime()});
@@ -245,7 +252,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
@@ -265,7 +272,7 @@ boot();
   {
     name: '└ 주간을 보고 있어도 아래 메뉴의 \'캘린더\'에 불이 들어오게',
     find: "if (b.dataset.view === S.view) b.setAttribute('aria-current', 'page');",
-    replace: "if (b.dataset.view === S.view || (window.BX_APP && b.dataset.view === 'month' && S.view === 'week')) b.setAttribute('aria-current', 'page');"
+    replace: "if (b.dataset.view === S.view || (window.BX_APP && ((b.dataset.view === 'month' && S.view === 'week') || (b.dataset.view === 'routines' && S.view === 'med')))) b.setAttribute('aria-current', 'page');"
   },
   {
     name: '└ 오늘 화면에 그날 시간표',
@@ -339,4 +346,7 @@ for (const p of patches) {
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, 'index.html'), html);
 copyFileSync(join(root, 'web-src', 'app-shim.js'), join(out, 'app-shim.js'));
+// 명상 종소리(싱잉볼, scripts/sound/make-bowl.py로 합성)
+mkdirSync(join(out, 'sounds'), { recursive: true });
+for (const f of ['bx_bowl.ogg', 'bx_bowl3.ogg', 'bx_bowl_soft.ogg']) copyFileSync(join(root, 'web-src', 'sounds', f), join(out, 'sounds', f));
 console.log(`www/index.html (${(html.length / 1024).toFixed(0)}KB) 만듦`);

@@ -81,6 +81,35 @@ public class BxAlarmPlugin extends Plugin {
         call.resolve(statusObject());
     }
 
+    /** 앱이 직접 거는 알람(명상 끝 종 등). 화면 목록을 다시 받아도 지워지지 않는다 */
+    @PluginMethod
+    public void local(PluginCall call) {
+        JSArray list = call.getArray("alarms", new JSArray());
+        int n = 0;
+        try {
+            JSONArray a = new JSONArray(list.toString());
+            for (int i = 0; i < a.length(); i++) {
+                JSONObject o = a.optJSONObject(i);
+                if (o == null || o.optString("id").isEmpty() || o.optLong("at", 0) <= System.currentTimeMillis()) continue;
+                AlarmStore.addLocal(getContext(), o);
+                n++;
+            }
+        } catch (Exception e) {
+            call.reject("알람을 걸지 못했어요", e);
+            return;
+        }
+        JSObject r = new JSObject();
+        r.put("scheduled", n);
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void cancelLocal(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("cancelled", AlarmStore.cancelPrefix(getContext(), call.getString("prefix", "")));
+        call.resolve(r);
+    }
+
     /** 휴대폰 알람에서 '확인'·'5분 뒤'를 누른 묶음(series → 누른 시각). 앱이 루틴 단계를 '했어요'로 옮길 때 쓴다 */
     @PluginMethod
     public void confirmed(PluginCall call) {
