@@ -96,9 +96,12 @@ function ttParse(text){
 
 /* 캘린더 탭 위쪽 '월간 | 주간' 전환(대표 요청: 주간·월간을 '캘린더' 탭 하나로). 시간표는 아래 메뉴의 따로 된 탭 */
 function bxCalBar(cur){
+  // 휴대폰 캘린더를 함께 볼 때: 박스웍스 일정은 색, 휴대폰 캘린더 일정은 회색 테두리(전체 흐름 와이어프레임 14)
+  const pc = typeof pcCfg === 'function' && pcCfg().on;
   return '<div class="tt-mode"><div class="seg" role="group" aria-label="캘린더 보기" style="width:200px">' +
     '<button type="button" data-act="tt-cal" data-to="month" aria-pressed="' + (cur === 'month') + '">월간</button>' +
-    '<button type="button" data-act="tt-cal" data-to="week" aria-pressed="' + (cur === 'week') + '">주간</button></div></div>';
+    '<button type="button" data-act="tt-cal" data-to="week" aria-pressed="' + (cur === 'week') + '">주간</button></div>' +
+    (pc ? '<span class="bx-cal-lg"><span><i class="bx"></i>박스웍스</span><span><i class="pc"></i>휴대폰 캘린더</span></span>' : '') + '</div>';
 }
 // 월간에서 고른 날이 든 주로, 주간에서는 그 주가 든 달로
 function bxCalGo(to){

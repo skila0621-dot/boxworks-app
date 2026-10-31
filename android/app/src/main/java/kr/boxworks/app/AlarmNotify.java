@@ -207,7 +207,72 @@ final class AlarmNotify {
         return id == null ? 0 : id.hashCode();
     }
 
+    /**
+     * 울리는 방식(전체 흐름 와이어프레임 18): alarm = 잠금 화면에 크게·확인할 때까지(아래 show),
+     * notice = 위에서 내려오는 알림·소리 한 번, quiet = 알림창에만. 5분 뒤로 미루면 같은 lv로 다시 울린다
+     */
+    static final String CHANNEL_NOTICE = "bx_notice_p1";
+    static final String CHANNEL_QUIET = "bx_quiet_p1";
+
+    static void showNotice(Context c, JSONObject o, boolean quiet) {
+        String ch = quiet ? CHANNEL_QUIET : CHANNEL_NOTICE;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = c.getSystemService(NotificationManager.class);
+            if (nm != null && nm.getNotificationChannel(ch) == null) {
+                NotificationChannel nc = new NotificationChannel(ch, quiet ? "조용한 알림" : "일정 알림",
+                    quiet ? NotificationManager.IMPORTANCE_LOW : NotificationManager.IMPORTANCE_HIGH);
+                nc.setDescription(quiet ? "소리 없이 알림창에만 와요" : "위에서 내려오고 소리가 한 번 나요");
+                if (quiet) {
+                    nc.setSound(null, null);
+                    nc.enableVibration(false);
+                } else {
+                    nc.enableVibration(true);
+                }
+                nc.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+                nm.createNotificationChannel(nc);
+            }
+        }
+        String id = o.optString("id");
+        String title = o.optString("title");
+        String body = o.optString("body", o.optString("sub"));
+        if (title.isEmpty()) title = "박스웍스";
+        Intent open = new Intent(c, MainActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent openPi = PendingIntent.getActivity(c, notifId(id) + 1, open,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        boolean all = showAllOnLock(c);
+        NotificationCompat.Builder pub = new NotificationCompat.Builder(c, ch)
+            .setSmallIcon(R.drawable.ic_stat_bx)
+            .setContentTitle(all ? title : pubTitle(c, o))
+            .setContentText(all ? body : pubSub(c, o))
+            .addAction(0, "확인", actionPi(c, "ok", o))
+            .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+        NotificationCompat.Builder b = new NotificationCompat.Builder(c, ch)
+            .setSmallIcon(R.drawable.ic_stat_bx)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
+            .setSubText(o.optString("group", ""))
+            .setPriority(quiet ? NotificationCompat.PRIORITY_LOW : NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(pub.build())
+            .setAutoCancel(true)
+            .setContentIntent(openPi)
+            .addAction(0, "확인", actionPi(c, "ok", o))
+            .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+        try {
+            NotificationManagerCompat.from(c).notify(notifId(id), b.build());
+        } catch (SecurityException ignored) {
+        }
+    }
+
     static void show(Context c, JSONObject o) {
+        String lv = o.optString("lv", "alarm");
+        if ("notice".equals(lv) || "quiet".equals(lv)) {
+            showNotice(c, o, "quiet".equals(lv));
+            return;
+        }
         ensureChannel(c);
         String id = o.optString("id");
         String title = o.optString("title");

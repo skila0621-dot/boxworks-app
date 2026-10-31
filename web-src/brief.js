@@ -46,7 +46,7 @@ function bxReportSetHtml(){
   const cfg = bxRepCfg();
   return setRow('아침에 오늘 일정 받기', segHtml('data-bxrep', [['0', '끄기'], ['1', '켜기']], cfg.on ? '1' : '0', '아침 보고', 150), 'tall') +
     (cfg.on ? '<div class="set-ctl"><input type="time" id="bx-rep-t" class="inp big-time" step="300" value="' + cfg.at + '"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span></div>' : '') +
-    bxLockSetHtml();
+    bxLevelSetHtml() + bxLockSetHtml();
 }
 /* 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게) */
 const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목까지', '“치과 · 14:30 출발”처럼 제목도 보여요'], ['none', '아무것도', '알람도 “박스웍스 알람”으로만 보여요']];
@@ -92,12 +92,12 @@ window.BX_widgetData = function(plan){
   const routines = [];
   for (let k = 0; k <= 3; k++) {
     const day = addDays(sod(new Date(now)), k), ds = ymd(day);
-    ttList().forEach(e => {
+    if (bxModOn('tt')) ttList().forEach(e => {
       if (!ttOn(e, ds) || !isHM(e.start)) return;
       const s = addMin(day, toMin(e.start)).getTime(), en = isHM(e.end) ? addMin(day, toMin(e.end)).getTime() : s + 3600e3;
       if (en >= t0 && s <= until) list.push({at: s, end: en, title: e.name, place: e.place || '', go: 0, c: bxHex(e.color), k: 'tt'});
     });
-    M.routines.forEach(rt => {
+    if (bxModOn('routines')) M.routines.forEach(rt => {
       if (!rtActiveOn(rt, ds) || rt.sound === 'bowl') return;
       const p = rtPlan(rt); if (p.bad) return;
       const lg = M.rlogs.get(rt.id + '|' + ds) || {}; if (lg.skip) return;

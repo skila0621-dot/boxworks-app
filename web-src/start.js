@@ -10,6 +10,7 @@ const BX_MODS = [
 ];
 let BXS = null;
 if (!ICON.flag) ICON.flag = '<svg class="i" viewBox="0 0 24 24"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>';
+function bxModOn(k){ return bxStartMods()[k] !== false; }
 function bxStartMods(){ const st = M && M.settings && M.settings.bxStart; return st && st.mods ? st.mods : {report: true, routines: true, tt: true, med: true}; }
 function bxStartOverlay(html){
   let el = document.getElementById('bx-start');
@@ -190,6 +191,8 @@ function bxStartCheck(){
   if (!window.BX_APP || !M || !M.settings || !S.firstServer || S.widget || SH || BXS || BXR || document.getElementById('bx-start')) return;
   if (!M.settings.bxStart) { setTimeout(() => { if (!SH && !BXS && !document.getElementById('bx-start')) bxStartOpen(); }, 300); return; }
   if (S.view === 'routines' && !M.settings.bxRtHelp && bxStartMods().routines !== false && !bxRtUserCount()) setTimeout(() => { if (!SH && !BXR && S.view === 'routines') bxRtHelpOpen(); }, 250);
+  // 시간표에 처음 들어가면(수업이 하나도 없을 때) 시간표 도우미
+  if (S.view === 'tt' && typeof BXT !== 'undefined' && !BXT && !M.settings.bxTtHelp && bxModOn('tt') && !ttList().length) setTimeout(() => { if (!SH && !BXT && S.view === 'tt' && !document.getElementById('bx-start')) bxTtHelpOpen(); }, 250);
 }
 // 홈 '오늘 할 일' 맨 위 안내 카드
 function bxRtNudgeHtml(){

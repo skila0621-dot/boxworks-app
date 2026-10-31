@@ -107,6 +107,11 @@ export default [
     replace: `    (R.id && !window.BX_APP ? '<button type="button" class="btn" data-act="rt-del">삭제</button>' : '') + '<button type="button" class="btn grow primary" data-act="rt-save">저장</button>');`
   },
   {
+    name: '확인 필요 · 그대로 두기(lateKeep = 그때의 마감 시각)한 일은 지난 일로 세지 않음. 날짜·시각을 바꾸면 다시 셈',
+    find: "const isLate = it => !it.done && !it.pc && dueAt(it) <= M.now;",
+    replace: "const isLate = it => !it.done && !it.pc && dueAt(it) <= M.now && !(it.lateKeep && it.lateKeep === +dueAt(it));"
+  },
+  {
     name: '홈 · 옛 환영 카드는 앱에서 뺌 (첫 실행 화면이 대신함, 새 일정은 + 단추)',
     find: "  const welcome = !M.settings.welcomed && !M.items.length && !M.trash.length ?",
     replace: "  const welcome = !window.BX_APP && !M.settings.welcomed && !M.items.length && !M.trash.length ?"

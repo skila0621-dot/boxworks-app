@@ -293,6 +293,36 @@
     '#bx-start .bxs-links{display:flex;justify-content:center;gap:28px;margin-top:22px}#bx-start .bxs-links button{min-height:44px;padding:0 8px;font-size:15px;color:var(--ink-2);text-decoration:underline;text-underline-offset:4px;background:transparent}#bx-start .bxs-links button.on{color:var(--accent);font-weight:700}',
     '#bx-start .bxs-box{display:flex;flex-direction:column;margin-top:24px;border:1px solid var(--line);border-radius:18px}#bx-start .bxs-res{border-bottom:1px solid var(--line);border-radius:0}#bx-start .bxs-res:last-child{border-bottom:0}',
     '#bx-start .bxs-chips{display:flex;flex-wrap:wrap;gap:8px}#bx-start .bxs-chip{min-height:42px;padding:0 14px;border-radius:21px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',
+    // 빈 홈의 예시 문장, + 단추 팁
+    '.bx-app .bx-empty-ex{padding:14px 0 6px}.bx-app .bx-empty-ex .bx-todo-empty{padding:0;margin:0 0 10px;text-align:left}.bx-app .bx-ex-chips{display:flex;flex-wrap:wrap;gap:8px}',
+    '.bx-app .bx-ex{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',
+    '.bx-fab-tip{position:fixed;right:92px;bottom:calc(var(--dock-h,66px) + 36px + env(safe-area-inset-bottom));z-index:30;padding:8px 12px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.18)}',
+    // 새 일정: 자주 넣은 말
+    '.bx-app .bx-freq{margin-top:12px}.bx-app .bx-freq-h{display:block;font-size:13px;font-weight:500;color:var(--ink-2);margin-bottom:6px}.bx-app .bx-freq-c{display:flex;flex-wrap:wrap;gap:8px}',
+    '.bx-app .bx-freq-b{min-height:38px;padding:0 12px;border-radius:19px;border:1px solid var(--line-2);background:var(--bg);font-size:13.5px;color:var(--ink)}',
+    // 확인 필요 창
+    '.bx-app .bx-late-p{margin:0 0 4px}.bx-app .bx-lc{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}.bx-app .bx-lc-t{display:flex;flex-direction:column;gap:2px}.bx-app .bx-lc-t b{font-size:15.5px}.bx-app .bx-lc-t small{font-size:13px;color:var(--ink-2)}',
+    '.bx-app .bx-lc-a{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.bx-app .bx-lc-a .btn{min-height:46px;justify-content:center}',
+    '.bx-app .bx-late-ok{display:flex;align-items:center;gap:8px;min-height:50px;padding:0 14px;border-radius:14px;background:var(--sunk);font-size:14.5px;color:var(--ink-2)}.bx-app .bx-late-ok .i{width:18px;height:18px;color:var(--accent);stroke-width:2.4}',
+    // 시간표 도우미
+    '#bx-start .bxt-in{display:flex;align-items:flex-start;gap:8px;margin-top:22px;padding:12px 8px 12px 14px;border-radius:16px;border:2px solid var(--accent);background:var(--bg)}',
+    '#bx-start .bxt-in textarea{flex:1;min-width:0;border:0;outline:0;resize:none;background:transparent;font:inherit;font-size:16px;line-height:1.6;color:var(--ink)}#bx-start .bxt-in .bx-mic{width:44px;height:44px;flex:none;border-radius:22px;background:var(--accent-soft);color:var(--accent)}',
+    '#bx-start .bxt-prev{display:flex;flex-direction:column;gap:8px;margin-top:16px}#bx-start .bxt-ph{font-size:13px;font-weight:500;color:var(--ink-2)}',
+    '#bx-start .bxt-row{display:flex;align-items:center;gap:12px;min-height:58px;padding:0 14px;border-radius:14px;background:var(--sunk)}#bx-start .bxt-row.bad small{color:var(--warn-ink)}#bx-start .bxt-bar{width:4px;height:30px;flex:none;border-radius:2px;background:var(--c)}#bx-start .bxt-row.bad .bxt-bar{background:var(--line-2)}',
+    // 위젯 두기 제안
+    '.bx-app .bx-wtip-mini{display:flex;flex-direction:column;gap:1px;width:74px;height:74px;flex:none;box-sizing:border-box;padding:8px;border-radius:16px;background:var(--bg);font-size:8.5px;color:var(--ink-2)}.bx-app .bx-wtip-mini b{font-size:12px;color:var(--ink)}.bx-app .bx-wtip-mini em{font-style:normal;font-weight:700;color:var(--accent)}.bx-app .bx-wtip-mini i{margin-top:auto;height:14px;border-radius:5px;background:var(--accent)}',
+    // 설정: 울리는 방식
+    '.bx-app .bx-lvset{display:flex;flex-direction:column;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.bx-app .bx-lv-fix{font-size:14px;color:var(--ink-2)}.bx-app .bx-lv-note{margin-top:6px}',
+    // 캘린더: 휴대폰 캘린더 일정은 회색 테두리
+    '.bx-app .c-chip[data-item^="pc_"]{background:transparent;border:1px solid var(--ink-3);border-left-width:1px}',
+    '.bx-app .bx-cal-lg{display:flex;gap:10px;margin-left:auto;font-size:12.5px;color:var(--ink-2)}.bx-app .bx-cal-lg span{display:flex;align-items:center;gap:5px}.bx-app .bx-cal-lg i{width:10px;height:10px;border-radius:3px;box-sizing:border-box}.bx-app .bx-cal-lg i.bx{background:var(--accent)}.bx-app .bx-cal-lg i.pc{border:1.5px solid var(--ink-3)}',
+    '.bx-app .tt-mode{display:flex;align-items:center;gap:10px}',
+    // 내가 쓸 기능
+    '.bx-app .bx-ft-h{margin:6px 0 2px;font-size:15px;font-weight:700}.bx-app .bx-ft-h+p+.bx-ft-row,.bx-app .bx-ft-row{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line);font-size:15px}.bx-app .bx-ft-row>span:first-child{flex:1}',
+    '.bx-app .bx-ft-chips{display:flex;flex-wrap:wrap;gap:8px}.bx-app .bx-ft-chip{display:flex;align-items:center;gap:6px;min-height:42px;padding:0 14px;border-radius:21px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',
+    '.bx-app .bx-ft-chip.on{padding-left:8px;border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:700}.bx-app .bx-ft-chip em{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:11px;background:var(--bg);color:var(--accent);font-style:normal;font-size:12px}',
+    '.bx-app .bx-ft-chip.off{border-style:dashed;background:var(--sunk);color:var(--ink-2)}.bx-app .bx-ft-pv-h{display:block;margin-top:14px;font-size:13px;font-weight:500;color:var(--ink-2)}',
+    '.bx-app .bx-ft-pv{display:grid;height:50px;margin-top:6px;border:1px solid var(--line);border-radius:14px;font-size:12.5px;font-weight:700;color:var(--ink-2)}.bx-app .bx-ft-pv span{display:flex;align-items:center;justify-content:center}.bx-app .bx-ft-pv span.on{color:var(--accent)}',
     // 첫 실행 2: 알람 허락 예고 줄
     '#bx-start .bxs-note{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);font-size:13.5px;line-height:1.5;color:var(--ink-2)}#bx-start .bxs-note .i{width:20px;height:20px;flex:none;color:var(--accent)}',
     // 루틴 도우미 결과: 거꾸로 짠 시각표
@@ -553,6 +583,15 @@
   // 위젯의 말하기 단추로 앱이 열리면: 새 일정 창을 열고 바로 마이크를 켠다
   var widgetPl = plugin('BxWidget');
   if (widgetPl) {
+    // 홈 화면에 놓인 위젯 수(위젯 두기 제안을 보일지 정함, web-src/flow.js)
+    var placedRefresh = function () {
+      if (!widgetPl.placed) return;
+      widgetPl.placed().then(function (r) { var prev = JSON.stringify(window.BX_WPLACED || null); window.BX_WPLACED = r; if (JSON.stringify(r) !== prev && window.BX_afterRender) { try { window.BX_rerender && window.BX_rerender(); } catch (e) {} } }).catch(function () {});
+    };
+    setTimeout(placedRefresh, 1200);
+    var app3 = plugin('App');
+    if (app3 && app3.addListener) app3.addListener('resume', placedRefresh);
+    window.BX_widgetPin = function (which) { return widgetPl.pin({ which: which || 'now' }); };
     var speakNow = function () {
       setTimeout(function () {
         var add = document.querySelector('.bx-fab');

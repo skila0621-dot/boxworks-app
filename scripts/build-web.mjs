@@ -80,12 +80,14 @@ const patches = [
   {
     name: '휴대폰 뒤로 버튼: 열린 창 닫기 → 앞 창으로 → 오늘 화면으로, 오늘이면 앱을 뒤로 보냄',
     find: '\nboot();\n})();',
-    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (document.getElementById('bx-start')) { if (typeof BXR !== 'undefined' && BXR && !BXR.made && BXR.q > 0) { BXR.q--; bxRtHelpDraw(); } else if (typeof BXS !== 'undefined' && BXS && BXS.step === 2) { BXS.step = 1; bxStartDraw(); } else if (typeof BXR !== 'undefined' && BXR) { bxStartClose(); BXR = null; } else if (typeof PERM !== 'undefined' && PERM) { bxPermClose(); } return true; }\n  if (S.view === 'tt' && TTSEL) { ttUnselect(); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view === 'med') { go('routines', {}); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
+    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (document.getElementById('bx-start')) { if (typeof BXR !== 'undefined' && BXR && !BXR.made && BXR.q > 0) { BXR.q--; bxRtHelpDraw(); } else if (typeof BXS !== 'undefined' && BXS && BXS.step === 2) { BXS.step = 1; bxStartDraw(); } else if (typeof BXR !== 'undefined' && BXR) { bxStartClose(); BXR = null; } else if (typeof PERM !== 'undefined' && PERM) { bxPermClose(); } else if (typeof BXT !== 'undefined' && BXT) { if (BXT.q) { BXT.q = 0; bxTtHelpDraw(); } else bxTtHelpClose(); } return true; }\n  if (S.view === 'tt' && TTSEL) { ttUnselect(); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view === 'med') { go('routines', {}); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
 // 앞으로 며칠 동안 울릴 알람 목록. 박스웍스의 알림 규칙(remindAt, 루틴 시간표)을 그대로 쓴다.
 window.BX_alarmPlan = function(days){
   if (!M || !S.firstServer) return null;
   days = days || 7;
   const now = Date.now(), until = now + days * 864e5, out = [];
+  // 울리는 방식(종류별 기본값, web-src/flow.js): lv = alarm | notice | quiet. 끈 기능(루틴·시간표)은 알람도 쉰다
+  const lvR = bxLevel('routine'), lvI = bxLevel('item'), lvT = bxLevel('tt'), rtOn = bxModOn('routines'), ttOnF = bxModOn('tt');
   M.items.forEach(it => {
     if (it.done || it.deletedAt) return;
     const tvs = tvAlarms(it);
@@ -95,18 +97,19 @@ window.BX_alarmPlan = function(days){
       const isLeave = a.title === '출발할 시간';
       out.push({id: 'iv_' + it.id + '_' + a.id + '_' + a.at, at: a.at, kind: a.routine ? 'routine' : 'item', group: a.group, title: a.title, sub: a.sub,
         body: a.sub, from: a.routine ? a.from : 0, to: a.routine ? a.to : 0, next: a.next,
-        pt: isLeave ? '출발할 시간' : a.routine ? a.title : '곧 출발', ps: isLeave ? '일정 내용은 잠금을 풀면 보여요' : a.sub, pg: a.routine ? String(a.group).split(' · ')[0] : '일정'});
+        pt: isLeave ? '출발할 시간' : a.routine ? a.title : '곧 출발', ps: isLeave ? '일정 내용은 잠금을 풀면 보여요' : a.sub, pg: a.routine ? String(a.group).split(' · ')[0] : '일정', lv: lvR});
     });
     tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
       const when = relDay(it.date, ymd(new Date(t))) + ' ' + timeText(it);
       out.push({id: 'i_' + it.id + '_' + t, at: t, kind: 'item', group: '일정', title: it.title || '(제목 없음)',
         sub: when + (it.location ? ' · ' + it.location : ''), body: when + (it.location ? ' · ' + it.location : ''),
-        pt: '일정 알림', ps: bxLeadText(it.start ? at(it.date, it.start).getTime() - t : null, relDay(it.date, ymd(new Date(t)))) + ' · 잠금을 풀면 보여요', pg: '일정'});
+        pt: '일정 알림', ps: bxLeadText(it.start ? at(it.date, it.start).getTime() - t : null, relDay(it.date, ymd(new Date(t)))) + ' · 잠금을 풀면 보여요', pg: '일정', lv: lvI});
     });
   });
   const reps = [];
   M.routines.forEach(rt => {
+    if (!rtOn) return;
     const p = rtPlan(rt); if (p.bad) return;
     const rows = p.rows.filter(r => r.kind !== 'wait');
     // 다시 알림: 확인을 누르지 않으면 every분마다 times번 더(루틴 창에서 정함). 다음 단계가 울리기 전까지만
@@ -136,7 +139,7 @@ window.BX_alarmPlan = function(days){
             next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
           // series: 이 단계의 알람 묶음. 휴대폰에서 '확인'을 누르면 남은 다시 알림을 지우고, 앱에 '했어요'로 옮긴다
           a.series = base;
-          a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴';
+          a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴'; a.lv = lvR;
           if (!j && !bowl) { a.rid = rt.id; a.ds = ds; a.leave = leaveAt; a.steps = steps; }
           if (bowl) a.sound = 'bowl';
           (j ? reps : out).push(a);
@@ -158,7 +161,7 @@ window.BX_alarmPlan = function(days){
     }
   });
   ttList().forEach(e => {
-    if (e.on === false || e.remind === '' || e.remind == null || !isHM(e.start)) return;
+    if (!ttOnF || e.on === false || e.remind === '' || e.remind == null || !isHM(e.start)) return;
     const before = +e.remind || 0;
     for (let k = 0; k <= days; k++) {
       const day = addDays(sod(new Date(now)), k), ds = ymd(day);
@@ -167,7 +170,7 @@ window.BX_alarmPlan = function(days){
       const lead = before ? before + '분 뒤 시작' : '지금 시작';
       out.push({id: 'tt_' + e.id + '_' + ds, at: t, kind: 'item', group: '시간표', icon: bxIconFor(e.name) || 'school', title: e.name,
         sub: (e.place ? e.place + ' · ' : '') + lead, body: e.start + (e.end ? '–' + e.end : '') + (e.place ? ' · ' + e.place : '') + ' · ' + lead,
-        pt: '시간표 알림', ps: lead + ' · 잠금을 풀면 보여요', pg: '시간표'});
+        pt: '시간표 알림', ps: lead + ' · 잠금을 풀면 보여요', pg: '시간표', lv: lvT});
     }
   });
   // 휴대폰에 거는 알람은 최대 200개: 앞으로 7일의 기본 알람을 먼저, 남는 자리에 가까운 다시 알림부터
@@ -272,7 +275,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
