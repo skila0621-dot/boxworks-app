@@ -24,5 +24,10 @@ export default [
     "name": "└ (다시 그릴 때)",
     "find": "const tm = $('#r-times'); if (tm) tm.innerHTML = rtTimesHtml();",
     "replace": "const tm = $('#r-timebox'); if (tm) tm.innerHTML = rtTimesHtml();"
+  },
+  {
+    "name": "오늘 화면: 그릴 때마다 칸 접기 단추·루틴 단계 펼치기 단추 붙이기(대표 요청, 코드는 web-src/home.js)",
+    "find": "  if (SH && SH.refresh) SH.refresh();\n",
+    "replace": "  if (window.BX_APP) bxFoldDecorate();\n  if (SH && SH.refresh) SH.refresh();\n"
   }
 ];
