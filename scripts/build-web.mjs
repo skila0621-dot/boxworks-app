@@ -78,7 +78,7 @@ const patches = [
   {
     name: '휴대폰 뒤로 버튼: 열린 창 닫기 → 앞 창으로 → 오늘 화면으로, 오늘이면 앱을 뒤로 보냄',
     find: '\nboot();\n})();',
-    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
+    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
 // 앞으로 며칠 동안 울릴 알람 목록. 박스웍스의 알림 규칙(remindAt, 루틴 시간표)을 그대로 쓴다.
 window.BX_alarmPlan = function(days){
   if (!M || !S.firstServer) return null;
@@ -237,14 +237,24 @@ boot();
     replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
-    name: '└ 주간 탭: 시간표 보기면 시간표를 그림',
-    find: 'function weekHtml(){\n  const start',
-    replace: "function weekHtml(){\n  if (window.BX_APP && S.weekMode === 'tt') return ttHtml();\n  const start"
+    name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
+    find: "S.view === 'week' ? weekHtml() :",
+    replace: "S.view === 'week' ? weekHtml() : (window.BX_APP && S.view === 'tt') ? ttHtml() :"
   },
   {
-    name: '└ 주간 탭 위쪽에 \'주간 일정 | 시간표\' 전환',
+    name: '캘린더 탭: 주간 위쪽에 \'월간 | 주간\' 전환(대표 요청)',
     find: "return '<div class=\"page-head\"><div class=\"ph-t\"><h1>' + label + '</h1><p class=\"tnum\">",
-    replace: "return (window.BX_APP ? ttModeBar('list') : '') + '<div class=\"page-head\"><div class=\"ph-t\"><h1>' + label + '</h1><p class=\"tnum\">"
+    replace: "return (window.BX_APP ? bxCalBar('week') : '') + '<div class=\"page-head\"><div class=\"ph-t\"><h1>' + label + '</h1><p class=\"tnum\">"
+  },
+  {
+    name: '└ 월간 위쪽에도 같은 전환',
+    find: "  return '<div class=\"page-head\"><div class=\"ph-t\"><h1>' + (y !== M.now.getFullYear() ? y + '년 ' : '') + (m + 1) + '월</h1>",
+    replace: "  return (window.BX_APP ? bxCalBar('month') : '') + '<div class=\"page-head\"><div class=\"ph-t\"><h1>' + (y !== M.now.getFullYear() ? y + '년 ' : '') + (m + 1) + '월</h1>"
+  },
+  {
+    name: '└ 주간을 보고 있어도 아래 메뉴의 \'캘린더\'에 불이 들어오게',
+    find: "if (b.dataset.view === S.view) b.setAttribute('aria-current', 'page');",
+    replace: "if (b.dataset.view === S.view || (window.BX_APP && b.dataset.view === 'month' && S.view === 'week')) b.setAttribute('aria-current', 'page');"
   },
   {
     name: '└ 오늘 화면에 그날 시간표',

@@ -86,11 +86,24 @@ function ttParse(text){
   };
 }
 
-/* 주간 탭 위쪽 '주간 일정 | 시간표' 전환 */
-function ttModeBar(cur){
-  return '<div class="tt-mode"><div class="seg" role="group" aria-label="주간 보기" style="width:220px">' +
-    '<button type="button" data-act="tt-mode" data-mode="list" aria-pressed="' + (cur === 'list') + '">주간 일정</button>' +
-    '<button type="button" data-act="tt-mode" data-mode="tt" aria-pressed="' + (cur === 'tt') + '">시간표</button></div></div>';
+/* 캘린더 탭 위쪽 '월간 | 주간' 전환(대표 요청: 주간·월간을 '캘린더' 탭 하나로). 시간표는 아래 메뉴의 따로 된 탭 */
+function bxCalBar(cur){
+  return '<div class="tt-mode"><div class="seg" role="group" aria-label="캘린더 보기" style="width:200px">' +
+    '<button type="button" data-act="tt-cal" data-to="month" aria-pressed="' + (cur === 'month') + '">월간</button>' +
+    '<button type="button" data-act="tt-cal" data-to="week" aria-pressed="' + (cur === 'week') + '">주간</button></div></div>';
+}
+// 월간에서 고른 날이 든 주로, 주간에서는 그 주가 든 달로
+function bxCalGo(to){
+  if (to === 'week') {
+    const d = S.selDate && isDate(S.selDate) ? S.selDate : M.today;
+    const off = Math.round((startOfWeek(parseYmd(d)) - startOfWeek(parseYmd(M.today))) / (7 * 864e5));
+    go('week', {weekOff: off});
+  } else {
+    const ws = addDays(startOfWeek(parseYmd(M.today)), (S.weekOff || 0) * 7);
+    const d = S.weekOff ? ymd(ws) : M.today;
+    go('month', {date: d});
+  }
+  window.scrollTo(0, 0);
 }
 
 function ttHtml(){
@@ -119,8 +132,7 @@ function ttHtml(){
   const add = '<div class="tt-add"><label class="sr" for="tt-in">시간표에 넣기</label><div class="bx-inrow"><input id="tt-in" class="inp" type="text" autocomplete="off" enterkeyhint="done" maxlength="120" placeholder="예) 월수 10시 반부터 12시까지 경영학원론 301호">' +
     bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">넣기</button></div></div>';
   const empty = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 위 칸에 말하거나 적어 보세요. 시작 10분 전에 알람이 울려요.</p>';
-  return ttModeBar('tt') +
-    '<div class="page-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복</span></p></div></div>' + add +
+  return '<div class="page-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복</span></p></div></div>' + add +
     '<div class="tt-sub"><span class="p small">요일·시각·장소를 알아들어요</span><button type="button" class="sec-link" data-act="tt-new">' + ICON.plus + '직접 고르기</button></div>' + empty +
     '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
     '<div class="tt-body" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + '</div></div>';
@@ -207,8 +219,8 @@ document.addEventListener('click', ev => {
   if (!el) return;
   const act = el.dataset.act;
   ev.preventDefault(); ev.stopPropagation();
-  if (act === 'tt-mode') { S.weekMode = el.dataset.mode === 'tt' ? 'tt' : 'list'; lsSet('bx:weekMode', S.weekMode); window.scrollTo(0, 0); render(); return; }
-  if (act === 'tt-go') { S.weekMode = 'tt'; lsSet('bx:weekMode', 'tt'); go('week', {}); return; }
+  if (act === 'tt-cal') { bxCalGo(el.dataset.to); return; }
+  if (act === 'tt-go') { go('tt', {}); window.scrollTo(0, 0); return; }
   if (act === 'tt-new') { ttOpen(null); return; }
   if (act === 'tt-edit') { ttOpen(el.dataset.id); return; }
   if (act === 'tt-add') { ttAddFromText(($('#tt-in') || {}).value); return; }
@@ -229,4 +241,5 @@ document.addEventListener('click', ev => {
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Enter' && !ev.isComposing && ev.target && ev.target.id === 'tt-in') { ev.preventDefault(); ttAddFromText(ev.target.value); }
 });
-S.weekMode = lsGet('bx:weekMode') === 'tt' ? 'tt' : 'list';
+// 예전 시험판에서 주간 탭을 시간표로 두었으면 처음 열 때 시간표 탭으로
+if (lsGet('bx:weekMode') === 'tt') { lsSet('bx:weekMode', ''); }
