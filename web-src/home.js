@@ -15,6 +15,7 @@ function bxFoldDecorate(){
   bxFabSync();
   if (S.view === 'tt' && typeof ttPlaceBar === 'function') ttPlaceBar();
   bxMarkNext();
+  if (typeof bxStartCheck === 'function') bxStartCheck();
   if (S.view !== 'today') return;
   bxRtMissDecorate();
   BX_FOLDS.forEach(([k, hid]) => {
@@ -127,7 +128,7 @@ function bxHomeSplit(head, body, o){
       tile('bx-late-open', '', '확인 필요', need, need ? ' warn' : ' zero') + '</div>';
   return '<section class="tcard bx-sumcard" id="tcard" aria-label="' + (o.isT ? '오늘' : esc(o.title.replace(/ 일정$/, ''))) + ' 요약" aria-roledescription="날짜별로 넘겨 보는 일정"><div class="tc-head">' + sum + '</div></section>' +
     '<section class="tcard bx-todo" id="tcard2" aria-labelledby="h-todo"><div class="tc-body"><div class="sec-h bx-todo-h"><h2 id="h-todo">' + name + '</h2>' + (total ? '<span class="sec-sub">' + total + '개</span>' : '') + '</div>' +
-    rt + items + tt + '</div></section>';
+    (o.isT && typeof bxRtNudgeHtml === 'function' ? bxRtNudgeHtml() : '') + rt + items + tt + '</div></section>';
 }
 let BX_NEXT = null;
 // '다음 일정'은 따로 카드 대신 목록의 그 줄에 표시
@@ -178,7 +179,8 @@ function bxMoreMenuHtml(){
     menuRow('data', ICON.save, '백업·복원', S.mode === 'db' ? '계정에 저장 중' : '이 휴대폰에만 저장') +
     menuRow('trash', ICON.trash, '휴지통', M.trash.length + '개') +
     menuRow('prefs', ICON.gear, '설정', '알림·화면·아침 일정') +
-    menuRow('guide', ICON.help, '사용 설명서', '') + '</div>';
+    menuRow('guide', ICON.help, '사용 설명서', '') +
+    '<button type="button" class="menu-row" data-act="bx-start-again"><span class="mi">' + ICON.spark + '</span><span class="ml">처음 안내 다시 보기</span><span class="mv">쓸 기능 고르기' + ICON.chevR + '</span></button></div>';
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;

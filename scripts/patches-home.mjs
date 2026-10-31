@@ -105,5 +105,10 @@ export default [
     name: '└ 아래 단추 줄은 저장만',
     find: `    (R.id ? '<button type="button" class="btn" data-act="rt-del">삭제</button>' : '') + '<button type="button" class="btn grow primary" data-act="rt-save">저장</button>');`,
     replace: `    (R.id && !window.BX_APP ? '<button type="button" class="btn" data-act="rt-del">삭제</button>' : '') + '<button type="button" class="btn grow primary" data-act="rt-save">저장</button>');`
+  },
+  {
+    name: '홈 · 옛 환영 카드는 앱에서 뺌 (첫 실행 화면이 대신함, 새 일정은 + 단추)',
+    find: "  const welcome = !M.settings.welcomed && !M.items.length && !M.trash.length ?",
+    replace: "  const welcome = !window.BX_APP && !M.settings.welcomed && !M.items.length && !M.trash.length ?"
   }
 ];
