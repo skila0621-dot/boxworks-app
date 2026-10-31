@@ -90,6 +90,14 @@
     '.bx-app .tv-line li.go span{font-weight:700;color:var(--accent)}.bx-app .tv-line li.wait span{color:var(--ink-3)}',
     '.bx-app .tv-line .i{width:16px;height:16px;color:var(--ink-3)}',
     '.bx-app .meta.bx-go{color:var(--accent);font-weight:700}.bx-app .meta.bx-go .i{width:14px;height:14px}',
+    // 위쪽 막대는 모든 화면에서 오늘 화면과 같게(로고 + 설명서·검색·더보기). 주간·월간 제목과 이동 단추는 화면 안 제목 줄에
+    '.bx-app .screen.week .page-head h1,.bx-app .screen.month .page-head h1{display:block}',
+    '.bx-app .screen.week .page-head .ph-nav,.bx-app .screen.month .page-head .ph-nav{display:flex}',
+    '.bx-app .screen.week .page-head p,.bx-app .screen.month .page-head p{margin-top:8px}',
+    // 루틴 창 '다시 알림': 이름 · 숫자 · 단위를 한 줄에 맞춰 정렬
+    '.bx-app .bx-rrow{display:grid;grid-template-columns:52px auto 1fr;align-items:center;gap:12px;margin-top:8px}',
+    '.bx-app .bx-rl{font-size:15px;font-weight:700;color:var(--ink-2)}.bx-app .bx-ru{font-size:15px;font-weight:600;color:var(--ink-2)}',
+    '.bx-app .bx-rnote{margin:6px 0 0;color:var(--ink-3)}',
     // 휴대폰 캘린더(D-05): 설정 칸, 캘린더 고르기, 일정 창
     '.bx-app .pc-set-note{margin:2px 0 10px;color:var(--ink-3)}',
     '.bx-app .pc-cals{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}',

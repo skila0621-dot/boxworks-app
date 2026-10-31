@@ -18,6 +18,9 @@ import java.util.Set;
 public final class AlarmStore {
     static final String PREFS = "bx_alarms";
     static final String KEY = "list";
+    /** '확인'·'5분 뒤'를 누른 알람 묶음(series → 누른 시각). 남은 다시 알림을 다시 예약하지 않으려고 사흘 동안 기억한다. */
+    static final String KEY_DONE = "done";
+    private static final long DONE_KEEP_MS = 3L * 24 * 3600 * 1000;
     static final String EXTRA_ID = "bx_id";
     static final String EXTRA_TITLE = "bx_title";
     static final String EXTRA_BODY = "bx_body";
@@ -43,9 +46,60 @@ public final class AlarmStore {
         prefs(c).edit().putString(KEY, list.toString()).apply();
     }
 
-    /** 화면에서 받은 목록으로 바꾼다. 앱이 직접 만든 알람(5분 뒤, 시험)은 남긴다. */
-    static synchronized int replaceAll(Context c, JSONArray next) {
+    private static JSONObject loadDone(Context c) {
+        try {
+            return new JSONObject(prefs(c).getString(KEY_DONE, "{}"));
+        } catch (Exception e) {
+            return new JSONObject();
+        }
+    }
+
+    /**
+     * 알람에서 '확인'이나 '5분 뒤'를 눌렀을 때. 같은 묶음(series)의 남은 다시 알림을 지우고,
+     * 화면이 같은 목록을 다시 보내도 예약하지 않게 기억한다. 5분 뒤 알람(local)은 그대로 둔다.
+     */
+    static synchronized void confirm(Context c, JSONObject alarm) {
+        String series = alarm == null ? "" : alarm.optString("series", "");
+        if (series.isEmpty()) return;
         long now = System.currentTimeMillis();
+        JSONObject done = loadDone(c);
+        JSONObject kept = new JSONObject();
+        try {
+            for (java.util.Iterator<String> it = done.keys(); it.hasNext(); ) {
+                String k = it.next();
+                long t = done.optLong(k, 0);
+                if (now - t < DONE_KEEP_MS) kept.put(k, t);
+            }
+            kept.put(series, now);
+        } catch (Exception ignored) {
+        }
+        prefs(c).edit().putString(KEY_DONE, kept.toString()).apply();
+        // 이미 울려 알림줄에 남은 같은 묶음의 알림도 지운다(처음 것과 다시 알림 1~12번)
+        AlarmNotify.dismiss(c, series);
+        for (int j = 1; j <= 12; j++) AlarmNotify.dismiss(c, series + "_r" + j);
+        JSONArray prev = load(c);
+        JSONArray stored = new JSONArray();
+        for (int i = 0; i < prev.length(); i++) {
+            JSONObject o = prev.optJSONObject(i);
+            if (o == null) continue;
+            if (series.equals(o.optString("series")) && !o.optBoolean("local", false)) cancel(c, o.optString("id"));
+            else stored.put(o);
+        }
+        save(c, stored);
+    }
+
+    /** 화면에서 받은 목록으로 바꾼다. 앱이 직접 만든 알람(5분 뒤, 시험)은 남긴다. 이미 확인한 묶음은 뺀다. */
+    static synchronized int replaceAll(Context c, JSONArray incoming) {
+        long now = System.currentTimeMillis();
+        JSONObject done = loadDone(c);
+        JSONArray next = new JSONArray();
+        for (int i = 0; i < incoming.length(); i++) {
+            JSONObject o = incoming.optJSONObject(i);
+            if (o == null) continue;
+            String series = o.optString("series", "");
+            if (!series.isEmpty() && done.has(series)) continue;
+            next.put(o);
+        }
         JSONArray prev = load(c);
         Set<String> nextIds = new HashSet<>();
         for (int i = 0; i < next.length(); i++) {

@@ -11,8 +11,9 @@ public class AlarmActionReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String act = intent.getStringExtra(AlarmNotify.EXTRA_ACT);
         JSONObject o = AlarmNotify.fromIntent(intent);
+        AlarmStore.confirm(context, o);
         if ("snooze".equals(act)) AlarmNotify.snooze(context, o);
         AlarmNotify.dismiss(context, o.optString("id"));
-        AlarmActivity.closeIfShowing();
+        AlarmActivity.handledElsewhere(o.optString("id"));
     }
 }

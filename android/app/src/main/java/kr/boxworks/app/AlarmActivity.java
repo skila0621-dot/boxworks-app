@@ -28,6 +28,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
+import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.Date;
 import java.util.Locale;
 import org.json.JSONObject;
@@ -44,10 +46,52 @@ public class AlarmActivity extends Activity {
     private Ringtone ringtone;
     private Vibrator vibrator;
     private JSONObject alarm = new JSONObject();
+    /** 이 화면이 떠 있는 동안 함께 울린 다른 알람(예: 출근 루틴과 약 먹기가 같은 시각). 지금 것을 처리하면 차례로 보여 준다. */
+    private final ArrayDeque<JSONObject> waiting = new ArrayDeque<>();
+    private final Runnable stopper = this::stopRinging;
 
-    static void closeIfShowing() {
+    /** 알림에서 '확인'·'5분 뒤'를 눌렀을 때: 그 알람이 지금 화면이면 다음 알람으로, 기다리는 중이면 목록에서 뺀다. */
+    static void handledElsewhere(String id) {
         AlarmActivity a = current.get();
-        if (a != null && !a.isFinishing()) a.finish();
+        if (a == null || a.isFinishing()) return;
+        if (id != null && id.equals(a.alarm.optString("id"))) {
+            a.dropSeries(a.alarm.optString("series", ""));
+            a.showNext();
+        }
+        else if (a.removeWaiting(id)) a.setContentView(a.buildUi());
+    }
+
+    private void dropSeries(String series) {
+        if (series == null || series.isEmpty()) return;
+        for (Iterator<JSONObject> it = waiting.iterator(); it.hasNext(); ) {
+            if (series.equals(it.next().optString("series", ""))) it.remove();
+        }
+    }
+
+    private boolean removeWaiting(String id) {
+        boolean removed = false;
+        for (Iterator<JSONObject> it = waiting.iterator(); it.hasNext(); ) {
+            if (it.next().optString("id").equals(id)) { it.remove(); removed = true; }
+        }
+        return removed;
+    }
+
+    /** 지금 알람을 처리한 뒤: 기다리는 알람이 있으면 그것을 보여 주고 다시 울린다. 없으면 닫는다. */
+    private void showNext() {
+        JSONObject next = waiting.pollFirst();
+        if (next == null) {
+            finish();
+            return;
+        }
+        alarm = next;
+        setContentView(buildUi());
+        ring();
+    }
+
+    private void ring() {
+        startRinging();
+        handler.removeCallbacks(stopper);
+        handler.postDelayed(stopper, RING_MS);
     }
 
     @Override
@@ -66,17 +110,23 @@ public class AlarmActivity extends Activity {
         current = new WeakReference<>(this);
         alarm = AlarmNotify.fromIntent(getIntent());
         setContentView(buildUi());
-        startRinging();
-        handler.postDelayed(this::stopRinging, RING_MS);
+        ring();
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        alarm = AlarmNotify.fromIntent(intent);
+        JSONObject incoming = AlarmNotify.fromIntent(intent);
+        String inId = incoming.optString("id"), inSeries = incoming.optString("series", "");
+        removeWaiting(inId);
+        dropSeries(inSeries);
+        // 앞서 울리던 알람은 버리지 않고 뒤에 다시 보여 준다(같은 알람의 다시 알림이면 새것으로 바꾼다)
+        boolean sameSeries = !inSeries.isEmpty() && inSeries.equals(alarm.optString("series", ""));
+        if (!alarm.optString("id").isEmpty() && !alarm.optString("id").equals(inId) && !sameSeries) waiting.addFirst(alarm);
+        alarm = incoming;
         setContentView(buildUi());
-        startRinging();
+        ring();
     }
 
     @Override
@@ -129,6 +179,10 @@ public class AlarmActivity extends Activity {
 
         String group = alarm.optString("group", "");
         root.addView(text("박스웍스" + (group.isEmpty() ? "" : " · " + group), 13, 0xFFC9CCD3, false), wrap(32));
+        if (!waiting.isEmpty()) {
+            TextView more = text("함께 울린 알람 " + waiting.size() + "개가 더 있어요 · 확인하면 이어서 보여 줘요", 13, 0xFFFFD27A, true);
+            root.addView(more, wrap(6));
+        }
 
         FrameLayout circle = new FrameLayout(this);
         GradientDrawable bg = new GradientDrawable();
@@ -163,17 +217,21 @@ public class AlarmActivity extends Activity {
         Button ok = button("확인", Color.WHITE, 0xFF1C1C1C, 0, dp(32));
         ok.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
         ok.setOnClickListener(v -> {
+            AlarmStore.confirm(this, alarm);
             AlarmNotify.dismiss(this, alarm.optString("id"));
-            finish();
+            dropSeries(alarm.optString("series", ""));
+            showNext();
         });
         root.addView(ok, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)));
 
         Button snooze = button("5분 뒤", Color.TRANSPARENT, Color.WHITE, 0xFF4A505D, dp(26));
         snooze.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         snooze.setOnClickListener(v -> {
+            AlarmStore.confirm(this, alarm);
             AlarmNotify.snooze(this, alarm);
             AlarmNotify.dismiss(this, alarm.optString("id"));
-            finish();
+            dropSeries(alarm.optString("series", ""));
+            showNext();
         });
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(52));
         slp.topMargin = dp(12);

@@ -3,6 +3,8 @@
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import step4 from './patches-step4.mjs';
 import calendar from './patches-calendar.mjs';
+import nav from './patches-nav.mjs';
+import fix10 from './patches-fix10.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -97,20 +99,34 @@ window.BX_alarmPlan = function(days){
         sub: when + (it.location ? ' · ' + it.location : ''), body: when + (it.location ? ' · ' + it.location : '')});
     });
   });
+  const reps = [];
   M.routines.forEach(rt => {
     const p = rtPlan(rt); if (p.bad) return;
     const rows = p.rows.filter(r => r.kind !== 'wait');
+    // 다시 알림: 확인을 누르지 않으면 every분마다 times번 더(루틴 창에서 정함). 다음 단계가 울리기 전까지만
+    const rep = Math.max(0, Math.min(12, Math.round(+rt.times || 0))), every = Math.max(1, Math.min(60, Math.round(+rt.every || 5)));
     for (let k = 0; k <= days; k++) {
       const day = addDays(sod(new Date(now)), k), ds = ymd(day);
       if (!rtActiveOn(rt, ds)) continue;
+      const lg = M.rlogs.get(rt.id + '|' + ds) || {}; if (lg.skip) continue;
+      const doneMap = lg.done || {};
       rows.forEach((r, i) => {
-        const t = addMin(day, r.at).getTime(); if (t <= now || t > until) return;
-        const nx = rows[i + 1], left = p.leave != null && !r.leave ? Math.round(p.leave - r.at) : null;
-        const sub = r.leave ? '지금 나갈 시간' : left != null ? '출발까지 ' + left + '분' : '';
-        out.push({id: 'r_' + rt.id + '_' + ds + '_' + r.id, at: t, kind: 'routine', group: rt.name || '루틴',
-          title: r.leave ? '출발할 시간' : r.name, sub, body: (rt.name || '루틴') + (sub ? ' · ' + sub : ''),
-          from: addMin(day, p.start).getTime(), to: p.leave != null ? addMin(day, p.leave).getTime() : 0,
-          next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''});
+        if (doneMap[r.id]) return;
+        const base = 'r_' + rt.id + '_' + ds + '_' + r.id, nx = rows[i + 1];
+        const limit = nx ? addMin(day, nx.at).getTime() : addMin(day, r.at + rep * every + 1).getTime();
+        for (let j = 0; j <= rep; j++) {
+          const atM = r.at + j * every, t = addMin(day, atM).getTime();
+          if (j > 0 && t >= limit) break;
+          if (t <= now || t > until) continue;
+          const left = p.leave != null && !r.leave ? Math.round(p.leave - atM) : null;
+          const sub = [r.leave ? (j ? '출발 시각이 ' + (j * every) + '분 지났어요' : '지금 나갈 시간') : left != null ? '출발까지 ' + left + '분' : '', j ? '다시 알림 ' + j + '/' + rep : ''].filter(Boolean).join(' · ');
+          const a = {id: base + (j ? '_r' + j : ''), at: t, kind: 'routine', group: rt.name || '루틴',
+            title: r.leave ? '출발할 시간' : r.name, sub, body: (rt.name || '루틴') + (sub ? ' · ' + sub : ''),
+            from: addMin(day, p.start).getTime(), to: p.leave != null ? addMin(day, p.leave).getTime() : 0,
+            next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
+          if (rep) a.series = base;
+          (j ? reps : out).push(a);
+        }
       });
     }
   });
@@ -126,7 +142,10 @@ window.BX_alarmPlan = function(days){
         sub: (e.place ? e.place + ' · ' : '') + lead, body: e.start + (e.end ? '–' + e.end : '') + (e.place ? ' · ' + e.place : '') + ' · ' + lead});
     }
   });
-  return out.sort((a, b) => a.at - b.at).slice(0, 64);
+  // 휴대폰에 거는 알람은 최대 200개: 앞으로 7일의 기본 알람을 먼저, 남는 자리에 가까운 다시 알림부터
+  out.sort((a, b) => a.at - b.at);
+  const base = out.slice(0, 200);
+  return base.concat(reps.sort((a, b) => a.at - b.at).slice(0, Math.max(0, 200 - base.length))).sort((a, b) => a.at - b.at);
 };
 function hmOf(m){ m = Math.round(m); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 boot();
@@ -284,7 +303,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar);
+patches.push(...step4, ...calendar, ...nav, ...fix10);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;
