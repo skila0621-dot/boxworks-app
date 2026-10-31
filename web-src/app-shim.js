@@ -75,6 +75,21 @@
     '.bx-app .tt-sw{width:32px;height:32px;border-radius:16px;border:0;background:var(--c)}',
     '.bx-app .tt-sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--c)}',
     '.bx-app .tt-hint{color:var(--warn-ink);margin:0}',
+    // 출발 시각 계산·준비 루틴(4단계): 새 일정 창의 '출발' 칸과 일정 줄의 출발 시각
+    '.bx-app .tv-cus{display:flex;align-items:center;gap:8px;margin-top:10px}',
+    '.bx-app .tv-mem{margin:8px 0 0;color:var(--accent)}',
+    '.bx-app .tv-h{margin-top:18px}.bx-app .tv-h small{font-weight:500;color:var(--ink-3);margin-left:4px}',
+    '.bx-app .tv-line{list-style:none;margin:16px 0 8px;padding:0}',
+    '.bx-app .tv-line li{display:flex;align-items:center;gap:12px;min-height:36px;position:relative;padding-left:20px}',
+    '.bx-app .tv-line li::before{content:"";position:absolute;left:3px;top:50%;width:9px;height:9px;margin-top:-5px;border-radius:50%;background:var(--line-2)}',
+    '.bx-app .tv-line li::after{content:"";position:absolute;left:7px;top:calc(50% + 6px);height:calc(100% - 12px);width:1px;background:var(--line-2)}',
+    '.bx-app .tv-line li:last-child::after{display:none}',
+    '.bx-app .tv-line li.go::before{background:var(--accent)}.bx-app .tv-line li.arr::before{background:var(--ink)}',
+    '.bx-app .tv-line b{min-width:46px;font-size:15px}.bx-app .tv-line span{flex:1;min-width:0;font-size:15px}',
+    '.bx-app .tv-line small{margin-left:6px;color:var(--ink-3);font-size:13px}',
+    '.bx-app .tv-line li.go span{font-weight:700;color:var(--accent)}.bx-app .tv-line li.wait span{color:var(--ink-3)}',
+    '.bx-app .tv-line .i{width:16px;height:16px;color:var(--ink-3)}',
+    '.bx-app .meta.bx-go{color:var(--accent);font-weight:700}.bx-app .meta.bx-go .i{width:14px;height:14px}',
     // AI 정리(Claude 연동 필요)는 앱에서 숨김(D-04). 사용 설명서의 Claude 연동 장은 숨김
     '.bx-app [data-act="ai-capture"],.bx-app #g-ai,.bx-app #g-share,.bx-app #g-start,.bx-app #g-report,.bx-app [data-to="g-ai"],.bx-app [data-to="g-share"],.bx-app [data-to="g-report"]{display:none!important}'
   ].join('');

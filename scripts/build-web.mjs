@@ -1,6 +1,7 @@
 // web-src/boxworks.html(웹 박스웍스 원본)을 앱용 www/index.html로 바꿉니다.
 // 원본은 고치지 않고, 앱에 필요한 부분만 여기서 바꿉니다. 바꿀 곳을 못 찾으면 멈춥니다.
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import step4 from './patches-step4.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -82,7 +83,13 @@ window.BX_alarmPlan = function(days){
   const now = Date.now(), until = now + days * 864e5, out = [];
   M.items.forEach(it => {
     if (it.done || it.deletedAt) return;
-    remindAt(it).forEach(r => {
+    const tvs = tvAlarms(it);
+    tvs.forEach(a => {
+      if (a.at <= now || a.at > until) return;
+      out.push({id: 'iv_' + it.id + '_' + a.id + '_' + a.at, at: a.at, kind: a.routine ? 'routine' : 'item', group: a.group, title: a.title, sub: a.sub,
+        body: a.sub, from: a.routine ? a.from : 0, to: a.routine ? a.to : 0, next: a.next});
+    });
+    tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
       const when = relDay(it.date, ymd(new Date(t))) + ' ' + timeText(it);
       out.push({id: 'i_' + it.id + '_' + t, at: t, kind: 'item', group: '일정', title: it.title || '(제목 없음)',
@@ -157,7 +164,7 @@ boot();
   {
     name: '일정 줄의 종 모양 옆에 다음 알람 시각 표시(4안-1)',
     find: "if (it.remind && !it.done && !late) meta.push('<span class=\"meta\" aria-label=\"알림 있음\">' + ICON.bell + '</span>');",
-    replace: "if (it.remind && !it.done && !late) { const nr = remindAt(it).find(d => d > M.now); const nt = nr ? (ymd(nr) === it.date ? '' : relDay(ymd(nr), M.today) + ' ') + String(nr.getHours()).padStart(2, '0') + ':' + String(nr.getMinutes()).padStart(2, '0') : ''; meta.push('<span class=\"meta bx-rem\" aria-label=\"' + (nt ? '알림 ' + nt : '알림 있음') + '\">' + ICON.bell + nt + '</span>'); }"
+    replace: "if ((it.remind || (window.BX_APP && (it.travel || it.prep))) && !it.done && !late) { const nr = window.BX_APP ? bxNextAlarm(it) : remindAt(it).find(d => d > M.now); const nt = nr ? (ymd(nr) === it.date ? '' : relDay(ymd(nr), M.today) + ' ') + String(nr.getHours()).padStart(2, '0') + ':' + String(nr.getMinutes()).padStart(2, '0') : ''; meta.push('<span class=\"meta bx-rem\" aria-label=\"' + (nt ? '알림 ' + nt : '알림 있음') + '\">' + ICON.bell + nt + '</span>'); }"
   },
   {
     name: '월간 달력에서 날짜를 누르면 오늘 탭처럼 그날 창이 열리게(대표 요청)',
@@ -207,7 +214,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 주간 탭: 시간표 보기면 시간표를 그림',
@@ -227,7 +234,17 @@ boot();
   {
     name: '말로 넣기 규칙 보강: "다음 달 5일"·"내일모레", 제목 끝의 "가야 돼"·겹친 말 정리',
     find: 'function parseQuick(text, now){\n  const today = sod(now);',
-    replace: `function parseQuick(text, now){ return bxQuickFix(parseQuick0(bxQuickPre(text, now), now)); }
+    replace: `function parseQuick(text, now){
+  let s = String(text == null ? '' : text);
+  const pr = window.BX_APP ? tvPrepExtract(s) : null; if (pr) s = pr.text;
+  const rm = window.BX_APP ? tvRemExtract(s) : null; if (rm) s = rm.text;
+  const tv = window.BX_APP ? tvExtract(s) : null; if (tv) s = tv.text;
+  const r = bxQuickFix(parseQuick0(bxQuickPre(s, now), now), !!(pr || tv || rm));
+  if (tv) r.travel = tv.min;
+  if (rm) r.remind = String(rm.min);
+  if (pr) { r.prep = pr.id; r.prepName = pr.name; }
+  return r;
+}
 function bxQuickPre(text, now){
   let s = String(text == null ? '' : text);
   s = s.replace(/내일\\s*모레/g, '모레');
@@ -235,9 +252,11 @@ function bxQuickPre(text, now){
   s = s.replace(/이번\\s*달\\s*(\\d{1,2})\\s*일/g, (m, d) => (now.getMonth() + 1) + '월 ' + d + '일');
   return s;
 }
-function bxQuickFix(r){
-  if (!r || !r.title || !(r.date || r.start)) return r;
+function bxQuickFix(r, force){
+  if (!r || !r.title || !(force || r.date || r.start)) return r;
   let t = ' ' + r.title + ' ';
+  t = t.replace(/[.,!?~]+(?=\\s)/g, ' ');
+  t = t.replace(/\\s(?:그리고|근데|참고로|그래서)\\s/g, ' ');
   t = t.replace(/\\s(?:가야|해야|와야|봐야|가봐야|들러야)\\s?(?:돼|해|함|됨|된다|한다|지)\\s/g, ' ');
   t = t.replace(/\\s(?:있어|있음|있다|예정)\\s/g, ' ');
   if (r.date) t = t.replace(/\\s[월화수목금토일]요일\\s/g, ' ');
@@ -251,7 +270,7 @@ function parseQuick0(text, now){
   {
     name: '말한·적은 날짜가 미리 정해진 날짜보다 우선(손으로 고른 날짜만 고정)',
     find: 'touchedDate: !!preset.date, touchedTime: false',
-    replace: 'touchedDate: false, baseDate: date, touchedTime: false'
+    replace: 'touchedDate: false, baseDate: date, travel: 0, tvSrc: \'\', tvKey: \'\', prep: null, prepNew: null, touchedTravel: false, touchedPrep: false, touchedTime: false'
   },
   {
     name: '└ 문장에서 날짜를 지우면 처음 날짜로 돌아감',
@@ -264,6 +283,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
+patches.push(...step4);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;
