@@ -2,6 +2,7 @@
 // 원본은 고치지 않고, 앱에 필요한 부분만 여기서 바꿉니다. 바꿀 곳을 못 찾으면 멈춥니다.
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import step4 from './patches-step4.mjs';
+import calendar from './patches-calendar.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -214,7 +215,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 주간 탭: 시간표 보기면 시간표를 그림',
@@ -283,7 +284,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4);
+patches.push(...step4, ...calendar);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;

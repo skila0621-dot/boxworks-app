@@ -90,6 +90,18 @@
     '.bx-app .tv-line li.go span{font-weight:700;color:var(--accent)}.bx-app .tv-line li.wait span{color:var(--ink-3)}',
     '.bx-app .tv-line .i{width:16px;height:16px;color:var(--ink-3)}',
     '.bx-app .meta.bx-go{color:var(--accent);font-weight:700}.bx-app .meta.bx-go .i{width:14px;height:14px}',
+    // 휴대폰 캘린더(D-05): 설정 칸, 캘린더 고르기, 일정 창
+    '.bx-app .pc-set-note{margin:2px 0 10px;color:var(--ink-3)}',
+    '.bx-app .pc-cals{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}',
+    '.bx-app .pc-calb{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 12px;border-radius:12px;background:var(--sunk);border:0;color:var(--ink);text-align:left;font-size:15px}',
+    '.bx-app .pc-calb span{flex:1;min-width:0;display:flex;flex-direction:column}.bx-app .pc-calb small{color:var(--ink-3);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.bx-app .pc-calb .i{width:18px;height:18px;color:var(--accent);opacity:0}.bx-app .pc-calb[aria-pressed="true"] .i{opacity:1}',
+    '.bx-app .pc-calb[aria-pressed="false"]{color:var(--ink-3)}',
+    '.bx-app .pc-cal-name{display:flex;align-items:center;gap:8px;color:var(--ink-2);font-size:14px;font-weight:700}',
+    '.bx-app .pc-title{font-size:22px;margin:8px 0 4px;line-height:1.3}.bx-app .pc-when{margin:0;color:var(--ink-2);font-size:16px}',
+    '.bx-app .pc-loc{display:flex;align-items:center;gap:6px;margin:8px 0 0;color:var(--ink-2)}.bx-app .pc-loc .i{width:16px;height:16px}',
+    '.bx-app .pc-note{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--sunk);color:var(--ink-2);white-space:pre-wrap;font-size:14px}',
+    '.bx-app .pc-ro{margin-top:14px;color:var(--ink-3)}',
     // AI 정리(Claude 연동 필요)는 앱에서 숨김(D-04). 사용 설명서의 Claude 연동 장은 숨김
     '.bx-app [data-act="ai-capture"],.bx-app #g-ai,.bx-app #g-share,.bx-app #g-start,.bx-app #g-report,.bx-app [data-to="g-ai"],.bx-app [data-to="g-share"],.bx-app [data-to="g-report"]{display:none!important}'
   ].join('');
@@ -189,7 +201,7 @@
       timer = setTimeout(syncAlarms, 700);
     };
     var app2 = plugin('App');
-    if (app2 && app2.addListener) app2.addListener('resume', function () { lastSig = null; window.BX_afterRender(); });
+    if (app2 && app2.addListener) app2.addListener('resume', function () { lastSig = null; window.BX_afterRender(); if (window.BX_pcRefresh) window.BX_pcRefresh(true); });
     // 설정 > 알림 > 휴대폰 알람 시험
     document.addEventListener('click', async function (ev) {
       var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-alarm-test"]');

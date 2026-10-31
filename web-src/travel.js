@@ -81,10 +81,13 @@ function tvPrepExtract(text){
 
 /* 계획: 일정 하나의 준비·출발·도착 시각 */
 function tvRoutine(id){ return id && M && M.routines ? M.routines.find(r => r.id === id) || null : null; }
+// 아직 만들지 않은 기본 '외출 준비'(말이나 캘린더 메모로 붙였을 때 미리 보기용)
+let tvOutV = null;
+function tvOutVirtual(){ return tvOutV || (tvOutV = Object.assign(rtNorm({name: TV_OUT.name, mode: 'start', steps: TV_OUT.steps, on: false}), {id: ''})); }
 function tvPlan(it, rtOverride){
   if (!it || it.done || !isHM(it.start) || !isDate(it.date)) return null;
   const travel = Math.max(0, Math.min(300, Math.round(+it.travel || 0)));
-  const rt = rtOverride || tvRoutine(it.prep);
+  const rt = rtOverride || tvRoutine(it.prep) || (it.prepOut ? tvOutVirtual() : null);
   if (!travel && !rt) return null;
   const arrive = at(it.date, it.start), leave = addMin(arrive, -travel), rows = [];
   if (rt) {
@@ -128,7 +131,7 @@ function tvRtSum(rt){
 }
 
 /* 새 일정 창: '출발' 칸 */
-function tvFormRt(){ return F.prep ? tvRoutine(F.prep) : F.prepNew ? rtNorm({name: TV_OUT.name, mode: 'start', steps: TV_OUT.steps, on: false}) : null; }
+function tvFormRt(){ return F.prep ? tvRoutine(F.prep) : F.prepNew ? tvOutVirtual() : null; }
 function tvFormPlan(){
   if (!F || !F.timed || !isHM(F.start) || !isDate(F.date)) return null;
   return tvPlan({date: F.date, start: F.start, title: F.title, travel: F.travel, prep: F.prep}, tvFormRt());
@@ -158,13 +161,7 @@ function tvDrawPanel(){
   const rts = tvPrepNames().map(r => ({id: r.id || 'new', name: r.name, isNew: !r.id}));
   const curPrep = F.prep || (F.prepNew ? 'new' : '');
   const p = tvFormPlan();
-  let line = '';
-  if (p) {
-    const al = new Set(p.rows.filter(r => r.kind !== 'wait').map(r => r.id));
-    line = '<ol class="tv-line">' + p.rows.map(r => '<li class="' + (r.leave ? 'go' : r.pre ? 'pre' : '') + (r.kind === 'wait' ? ' wait' : '') + '"><b class="tnum">' + hm(r.at) + '</b><span>' + esc(r.leave ? '출발' : r.name) + (r.min ? '<small>' + tvMinText(r.min) + '</small>' : '') + '</span>' + (al.has(r.id) ? ICON.bell : '') + '</li>').join('') +
-      '<li class="arr"><b class="tnum">' + esc(F.start) + '</b><span>' + (p.travel ? '도착' : '시작') + (F.title ? ' · ' + esc((F.parsed && F.parsed.title) || F.title) : '') + '</span></li></ol>' +
-      '<p class="p small">출발·준비 알람 ' + al.size + '개' + (p.rt ? ' · 루틴 단계 시간은 루틴 탭에서 고쳐요' : '') + '</p>';
-  }
+  const line = p ? tvLineHtml(p, F.start, (F.parsed && F.parsed.title) || F.title) : '';
   el.innerHTML =
     '<div class="fg-l">가는 데 걸리는 시간</div><div class="picks">' + tvs.map(v => '<button type="button" class="pick" data-ftv="' + v + '" aria-pressed="' + ((+F.travel || 0) === v) + '">' + (v ? tvMinText(v) : '없음') + '</button>').join('') + '</div>' +
     '<div class="tv-cus"><span class="p small">직접</span>' + stepperHtml('f-travel', +F.travel || 0, 0, 300, null, 5) + '<span class="p small">분</span></div>' +
@@ -172,6 +169,22 @@ function tvDrawPanel(){
     '<div class="fg-l tv-h">준비 루틴 <small>출발 시각에 끝나게 거꾸로 놓여요</small></div><div class="picks">' +
     '<button type="button" class="pick" data-fprep="" aria-pressed="' + !curPrep + '">없음</button>' +
     rts.map(r => '<button type="button" class="pick" data-fprep="' + esc(r.id) + '" aria-pressed="' + (curPrep === r.id) + '">' + esc(r.name) + (r.isNew ? ' <small>새로</small>' : '') + '</button>').join('') + '</div>' + line;
+}
+// 준비·출발·도착 시각 줄(새 일정 창, 휴대폰 캘린더 일정 창)
+function tvLineHtml(p, start, title){
+  const al = new Set(p.rows.filter(r => r.kind !== 'wait').map(r => r.id));
+  return '<ol class="tv-line">' + p.rows.map(r => '<li class="' + (r.leave ? 'go' : r.pre ? 'pre' : '') + (r.kind === 'wait' ? ' wait' : '') + '"><b class="tnum">' + hm(r.at) + '</b><span>' + esc(r.leave ? '출발' : r.name) + (r.min ? '<small>' + tvMinText(r.min) + '</small>' : '') + '</span>' + (al.has(r.id) ? ICON.bell : '') + '</li>').join('') +
+    '<li class="arr"><b class="tnum">' + esc(start) + '</b><span>' + (p.travel ? '도착' : '시작') + (title ? ' · ' + esc(title) : '') + '</span></li></ol>' +
+    '<p class="p small">출발·준비 알람 ' + al.size + '개' + (p.rt ? ' · 루틴 단계 시간은 루틴 탭에서 고쳐요' : '') + '</p>';
+}
+// 기본 '외출 준비' 루틴이 없으면 만든다(일정에 붙여 쓰는 용도라 꺼 둠)
+function tvEnsureOut(){
+  const ex = M.routines.find(r => tvKey(r.name) === tvKey(TV_OUT.name));
+  if (ex) return ex.id;
+  const id = rid('rt_');
+  writeDoc(id, Object.assign(rtNorm({name: TV_OUT.name, mode: 'start', steps: TV_OUT.steps, on: false}), {order: M.routines.length, createdAt: nowIso(), updatedAt: nowIso()}));
+  M = buildModel();
+  return id;
 }
 function tvRedraw(){ if (F && F.panel === 'go') tvDrawPanel(); else drawFChips(); drawFHint(); }
 // 말·글에서 찾은 이동 시간·루틴을 창에 반영(손으로 고른 값은 그대로)
@@ -200,15 +213,7 @@ function tvFields(fields, start){
   tvNote = '';
   fields.travel = start ? Math.max(0, Math.min(300, Math.round(+F.travel || 0))) : 0;
   let prep = start ? F.prep : null;
-  if (start && !prep && F.prepNew) {
-    const ex = M.routines.find(r => tvKey(r.name) === tvKey(F.prepNew));
-    if (ex) prep = ex.id;
-    else {
-      prep = rid('rt_');
-      writeDoc(prep, Object.assign(rtNorm({name: TV_OUT.name, mode: 'start', steps: TV_OUT.steps, on: false}), {order: M.routines.length, createdAt: nowIso(), updatedAt: nowIso()}));
-      M = buildModel();
-    }
-  }
+  if (start && !prep && F.prepNew) prep = tvEnsureOut();
   fields.prep = prep && getDoc(prep) ? prep : null;
   if (fields.travel && tvRemember(fields.title, fields.location, fields.travel)) {
     const k = tvKey(fields.location).length >= 2 ? fields.location.trim() : fields.title;
