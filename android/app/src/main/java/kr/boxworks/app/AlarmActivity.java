@@ -218,6 +218,8 @@ public class AlarmActivity extends Activity {
         ok.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
         ok.setOnClickListener(v -> {
             AlarmStore.confirm(this, alarm);
+            // 아침 루틴 첫 알람이면 확인한 직후 아침 보고를 띄운다
+            if (alarm.optJSONObject("report") != null) AlarmNotify.showReport(this, alarm.optJSONObject("report"));
             AlarmNotify.dismiss(this, alarm.optString("id"));
             dropSeries(alarm.optString("series", ""));
             showNext();

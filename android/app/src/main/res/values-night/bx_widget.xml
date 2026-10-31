@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bx_w_bg">#1F232B</color>
+    <color name="bx_w_ink">#F2F3F5</color>
+    <color name="bx_w_ink2">#A9ADB6</color>
+    <color name="bx_w_accent">#8FA3FF</color>
+    <color name="bx_w_line">#343944</color>
+    <color name="bx_w_chip">#2B303A</color>
+</resources>

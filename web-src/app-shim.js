@@ -123,6 +123,11 @@
     '.bx-app .bx-rt-tog[aria-expanded="true"] .i{transform:rotate(180deg)}',
     '.bx-app .rt-sec .rt-h b,.bx-app .rt-sec .rt-h .rt-meta{cursor:pointer}',
     '@media (prefers-reduced-motion:reduce){.bx-app .bx-fold-btn .i,.bx-app .bx-rt-tog .i{transition:none}}',
+    // 옆으로 밀어 넘길 때 들어오는 움직임
+    '@keyframes bxSlN{from{transform:translateX(28px);opacity:.35}to{transform:none;opacity:1}}',
+    '@keyframes bxSlP{from{transform:translateX(-28px);opacity:.35}to{transform:none;opacity:1}}',
+    '.bx-app .bx-sl-n{animation:bxSlN .22s ease-out}.bx-app .bx-sl-p{animation:bxSlP .22s ease-out}',
+    '@media (prefers-reduced-motion:reduce){.bx-app .bx-sl-n,.bx-app .bx-sl-p{animation:none}}',
     // 휴대폰 캘린더(D-05): 설정 칸, 캘린더 고르기, 일정 창
     '.bx-app .pc-set-note{margin:2px 0 10px;color:var(--ink-3)}',
     '.bx-app .pc-cals{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}',
@@ -194,11 +199,18 @@
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
   if (alarm) {
-    var lastSig = null, timer = null, checked = false;
+    var lastSig = null, lastWidget = null, timer = null, checked = false;
     var syncAlarms = async function () {
       if (typeof window.BX_alarmPlan !== 'function') return;
       var list = window.BX_alarmPlan(7);
       if (!list) return;
+      // 홈 화면 위젯(4안-6): 앞으로의 일정과 알람 시각을 넘긴다(아침 보고는 알람이 아니라 뺀다)
+      var widget = plugin('BxWidget');
+      if (widget && typeof window.BX_widgetData === 'function') {
+        var wd = window.BX_widgetData(list.filter(function (a) { return a.kind !== 'report'; }));
+        var wsig = wd ? JSON.stringify({ i: wd.items, a: wd.alarms }) : null;
+        if (wd && wsig !== lastWidget) { lastWidget = wsig; widget.update({ data: wd }).catch(function () { lastWidget = null; }); }
+      }
       var sig = JSON.stringify(list);
       if (sig === lastSig) return;
       lastSig = sig;
@@ -250,6 +262,21 @@
         if (window.BX_toast) window.BX_toast('시험 알람을 예약하지 못했어요.');
       }
     }, true);
+  }
+
+  // 위젯의 말하기 단추로 앱이 열리면: 새 일정 창을 열고 바로 마이크를 켠다
+  var widgetPl = plugin('BxWidget');
+  if (widgetPl) {
+    var speakNow = function () {
+      setTimeout(function () {
+        var add = document.querySelector('.dock-add');
+        if (!add) return;
+        add.click();
+        setTimeout(function () { var m = document.querySelector('[data-act="bx-mic"][data-for="f-title"]'); if (m) m.click(); }, 350);
+      }, 300);
+    };
+    if (widgetPl.addListener) widgetPl.addListener('speak', speakNow);
+    if (widgetPl.consumeLaunch) widgetPl.consumeLaunch().then(function (r) { if (r && r.speak) setTimeout(speakNow, 700); }).catch(function () {});
   }
 
   // 말로 넣기(3단계). 휴대폰 기본 음성 인식으로 받은 글자를 칸에 넣고,

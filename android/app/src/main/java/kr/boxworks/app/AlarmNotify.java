@@ -17,6 +17,8 @@ import org.json.JSONObject;
 /** 알람이 울릴 때 띄우는 알림. 잠금 화면에서는 AlarmActivity가 화면 전체로 뜬다. */
 final class AlarmNotify {
     static final String CHANNEL = "bx_alarm_v1";
+    static final String CHANNEL_REPORT = "bx_report_v1";
+    static final int REPORT_ID = 0x0B0B;
     static final String EXTRA_ACT = "bx_act";
     static final long SNOOZE_MS = 5 * 60 * 1000L;
 
@@ -63,6 +65,51 @@ final class AlarmNotify {
         ch.setVibrationPattern(new long[] {0, 600, 400, 600});
         ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         nm.createNotificationChannel(ch);
+    }
+
+    /**
+     * 아침 보고(4안-5). 소리 나는 알람이 아니라 보통 알림으로, 오늘 일정 요약을 펼쳐 보여 준다.
+     * 아침 루틴 첫 알람을 확인한 직후나, 정한 시각에 뜬다.
+     */
+    static void showReport(Context c, JSONObject r) {
+        if (r == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = c.getSystemService(NotificationManager.class);
+            if (nm != null && nm.getNotificationChannel(CHANNEL_REPORT) == null) {
+                NotificationChannel ch = new NotificationChannel(CHANNEL_REPORT, "아침 보고", NotificationManager.IMPORTANCE_DEFAULT);
+                ch.setDescription("하루를 시작할 때 오늘 일정을 요약해 보여 줘요");
+                ch.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+                nm.createNotificationChannel(ch);
+            }
+        }
+        String title = r.optString("title", "오늘 일정");
+        String text = r.optString("text", "");
+        Intent open = new Intent(c, MainActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent openPi = PendingIntent.getActivity(c, REPORT_ID, open,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Intent close = new Intent(c, AlarmActionReceiver.class);
+        close.setAction("kr.boxworks.app.ACT.report-close");
+        close.putExtra(EXTRA_ACT, "report-close");
+        PendingIntent closePi = PendingIntent.getBroadcast(c, REPORT_ID + 1, close,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL_REPORT)
+            .setSmallIcon(R.drawable.ic_stat_bx)
+            .setContentTitle(title)
+            .setContentText(text.split("\n", 2)[0])
+            .setStyle(new NotificationCompat.BigTextStyle().setBigContentTitle(title).bigText(text))
+            .setSubText("아침 보고")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setAutoCancel(true)
+            .setContentIntent(openPi)
+            .addAction(0, "오늘 보기", openPi)
+            .addAction(0, "닫기", closePi);
+        try {
+            NotificationManagerCompat.from(c).notify(REPORT_ID, b.build());
+        } catch (SecurityException ignored) {
+            // 알림 권한이 꺼져 있으면 띄우지 못한다.
+        }
     }
 
     static int notifId(String id) {

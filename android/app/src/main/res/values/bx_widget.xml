@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 홈 화면 위젯(4안-6) 색과 글. 어두운 모드 색은 values-night에 -->
+<resources>
+    <color name="bx_w_bg">#FFFFFF</color>
+    <color name="bx_w_ink">#1B1E26</color>
+    <color name="bx_w_ink2">#5C6270</color>
+    <color name="bx_w_accent">#3A5BF0</color>
+    <color name="bx_w_line">#E4E6EA</color>
+    <color name="bx_w_chip">#F0F1F4</color>
+    <string name="bx_widget_label">박스웍스 다음 일정</string>
+    <string name="bx_widget_desc">다음 일정과 알람을 보고, 말로 바로 넣어요</string>
+</resources>

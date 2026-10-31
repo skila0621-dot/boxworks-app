@@ -29,5 +29,10 @@ export default [
     "name": "오늘 화면: 그릴 때마다 칸 접기 단추·루틴 단계 펼치기 단추 붙이기(대표 요청, 코드는 web-src/home.js)",
     "find": "  if (SH && SH.refresh) SH.refresh();\n",
     "replace": "  if (window.BX_APP) bxFoldDecorate();\n  if (SH && SH.refresh) SH.refresh();\n"
+  },
+  {
+    "name": "설정 > 알림에 '아침 보고' 켜기·시각(4안-5, 코드는 web-src/brief.js)",
+    "find": "<span class=\"ml\">휴대폰 알람 시험</span><span class=\"mv\">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' : '') +",
+    "replace": "<span class=\"ml\">휴대폰 알람 시험</span><span class=\"mv\">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' : '') + (window.BX_APP ? bxReportSetHtml() : '') +"
   }
 ];

@@ -198,7 +198,11 @@ public final class AlarmStore {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         boolean exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms();
         try {
-            if (exact) {
+            if ("report".equals(o.optString("kind"))) {
+                // 아침 보고는 알람이 아니라 알림이라 상태 표시줄의 '다음 알람'에 넣지 않는다
+                if (exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
+                else am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
+            } else if (exact) {
                 Intent open = new Intent(c, MainActivity.class);
                 PendingIntent show = PendingIntent.getActivity(c, 0, open,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

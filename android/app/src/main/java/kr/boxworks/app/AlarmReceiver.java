@@ -11,6 +11,8 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         JSONObject o = AlarmNotify.fromIntent(intent);
         AlarmStore.remove(context, o.optString("id"));
-        AlarmNotify.show(context, o);
+        if ("report".equals(o.optString("kind"))) AlarmNotify.showReport(context, o.optJSONObject("report"));
+        else AlarmNotify.show(context, o);
+        BxWidgetProvider.refreshAll(context);
     }
 }

@@ -145,7 +145,8 @@ window.BX_alarmPlan = function(days){
   // 휴대폰에 거는 알람은 최대 200개: 앞으로 7일의 기본 알람을 먼저, 남는 자리에 가까운 다시 알림부터
   out.sort((a, b) => a.at - b.at);
   const base = out.slice(0, 200);
-  return base.concat(reps.sort((a, b) => a.at - b.at).slice(0, Math.max(0, 200 - base.length))).sort((a, b) => a.at - b.at);
+  // 아침 보고: 아침 루틴 첫 알람에 붙이거나, 없으면 정한 시각에 따로(web-src/brief.js)
+  return bxAddReports(base.concat(reps.sort((a, b) => a.at - b.at).slice(0, Math.max(0, 200 - base.length))), days).sort((a, b) => a.at - b.at);
 };
 function hmOf(m){ m = Math.round(m); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 boot();
@@ -234,7 +235,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',

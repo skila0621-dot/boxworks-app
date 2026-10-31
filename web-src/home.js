@@ -57,3 +57,42 @@ document.addEventListener('click', ev => {
     bxSaveJson(BX_RTOPEN_KEY, bxRtOpen);
   }
 }, true);
+
+/* 옆으로 밀어 넘기기(대표 요청): 월간·주간·오늘 화면 달력은 이전·다음 달(주), 날짜 창은 전날·다음 날.
+   단추로 넘기는 것과 똑같이 동작하고, 넘어간 쪽에서 살짝 밀려 들어온다. 오늘 카드는 원래부터 밀어서 날짜를 넘긴다 */
+let bxSw = null;
+function bxSlide(el, d){
+  if (!el) return;
+  el.classList.remove('bx-sl-n', 'bx-sl-p'); void el.offsetWidth;
+  el.classList.add(d > 0 ? 'bx-sl-n' : 'bx-sl-p');
+  el.addEventListener('animationend', () => el.classList.remove('bx-sl-n', 'bx-sl-p'), {once: true});
+}
+document.addEventListener('touchstart', ev => {
+  bxSw = null;
+  if (!window.BX_APP || ev.touches.length !== 1) return;
+  const t = ev.target;
+  if (!t.closest || t.closest('input, textarea, select, .tt-wrap, .seg')) return;
+  let kind = null;
+  if (SH) { if (t.closest('#sheet-root .sheet') && $('#sheet-root [data-act="day-add"]')) kind = 'day'; }
+  else if (S.view === 'month' && t.closest('.screen.month')) kind = 'month';
+  else if (S.view === 'week' && t.closest('.screen.week')) kind = 'week';
+  else if (S.view === 'today' && t.closest('.hcal-sec')) kind = 'hcal';
+  if (kind) bxSw = {kind, x: ev.touches[0].clientX, y: ev.touches[0].clientY, t: Date.now()};
+}, {passive: true});
+document.addEventListener('touchend', ev => {
+  if (!bxSw) return;
+  const s = bxSw; bxSw = null;
+  const p = ev.changedTouches[0], dx = p.clientX - s.x, dy = p.clientY - s.y;
+  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5 || Date.now() - s.t > 900) return;
+  const d = dx < 0 ? 1 : -1;
+  if (s.kind === 'day') {
+    const b = $('#sheet-root [data-act="day-add"]'); if (!b || !isDate(b.dataset.date)) return;
+    openDay(ymd(addDays(parseYmd(b.dataset.date), d)));
+    bxSlide($('#sheet-b'), d);
+    return;
+  }
+  const sel = {month: '.screen .page-head [data-act="month-nav"][data-d="' + d + '"]', week: '.screen .page-head [data-act="week-nav"][data-d="' + d + '"]', hcal: '.hcal-sec [data-act="hcal-nav"][data-d="' + d + '"]'}[s.kind];
+  const b = document.querySelector(sel); if (!b) return;
+  b.click();
+  bxSlide(document.querySelector(s.kind === 'month' ? '.screen.month .month-wrap' : s.kind === 'week' ? '#screen' : '.hcal-sec .hcal'), d);
+}, {passive: true});
