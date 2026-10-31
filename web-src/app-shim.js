@@ -293,6 +293,25 @@
     '#bx-start .bxs-links{display:flex;justify-content:center;gap:28px;margin-top:22px}#bx-start .bxs-links button{min-height:44px;padding:0 8px;font-size:15px;color:var(--ink-2);text-decoration:underline;text-underline-offset:4px;background:transparent}#bx-start .bxs-links button.on{color:var(--accent);font-weight:700}',
     '#bx-start .bxs-box{display:flex;flex-direction:column;margin-top:24px;border:1px solid var(--line);border-radius:18px}#bx-start .bxs-res{border-bottom:1px solid var(--line);border-radius:0}#bx-start .bxs-res:last-child{border-bottom:0}',
     '#bx-start .bxs-chips{display:flex;flex-wrap:wrap;gap:8px}#bx-start .bxs-chip{min-height:42px;padding:0 14px;border-radius:21px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',
+    // 옆으로 밀 때 화면이 가로로 밀리거나 늘어나지 않게(아래 메뉴가 같이 움직이던 문제 10/31)
+    'html.bx-app{overflow-x:hidden;overscroll-behavior:none}html.bx-app body{overflow-x:clip;overscroll-behavior:none}.bx-app #tcard,.bx-app #tcard2{overflow-x:clip;touch-action:pan-y}',
+    // 일정 꾹 누르기 메뉴: 지우기는 주의 색, 꾹 누르는 동안 글자가 잡히지 않게
+    '.bx-app .menu-row.bx-im-del .ml,.bx-app .menu-row.bx-im-del .mi{color:var(--danger,#C62828)}.bx-app .row .row-main,.bx-app .c-chip{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}',
+    '.bx-app .bx-bowl-picks{margin-top:8px}',
+    // 캘린더 머리: ‹ 10월 › 가운데, 월간|주간 작은 칩
+    '.bx-app .page-head.bx-ch{display:flex;flex-direction:column;align-items:stretch;gap:0;margin:0 0 10px;padding-top:4px}',
+    '.bx-app .bx-ch-top{display:flex;align-items:center;gap:8px;min-height:36px}.bx-app .bx-ch-top .tt-mode{margin:0;flex:1;justify-content:flex-start}',
+    '.bx-app .bx-ch-top .seg{width:auto!important;padding:3px;border-radius:11px;grid-template-columns:auto auto}.bx-app .bx-ch-top .seg button{height:30px;padding:0 13px;font-size:13px;border-radius:9px}',
+    '.bx-app .bx-ch-today{flex:none;height:32px;padding:0 12px;border-radius:16px;border:1px solid var(--line-2);background:var(--bg);font-size:13px;font-weight:700;color:var(--accent)}',
+    '.bx-app .bx-ch-mid{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:6px}.bx-app .bx-ch-mid h1{margin:0;min-width:110px;text-align:center;font-size:22px;line-height:1.2}',
+    '.bx-app .bx-ch-mid .nav-btn{width:40px;height:40px;border:0;background:transparent;border-radius:20px;color:var(--ink)}.bx-app .bx-ch-mid .nav-btn:active{background:var(--sunk)}.bx-app .bx-ch-mid .nav-btn .i{width:22px;height:22px}',
+    '.bx-app .page-head.bx-ch>p{margin:2px 0 0;text-align:center;font-size:13px;color:var(--ink-2)}',
+    // 시간표: 머리는 제목만, 도구는 아래 메뉴 위 툴바
+    '.bx-app .bx-tt-head{margin-bottom:8px}.bx-app .bx-tt-head h1{font-size:22px}.bx-app .bx-tt-head p{font-size:13px}',
+    '.bx-app .bx-ttbar{position:fixed;left:0;right:0;bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px));z-index:39;display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;padding:8px 12px;background:color-mix(in srgb,var(--bg) 96%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}',
+    '.bx-app .bx-ttb{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border-radius:14px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;font-weight:700;color:var(--ink)}.bx-app .bx-ttb .i{width:19px;height:19px}',
+    '.bx-app .bx-ttb.main{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}',
+    'html.bx-ttbar-on .content{padding-bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 76px)}html.bx-ttbar-on #toasts{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 72px)}',
     // 빈 홈의 예시 문장, + 단추 팁
     '.bx-app .bx-empty-ex{padding:14px 0 6px}.bx-app .bx-empty-ex .bx-todo-empty{padding:0;margin:0 0 10px;text-align:left}.bx-app .bx-ex-chips{display:flex;flex-wrap:wrap;gap:8px}',
     '.bx-app .bx-ex{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',

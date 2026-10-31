@@ -15,7 +15,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         if (o.optString("sound").startsWith("bowl")) {
             // 종소리는 알림 소리에 맡기지 않고 앱이 직접 끝까지 튼다(알림은 소리 없이 글만)
             AlarmNotify.showSoft(context, o);
-            BowlPlayer.play(context, o.optString("sound"), goAsync());
+            BowlPlayer.play(context, o.optString("sound"), o.optString("bowl", "clear"), goAsync());
             BxWidgetProvider.refreshAll(context);
             return;
         } else if ("report".equals(kind)) {

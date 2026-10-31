@@ -20,6 +20,8 @@ document.addEventListener('click', ev => {
 /* + 단추 팁: 앱을 처음 세 번 여는 동안 홈에서 '꾹 누르면 말로 넣어요'. 누르면 다시 안 나온다 */
 let bxFabTipSeen = false;
 function bxFlowDecorate(){
+  bxCalHead();
+  document.documentElement.classList.toggle('bx-ttbar-on', !!(window.BX_APP && S.view === 'tt'));
   const old = document.querySelector('.bx-fab-tip');
   const want = window.BX_APP && S.view === 'today' && !S.homeDay && !SH && !document.getElementById('bx-start') && bxFabTipLeft() > 0;
   if (!want) { if (old) old.remove(); return; }
@@ -30,6 +32,20 @@ function bxFlowDecorate(){
   tip.setAttribute('aria-label', '팁: + 단추를 꾹 누르면 말로 넣어요. 누르면 닫혀요');
   tip.addEventListener('click', e => { e.stopPropagation(); lsSet('bx:fabTip', '0'); tip.remove(); });
   document.body.appendChild(tip);
+}
+/* 캘린더 머리(대표 요청 10/31): '‹ 10월 ›'처럼 달 이름을 가운데에, 넘기기 단추는 양옆에 작게. 월간|주간은 작은 칩 */
+function bxCalHead(){
+  if (S.view !== 'month' && S.view !== 'week') return;
+  const ph = document.querySelector('.screen .page-head'); if (!ph || ph.classList.contains('bx-ch')) return;
+  const h1 = ph.querySelector('.ph-t h1'), p = ph.querySelector('.ph-t p'), nav = ph.querySelector('.ph-nav'); if (!h1 || !nav) return;
+  const bs = nav.querySelectorAll('button'); if (bs.length < 3) return;
+  const prev = bs[0], pill = bs[1], next = bs[bs.length - 1];
+  const top = document.createElement('div'); top.className = 'bx-ch-top';
+  const mode = document.querySelector('.screen .tt-mode'); if (mode) top.appendChild(mode);
+  if (pill.getAttribute('aria-pressed') !== 'true') { pill.classList.add('bx-ch-today'); pill.textContent = S.view === 'week' ? '이번 주로' : '이번 달로'; top.appendChild(pill); }
+  prev.setAttribute('aria-label', S.view === 'week' ? '지난주' : '지난달'); next.setAttribute('aria-label', S.view === 'week' ? '다음 주' : '다음 달');
+  const mid = document.createElement('div'); mid.className = 'bx-ch-mid'; mid.append(prev, h1, next);
+  ph.textContent = ''; ph.classList.add('bx-ch'); ph.append(top, mid); if (p) ph.append(p);
 }
 function bxFabTipLeft(){ const v = lsGet('bx:fabTip'); return v == null ? 3 : Math.max(0, +v || 0); }
 
@@ -267,3 +283,56 @@ document.addEventListener('click', ev => {
   }
 }, true);
 window.BX_rerender = function(){ if (S.view === 'today' && !SH && !document.getElementById('bx-start')) render(); };
+
+/* 일정 꾹 누르기 메뉴(대표 요청 10/31: 지우려고 매번 들어가는 건 비효율). 홈·날짜 창·주간·찾기·월간 칩 어디서든 같다 */
+let bxIlp = null, bxIlpAt = 0;
+function bxItemOf(id){ return getDoc(id) || M.items.find(i => i.id === id) || null; }
+function bxItemMenu(id, el){
+  const it = bxItemOf(id); if (!it) return;
+  const pc = !!it.pc || /^pc_/.test(id);
+  const row = (act, icon, label, sub, warn) => '<button type="button" class="menu-row' + (warn ? ' bx-im-del' : '') + '" data-bx-im="' + act + '"><span class="mi">' + icon + '</span><span class="ml">' + label + '</span>' + (sub ? '<span class="mv">' + esc(sub) + '</span>' : '') + '</button>';
+  const when = (isDate(it.date) ? relDay(it.date, M.today) + ' ' : '') + timeText(it);
+  openSheet({title: it.title || '(제목 없음)', draw: () => setSheet(
+    '<p class="p small" style="margin:-6px 0 10px">' + esc(when) + (it.location ? ' · ' + esc(it.location) : '') + '</p><div class="menu">' +
+    row('edit', ICON.edit, pc ? '알림·이동 시간 고치기' : '고치기', '') +
+    (pc ? '' : row('done', ICON.check, it.done ? '완료 취소' : '다 했어요', '') +
+      row('tmr', ICON.clock, '내일로 미루기', fmtMD(ymd(addDays(parseYmd(M.today), 1))) + (it.start ? ' ' + it.start : '')) +
+      row('del', ICON.trash, '지우기', '휴지통에 30일', true)) +
+    '</div>' + (pc ? '<p class="p small" style="margin:10px 0 0">휴대폰 캘린더에서 읽어 온 일정은 그 캘린더 앱에서 지우거나 옮겨요.</p>' : ''), '')});
+  SH.bxIm = {id, el};
+}
+document.addEventListener('pointerdown', ev => {
+  if (!window.BX_APP || (ev.button != null && ev.button > 0) || !ev.target.closest) return;
+  const el = ev.target.closest('.row .row-main[data-id], .row .chk[data-id], .c-chip[data-item]'); if (!el || el.closest('.tt-wrap')) return;
+  const id = el.dataset.id || el.dataset.item; if (!id) return;
+  if (bxIlp) clearTimeout(bxIlp.t);
+  bxIlp = {id, x: ev.clientX, y: ev.clientY, t: setTimeout(() => {
+    bxIlp = null; bxIlpAt = Date.now();
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) { /* 진동 없음 */ }
+    bxItemMenu(id, el);
+  }, 480)};
+}, true);
+document.addEventListener('pointermove', ev => { if (bxIlp && (Math.abs(ev.clientX - bxIlp.x) > 10 || Math.abs(ev.clientY - bxIlp.y) > 10)) { clearTimeout(bxIlp.t); bxIlp = null; } }, true);
+['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, () => { if (bxIlp) { clearTimeout(bxIlp.t); bxIlp = null; } }, true));
+// 꾹 누른 뒤 손을 떼며 생기는 누르기는 삼킨다(창이 열리자마자 고치기 창으로 넘어가지 않게)
+window.addEventListener('click', ev => { if (Date.now() - bxIlpAt < 700 && ev.target.closest && !ev.target.closest('#sheet-root')) { ev.preventDefault(); ev.stopPropagation(); } }, true);
+document.addEventListener('contextmenu', ev => { if (window.BX_APP && ev.target.closest && ev.target.closest('.row, .c-chip')) ev.preventDefault(); }, true);
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-bx-im]'); if (!b || !SH || !SH.bxIm) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const {id} = SH.bxIm, it = bxItemOf(id), op = b.dataset.bxIm; if (!it) { closeSheet(); return; }
+  closeSheet();
+  if (op === 'edit') {
+    const el = document.querySelector('.row-main[data-act="edit"][data-id="' + CSS.escape(id) + '"], .c-chip[data-item="' + CSS.escape(id) + '"]');
+    if (/^pc_/.test(id) && el) { bxIlpAt = 0; el.click(); } else openEdit(id);
+    return;
+  }
+  if (op === 'done') { toggleDone(id); return; }
+  if (op === 'del') { softDelete(id); return; }
+  if (op === 'tmr') {
+    const patch = {date: ymd(addDays(parseYmd(M.today), 1)), slips: (it.slips || 0) + 1, ackAt: null, snoozeUntil: null, lateKeep: null};
+    if (!it.origDate) { patch.origDate = it.date; patch.origStart = it.start || null; }
+    record([id]); patchDoc(id, patch);
+    toast('내일로 미뤘어요', [['되돌리기', doUndo]]);
+  }
+}, true);

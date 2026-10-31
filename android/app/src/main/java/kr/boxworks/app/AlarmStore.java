@@ -259,7 +259,8 @@ public final class AlarmStore {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         boolean exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms();
         try {
-            if ("report".equals(o.optString("kind")) || o.optString("sound").startsWith("bowl")) {
+            // 명상 종(med_)은 화면이 꺼져 있어도 30초 간격까지 정확히 울려야 해서 알람(setAlarmClock)으로 건다
+            if ("report".equals(o.optString("kind")) || (o.optString("sound").startsWith("bowl") && !id.startsWith("med_"))) {
                 // 아침 보고는 알람이 아니라 알림이라 상태 표시줄의 '다음 알람'에 넣지 않는다
                 if (exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
                 else am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);

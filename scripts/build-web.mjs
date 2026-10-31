@@ -141,7 +141,7 @@ window.BX_alarmPlan = function(days){
           a.series = base;
           a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴'; a.lv = lvR;
           if (!j && !bowl) { a.rid = rt.id; a.ds = ds; a.leave = leaveAt; a.steps = steps; }
-          if (bowl) a.sound = 'bowl';
+          if (bowl) { a.sound = 'bowl'; a.bowl = bxBowlType(); }
           (j ? reps : out).push(a);
         }
       });
@@ -151,7 +151,7 @@ window.BX_alarmPlan = function(days){
       // 싱잉볼 루틴(명상 등): 마지막 단계가 끝날 때 끝 종 세 번. 확인 안 한 단계 알림은 하지 않는다
       if (bowl && endM != null && rows.length && rows[rows.length - 1].min > 0) {
         const te = addMin(day, endM).getTime();
-        if (te > now && te <= until && !doneMap[rows[rows.length - 1].id]) out.push({id: 'r_' + rt.id + '_' + ds + '_end', at: te, kind: 'item', sound: 'bowl3', group: rt.name || '루틴', title: (rt.name || '루틴') + ' 끝', sub: '잘했어요', body: ''});
+        if (te > now && te <= until && !doneMap[rows[rows.length - 1].id]) out.push({id: 'r_' + rt.id + '_' + ds + '_end', at: te, kind: 'item', sound: 'bowl3', bowl: bxBowlType(), group: rt.name || '루틴', title: (rt.name || '루틴') + ' 끝', sub: '잘했어요', body: ''});
       }
       if (todo.length && endM != null && !bowl) {
         const tc = addMin(day, endM + 10).getTime();
@@ -369,7 +369,5 @@ for (const p of patches) {
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, 'index.html'), html);
 copyFileSync(join(root, 'web-src', 'app-shim.js'), join(out, 'app-shim.js'));
-// 명상 종소리(싱잉볼, scripts/sound/make-bowl.py로 합성)
-mkdirSync(join(out, 'sounds'), { recursive: true });
-for (const f of ['bx_bowl.ogg', 'bx_bowl3.ogg', 'bx_bowl_soft.ogg']) copyFileSync(join(root, 'web-src', 'sounds', f), join(out, 'sounds', f));
+// 명상 종소리(싱잉볼)는 앱 안에서도 휴대폰 쪽 플레이어(BxAlarm.bowl, res/raw)로 튼다. 같은 파일을 두 번 넣지 않으려고 www에는 복사하지 않는다
 console.log(`www/index.html (${(html.length / 1024).toFixed(0)}KB) 만듦`);

@@ -33,7 +33,8 @@ function bxSoundPickHtml(){
     '<button type="button" class="pick" data-rsound="" aria-pressed="' + !cur + '">기본 알람</button>' +
     '<button type="button" class="pick" data-rsound="bowl" aria-pressed="' + (cur === 'bowl') + '">싱잉볼</button></div>' +
     '<button type="button" class="bx-play" data-act="bx-med-hear" aria-label="싱잉볼 소리 미리 듣기"><svg class="i" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z" fill="currentColor" stroke="none"/></svg></button></div>' +
-    '<p class="p small">싱잉볼은 단계마다 종이 한 번 울리고, 끝날 때 세 번 울려요. 명상·마음 정리 루틴에 어울려요.</p></div>';
+    '<div class="picks bx-bowl-picks" id="bx-bowlpick"' + (cur === 'bowl' ? '' : ' hidden') + '>' + BX_BOWLS.map(b => '<button type="button" class="pick" data-bxbowl="' + b[0] + '" aria-pressed="' + (bxBowlType() === b[0]) + '">' + b[1] + '</button>').join('') + '</div>' +
+    '<p class="p small">싱잉볼은 단계마다 종이 한 번 울리고, 끝날 때 세 번 울려요. 명상·마음 정리 루틴에 어울려요. 종류는 명상과 같이 써요.</p></div>';
 }
 function bxIconPickRefresh(){
   const g = $('#bx-icpick'), sm = $('#bx-icsum');
@@ -42,7 +43,7 @@ function bxIconPickRefresh(){
 }
 document.addEventListener('click', ev => {
   const sb = ev.target.closest && ev.target.closest('[data-rsound]');
-  if (sb && R && window.BX_APP) { ev.stopPropagation(); R.sound = sb.dataset.rsound || null; $$('#bx-sndpick [data-rsound]').forEach(x => x.setAttribute('aria-pressed', String((x.dataset.rsound || null) === R.sound))); return; }
+  if (sb && R && window.BX_APP) { ev.stopPropagation(); R.sound = sb.dataset.rsound || null; $$('#bx-sndpick [data-rsound]').forEach(x => x.setAttribute('aria-pressed', String((x.dataset.rsound || null) === R.sound))); const bp = $('#bx-bowlpick'); if (bp) bp.hidden = R.sound !== 'bowl'; return; }
   const b = ev.target.closest && ev.target.closest('[data-ricon]'); if (!b || !R || !window.BX_APP) return;
   ev.stopPropagation();
   R.icon = b.dataset.ricon || null;

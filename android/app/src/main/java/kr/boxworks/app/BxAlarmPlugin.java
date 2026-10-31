@@ -64,6 +64,15 @@ public class BxAlarmPlugin extends Plugin {
         }
     }
 
+    /** 싱잉볼 미리 듣기·명상 시작 종(앱 안에서). sound: bowl | bowl_soft | bowl3, type: clear | deep | crystal | chime | stop */
+    @PluginMethod
+    public void bowl(PluginCall call) {
+        String type = call.getString("type", "clear");
+        if ("stop".equals(type)) BowlPlayer.stopPreview();
+        else BowlPlayer.preview(getContext(), call.getString("sound", "bowl"), type);
+        call.resolve();
+    }
+
     @PluginMethod
     public void status(PluginCall call) {
         call.resolve(statusObject());

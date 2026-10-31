@@ -120,9 +120,10 @@ function bxCalGo(to){
 function ttHtml(){
   const list = ttList();
   VBAR = {title: '시간표', nav: ''};
-  const usedWeekend = list.some(e => e.days.includes(6) || e.days.includes(0));
-  const wk = (M.settings && M.settings.ttWeek) || 'auto';
-  const cols = wk === 'all' || (wk === 'auto' && usedWeekend) ? TT_ORDER : [1, 2, 3, 4, 5];
+  // 보이는 요일(대표 지적 10/31: '주말 수업이 있을 때만'은 있으나 마나) → 월–금 | 월–일 두 가지.
+  // 월–금이어도 토·일에 수업이 있으면 그 요일은 보인다(넣은 수업이 숨지 않게)
+  const wk = (M.settings && M.settings.ttWeek) === 'all' ? 'all' : 'wd';
+  const cols = wk === 'all' ? TT_ORDER : [1, 2, 3, 4, 5].concat([6, 0].filter(d => list.some(e => e.days.includes(d))));
   if (TTSEL && !list.some(e => e.id === TTSEL.id && e.days.includes(TTSEL.d))) TTSEL = null;
   const rg = ttRange();
   let h0 = rg.from, h1 = rg.to;
@@ -148,9 +149,22 @@ function ttHtml(){
   }).join('');
   const add = '<div class="tt-add"><label class="sr" for="tt-in">시간표에 넣기</label><div class="bx-inrow"><input id="tt-in" class="inp" type="text" autocomplete="off" enterkeyhint="done" maxlength="120" placeholder="예) 월수 10시 반부터 12시까지 경영학원론 301호">' +
     bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">넣기</button></div></div>';
+  // 앱: 시간표 칸이 바로 보이게 머리는 제목만, 넣기·보기 설정·수업 추가는 아래 메뉴 위 툴바로(대표 요청 10/31)
+  if (window.BX_APP) {
+    const rangeTxt = String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : cols.length === 5 ? '월–금' : '월–금·' + cols.slice(5).map(d => WD[d]).join('·'));
+    const emptyA = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 아래 ‘말로 넣기’로 넣어 보세요. 시작 10분 전에 알람이 울려요.</p>';
+    return '<div class="page-head bx-tt-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복 · ' + rangeTxt + '</span></p></div></div>' + emptyA +
+      (TTSEL ? '<p class="p small tt-tip">' + TT_TIP1 + '</p>' : '') +
+      '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
+      '<div class="tt-body' + (TTSEL ? ' editing' : '') + '" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + (TTSEL ? ttBarHtml() : '') + '</div></div>' +
+      '<nav class="bx-ttbar" aria-label="시간표 도구">' +
+        '<button type="button" class="bx-ttb main" data-act="bx-tt-say">' + TT_MIC_I + '<span>말로 넣기</span></button>' +
+        '<button type="button" class="bx-ttb" data-act="tt-range" aria-label="보기 설정 바꾸기 · ' + rangeTxt + '">' + ICON.clock + '<span>보기 설정</span></button>' +
+        '<button type="button" class="bx-ttb" data-act="tt-new">' + ICON.plus + '<span>수업 추가</span></button></nav>';
+  }
   const empty = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 위 칸에 말하거나 적어 보세요. 시작 10분 전에 알람이 울려요.</p>';
   return '<div class="page-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복</span></p></div></div>' + add +
-    '<div class="tt-sub"><button type="button" class="tt-opt" data-act="tt-range" aria-label="시간표 보기 설정 바꾸기">' + ICON.clock + '<span><b>보기 설정</b><small>' + String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : '월–금') + '</small></span>' + ICON.chevR + '</button>' +
+    '<div class="tt-sub"><button type="button" class="tt-opt" data-act="tt-range" aria-label="시간표 보기 설정 바꾸기">' + ICON.clock + '<span><b>보기 설정</b><small>' + String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : cols.length === 5 ? '월–금' : '월–금·' + cols.slice(5).map(d => WD[d]).join('·')) + '</small></span>' + ICON.chevR + '</button>' +
       '<button type="button" class="tt-opt" data-act="tt-new">' + ICON.plus + '<span><b>수업 추가</b><small>요일·시간 골라 넣기</small></span></button></div>' + empty +
     (list.length ? '<p class="p small tt-tip">' + (TTSEL ? TT_TIP1 : TT_TIP0) + '</p>' : '') +
     '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
@@ -230,18 +244,34 @@ function ttCheck(o){
   if (!isHM(o.start)) return '시작 시각을 적어 주세요.';
   return '';
 }
+const TT_MIC_I = '<svg class="i" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>';
+// 앱 툴바의 '말로 넣기': 넣는 칸을 창으로 연다
+function ttSayOpen(){
+  openSheet({title: '시간표에 넣기', draw: () => setSheet(
+    '<p class="p small" style="margin:0 0 10px">한 문장으로 말하거나 적어요. 요일·시각·이름·장소를 알아서 나눠 넣어요.</p>' +
+    '<div class="tt-add"><label class="sr" for="tt-in">시간표에 넣기</label><div class="bx-inrow"><input id="tt-in" class="inp" type="text" autocomplete="off" enterkeyhint="done" maxlength="120" placeholder="예) 월수 10시 반부터 12시까지 경영학원론 301호">' +
+    bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">넣기</button></div></div>' +
+    '<p class="p small" style="margin:10px 0 0">예) 화목 2시 영어회화 · 금 7시부터 10시까지 편의점 알바</p>', '')});
+  setTimeout(() => { const i = $('#tt-in'); if (i) i.focus(); }, 60);
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-act="bx-tt-say"]'); if (!b) return;
+  ev.preventDefault(); ev.stopPropagation(); ttSayOpen();
+}, true);
 function ttAddFromText(text){
   text = String(text || '').trim();
   if (!text) { toast('예) 월수 10시 반부터 12시까지 경영학원론 301호'); return; }
   const p = ttParse(text);
   const o = {id: null, name: p.name, days: p.days, start: p.start, end: p.end, place: p.place, remind: '10', color: TT_COLORS[ttList().length % TT_COLORS.length]};
   if (p.name && p.days.length && p.start) {
+    if (SH && $('#tt-in')) closeSheet();
     const id = ttSave(o);
     const inp = $('#tt-in'); if (inp) inp.value = '';
     toast('시간표에 넣었어요 · ' + ttDaysText(p.days) + ' ' + p.start + '–' + p.end, [['되돌리기', () => removeDoc(id)]]);
     return;
   }
   o.hint = !p.days.length ? '요일을 알아듣지 못했어요. 아래에서 골라 주세요.' : !p.start ? '시각을 알아듣지 못했어요. 아래에서 적어 주세요.' : '이름을 적어 주세요.';
+  if (SH && $('#tt-in')) closeSheet();
   ttOpen(null, o);
 }
 
@@ -298,7 +328,8 @@ function ttRangeOpen(){
   openSheet({title: '시간표 보기 설정', draw: () => setSheet(
     '<span class="tt-l" style="display:block">보이는 시간</span><p class="p small" style="margin:4px 0 0">이른 아침·늦은 밤 수업이 있으면 넓혀 주세요. 범위 밖에 넣은 수업은 저절로 넓혀서 보여요.</p>' +
     '<div class="tt-times" style="margin-top:10px"><select id="tt-rg-f" class="inp" aria-label="시작">' + opt(0, 12, rg.from) + '</select><span>–</span><select id="tt-rg-t" class="inp" aria-label="끝">' + opt(12, 24, rg.to) + '</select></div>' +
-    '<span class="tt-l" style="margin-top:16px;display:block">보이는 요일</span><div class="tt-pills" role="group" aria-label="보이는 요일">' + [['wd', '월–금'], ['all', '월–일 (주말 포함)'], ['auto', '주말 수업이 있을 때만 주말도']].map(o => '<button type="button" class="tt-pill" data-act="tt-wk" data-v="' + o[0] + '" aria-pressed="' + (((M.settings && M.settings.ttWeek) || 'auto') === o[0]) + '">' + o[1] + '</button>').join('') + '</div>',
+    '<span class="tt-l" style="margin-top:16px;display:block">보이는 요일</span><div class="tt-pills" role="group" aria-label="보이는 요일">' + [['wd', '월–금'], ['all', '월–일']].map(o => '<button type="button" class="tt-pill" data-act="tt-wk" data-v="' + o[0] + '" aria-pressed="' + ((((M.settings && M.settings.ttWeek) === 'all') ? 'all' : 'wd') === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
+    '<p class="p small" style="margin:6px 0 0">월–금으로 두어도 토·일 수업을 넣으면 그 요일은 저절로 보여요.</p>',
     '<button type="button" class="btn primary grow" data-act="tt-rg-save">저장</button>')});
 }
 /* ---------- 시간표 편집 모드(대표 요청) ----------
