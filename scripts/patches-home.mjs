@@ -17,11 +17,11 @@ const OLD_DOCK = [
   '  </div>\n</nav>'
 ].join('\n');
 const NEW_DOCK = [
+  '    <button type="button" class="dock-btn" data-act="go" data-view="med">' + I_MED + '명상</button>',
+  '    <button type="button" class="dock-btn" data-act="go" data-view="routines">' + I_RT + '루틴</button>',
+  '    <button type="button" class="dock-btn dock-home" data-act="go" data-view="today">' + I_HOME + '홈<span class="dock-badge" id="dock-badge" hidden></span></button>',
   '    <button type="button" class="dock-btn" data-act="go" data-view="month">' + I_CAL + '캘린더</button>',
   '    <button type="button" class="dock-btn" data-act="go" data-view="tt">' + I_TT + '시간표</button>',
-  '    <button type="button" class="dock-btn dock-home" data-act="go" data-view="today">' + I_HOME + '홈<span class="dock-badge" id="dock-badge" hidden></span></button>',
-  '    <button type="button" class="dock-btn" data-act="go" data-view="routines">' + I_RT + '루틴</button>',
-  '    <button type="button" class="dock-btn" data-act="go" data-view="med">' + I_MED + '명상</button>',
   '  </div>\n</nav>',
   '<button type="button" class="bx-fab" data-act="new" aria-label="새 일정 넣기 (꾹 누르면 말로 넣기)"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>'
 ].join('\n');
@@ -32,7 +32,7 @@ export default [
     replace: "  const todaySec = window.BX_APP ? bxHomeSplit(head, body, {isT, vd, title, n: dayIts.length}) : '<section class=\"tcard\" id=\"tcard\" aria-labelledby=\"h-today\" aria-roledescription=\"날짜별로 넘겨 보는 일정\">' + head + '<div class=\"tc-body\">' + (isT ? rtHomeHtml() : '') + secHead('h-today', title, dayIts.length + '개', addBtn(vd)) + body + '</div></section>';"
   },
   {
-    name: '└ 아래 메뉴: 캘린더 · 시간표 · 홈(가운데) · 루틴 · 명상, 새 일정은 오른쪽 아래 + 단추',
+    name: '└ 아래 메뉴: 명상 · 루틴 · 홈(가운데) · 캘린더 · 시간표(오른손 기준), 새 일정은 오른쪽 아래 + 단추',
     find: OLD_DOCK,
     replace: NEW_DOCK
   },

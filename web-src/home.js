@@ -144,7 +144,8 @@ document.addEventListener('contextmenu', ev => { if (ev.target.closest && ev.tar
 
 /* ---------- 아래 메뉴 고르기(대표 요청 2026-10-31: 쓰고 싶은 기능만 툴바에) ----------
    홈은 늘 가운데. 나머지 자리(최대 4개)는 사용자가 고른다. 빠진 기능은 오른쪽 위 ⋯ 메뉴에서 연다. 설정 문서 bxDock에 저장(백업에 들어감) */
-const BX_DOCK_DEF = ['month', 'tt', 'routines', 'med'];
+// 기본 순서는 오른손 엄지 기준(대표 결정 2026-10-31): 덜 쓰는 명상이 왼쪽 끝, 자주 여는 캘린더·시간표가 오른쪽
+const BX_DOCK_DEF = ['med', 'routines', 'month', 'tt'];
 const BX_DOCK_ALL = {
   month: {label: '캘린더', sub: '달력·주간 일정', icon: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.4h.01M12 17.4h.01" stroke-width="2.6"/></svg>', attr: 'data-act="go" data-view="month"'},
   tt: {label: '시간표', sub: '매주 반복되는 수업·학원·알바', icon: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16.5" rx="3"/><path d="M3.5 9.5h17M9.5 9.5v11M15 9.5v11"/></svg>', attr: 'data-act="go" data-view="tt"'},
