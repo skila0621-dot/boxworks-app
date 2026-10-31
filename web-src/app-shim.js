@@ -75,6 +75,16 @@
     '.bx-app .tt-sw{width:32px;height:32px;border-radius:16px;border:0;background:var(--c)}',
     '.bx-app .tt-sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--c)}',
     '.bx-app .tt-hint{color:var(--warn-ink);margin:0}',
+    // 시간표 블록 끌기·꾹 누르기(대표 요청): 위·아래 끝 손잡이, 끄는 동안 시각 표시
+    '.bx-app .tt-b{touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}',
+    '.bx-app .tt-hd{position:absolute;left:0;right:0;height:16px;touch-action:none;z-index:2}',
+    '.bx-app .tt-hd.s{top:0}.bx-app .tt-hd.e{bottom:0}',
+    '.bx-app .tt-hd.e::after{content:"";position:absolute;left:50%;bottom:3px;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:var(--c);opacity:.55}',
+    '.bx-app .tt-b.rs{z-index:5;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,.18);outline:2px solid var(--c)}',
+    '.bx-app .tt-b.rs::after{content:attr(data-rs-t);position:absolute;left:50%;top:-24px;transform:translateX(-50%);padding:2px 7px;border-radius:7px;background:var(--ink);color:var(--bg);font-size:11.5px;font-weight:700;white-space:nowrap}',
+    '.bx-app .tt-rg{gap:4px}.bx-app .tt-rg .i{width:15px;height:15px}',
+    '.bx-app .tt-tip{margin:-4px 0 10px;color:var(--ink-3)}',
+    '.bx-app .tt-menu .menu-row.danger .ml,.bx-app .tt-menu .menu-row.danger .mi{color:var(--danger)}',
     // 출발 시각 계산·준비 루틴(4단계): 새 일정 창의 '출발' 칸과 일정 줄의 출발 시각
     '.bx-app .tv-cus{display:flex;align-items:center;gap:8px;margin-top:10px}',
     '.bx-app .tv-mem{margin:8px 0 0;color:var(--accent)}',
