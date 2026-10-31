@@ -193,7 +193,11 @@ function ttOpen(id, pre){
 function ttDraw(){
   if (!TT) return;
   const dayBtns = TT_ORDER.map(d => '<button type="button" class="tt-dbtn' + (d === 0 ? ' sun' : d === 6 ? ' sat' : '') + '" data-act="tt-day" data-d="' + d + '" aria-pressed="' + TT.days.includes(d) + '">' + WD[d] + '</button>').join('');
-  const rems = '<div class="tt-pills" role="group" aria-label="알림">' + TT_REMS.map(r => '<button type="button" class="tt-pill" data-act="tt-rem" data-v="' + r[0] + '" aria-pressed="' + (String(TT.remind) === r[0]) + '">' + r[1] + '</button>').join('') + '</div>';
+  // 정해진 칸에 맞는 게 없으면 '직접 입력'(대표 결정 10/31): 그 자리에서 몇 분 전인지 적는다
+  const remStd = TT_REMS.some(r => String(TT.remind) === r[0]);
+  const rems = '<div class="tt-pills" role="group" aria-label="알림">' + TT_REMS.map(r => '<button type="button" class="tt-pill" data-act="tt-rem" data-v="' + r[0] + '" aria-pressed="' + (String(TT.remind) === r[0]) + '">' + r[1] + '</button>').join('') +
+    '<button type="button" class="tt-pill" data-act="tt-rem" data-v="custom" aria-pressed="' + !remStd + '">직접 입력</button></div>' +
+    '<label class="tt-remc"' + (remStd ? ' hidden' : '') + '><input id="tt-rem-c" class="inp" type="number" inputmode="numeric" min="1" max="240" value="' + (remStd ? 15 : (+TT.remind || 15)) + '"><span>분 전</span></label>';
   const colors = TT_COLORS.map(c => '<button type="button" class="tt-sw" data-act="tt-color" data-c="' + c + '" style="--c:' + c + '" aria-pressed="' + (TT.color === c) + '" aria-label="색"></button>').join('');
   setSheet(
     '<div class="tt-form">' +
@@ -259,7 +263,13 @@ document.addEventListener('click', ev => {
   if (act === 'tt-add') { ttAddFromText(($('#tt-in') || {}).value); return; }
   if (!TT) return;
   if (act === 'tt-day') { const d = +el.dataset.d; TT.days = TT.days.includes(d) ? TT.days.filter(x => x !== d) : TT.days.concat([d]); el.setAttribute('aria-pressed', TT.days.includes(d)); return; }
-  if (act === 'tt-rem') { TT.remind = el.dataset.v; $$('[data-act="tt-rem"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === TT.remind)); return; }
+  if (act === 'tt-rem') {
+    const v = el.dataset.v, box = $('.tt-remc');
+    TT.remind = v === 'custom' ? String(+(($('#tt-rem-c') || {}).value) || 15) : v;
+    $$('[data-act="tt-rem"]').forEach(b => b.setAttribute('aria-pressed', String(b === el)));
+    if (box) { box.hidden = v !== 'custom'; if (v === 'custom') { const i = $('#tt-rem-c'); if (i) { i.focus(); i.select(); } } }
+    return;
+  }
   if (act === 'tt-color') { TT.color = el.dataset.c; $$('[data-act="tt-color"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === TT.color)); return; }
   if (act === 'tt-del') { const id = TT.id, keep = getDoc(id); closeSheet(); removeDoc(id); toast('시간표에서 지웠어요', [['되돌리기', () => writeDoc(id, keep)]]); return; }
   if (act === 'tt-save') {
@@ -267,6 +277,8 @@ document.addEventListener('click', ev => {
     const st = ($('#tt-start') || {}).value, en = ($('#tt-end') || {}).value;
     if (isHM(st)) TT.start = st;
     TT.end = isHM(en) && toMin(en) > toMin(TT.start) ? en : fromMin(Math.min(toMin(TT.start) + 60, 1439));
+    const rc = $('#tt-rem-c'), cb = $('[data-act="tt-rem"][data-v="custom"]');
+    if (rc && cb && cb.getAttribute('aria-pressed') === 'true') TT.remind = String(Math.max(1, Math.min(240, Math.round(+rc.value) || 15)));
     const err = ttCheck(TT); if (err) { toast(err); return; }
     const o = Object.assign({}, TT); closeSheet(); ttSave(o); toast(o.id ? '고쳤어요' : '시간표에 넣었어요'); return;
   }
@@ -323,7 +335,7 @@ function ttBarHtml(){
   const b = (act, icon, label, on) => '<button type="button" class="tt-xb' + (on ? ' on' : '') + '" data-act="' + act + '" aria-label="' + label + '">' + icon + '<small>' + label + '</small></button>';
   const nd = ttNextDate(TTSEL.d), off = ttSkipped(e, nd);
   return '<div class="tt-bar" id="tt-bar" role="toolbar" aria-label="' + esc(e.name) + ' 편집">' +
-    b('tt-x-clip', TT_CLIP, lk ? '연결됨' : '연결', lk) + b('tt-x-off', TT_OFF, off ? '휴강 취소' : ttMD(nd) + ' 휴강', off) + b('tt-x-dup', ICON.plus, '복제') + b('tt-x-edit', ICON.edit, '고치기') + b('tt-x-del', ICON.trash, '지우기') + b('tt-x-done', ICON.check, '완료') + '</div>';
+    b('tt-x-clip', TT_CLIP, lk ? '연결 풀기' : '수업 묶기', lk) + b('tt-x-off', TT_OFF, off ? '휴강 취소' : ttMD(nd) + ' 휴강', off) + b('tt-x-dup', ICON.plus, '복제') + b('tt-x-edit', ICON.edit, '고치기') + b('tt-x-del', ICON.trash, '지우기') + b('tt-x-done', ICON.check, '완료') + '</div>';
 }
 // 도구 줄을 고른 블록 바로 위에 두고, 화면 밖으로 나가지 않게
 function ttPlaceBar(){

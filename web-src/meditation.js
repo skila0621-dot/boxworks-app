@@ -4,6 +4,14 @@
    진행 중인 명상과 설정은 이 휴대폰에만(localStorage), 명상한 시간 기록은 'medlog' 문서(백업에 들어감).
    앱 안 문구는 생활 습관 말로 쓴다(치료·증상 같은 말은 쓰지 않음: Play 건강 앱 분류). */
 const MED_KEY = 'bx:med', MED_MINS = [3, 5, 10, 15, 20];
+// 직접 입력한 분(1–120)은 바로 반영된다
+document.addEventListener('change', ev => {
+  if (!ev.target || ev.target.id !== 'bx-med-cmin') return;
+  const v = Math.max(1, Math.min(120, Math.round(+ev.target.value) || 10));
+  MED.min = v; MED.cust = !MED_MINS.includes(v);
+  if (MED.bell && (MED.min <= 3 || (MED.bell === 5 && MED.min < 10) || (MED.bell === 1 && MED.min >= 10))) MED.bell = 0;
+  medSave(); render();
+});
 let MED = (() => { try { return Object.assign({min: 10, bell: 0, breath: true, run: null}, JSON.parse(lsGet(MED_KEY) || '{}')); } catch (e) { return {min: 10, bell: 0, breath: true, run: null}; } })();
 let medTimer = null;
 function medSave(){ try { lsSet(MED_KEY, JSON.stringify(MED)); } catch (e) { /* 저장 공간 없음 */ } }
@@ -37,7 +45,9 @@ function medHtml(){
   }
   const pick = (attr, v, cur, label) => '<button type="button" class="pick" ' + attr + '="' + v + '" aria-pressed="' + (cur === v) + '">' + label + '</button>';
   return head + '<section class="set-sec bx-med-set">' +
-    '<div class="fg-l">시간</div><div class="picks">' + MED_MINS.map(m => pick('data-med-min', m, MED.min, m + '분')).join('') + '</div>' +
+    '<div class="fg-l">시간</div><div class="picks">' + MED_MINS.map(m => pick('data-med-min', m, MED.min, m + '분')).join('') +
+      '<button type="button" class="pick" data-med-custom="1" aria-pressed="' + !MED_MINS.includes(MED.min) + '">직접 입력</button></div>' +
+    (MED_MINS.includes(MED.min) && !MED.cust ? '' : '<label class="bx-med-cmin"><input id="bx-med-cmin" class="inp" type="number" inputmode="numeric" min="1" max="120" value="' + MED.min + '"><span>분</span></label>') +
     '<div class="fg-l tv-h">중간 종</div><div class="picks">' + pick('data-med-bell', 0, MED.bell, '없음') + (MED.min > 3 ? pick('data-med-bell', MED.min >= 10 ? 5 : 1, MED.bell, (MED.min >= 10 ? 5 : 1) + '분마다') : '') + '</div>' +
     '<div class="fg-l tv-h">호흡 안내</div><div class="picks">' + pick('data-med-breath', 1, MED.breath ? 1 : 0, '켜기') + pick('data-med-breath', 0, MED.breath ? 1 : 0, '끄기') + '</div>' +
     '<p class="p small bx-med-note">호흡 안내를 켜면 원이 커질 때 들이쉬고(4초), 작아질 때 내쉬어요(6초).</p>' +
@@ -84,10 +94,11 @@ if (MED.run && MED.run.endAt > Date.now()) setTimeout(medTick, 500);
 else if (MED.run && MED.run.endAt <= Date.now() && !MED.run.logged) setTimeout(() => { if (M && MED.run && !MED.run.logged) { MED.run.logged = true; medSave(); medAddLog(MED.run.min); } }, 1500);
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
-  const t = ev.target.closest('[data-act^="bx-med-"],[data-med-min],[data-med-bell],[data-med-breath]'); if (!t) return;
+  const t = ev.target.closest('[data-act^="bx-med-"],[data-med-min],[data-med-bell],[data-med-breath],[data-med-custom]'); if (!t) return;
   ev.stopPropagation();
   const act = t.dataset.act;
-  if (t.dataset.medMin != null) { MED.min = +t.dataset.medMin; if (MED.bell && (MED.min <= 3 || (MED.bell === 5 && MED.min < 10) || (MED.bell === 1 && MED.min >= 10))) MED.bell = 0; medSave(); render(); return; }
+  if (t.dataset.medCustom != null) { MED.cust = true; render(); setTimeout(() => { const i = $('#bx-med-cmin'); if (i) { i.focus(); i.select(); } }, 50); return; }
+  if (t.dataset.medMin != null) { MED.cust = false; MED.min = +t.dataset.medMin; if (MED.bell && (MED.min <= 3 || (MED.bell === 5 && MED.min < 10) || (MED.bell === 1 && MED.min >= 10))) MED.bell = 0; medSave(); render(); return; }
   if (t.dataset.medBell != null) { MED.bell = +t.dataset.medBell; medSave(); render(); return; }
   if (t.dataset.medBreath != null) { MED.breath = t.dataset.medBreath === '1'; medSave(); render(); return; }
   if (act === 'bx-med-open') { closeSheet(); go('med'); return; }

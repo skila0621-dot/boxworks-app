@@ -29,7 +29,7 @@ export default [
   {
     name: '홈 개편: 요약 상자와 \'오늘 할 일\' 상자로 나눔',
     find: OLD_TODAY_SEC,
-    replace: "  const todaySec = window.BX_APP ? bxHomeSplit(head, body, {isT, vd, title, n: dayIts.length}) : '<section class=\"tcard\" id=\"tcard\" aria-labelledby=\"h-today\" aria-roledescription=\"날짜별로 넘겨 보는 일정\">' + head + '<div class=\"tc-body\">' + (isT ? rtHomeHtml() : '') + secHead('h-today', title, dayIts.length + '개', addBtn(vd)) + body + '</div></section>';"
+    replace: "  const todaySec = window.BX_APP ? bxHomeSplit(head, body, {isT, vd, title, n: dayIts.length, remainN, doneN, lateN, next, hol}) : '<section class=\"tcard\" id=\"tcard\" aria-labelledby=\"h-today\" aria-roledescription=\"날짜별로 넘겨 보는 일정\">' + head + '<div class=\"tc-body\">' + (isT ? rtHomeHtml() : '') + secHead('h-today', title, dayIts.length + '개', addBtn(vd)) + body + '</div></section>';"
   },
   {
     name: '└ 아래 메뉴: 명상 · 루틴 · 홈(가운데) · 캘린더 · 시간표(오른손 기준), 새 일정은 오른쪽 아래 + 단추',
@@ -50,5 +50,60 @@ export default [
     name: '└ ⋯ 메뉴: 아래 메뉴에 없는 기능 + 아래 메뉴 고르기',
     find: "      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·약') +",
     replace: "      (window.BX_APP ? bxMoreRows() : '') + menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·약') +"
+  },
+  {
+    name: '└ 늦은 일정 단추 \'확인\' → \'정리\'(미루기·옮기기·완료를 고르는 창이라)',
+    find: `aria-label="시간이 지났어요. 지연·연기·완료 고르기"><i></i>확인</button>'`,
+    replace: `aria-label="시간이 지났어요. 미루기·옮기기·완료 고르기"><i></i>' + (window.BX_APP ? '정리' : '확인') + '</button>'`
+  },
+  {
+    name: '위쪽 막대: 사용 설명서(◫처럼 보이던 아이콘) 대신 ⓘ \'이 화면 사용법\', 순서는 찾기 · ⓘ · ⋯',
+    find: '<button type="button" class="icon-btn ab-guide" data-act="go" data-view="guide" aria-label="사용 설명서"><svg class="i" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5Z"/></svg></button>\n        <button type="button" class="icon-btn" data-menu="search" aria-label="검색"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button>',
+    replace: '<button type="button" class="icon-btn" data-menu="search" aria-label="찾기"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button>\n        <button type="button" class="icon-btn ab-guide" data-act="bx-help" aria-label="이 화면 사용법"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg></button>'
+  },
+  {
+    name: '└ ⋯ 메뉴(앱): 다른 곳에 있는 줄(루틴·명상·검색·다크 모드·위젯 모드)은 빼고 짧게',
+    find: "    setSheet('<div class=\"menu\">' +\n      (window.BX_APP ? bxMoreRows() : '')",
+    replace: "    if (window.BX_APP) { setSheet(bxMoreMenuHtml(), ''); return; }\n    setSheet('<div class=\"menu\">' +\n      (window.BX_APP ? bxMoreRows() : '')"
+  },
+  {
+    name: '설정 이름을 쉬운 말로: 일정 시작 전 알림(기본)',
+    find: "setRow('당일 예약된 일정 사전 알림 시간',",
+    replace: "setRow(window.BX_APP ? '일정 시작 전 알림(기본)' : '당일 예약된 일정 사전 알림 시간',"
+  },
+  {
+    name: '└ 시간 없는 일정 알림 시각',
+    find: "setRow('당일 일정 정기알람 시간',",
+    replace: "setRow(window.BX_APP ? '시간 없는 일정 알림 시각' : '당일 일정 정기알람 시간',"
+  },
+  {
+    name: '└ 데이터 초기화는 접어 두기(눌러야 펼쳐짐)',
+    find: "    '<section class=\"set-sec danger-zone\" aria-labelledby=\"s-reset\"><h2 id=\"s-reset\">데이터 초기화</h2>' +",
+    replace: "    (window.BX_APP ? '<details class=\"set-sec danger-zone bx-reset\"><summary id=\"s-reset\">데이터 초기화<small>모든 일정 지우기 · 처음 상태로</small></summary>' : '<section class=\"set-sec danger-zone\" aria-labelledby=\"s-reset\"><h2 id=\"s-reset\">데이터 초기화</h2>') +"
+  },
+  {
+    name: '└ (접기 끝)',
+    find: "      '<p class=\"p small\">지운 내용은 되돌릴 수 없어요.</p></section>' +",
+    replace: "      '<p class=\"p small\">지운 내용은 되돌릴 수 없어요.</p>' + (window.BX_APP ? '</details>' : '</section>') +"
+  },
+  {
+    name: '루틴 페이지(앱): 내 루틴 먼저 + 새 루틴 단추, 오늘 할 일 순서는 따로 카드, 명상은 아래',
+    find: `  return '<div class="page-head"><div class="ph-t"><h1>루틴</h1></div></div>' + (window.BX_APP ? medCardHtml() : '') + make + cards;`,
+    replace: `  if (window.BX_APP) return bxRoutinesPage(cards);\n  return '<div class="page-head"><div class="ph-t"><h1>루틴</h1></div></div>' + make + cards;`
+  },
+  {
+    name: '루틴 고치기 순서: 이름 → 언제 → 단계 → 다시 알림 → 소리 → 아이콘(접기), 삭제는 맨 아래',
+    find: `'<div class="fgrid"><label class="fg-l" for="r-name">이름</label><input id="r-name" class="inp full" value="' + esc(R.name) + '" maxlength="30"></div>' + (window.BX_APP ? bxIconPickHtml() : '') +`,
+    replace: `'<div class="fgrid"><label class="fg-l" for="r-name">이름</label><input id="r-name" class="inp full" value="' + esc(R.name) + '" maxlength="30"></div>' +`
+  },
+  {
+    name: '└ 소리·아이콘을 아래로, 삭제는 저장과 멀리',
+    find: `'<p class="p small bx-rnote">0번이면 한 번만 울려요.</p></div>'`,
+    replace: `'<p class="p small bx-rnote">0번이면 한 번만 울려요.</p></div>' + bxIconPickHtml() + (R.id ? '<div class="bx-rdel"><button type="button" class="bx-del-link" data-act="rt-del">이 루틴 삭제</button></div>' : '')`
+  },
+  {
+    name: '└ 아래 단추 줄은 저장만',
+    find: `    (R.id ? '<button type="button" class="btn" data-act="rt-del">삭제</button>' : '') + '<button type="button" class="btn grow primary" data-act="rt-save">저장</button>');`,
+    replace: `    (R.id && !window.BX_APP ? '<button type="button" class="btn" data-act="rt-del">삭제</button>' : '') + '<button type="button" class="btn grow primary" data-act="rt-save">저장</button>');`
   }
 ];

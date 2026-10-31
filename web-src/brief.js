@@ -44,7 +44,7 @@ function bxAddReports(out, days){
 // 설정 > 알림의 '아침 보고' 줄
 function bxReportSetHtml(){
   const cfg = bxRepCfg();
-  return setRow('아침 보고', segHtml('data-bxrep', [['0', '끄기'], ['1', '켜기']], cfg.on ? '1' : '0', '아침 보고', 150), 'tall') +
+  return setRow('아침에 오늘 일정 받기', segHtml('data-bxrep', [['0', '끄기'], ['1', '켜기']], cfg.on ? '1' : '0', '아침 보고', 150), 'tall') +
     (cfg.on ? '<div class="set-ctl"><input type="time" id="bx-rep-t" class="inp big-time" step="300" value="' + cfg.at + '"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span></div>' : '');
 }
 document.addEventListener('click', ev => {
@@ -124,11 +124,7 @@ function bxRtMissDecorate(){
     line.innerHTML = ICON.alert + '<span>확인하지 않은 단계 ' + miss.length + '개 · ' + esc(miss.map(r => r.leave ? '출발' : r.name).join(', ')) + '</span><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(rt.id) + '">모두 했어요</button>';
     const hd = c.querySelector('.rt-h'); if (hd) hd.after(line); else c.prepend(line);
   });
-  const h = document.getElementById('h-rt');
-  if (h && total && !h.parentNode.querySelector('.bx-miss-chip')) {
-    const chip = document.createElement('span'); chip.className = 'bx-miss-chip'; chip.textContent = '확인 ' + total;
-    const sub = h.parentNode.querySelector('.sec-sub'); (sub || h).after(chip);
-  }
+  // 루틴 머리의 '확인 N' 칩은 뺐다(홈 요약 '확인 필요' 숫자 하나로 통일, 10/31)
 }
 document.addEventListener('click', ev => {
   const b = ev.target.closest && ev.target.closest('[data-act="bx-rt-alldone"]'); if (!b || !window.BX_APP) return;
