@@ -6,3 +6,4 @@ www/
 
 # Play 업로드 키 원본은 넣지 않는다
 android/app/*.jks
+preview.html
