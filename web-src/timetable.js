@@ -17,7 +17,12 @@ function ttList(){
   allDocs().forEach((d, id) => { if (d && d.type === 'tt' && !d.deletedAt) out.push(Object.assign({}, d, {id})); });
   return out.sort((a, b) => toMin(a.start) - toMin(b.start) || String(a.name).localeCompare(String(b.name)));
 }
-function ttOn(e, ds){ return e.on !== false && Array.isArray(e.days) && e.days.includes(parseYmd(ds).getDay()); }
+function ttOn(e, ds){ return e.on !== false && Array.isArray(e.days) && e.days.includes(parseYmd(ds).getDay()) && !ttSkipped(e, ds); }
+// 휴강(대표 요청 2026-10-31): 그 날짜 하루만 끈다. 알람·아침 보고·위젯·오늘 할 일이 모두 ttOn을 거치므로 함께 빠진다
+function ttSkipped(e, ds){ return !!(e && e.skip && e.skip[ds]); }
+// 이 요일의 다음 수업 날짜(오늘 포함). 이미 지난 요일이면 다음 주
+function ttNextDate(d){ const t = parseYmd(M.today); return ymd(addDays(t, (d - t.getDay() + 7) % 7)); }
+function ttMD(ds){ const x = parseYmd(ds); return (x.getMonth() + 1) + '/' + x.getDate(); }
 function ttDaysText(days){
   const k = days.slice().sort().join('');
   if (k === '12345') return '평일';
@@ -113,7 +118,9 @@ function ttHtml(){
   const list = ttList();
   VBAR = {title: '시간표', nav: ''};
   const usedWeekend = list.some(e => e.days.includes(6) || e.days.includes(0));
-  const cols = usedWeekend ? TT_ORDER : [1, 2, 3, 4, 5];
+  const wk = (M.settings && M.settings.ttWeek) || 'auto';
+  const cols = wk === 'all' || (wk === 'auto' && usedWeekend) ? TT_ORDER : [1, 2, 3, 4, 5];
+  if (TTSEL && !list.some(e => e.id === TTSEL.id && e.days.includes(TTSEL.d))) TTSEL = null;
   const rg = ttRange();
   let h0 = rg.from, h1 = rg.to;
   list.forEach(e => { h0 = Math.min(h0, Math.floor(toMin(e.start) / 60)); h1 = Math.max(h1, Math.ceil(toMin(e.end || e.start) / 60)); });
@@ -127,40 +134,52 @@ function ttHtml(){
     const blocks = list.filter(e => e.on !== false && e.days.includes(d)).map(e => {
       const a = toMin(e.start), b = Math.max(toMin(e.end || e.start), a + 20);
       const top = (a - h0 * 60) / 60 * PX, ht = Math.max(22, (b - a) / 60 * PX - 2);
-      return '<button type="button" class="tt-b" data-act="tt-edit" data-id="' + esc(e.id) + '" data-d="' + d + '" data-h0="' + h0 + '" style="top:' + top.toFixed(1) + 'px;height:' + ht.toFixed(1) + 'px;--c:' + (e.color || TT_COLORS[0]) + '" aria-label="' + esc(WD[d] + '요일 ' + e.start + ' ' + e.name + (e.place ? ' ' + e.place : '')) + '">' +
-        '<b>' + esc(e.name) + '</b>' + (e.place && ht > 34 ? '<small>' + esc(e.place) + '</small>' : '') +
+      const sel = TTSEL && TTSEL.id === e.id && TTSEL.d === d, linked = ttLinked(e, list), off = ttSkipped(e, ttNextDate(d));
+      return '<button type="button" class="tt-b' + (sel ? ' sel' : '') + (linked ? ' lk' : '') + (off ? ' off' : '') + '" data-act="tt-edit" data-id="' + esc(e.id) + '" data-d="' + d + '" data-h0="' + h0 + '" style="top:' + top.toFixed(1) + 'px;height:' + ht.toFixed(1) + 'px;--c:' + (e.color || TT_COLORS[0]) + '" aria-label="' + esc(WD[d] + '요일 ' + e.start + ' ' + e.name + (e.place ? ' ' + e.place : '')) + '">' +
+        '<b>' + esc(e.name) + '</b>' + (off ? '<small class="tt-offtag">' + ttMD(ttNextDate(d)) + ' 휴강</small>' : e.place && ht > 34 ? '<small>' + esc(e.place) + '</small>' : '') +
+        (linked ? '<span class="tt-lk" aria-hidden="true">' + TT_CLIP + '</span>' : '') +
         '<span class="tt-hd s" data-tt-rs="s" aria-hidden="true"></span><span class="tt-hd e" data-tt-rs="e" aria-hidden="true"></span></button>';
     }).join('');
     const now = d === todayDow && nowM >= h0 * 60 && nowM <= h1 * 60 ? '<i class="tt-now" style="top:' + ((nowM - h0 * 60) / 60 * PX).toFixed(1) + 'px"></i>' : '';
-    return '<div class="tt-col' + (d === todayDow ? ' today' : '') + '">' + blocks + now + '</div>';
+    return '<div class="tt-col' + (d === todayDow ? ' today' : '') + '" data-d="' + d + '">' + blocks + now + '</div>';
   }).join('');
   const add = '<div class="tt-add"><label class="sr" for="tt-in">시간표에 넣기</label><div class="bx-inrow"><input id="tt-in" class="inp" type="text" autocomplete="off" enterkeyhint="done" maxlength="120" placeholder="예) 월수 10시 반부터 12시까지 경영학원론 301호">' +
     bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">넣기</button></div></div>';
   const empty = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 위 칸에 말하거나 적어 보세요. 시작 10분 전에 알람이 울려요.</p>';
   return '<div class="page-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복</span></p></div></div>' + add +
-    '<div class="tt-sub"><button type="button" class="sec-link tt-rg" data-act="tt-range">' + ICON.clock + String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시</button><button type="button" class="sec-link" data-act="tt-new">' + ICON.plus + '직접 고르기</button></div>' + empty +
-    (list.length ? '<p class="p small tt-tip">블록 위·아래 끝을 끌면 그 요일의 시간만 바뀌어요. 꾹 누르면 복제·요일 따로 고치기·지우기를 할 수 있어요.</p>' : '') +
+    '<div class="tt-sub"><button type="button" class="tt-opt" data-act="tt-range" aria-label="시간표 보기 설정 바꾸기">' + ICON.clock + '<span><b>보기 설정</b><small>' + String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : '월–금') + '</small></span>' + ICON.chevR + '</button>' +
+      '<button type="button" class="tt-opt" data-act="tt-new">' + ICON.plus + '<span><b>수업 추가</b><small>요일·시간 골라 넣기</small></span></button></div>' + empty +
+    (list.length ? '<p class="p small tt-tip">' + (TTSEL ? TT_TIP1 : TT_TIP0) + '</p>' : '') +
     '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
-    '<div class="tt-body" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + '</div></div>';
+    '<div class="tt-body' + (TTSEL ? ' editing' : '') + '" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + (TTSEL ? ttBarHtml() : '') + '</div></div>';
 }
 
-/* 오늘 화면: 그날 시간표 */
-function ttTodayHtml(){
-  if (S.homeDay) return '';
-  const ds = M.today, list = ttList().filter(e => ttOn(e, ds));
+/* 오늘 화면: 그날 시간표. inner면 '오늘 할 일' 상자 안에 들어가는 묶음(홈 개편, 대표 요청 2026-10-31) */
+function ttTodayHtml(ds, inner){
+  if (!ds && S.homeDay) return '';
+  ds = ds || M.today;
+  const dow = parseYmd(ds).getDay();
+  const list = ttList().filter(e => e.on !== false && Array.isArray(e.days) && e.days.includes(dow));
   if (!list.length) return '';
   const nowM = M.now.getHours() * 60 + M.now.getMinutes();
   const rows = list.map(e => {
-    const past = toMin(e.end || e.start) < nowM;
+    if (ttSkipped(e, ds)) return '<div class="row tt-row bx-off"><span class="tt-dot" style="--c:' + (e.color || TT_COLORS[0]) + '"></span>' +
+      '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + e.start + '</b>' + (e.end ? '<small>' + e.end + '</small>' : '') + '</span>' +
+      '<span class="row-body"><span class="row-title">' + esc(e.name) + '</span><span class="row-meta"><span class="meta bx-off-tag">휴강 · 알람 쉼</span></span></span></button></div>';
+    const past = ds < M.today || (ds === M.today && toMin(e.end || e.start) < nowM);
     const rem = e.remind === '' || e.remind == null ? '' : fromMin(Math.max(0, toMin(e.start) - (+e.remind || 0)));
     return '<div class="row tt-row' + (past ? ' done' : '') + '"><span class="tt-dot" style="--c:' + (e.color || TT_COLORS[0]) + '"></span>' +
       '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + e.start + '</b>' + (e.end ? '<small>' + e.end + '</small>' : '') + '</span>' +
       '<span class="row-body"><span class="row-title">' + esc(e.name) + '</span><span class="row-meta">' + (e.place ? '<span class="meta">' + ICON.pin + esc(e.place) + '</span>' : '') +
       (rem && !past ? '<span class="meta bx-rem">' + ICON.bell + rem + '</span>' : '') + '</span></span></button></div>';
   }).join('');
-  return '<section class="tcard tt-card" aria-labelledby="h-tt-today"><div class="tc-body"><div class="sec-h"><h2 id="h-tt-today">오늘 시간표</h2><span class="sec-sub">' + list.length + '개</span><span class="sp"></span>' +
-    '<button type="button" class="sec-link" data-act="tt-go">시간표' + ICON.chevR + '</button></div><div class="list">' + rows + '</div></div></section>';
+  const offN = list.filter(e => ttSkipped(e, ds)).length;
+  const hd = '<div class="sec-h"><h2 id="h-tt-today">' + (inner ? '수업' : '오늘 시간표') + '</h2><span class="sec-sub">' + (list.length - offN) + '개' + (offN ? ' · 휴강 ' + offN : '') + '</span><span class="sp"></span>' +
+    '<button type="button" class="sec-link" data-act="tt-go">시간표' + ICON.chevR + '</button></div><div class="list">' + rows + '</div>';
+  if (inner) return '<div class="bx-sub bx-tts">' + hd + '</div>';
+  return '<section class="tcard tt-card" aria-labelledby="h-tt-today"><div class="tc-body">' + hd + '</div></section>';
 }
+function ttCountOn(ds){ return ttList().filter(e => ttOn(e, ds)).length; }
 
 /* 넣기·고치기 창 */
 function ttOpen(id, pre){
@@ -191,7 +210,7 @@ function ttDraw(){
 }
 function ttSave(o){
   const d = {type: 'tt', name: String(o.name || '').trim().slice(0, 40), days: TT_ORDER.filter(x => o.days.includes(x)), start: o.start, end: o.end,
-    place: String(o.place || '').trim().slice(0, 40), remind: o.remind == null ? '10' : String(o.remind), color: o.color || TT_COLORS[0], on: true, updatedAt: nowIso()};
+    place: String(o.place || '').trim().slice(0, 40), remind: o.remind == null ? '10' : String(o.remind), color: o.color || TT_COLORS[0], on: true, link: o.link || null, skip: o.skip || null, updatedAt: nowIso()};
   const id = o.id || rid('tt_');
   const prev = o.id ? getDoc(o.id) : null;
   d.createdAt = prev && prev.createdAt ? prev.createdAt : nowIso();
@@ -228,14 +247,15 @@ document.addEventListener('click', ev => {
   if (act === 'tt-cal') { bxCalGo(el.dataset.to); return; }
   if (act === 'tt-go') { go('tt', {}); window.scrollTo(0, 0); return; }
   if (act === 'tt-new') { ttOpen(null); return; }
-  if (act === 'tt-edit') { if (Date.now() - ttGest.until < 700) return; ttOpen(el.dataset.id); return; }
+  if (act === 'tt-edit') {
+    if (Date.now() - ttGest.until < 700) return;
+    // 편집 중에 다른 블록을 누르면 그 블록으로 바꿔 고른다
+    if (TTSEL) { if (el.dataset.d != null && (TTSEL.id !== el.dataset.id || TTSEL.d !== +el.dataset.d)) { TTSEL = {id: el.dataset.id, d: +el.dataset.d}; render(); } return; }
+    ttOpen(el.dataset.id); return;
+  }
   if (act === 'tt-range') { ttRangeOpen(); return; }
-  if (act === 'tt-rg-save') { const f = +($('#tt-rg-f') || {}).value, t = +($('#tt-rg-t') || {}).value; closeSheet(); saveSettings({ttFrom: f, ttTo: Math.max(t, f + 1)}); toast('시간표를 ' + f + '시부터 ' + Math.max(t, f + 1) + '시까지 보여 줘요'); return; }
-  if (act === 'tt-m-edit') { const id = el.dataset.id; closeSheet(); ttOpen(id); return; }
-  if (act === 'tt-m-dup') { const e = ttList().find(x => x.id === el.dataset.id); closeSheet(); if (e) ttOpen(null, {name: e.name, days: [], start: e.start, end: e.end, place: e.place, remind: e.remind, color: e.color, hint: '복제했어요. 넣을 요일을 골라 주세요.'}); return; }
-  if (act === 'tt-m-drop') { const id = el.dataset.id, d = +el.dataset.d, keep = getDoc(id); closeSheet(); if (keep) { writeDoc(id, Object.assign({}, keep, {days: keep.days.filter(x => x !== d), updatedAt: nowIso()})); toast(WD[d] + '요일에서 뺐어요', [['되돌리기', () => writeDoc(id, keep)]]); } return; }
-  if (act === 'tt-m-split') { const id = el.dataset.id, d = +el.dataset.d, keep = getDoc(id); closeSheet(); if (keep) { const nid = rid('tt_'); writeDoc(id, Object.assign({}, keep, {days: keep.days.filter(x => x !== d), updatedAt: nowIso()})); writeDoc(nid, Object.assign({}, keep, {days: [d], createdAt: nowIso(), updatedAt: nowIso()})); M = buildModel(); ttOpen(nid); if (TT) { TT.hint = WD[d] + '요일만 따로 떼었어요. 여기서 고친 것은 ' + WD[d] + '요일에만 적용돼요.'; ttDraw(); } } return; }
-  if (act === 'tt-m-del') { const id = el.dataset.id, keep = getDoc(id); closeSheet(); if (keep) { removeDoc(id); toast('시간표에서 지웠어요', [['되돌리기', () => writeDoc(id, keep)]]); } return; }
+  if (act === 'tt-wk') { $$('[data-act="tt-wk"]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); return; }
+  if (act === 'tt-rg-save') { const f = +($('#tt-rg-f') || {}).value, t = +($('#tt-rg-t') || {}).value, wb = $('[data-act="tt-wk"][aria-pressed="true"]'); closeSheet(); saveSettings(Object.assign({ttFrom: f, ttTo: Math.max(t, f + 1)}, wb ? {ttWeek: wb.dataset.v} : {})); toast('시간표를 ' + f + '시부터 ' + Math.max(t, f + 1) + '시까지 보여 줘요'); return; }
   if (act === 'tt-add') { ttAddFromText(($('#tt-in') || {}).value); return; }
   if (!TT) return;
   if (act === 'tt-day') { const d = +el.dataset.d; TT.days = TT.days.includes(d) ? TT.days.filter(x => x !== d) : TT.days.concat([d]); el.setAttribute('aria-pressed', TT.days.includes(d)); return; }
@@ -260,83 +280,226 @@ if (lsGet('bx:weekMode') === 'tt') { lsSet('bx:weekMode', ''); }
 /* 표시 시간 범위 고르기 */
 function ttRangeOpen(){
   const rg = ttRange(), opt = (a, b, cur) => Array.from({length: b - a + 1}, (_, i) => a + i).map(h => '<option value="' + h + '"' + (h === cur ? ' selected' : '') + '>' + h + '시</option>').join('');
-  openSheet({title: '시간표 보이는 시간', draw: () => setSheet(
-    '<p class="p">시간표 칸을 몇 시부터 몇 시까지 보여 줄지 골라요. 이 범위 밖에 넣은 수업이 있으면 그만큼 넓혀서 보여 줘요.</p>' +
-    '<div class="tt-times" style="margin-top:14px"><select id="tt-rg-f" class="inp" aria-label="시작">' + opt(0, 12, rg.from) + '</select><span>–</span><select id="tt-rg-t" class="inp" aria-label="끝">' + opt(12, 24, rg.to) + '</select></div>',
+  openSheet({title: '시간표 보기 설정', draw: () => setSheet(
+    '<span class="tt-l" style="display:block">보이는 시간</span><p class="p small" style="margin:4px 0 0">이른 아침·늦은 밤 수업이 있으면 넓혀 주세요. 범위 밖에 넣은 수업은 저절로 넓혀서 보여요.</p>' +
+    '<div class="tt-times" style="margin-top:10px"><select id="tt-rg-f" class="inp" aria-label="시작">' + opt(0, 12, rg.from) + '</select><span>–</span><select id="tt-rg-t" class="inp" aria-label="끝">' + opt(12, 24, rg.to) + '</select></div>' +
+    '<span class="tt-l" style="margin-top:16px;display:block">보이는 요일</span><div class="tt-pills" role="group" aria-label="보이는 요일">' + [['wd', '월–금'], ['all', '월–일 (주말 포함)'], ['auto', '주말 수업이 있을 때만 주말도']].map(o => '<button type="button" class="tt-pill" data-act="tt-wk" data-v="' + o[0] + '" aria-pressed="' + (((M.settings && M.settings.ttWeek) || 'auto') === o[0]) + '">' + o[1] + '</button>').join('') + '</div>',
     '<button type="button" class="btn primary grow" data-act="tt-rg-save">저장</button>')});
 }
-/* 꾹 눌렀을 때: 고치기·복제·이 요일만 빼기·지우기 */
-function ttMenu(id, d){
-  const e = ttList().find(x => x.id === id); if (!e) return;
-  const multi = e.days.length > 1;
-  openSheet({title: e.name, draw: () => setSheet(
-    '<p class="p small">' + esc(ttDaysText(e.days)) + ' · ' + e.start + '–' + e.end + (e.place ? ' · ' + esc(e.place) : '') + '</p>' +
-    '<div class="menu tt-menu">' +
-      '<button type="button" class="menu-row" data-act="tt-m-edit" data-id="' + esc(id) + '"><span class="mi">' + ICON.edit + '</span><span class="ml">고치기</span></button>' +
-      '<button type="button" class="menu-row" data-act="tt-m-dup" data-id="' + esc(id) + '"><span class="mi">' + ICON.plus + '</span><span class="ml">복제해서 다른 요일에 넣기</span></button>' +
-      (multi ? '<button type="button" class="menu-row" data-act="tt-m-split" data-id="' + esc(id) + '" data-d="' + d + '"><span class="mi">' + ICON.edit + '</span><span class="ml">' + WD[d] + '요일만 따로 고치기</span></button>' +
-        '<button type="button" class="menu-row" data-act="tt-m-drop" data-id="' + esc(id) + '" data-d="' + d + '"><span class="mi">' + ICON.close + '</span><span class="ml">' + WD[d] + '요일만 빼기</span></button>' : '') +
-      '<button type="button" class="menu-row danger" data-act="tt-m-del" data-id="' + esc(id) + '"><span class="mi">' + ICON.trash + '</span><span class="ml">' + (multi ? '모든 요일에서 지우기' : '지우기') + '</span></button>' +
-    '</div>', '')});
-}
-/* 블록 끌기: 위·아래 끝을 끌면 시작·끝 시각이 10분 단위로 바뀐다. 블록을 꾹 누르면 메뉴 */
-const ttGest = {until: 0, lp: null, rs: null};
+/* ---------- 시간표 편집 모드(대표 요청) ----------
+   블록을 꾹 누르면 그 블록이 들려 올라와 편집 모드가 된다: 몸통을 끌면 시각·요일을 옮기고, 위·아래 끝을 끌면 길이가 바뀐다.
+   위쪽 도구 줄: 클립(같은 이름 수업과 연결·끊기), 복제, 고치기, 지우기, 완료.
+   연결된 수업(여러 요일을 한 번에 넣은 수업, 클립으로 이은 수업)은 시각·길이를 함께 바꾼다. 요일 옮기기는 끈 블록만 */
+const TT_CLIP = '<svg class="i" viewBox="0 0 24 24"><path d="M15.5 7.5l-6.7 6.7a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.7-5.7l-7.2 7.2a6 6 0 0 0 8.5 8.5l6.3-6.3"/></svg>';
+let TTSEL = null;
+const TT_OFF = '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M9.5 13.2l5 5M14.5 13.2l-5 5"/></svg>';
+function ttNameKey(n){ return String(n || '').replace(/\s+/g, '').toLowerCase(); }
+function ttGroupOf(e, list){ list = list || ttList(); return e.link ? list.filter(x => x.link === e.link) : [e]; }
+function ttLinked(e, list){ return e.days.length > 1 || (!!e.link && ttGroupOf(e, list).length > 1); }
 function ttFmtRange(a, b){ return fromMin(a) + '–' + fromMin(b); }
-document.addEventListener('pointerdown', ev => {
-  const blk = ev.target.closest && ev.target.closest('.tt-b'); if (!blk || !window.BX_APP) return;
-  const e = ttList().find(x => x.id === blk.dataset.id); if (!e) return;
-  const hd = ev.target.closest('[data-tt-rs]');
-  if (hd) {
-    ev.preventDefault();
-    const a = toMin(e.start), b = Math.max(toMin(e.end || e.start), a + 20);
-    ttGest.rs = {blk, e, side: hd.dataset.ttRs, y: ev.clientY, a, b, na: a, nb: b, h0: +blk.dataset.h0 || 0, d: +blk.dataset.d, id: ev.pointerId};
-    try { blk.setPointerCapture(ev.pointerId); } catch (x) { /* 일부 기기 */ }
-    blk.classList.add('rs');
+const TT_TIP0 = '블록을 꾹 누르면 옮기기·길이 바꾸기를 할 수 있어요. 클립으로 같은 수업을 연결하면 함께 움직여요.';
+const TT_TIP1 = '블록을 끌어 시간·요일을 옮기고, 위·아래 끝을 끌어 길이를 바꿔요. 다 됐으면 완료를 누르세요.';
+// 화면을 다시 그리지 않고 편집을 마친다(입력 칸에 적던 글·포커스를 지키려고)
+function ttUnselect(){
+  TTSEL = null;
+  $$('.tt-b.sel').forEach(b => b.classList.remove('sel'));
+  const bar = document.getElementById('tt-bar'); if (bar) bar.remove();
+  const body = document.querySelector('.tt-body.editing'); if (body) body.classList.remove('editing');
+  const tip = document.querySelector('.tt-tip'); if (tip) tip.textContent = TT_TIP0;
+}
+// 꾹 눌렀을 때 바로 들어 올린다(손을 떼지 않고 이어서 끌 수 있게)
+function ttSelectDom(blk){
+  $$('.tt-b.sel').forEach(b => b.classList.remove('sel'));
+  blk.classList.add('sel');
+  const body = blk.closest('.tt-body'); if (!body) return;
+  body.classList.add('editing');
+  const old = document.getElementById('tt-bar'); if (old) old.remove();
+  body.insertAdjacentHTML('beforeend', ttBarHtml()); ttPlaceBar();
+  const tip = document.querySelector('.tt-tip'); if (tip) tip.textContent = TT_TIP1;
+}
+function ttBarHtml(){
+  const e = ttList().find(x => x.id === TTSEL.id); if (!e) return '';
+  const lk = ttLinked(e);
+  const b = (act, icon, label, on) => '<button type="button" class="tt-xb' + (on ? ' on' : '') + '" data-act="' + act + '" aria-label="' + label + '">' + icon + '<small>' + label + '</small></button>';
+  const nd = ttNextDate(TTSEL.d), off = ttSkipped(e, nd);
+  return '<div class="tt-bar" id="tt-bar" role="toolbar" aria-label="' + esc(e.name) + ' 편집">' +
+    b('tt-x-clip', TT_CLIP, lk ? '연결됨' : '연결', lk) + b('tt-x-off', TT_OFF, off ? '휴강 취소' : ttMD(nd) + ' 휴강', off) + b('tt-x-dup', ICON.plus, '복제') + b('tt-x-edit', ICON.edit, '고치기') + b('tt-x-del', ICON.trash, '지우기') + b('tt-x-done', ICON.check, '완료') + '</div>';
+}
+// 도구 줄을 고른 블록 바로 위에 두고, 화면 밖으로 나가지 않게
+function ttPlaceBar(){
+  const bar = document.getElementById('tt-bar'); if (!bar || !TTSEL) return;
+  const blk = document.querySelector('.tt-b.sel'), body = bar.parentNode; if (!blk || !body) return;
+  const br = body.getBoundingClientRect(), r = blk.getBoundingClientRect(), w = bar.offsetWidth;
+  let left = r.left - br.left + r.width / 2 - w / 2; left = Math.max(0, Math.min(br.width - w, left));
+  let top = r.top - br.top - bar.offsetHeight - 8; if (top < 0) top = r.bottom - br.top + 8;
+  bar.style.left = left + 'px'; bar.style.top = top + 'px';
+}
+function ttSnapshot(ids){ const m = new Map(); ids.forEach(id => { const d = getDoc(id); m.set(id, d ? JSON.parse(JSON.stringify(d)) : null); }); return m; }
+function ttRestore(m){ m.forEach((v, id) => { if (v) writeDoc(id, v); else removeDoc(id); }); }
+// 옮기기·길이 바꾸기 저장. na·nb: 새 시작·끝(분), nd: 새 요일
+function ttCommit(e, d, na, nb, nd){
+  const list = ttList(), linked = ttLinked(e, list), a = toMin(e.start), b = Math.max(toMin(e.end || e.start), a + 20);
+  const dS = na - a, dE = nb - b, group = linked ? ttGroupOf(e, list) : [e];
+  const snap = ttSnapshot(group.map(g => g.id).concat([e.id]));
+  let selId = e.id, made = null, msg;
+  const clampPair = (s0, e0) => { let s1 = Math.max(0, Math.min(1430, s0)), e1 = Math.max(s1 + 10, Math.min(1439, e0)); return [s1, e1]; };
+  if (linked) {
+    if (dS || dE) group.forEach(g => {
+      const ga = toMin(g.start), gb = Math.max(toMin(g.end || g.start), ga + 20), p = clampPair(ga + dS, gb + dE);
+      writeDoc(g.id, Object.assign({}, getDoc(g.id), {start: fromMin(p[0]), end: fromMin(p[1]), updatedAt: nowIso()}));
+    });
+    msg = (dS || dE ? '연결된 수업 ' + group.reduce((n, g) => n + g.days.length, 0) + '칸을 함께 ' + (dS === dE ? (dS > 0 ? dS + '분 늦췄어요' : -dS + '분 당겼어요') : '바꿨어요') : '');
+    if (nd !== d) {
+      const doc = getDoc(e.id);
+      if (doc.days.includes(nd)) toast(WD[nd] + '요일에는 이미 같은 수업이 있어요');
+      else { writeDoc(e.id, Object.assign({}, doc, {days: TT_ORDER.filter(x => x === nd || (doc.days.includes(x) && x !== d)), updatedAt: nowIso()})); msg = (msg ? msg + ' · ' : '') + WD[d] + '→' + WD[nd] + '요일'; }
+    }
+  } else {
+    const doc = getDoc(e.id);
+    if (doc.days.length > 1) {
+      made = rid('tt_'); selId = made;
+      writeDoc(e.id, Object.assign({}, doc, {days: doc.days.filter(x => x !== d), updatedAt: nowIso()}));
+      writeDoc(made, Object.assign({}, doc, {days: [nd], start: fromMin(na), end: fromMin(nb), link: null, createdAt: nowIso(), updatedAt: nowIso()}));
+    } else writeDoc(e.id, Object.assign({}, doc, {days: [nd], start: fromMin(na), end: fromMin(nb), updatedAt: nowIso()}));
+    msg = e.name + ' · ' + WD[nd] + ' ' + ttFmtRange(na, nb);
+  }
+  TTSEL = {id: selId, d: getDoc(selId) && getDoc(selId).days.includes(nd) ? nd : d};
+  if (msg) toast(msg, [['되돌리기', () => { if (made) removeDoc(made); ttRestore(snap); TTSEL = null; }]]);
+}
+function ttClip(e, d){
+  const list = ttList();
+  if (ttLinked(e, list)) {
+    const doc = getDoc(e.id), snap = ttSnapshot([e.id].concat(ttGroupOf(e, list).map(g => g.id)));
+    let made = null;
+    if (doc.days.length > 1) {
+      made = rid('tt_');
+      writeDoc(e.id, Object.assign({}, doc, {days: doc.days.filter(x => x !== d), updatedAt: nowIso()}));
+      writeDoc(made, Object.assign({}, doc, {days: [d], link: null, createdAt: nowIso(), updatedAt: nowIso()}));
+      TTSEL = {id: made, d};
+    } else {
+      writeDoc(e.id, Object.assign({}, doc, {link: null, updatedAt: nowIso()}));
+      const rest = ttGroupOf(e, list).filter(g => g.id !== e.id);
+      if (rest.length === 1 && rest[0].days.length === 1) writeDoc(rest[0].id, Object.assign({}, getDoc(rest[0].id), {link: null}));
+    }
+    toast(WD[d] + '요일 ' + e.name + '을 따로 움직여요', [['되돌리기', () => { if (made) removeDoc(made); ttRestore(snap); TTSEL = {id: e.id, d}; }]]);
     return;
   }
-  ttGest.lp = {x: ev.clientX, y: ev.clientY, t: setTimeout(() => {
-    ttGest.lp = null; ttGest.until = Date.now();
-    try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) { /* 진동 없음 */ }
-    ttMenu(e.id, +blk.dataset.d);
-  }, 500)};
+  const others = list.filter(x => x.id !== e.id && ttNameKey(x.name) === ttNameKey(e.name));
+  if (!others.length) { toast('같은 이름의 수업이 없어요. 복제하면 함께 연결돼요'); return; }
+  const lk = (others.find(x => x.link) || {}).link || rid('lk_'), snap = ttSnapshot([e.id].concat(others.map(x => x.id)));
+  [e].concat(others).forEach(x => writeDoc(x.id, Object.assign({}, getDoc(x.id), {link: lk, updatedAt: nowIso()})));
+  toast('같은 이름 수업과 연결했어요. 시각·길이를 함께 바꿔요', [['되돌리기', () => ttRestore(snap)]]);
+}
+function ttDelOpen(e, d){
+  const multi = ttLinked(e);
+  if (!multi) { const keep = getDoc(e.id); removeDoc(e.id); TTSEL = null; toast('시간표에서 지웠어요', [['되돌리기', () => writeDoc(e.id, keep)]]); return; }
+  openSheet({title: e.name + ' 지우기', draw: () => setSheet('<div class="menu tt-menu">' +
+    '<button type="button" class="menu-row" data-act="tt-x-del1" data-id="' + esc(e.id) + '" data-d="' + d + '"><span class="mi">' + ICON.close + '</span><span class="ml">' + WD[d] + '요일만 지우기</span></button>' +
+    '<button type="button" class="menu-row danger" data-act="tt-x-delall" data-id="' + esc(e.id) + '"><span class="mi">' + ICON.trash + '</span><span class="ml">연결된 수업 모두 지우기</span></button></div>', '')});
+}
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !ev.target.closest) return;
+  const el = ev.target.closest('[data-act^="tt-x-"]');
+  if (!el) {
+    // 편집 중에 블록·도구 줄 밖을 누르면 편집을 마친다
+    if (TTSEL && S.view === 'tt' && !SH && !ev.target.closest('.tt-b,.tt-bar') && Date.now() - ttGest.until > 400) ttUnselect();
+    return;
+  }
+  ev.preventDefault(); ev.stopPropagation();
+  const act = el.dataset.act;
+  if (act === 'tt-x-del1') { const id = el.dataset.id, d = +el.dataset.d, keep = getDoc(id); closeSheet(); if (keep) { if (keep.days.length > 1) writeDoc(id, Object.assign({}, keep, {days: keep.days.filter(x => x !== d), updatedAt: nowIso()})); else removeDoc(id); TTSEL = null; toast(WD[d] + '요일에서 지웠어요', [['되돌리기', () => writeDoc(id, keep)]]); } return; }
+  if (act === 'tt-x-delall') { const e = ttList().find(x => x.id === el.dataset.id); closeSheet(); if (e) { const g = ttGroupOf(e), snap = ttSnapshot(g.map(x => x.id)); g.forEach(x => removeDoc(x.id)); TTSEL = null; toast('연결된 수업을 모두 지웠어요', [['되돌리기', () => ttRestore(snap)]]); } return; }
+  if (!TTSEL) return;
+  const e = ttList().find(x => x.id === TTSEL.id); if (!e) { TTSEL = null; render(); return; }
+  if (act === 'tt-x-done') { ttUnselect(); return; }
+  if (act === 'tt-x-clip') { ttClip(e, TTSEL.d); render(); return; }
+  if (act === 'tt-x-off') {
+    const nd = ttNextDate(TTSEL.d), doc = getDoc(e.id), keep = JSON.parse(JSON.stringify(doc)), sk = Object.assign({}, doc.skip || {}), lim = ymd(addDays(parseYmd(M.today), -14));
+    Object.keys(sk).forEach(k => { if (k < lim) delete sk[k]; });
+    const was = !!sk[nd]; if (was) delete sk[nd]; else sk[nd] = true;
+    writeDoc(e.id, Object.assign({}, doc, {skip: Object.keys(sk).length ? sk : null, updatedAt: nowIso()}));
+    const x = parseYmd(nd);
+    toast(was ? (x.getMonth() + 1) + '월 ' + x.getDate() + '일 ' + e.name + ' 다시 켰어요' : (x.getMonth() + 1) + '월 ' + x.getDate() + '일(' + WD[x.getDay()] + ') ' + e.name + ' 휴강 · 그날 알람도 쉬어요', [['되돌리기', () => writeDoc(e.id, keep)]]);
+    render(); return;
+  }
+  if (act === 'tt-x-edit') { const id = e.id; TTSEL = null; ttOpen(id); return; }
+  if (act === 'tt-x-del') { ttDelOpen(e, TTSEL.d); render(); return; }
+  if (act === 'tt-x-dup') {
+    // 복제는 같은 이름이라 처음부터 연결된다
+    const lk = e.link || rid('lk_'); if (!e.link) writeDoc(e.id, Object.assign({}, getDoc(e.id), {link: lk}));
+    TTSEL = null; ttOpen(null, {name: e.name, days: [], start: e.start, end: e.end, place: e.place, remind: e.remind, color: e.color, link: lk, hint: '복제했어요. 넣을 요일을 골라 주세요. 원래 수업과 연결돼 시각·길이를 함께 바꿔요.'});
+  }
 }, true);
+
+/* 끌기: 꾹 눌러 편집 모드로, 편집 중인 블록은 몸통을 끌면 옮기기, 위·아래 끝을 끌면 길이 */
+const ttGest = {until: 0, lp: null, g: null};
+function ttStartDrag(blk, e, d, kind, x, y, pid){
+  const a = toMin(e.start), b = Math.max(toMin(e.end || e.start), a + 20);
+  const cols = $$('.tt-col[data-d]').map(c => ({d: +c.dataset.d, r: c.getBoundingClientRect()}));
+  ttGest.g = {blk, e, d, kind, x, y, a, b, na: a, nb: b, nd: d, h0: +blk.dataset.h0 || 0, cols, moved: false};
+  try { if (pid != null) blk.setPointerCapture(pid); } catch (err) { /* 일부 기기 */ }
+  blk.classList.add('drag');
+}
+document.addEventListener('pointerdown', ev => {
+  const blk = ev.target.closest && ev.target.closest('.tt-b'); if (!blk || !window.BX_APP || blk.dataset.d == null) return;
+  const e = ttList().find(x => x.id === blk.dataset.id); if (!e) return;
+  const d = +blk.dataset.d;
+  if (TTSEL && TTSEL.id === e.id && TTSEL.d === d) {
+    ev.preventDefault();
+    const hd = ev.target.closest('[data-tt-rs]');
+    ttStartDrag(blk, e, d, hd ? hd.dataset.ttRs : 'move', ev.clientX, ev.clientY, ev.pointerId);
+    return;
+  }
+  const pid = ev.pointerId;
+  ttGest.lp = {x: ev.clientX, y: ev.clientY, t: setTimeout(() => {
+    const lp = ttGest.lp; ttGest.lp = null; ttGest.until = Date.now();
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch (err) { /* 진동 없음 */ }
+    TTSEL = {id: e.id, d}; ttSelectDom(blk);
+    // 손을 떼지 않았으니 그대로 끌어 옮길 수 있다
+    if (lp) ttStartDrag(blk, e, d, 'move', lp.x, lp.y, pid);
+  }, 450)};
+}, true);
+// 들어 올린 뒤 손가락을 움직일 때 화면이 같이 밀리지 않게
+document.addEventListener('touchmove', ev => { if (ttGest.g) ev.preventDefault(); }, {capture: true, passive: false});
 document.addEventListener('pointermove', ev => {
   if (ttGest.lp && (Math.abs(ev.clientX - ttGest.lp.x) > 8 || Math.abs(ev.clientY - ttGest.lp.y) > 8)) { clearTimeout(ttGest.lp.t); ttGest.lp = null; }
-  const r = ttGest.rs; if (!r) return;
+  const g = ttGest.g; if (!g) return;
   ev.preventDefault();
-  const dm = Math.round((ev.clientY - r.y) / TT_PX * 60 / TT_SNAP) * TT_SNAP;
-  if (r.side === 'e') { r.nb = Math.max(r.a + 20, Math.min(24 * 60 - 1, r.b + dm)); r.na = r.a; }
-  else { r.na = Math.min(r.b - 20, Math.max(0, r.a + dm)); r.nb = r.b; }
-  r.blk.style.top = ((r.na - r.h0 * 60) / 60 * TT_PX).toFixed(1) + 'px';
-  r.blk.style.height = Math.max(22, (r.nb - r.na) / 60 * TT_PX - 2).toFixed(1) + 'px';
-  r.blk.setAttribute('data-rs-t', ttFmtRange(r.na, r.nb));
+  const dm = Math.round((ev.clientY - g.y) / TT_PX * 60 / TT_SNAP) * TT_SNAP, len = g.b - g.a;
+  if (Math.abs(ev.clientY - g.y) > 4 || Math.abs(ev.clientX - g.x) > 4) g.moved = true;
+  if (!g.moved) return;
+  if (g.kind === 'e') { g.na = g.a; g.nb = Math.max(g.a + 20, Math.min(1439, g.b + dm)); }
+  else if (g.kind === 's') { g.na = Math.min(g.b - 20, Math.max(0, g.a + dm)); g.nb = g.b; }
+  else {
+    g.na = Math.max(0, Math.min(1439 - len, g.a + dm)); g.nb = g.na + len;
+    const col = g.cols.find(c => ev.clientX >= c.r.left && ev.clientX < c.r.right); if (col) g.nd = col.d;
+    const tc = g.cols.find(c => c.d === g.nd), oc = g.cols.find(c => c.d === g.d);
+    g.blk.style.transform = tc && oc ? 'translateX(' + (tc.r.left - oc.r.left).toFixed(1) + 'px)' : '';
+  }
+  g.blk.style.top = ((g.na - g.h0 * 60) / 60 * TT_PX).toFixed(1) + 'px';
+  g.blk.style.height = Math.max(22, (g.nb - g.na) / 60 * TT_PX - 2).toFixed(1) + 'px';
+  g.blk.setAttribute('data-rs-t', (g.nd !== g.d ? WD[g.nd] + ' ' : '') + ttFmtRange(g.na, g.nb));
+  g.blk.classList.add('rs');
+  const bar = document.getElementById('tt-bar'); if (bar) bar.style.visibility = 'hidden';
 }, {capture: true, passive: false});
 function ttGestEnd(){
   if (ttGest.lp) { clearTimeout(ttGest.lp.t); ttGest.lp = null; }
-  const r = ttGest.rs; if (!r) return;
-  ttGest.rs = null; ttGest.until = Date.now();
-  r.blk.classList.remove('rs');
-  if (r.na === r.a && r.nb === r.b) return;
-  const keep = getDoc(r.e.id); if (!keep) return;
-  const times = {start: fromMin(r.na), end: fromMin(r.nb), updatedAt: nowIso()};
-  if (keep.days.length > 1) {
-    // 여러 요일에 있는 수업은 끈 요일만 따로 떼어 바꾼다(대표 요청: 요일마다 수업 길이가 다를 수 있음)
-    const nid = rid('tt_');
-    writeDoc(r.e.id, Object.assign({}, keep, {days: keep.days.filter(x => x !== r.d), updatedAt: nowIso()}));
-    writeDoc(nid, Object.assign({}, keep, times, {days: [r.d], createdAt: nowIso()}));
-    toast(WD[r.d] + '요일만 ' + ttFmtRange(r.na, r.nb) + '로 바꿨어요', [
-      ['모든 요일에', () => { removeDoc(nid); writeDoc(r.e.id, Object.assign({}, keep, times)); toast(ttDaysText(keep.days) + ' 모두 ' + ttFmtRange(r.na, r.nb)); }],
-      ['되돌리기', () => { removeDoc(nid); writeDoc(r.e.id, keep); }]]);
+  const g = ttGest.g; if (!g) return;
+  ttGest.g = null; ttGest.until = Date.now();
+  g.blk.classList.remove('drag');
+  if (!g.moved || (g.na === g.a && g.nb === g.b && g.nd === g.d)) {
+    g.blk.classList.remove('rs'); g.blk.style.transform = '';
+    if (g.moved) render(); else { const bar = document.getElementById('tt-bar'); if (bar) { bar.style.visibility = ''; ttPlaceBar(); } }
     return;
   }
-  writeDoc(r.e.id, Object.assign({}, keep, times));
-  toast(r.e.name + ' · ' + ttFmtRange(r.na, r.nb), [['되돌리기', () => writeDoc(r.e.id, keep)]]);
+  ttCommit(g.e, g.d, g.na, g.nb, g.nd);
+  render();
 }
 document.addEventListener('pointerup', ttGestEnd, true);
 document.addEventListener('pointercancel', ttGestEnd, true);
-// 꾹 누르기·끌기를 끝내며 손을 뗄 때 생기는 클릭은 버린다(방금 연 창의 바깥을 눌러 닫히거나, 블록 창이 열리지 않게)
+// 꾹 누르기·끌기를 끝내며 손을 뗄 때 생기는 클릭은 버린다
 window.addEventListener('click', ev => {
-  if (Date.now() - ttGest.until > 900 || !ev.target.closest) return;
-  if (ev.target.matches('.scrim') || ev.target.closest('.tt-b')) { ev.preventDefault(); ev.stopPropagation(); }
+  if (Date.now() - ttGest.until > 600 || !ev.target.closest || ev.target.closest('.tt-bar')) return;
+  if (ev.target.matches('.scrim') || ev.target.closest('.tt-b') || ev.target.closest('.tt-body')) { ev.preventDefault(); ev.stopPropagation(); }
 }, true);
 document.addEventListener('contextmenu', ev => { if (ev.target.closest && ev.target.closest('.tt-b')) ev.preventDefault(); }, true);

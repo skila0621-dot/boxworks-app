@@ -6,6 +6,7 @@ import calendar from './patches-calendar.mjs';
 import nav from './patches-nav.mjs';
 import icons from './patches-icons.mjs';
 import fix10 from './patches-fix10.mjs';
+import home from './patches-home.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -79,7 +80,7 @@ const patches = [
   {
     name: '휴대폰 뒤로 버튼: 열린 창 닫기 → 앞 창으로 → 오늘 화면으로, 오늘이면 앱을 뒤로 보냄',
     find: '\nboot();\n})();',
-    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view === 'med') { go('routines', {}); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
+    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (S.view === 'tt' && TTSEL) { ttUnselect(); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view === 'med') { go('routines', {}); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
 // 앞으로 며칠 동안 울릴 알람 목록. 박스웍스의 알림 규칙(remindAt, 루틴 시간표)을 그대로 쓴다.
 window.BX_alarmPlan = function(days){
   if (!M || !S.firstServer) return null;
@@ -272,12 +273,12 @@ boot();
   {
     name: '└ 주간을 보고 있어도 아래 메뉴의 \'캘린더\'에 불이 들어오게',
     find: "if (b.dataset.view === S.view) b.setAttribute('aria-current', 'page');",
-    replace: "if (b.dataset.view === S.view || (window.BX_APP && ((b.dataset.view === 'month' && S.view === 'week') || (b.dataset.view === 'routines' && S.view === 'med')))) b.setAttribute('aria-current', 'page');"
+    replace: "if (b.dataset.view === S.view || (window.BX_APP && b.dataset.view === 'month' && S.view === 'week')) b.setAttribute('aria-current', 'page');"
   },
   {
-    name: '└ 오늘 화면에 그날 시간표',
-    find: "'<div class=\"home-col\">' + todaySec + '</div>",
-    replace: "'<div class=\"home-col\">' + todaySec + (window.BX_APP ? ttTodayHtml() : '') + '</div>"
+    name: '└ 홈 개편(대표 요청 2026-10-31): 앱에서는 홈에 달력을 두지 않는다(캘린더 탭에 있음). 오늘 시간표는 \'오늘 할 일\' 상자 안으로',
+    find: "'<div class=\"home-col\">' + todaySec + '</div><div class=\"home-col\">' + homeCalHtml() + '</div></div>'",
+    replace: "'<div class=\"home-col\">' + todaySec + '</div>' + (window.BX_APP ? '' : '<div class=\"home-col\">' + homeCalHtml() + '</div>') + '</div>'"
   },
   {
     name: '말로 넣기 규칙 보강: "다음 달 5일"·"내일모레", 제목 끝의 "가야 돼"·겹친 말 정리',
@@ -331,7 +332,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons);
+patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;

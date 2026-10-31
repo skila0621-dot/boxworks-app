@@ -77,10 +77,40 @@
     '.bx-app .tt-hint{color:var(--warn-ink);margin:0}',
     // 시간표 블록 끌기·꾹 누르기(대표 요청): 위·아래 끝 손잡이, 끄는 동안 시각 표시
     '.bx-app .tt-b{touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}',
-    '.bx-app .tt-hd{position:absolute;left:0;right:0;height:16px;touch-action:none;z-index:2}',
-    '.bx-app .tt-hd.s{top:0}.bx-app .tt-hd.e{bottom:0}',
-    '.bx-app .tt-hd.e::after{content:"";position:absolute;left:50%;bottom:3px;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:var(--c);opacity:.55}',
-    '.bx-app .tt-b.rs{z-index:5;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,.18);outline:2px solid var(--c)}',
+    // 편집 모드(꾹 누른 블록): 들어 올린 모양, 손잡이는 이 블록에만, 몸통을 끌면 옮기기
+    '.bx-app .tt-hd{position:absolute;left:0;right:0;height:18px;z-index:2;display:none}',
+    '.bx-app .tt-b.sel .tt-hd{display:block;touch-action:none}',
+    '.bx-app .tt-hd.s{top:-6px}.bx-app .tt-hd.e{bottom:-6px}',
+    '.bx-app .tt-b.sel .tt-hd::after{content:"";position:absolute;left:50%;width:22px;height:6px;margin-left:-11px;border-radius:4px;background:var(--bg);border:2px solid var(--c)}',
+    '.bx-app .tt-hd.s::after{top:3px}.bx-app .tt-hd.e::after{bottom:3px}',
+    '.bx-app .tt-b.sel{z-index:6;overflow:visible;touch-action:none;outline:2px solid var(--c);outline-offset:1px;box-shadow:0 6px 18px rgba(0,0,0,.22);background:color-mix(in srgb,var(--c) 30%,var(--bg));cursor:grab}',
+    '.bx-app .tt-b.drag{cursor:grabbing;opacity:.92}',
+    '.bx-app .tt-body.editing .tt-b:not(.sel){opacity:.55}',
+    '.bx-app .tt-lk{position:absolute;right:2px;bottom:2px;width:13px;height:13px;color:var(--c);opacity:.9;pointer-events:none}',
+    '.bx-app .tt-lk .i{width:13px;height:13px;stroke-width:2.4}',
+    '.bx-app .tt-bar{position:absolute;z-index:9;display:flex;gap:2px;padding:4px;border-radius:14px;background:var(--ink);color:var(--bg);box-shadow:0 8px 24px rgba(0,0,0,.28)}',
+    '.bx-app .tt-xb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:50px;min-height:48px;padding:4px 6px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer}',
+    '.bx-app .tt-xb .i{width:19px;height:19px}',
+    '.bx-app .tt-xb small{font-size:10.5px;font-weight:600;line-height:1.1;white-space:nowrap}',
+    '.bx-app .tt-xb.on{background:color-mix(in srgb,var(--bg) 18%,transparent)}',
+    '.bx-app .tt-xb:active{background:color-mix(in srgb,var(--bg) 26%,transparent)}',
+    '.bx-app .tt-pills + .tt-l,.bx-app .tt-times + .tt-l{margin-top:16px}',
+    // 휴강: 그 날짜 하루만 끈 수업
+    '.bx-app .tt-b.off{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--c) 10%,var(--bg)) 0 6px,var(--bg) 6px 12px);border-left-style:dashed}',
+    '.bx-app .tt-b.off b{text-decoration:line-through;color:var(--ink-3)}',
+    '.bx-app .tt-b .tt-offtag{color:var(--warn-ink);font-weight:700}',
+    '.bx-app .row.bx-off .row-title{text-decoration:line-through;color:var(--ink-3)}',
+    '.bx-app .row.bx-off .row-time b{color:var(--ink-3)}',
+    '.bx-app .meta.bx-off-tag{color:var(--warn-ink);font-weight:700}',
+    // 시간표 위 두 단추: 무엇을 하는지 글로 보이게(대표 지적: 눌러 보기 전엔 알 수 없음)
+    '.bx-app .tt-sub{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
+    '.bx-app .tt-opt{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg,var(--bg));color:var(--ink);text-align:left;font:inherit;cursor:pointer}',
+    '.bx-app .tt-opt > .i{width:20px;height:20px;flex:none;color:var(--accent)}',
+    '.bx-app .tt-opt > .i:last-child{width:16px;height:16px;margin-left:auto;color:var(--ink-3)}',
+    '.bx-app .tt-opt span{display:flex;flex-direction:column;gap:2px;min-width:0}',
+    '.bx-app .tt-opt b{font-size:14px;font-weight:800}',
+    '.bx-app .tt-opt small{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.bx-app .tt-b.rs{z-index:7;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,.18);outline:2px solid var(--c)}',
     '.bx-app .tt-b.rs::after{content:attr(data-rs-t);position:absolute;left:50%;top:-24px;transform:translateX(-50%);padding:2px 7px;border-radius:7px;background:var(--ink);color:var(--bg);font-size:11.5px;font-weight:700;white-space:nowrap}',
     '.bx-app .tt-rg{gap:4px}.bx-app .tt-rg .i{width:15px;height:15px}',
     '.bx-app .tt-tip{margin:-4px 0 10px;color:var(--ink-3)}',
@@ -122,6 +152,29 @@
     '.bx-app .sec-h.bx-foldable h2{cursor:pointer}',
     '.bx-f-rt .rt-sec > :not(.sec-h){display:none!important}',
     '.bx-f-today .tc-body > .sec-h:has(#h-today) ~ *{display:none!important}',
+    '.bx-f-today .it-sub > .sec-h ~ *{display:none!important}',
+    '.bx-f-tt .bx-tts > .sec-h ~ *{display:none!important}',
+    // 홈 개편: 요약 상자 + '오늘 할 일' 상자, 오른쪽 아래 + 단추
+    '.bx-app .screen.today .home-col{gap:14px!important}',
+    '.bx-app .bx-sumcard .tc-head{padding:6px 0 2px}',
+    '.bx-app .bx-todo .bx-todo-h{margin-top:4px!important}',
+    '.bx-app .bx-todo .rt-sec .sec-h h2,.bx-app .bx-todo .bx-sub .sec-h h2{font-size:15px!important;font-weight:800;color:var(--ink-2);letter-spacing:-.01em}',
+    '.bx-app .bx-todo .rt-sec .sec-h,.bx-app .bx-todo .bx-sub .sec-h{margin-top:18px}',
+    '.bx-app .bx-todo .bx-sub + .bx-sub,.bx-app .bx-todo .rt-sec + .bx-sub{border-top:1px solid var(--line);margin-top:14px}',
+    '.bx-app .bx-todo-empty{margin:14px 0 4px}',
+    '#tcard2{touch-action:pan-y}#tcard2.slide-l .tc-body{animation:slideL .24s ease-out}#tcard2.slide-r .tc-body{animation:slideR .24s ease-out}',
+    '.bx-app .bx-fab{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 16px);z-index:41;width:60px;height:60px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:none;align-items:center;justify-content:center;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 40%,transparent),0 2px 6px rgba(0,0,0,.16);-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;cursor:pointer}',
+    '.bx-app .bx-fab .i{width:28px;height:28px;stroke-width:2.4}',
+    // 아래 메뉴 고르기
+    '.bx-app .bx-dk{align-items:center}',
+    '.bx-app .bx-dk .bx-dk-ic{display:flex;width:34px;height:34px;flex:none;border-radius:10px;background:var(--sunk);color:var(--ink-2);align-items:center;justify-content:center}',
+    '.bx-app .bx-dk .bx-dk-ic .i{width:19px;height:19px}',
+    '.bx-app .bx-dk[aria-checked="true"] .bx-dk-ic{background:color-mix(in srgb,var(--accent) 14%,var(--bg));color:var(--accent)}',
+    '.bx-app .bx-dk .bx-dk-n{margin-left:auto;flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-style:normal;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}',
+    '.bx-app .bx-fab:active{transform:scale(.94)}',
+    'html.bx-fab-on .bx-app .bx-fab,html.bx-fab-on.bx-app .bx-fab{display:flex}',
+    'html.bx-fab-on .content{padding-bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 96px)}',
+    'html.bx-fab-on #toasts{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 88px)}',
     '.bx-f-tt .tt-card .sec-h ~ *{display:none!important}',
     '.bx-f-cal .hcal-sec > :not(.sec-h){display:none!important}',
     '.bx-f-cal .hcal-sec .hc-nav{display:none}',
@@ -327,7 +380,7 @@
   if (widgetPl) {
     var speakNow = function () {
       setTimeout(function () {
-        var add = document.querySelector('.dock-add');
+        var add = document.querySelector('.bx-fab');
         if (!add) return;
         add.click();
         setTimeout(function () { var m = document.querySelector('[data-act="bx-mic"][data-for="f-title"]'); if (m) m.click(); }, 350);
