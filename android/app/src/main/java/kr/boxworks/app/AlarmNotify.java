@@ -130,19 +130,14 @@ final class AlarmNotify {
      * sound: bowl(시작), bowl3(끝, 세 번), bowl_soft(중간 종)
      */
     static void showSoft(Context c, JSONObject o) {
-        String snd = o.optString("sound", "bowl");
-        int raw = "bowl3".equals(snd) ? R.raw.bx_bowl3 : "bowl_soft".equals(snd) ? R.raw.bx_bowl_soft : R.raw.bx_bowl;
-        String ch = "bx_snd_" + snd + "_v1";
+        // 소리는 BowlPlayer가 직접 튼다. 알림은 소리 없는 채널로 글만 보여 준다
+        String ch = "bx_soft_v2";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager nm = c.getSystemService(NotificationManager.class);
             if (nm != null && nm.getNotificationChannel(ch) == null) {
-                String label = "bowl3".equals(snd) ? "명상 끝 종" : "bowl_soft".equals(snd) ? "명상 중간 종" : "명상 시작 종";
-                NotificationChannel nc = new NotificationChannel(ch, label, NotificationManager.IMPORTANCE_HIGH);
-                nc.setDescription("싱잉볼 소리로 명상과 부드러운 루틴 알람을 알려 줘요");
-                nc.setSound(Uri.parse("android.resource://" + c.getPackageName() + "/" + raw), new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build());
+                NotificationChannel nc = new NotificationChannel(ch, "명상·싱잉볼 알림", NotificationManager.IMPORTANCE_HIGH);
+                nc.setDescription("싱잉볼 종이 울릴 때 함께 보이는 알림이에요. 소리는 앱이 직접 내요");
+                nc.setSound(null, null);
                 nc.enableVibration(false);
                 nc.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
                 nm.createNotificationChannel(nc);
@@ -162,6 +157,7 @@ final class AlarmNotify {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setSilent(true)
             .setAutoCancel(true)
             .setContentIntent(openPi);
         if (!o.optString("series").isEmpty()) b.addAction(0, "확인", actionPi(c, "ok", o));

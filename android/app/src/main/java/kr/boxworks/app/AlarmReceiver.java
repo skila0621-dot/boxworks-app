@@ -13,7 +13,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         AlarmStore.remove(context, o.optString("id"));
         String kind = o.optString("kind");
         if (o.optString("sound").startsWith("bowl")) {
+            // 종소리는 알림 소리에 맡기지 않고 앱이 직접 끝까지 튼다(알림은 소리 없이 글만)
             AlarmNotify.showSoft(context, o);
+            BowlPlayer.play(context, o.optString("sound"), goAsync());
+            BxWidgetProvider.refreshAll(context);
+            return;
         } else if ("report".equals(kind)) {
             AlarmNotify.showReport(context, o.optJSONObject("report"));
         } else if ("rcheck".equals(kind)) {
