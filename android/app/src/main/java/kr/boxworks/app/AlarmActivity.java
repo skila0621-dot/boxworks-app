@@ -190,7 +190,11 @@ public class AlarmActivity extends Activity {
         bg.setColor(accent);
         circle.setBackground(bg);
         ImageView icon = new ImageView(this);
-        icon.setImageResource(R.drawable.ic_alarm_bell);
+        // 루틴 아이콘(책·연필·운동 등). 화면이 고른 이름의 ic_rt_ 그림이 있으면 그것, 없으면 종
+        int iconRes = 0;
+        String iconKey = alarm.optString("icon", "");
+        if (iconKey.matches("[a-z]{2,20}")) iconRes = getResources().getIdentifier("ic_rt_" + iconKey, "drawable", getPackageName());
+        icon.setImageResource(iconRes != 0 ? iconRes : R.drawable.ic_alarm_bell);
         circle.addView(icon, new FrameLayout.LayoutParams(dp(56), dp(56), Gravity.CENTER));
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(120), dp(120));
         clp.topMargin = dp(18);

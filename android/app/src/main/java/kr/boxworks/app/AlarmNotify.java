@@ -104,12 +104,25 @@ final class AlarmNotify {
             .setAutoCancel(true)
             .setContentIntent(openPi)
             .addAction(0, "오늘 보기", openPi)
+            .addAction(0, "보내기", sharePi(c, title, text))
             .addAction(0, "닫기", closePi);
         try {
             NotificationManagerCompat.from(c).notify(REPORT_ID, b.build());
         } catch (SecurityException ignored) {
             // 알림 권한이 꺼져 있으면 띄우지 못한다.
         }
+    }
+
+    /** 아침 보고를 카카오톡·메일 등으로 보내는 휴대폰 공유 창(대표 요청). 보내는 앱과 받는 사람은 사용자가 고른다 */
+    private static PendingIntent sharePi(Context c, String title, String text) {
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType("text/plain");
+        send.putExtra(Intent.EXTRA_SUBJECT, "박스웍스 · " + title);
+        send.putExtra(Intent.EXTRA_TEXT, title + "\n\n" + text);
+        Intent chooser = Intent.createChooser(send, "오늘 일정 보내기");
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        return PendingIntent.getActivity(c, REPORT_ID + 2, chooser,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     static int notifId(String id) {

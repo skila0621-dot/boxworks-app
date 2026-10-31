@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import step4 from './patches-step4.mjs';
 import calendar from './patches-calendar.mjs';
 import nav from './patches-nav.mjs';
+import icons from './patches-icons.mjs';
 import fix10 from './patches-fix10.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -120,7 +121,7 @@ window.BX_alarmPlan = function(days){
           if (t <= now || t > until) continue;
           const left = p.leave != null && !r.leave ? Math.round(p.leave - atM) : null;
           const sub = [r.leave ? (j ? '출발 시각이 ' + (j * every) + '분 지났어요' : '지금 나갈 시간') : left != null ? '출발까지 ' + left + '분' : '', j ? '다시 알림 ' + j + '/' + rep : ''].filter(Boolean).join(' · ');
-          const a = {id: base + (j ? '_r' + j : ''), at: t, kind: 'routine', group: rt.name || '루틴',
+          const a = {id: base + (j ? '_r' + j : ''), at: t, kind: 'routine', group: rt.name || '루틴', icon: r.leave ? 'car' : bxIconFor(r.name) || bxRtIconKey(rt),
             title: r.leave ? '출발할 시간' : r.name, sub, body: (rt.name || '루틴') + (sub ? ' · ' + sub : ''),
             from: addMin(day, p.start).getTime(), to: p.leave != null ? addMin(day, p.leave).getTime() : 0,
             next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
@@ -147,7 +148,7 @@ window.BX_alarmPlan = function(days){
       if (!ttOn(e, ds)) continue;
       const t = addMin(day, toMin(e.start) - before).getTime(); if (t <= now || t > until) continue;
       const lead = before ? before + '분 뒤 시작' : '지금 시작';
-      out.push({id: 'tt_' + e.id + '_' + ds, at: t, kind: 'item', group: '시간표', title: e.name,
+      out.push({id: 'tt_' + e.id + '_' + ds, at: t, kind: 'item', group: '시간표', icon: bxIconFor(e.name) || 'school', title: e.name,
         sub: (e.place ? e.place + ' · ' : '') + lead, body: e.start + (e.end ? '–' + e.end : '') + (e.place ? ' · ' + e.place : '') + ' · ' + lead});
     }
   });
@@ -244,7 +245,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
@@ -323,7 +324,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar, ...nav, ...fix10);
+patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;
