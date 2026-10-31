@@ -31,6 +31,8 @@ public class BxAlarmPlugin extends Plugin {
     @PluginMethod
     public void sync(PluginCall call) {
         JSArray list = call.getArray("alarms", new JSArray());
+        // 잠금 화면에 보여 줄 것: alarm(기본) | title | none
+        AlarmStore.setLockMode(getContext(), call.getString("lock", null));
         try {
             int n = AlarmStore.replaceAll(getContext(), new JSONArray(list.toString()));
             JSObject r = new JSObject();
@@ -133,6 +135,9 @@ public class BxAlarmPlugin extends Plugin {
             i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + pkg));
         } else if ("fullscreen".equals(which) && Build.VERSION.SDK_INT >= 34) {
             i = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:" + pkg));
+        } else if ("battery".equals(which) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // 배터리 최적화 목록. 삼성은 앱 정보 → 배터리 → '제한 없음'과 같은 설정이다
+            i = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
         } else if ("notifications".equals(which) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
             i.putExtra(Settings.EXTRA_APP_PACKAGE, pkg);
@@ -164,10 +169,17 @@ public class BxAlarmPlugin extends Plugin {
             NotificationManager nm = c.getSystemService(NotificationManager.class);
             full = nm != null && nm.canUseFullScreenIntent();
         }
+        boolean battery = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            android.os.PowerManager pm = (android.os.PowerManager) c.getSystemService(Context.POWER_SERVICE);
+            battery = pm != null && pm.isIgnoringBatteryOptimizations(c.getPackageName());
+        }
         JSObject r = new JSObject();
         r.put("notifications", notificationsOn());
         r.put("exact", exact);
         r.put("fullScreen", full);
+        r.put("battery", battery);
+        r.put("sdk", Build.VERSION.SDK_INT);
         r.put("scheduled", AlarmStore.load(c).length());
         return r;
     }

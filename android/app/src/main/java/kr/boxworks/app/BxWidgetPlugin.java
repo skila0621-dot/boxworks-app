@@ -42,6 +42,34 @@ public class BxWidgetPlugin extends Plugin {
         call.resolve(r);
     }
 
+    /** 홈 화면에 놓인 위젯 수(list: 4×2 오늘 일정, now: 2×2 지금 단계)와 앱에서 바로 놓기를 할 수 있는지 */
+    @PluginMethod
+    public void placed(PluginCall call) {
+        android.content.Context c = getContext();
+        android.appwidget.AppWidgetManager m = android.appwidget.AppWidgetManager.getInstance(c);
+        JSObject r = new JSObject();
+        r.put("list", m == null ? 0 : m.getAppWidgetIds(new android.content.ComponentName(c, BxWidgetProvider.class)).length);
+        r.put("now", m == null ? 0 : m.getAppWidgetIds(new android.content.ComponentName(c, BxNowWidget.class)).length);
+        r.put("canPin", m != null && android.os.Build.VERSION.SDK_INT >= 26 && m.isRequestPinAppWidgetSupported());
+        call.resolve(r);
+    }
+
+    /** 홈 화면에 위젯 놓기(전체 흐름 와이어프레임 17). 휴대폰이 놓을 자리를 묻는 창을 띄운다 */
+    @PluginMethod
+    public void pin(PluginCall call) {
+        android.content.Context c = getContext();
+        android.appwidget.AppWidgetManager m = android.appwidget.AppWidgetManager.getInstance(c);
+        if (m == null || android.os.Build.VERSION.SDK_INT < 26 || !m.isRequestPinAppWidgetSupported()) {
+            call.reject("이 휴대폰은 앱에서 위젯을 바로 놓을 수 없어요", "unavailable");
+            return;
+        }
+        Class<?> k = "list".equals(call.getString("which", "now")) ? BxWidgetProvider.class : BxNowWidget.class;
+        boolean ok = m.requestPinAppWidget(new android.content.ComponentName(c, k), null, null);
+        JSObject r = new JSObject();
+        r.put("asked", ok);
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void update(PluginCall call) {
         JSObject d = call.getObject("data");

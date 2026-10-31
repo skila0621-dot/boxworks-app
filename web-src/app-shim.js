@@ -293,6 +293,24 @@
     '#bx-start .bxs-links{display:flex;justify-content:center;gap:28px;margin-top:22px}#bx-start .bxs-links button{min-height:44px;padding:0 8px;font-size:15px;color:var(--ink-2);text-decoration:underline;text-underline-offset:4px;background:transparent}#bx-start .bxs-links button.on{color:var(--accent);font-weight:700}',
     '#bx-start .bxs-box{display:flex;flex-direction:column;margin-top:24px;border:1px solid var(--line);border-radius:18px}#bx-start .bxs-res{border-bottom:1px solid var(--line);border-radius:0}#bx-start .bxs-res:last-child{border-bottom:0}',
     '#bx-start .bxs-chips{display:flex;flex-wrap:wrap;gap:8px}#bx-start .bxs-chip{min-height:42px;padding:0 14px;border-radius:21px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',
+    // 첫 실행 2: 알람 허락 예고 줄
+    '#bx-start .bxs-note{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);font-size:13.5px;line-height:1.5;color:var(--ink-2)}#bx-start .bxs-note .i{width:20px;height:20px;flex:none;color:var(--accent)}',
+    // 루틴 도우미 결과: 거꾸로 짠 시각표
+    '#bx-start .bxs-res.col{flex-direction:column;align-items:stretch;gap:8px;padding:14px 16px}#bx-start .bxs-rh{display:flex;align-items:center;gap:10px}#bx-start .bxs-rh .bx-togw{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}',
+    '#bx-start .bxs-tl{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column}#bx-start .bxs-tl li{display:flex;align-items:center;gap:12px;min-height:34px;font-size:15px}',
+    '#bx-start .bxs-tl .bxs-tm{width:46px;flex:none;font-size:14px;font-weight:500;color:var(--ink-2);font-variant-numeric:tabular-nums}#bx-start .bxs-tl i{width:8px;height:8px;flex:none;border-radius:4px;background:var(--accent)}',
+    '#bx-start .bxs-tl .bxs-sm{margin-left:auto;font-size:13px;color:var(--ink-2)}#bx-start .bxs-tl li.lv{font-weight:700}#bx-start .bxs-tl li.lv .bxs-tm{color:var(--ink);font-weight:700}#bx-start .bxs-flag{display:flex;width:8px;justify-content:center;color:var(--accent)}#bx-start .bxs-flag .i{width:14px;height:14px;stroke-width:2.2}',
+    // 알람 허락
+    '#bx-start .bxp-ic{display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin-top:18px;border-radius:16px;background:var(--accent-soft);color:var(--accent)}#bx-start .bxp-ic .i{width:28px;height:28px}',
+    '#bx-start .bxp-list{list-style:none;padding:0}#bx-start .bxp-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}#bx-start .bxp-row:last-child{border-bottom:0}#bx-start .bxp-row .btn{flex:none;min-height:42px}',
+    '#bx-start .bxp-ok{display:flex;align-items:center;gap:4px;flex:none;font-size:14px;font-weight:700;color:var(--accent)}#bx-start .bxp-ok .i{width:18px;height:18px;stroke-width:2.4}#bx-start .bxp-tag{font-size:12px;font-weight:500;color:var(--ink-2)}',
+    '#bx-start .bxs-test{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;margin-bottom:10px;border-radius:16px;font-size:15.5px}#bx-start .bxs-test .i{width:19px;height:19px}#bx-start .bxs-test[disabled]{opacity:.45}',
+    '#bx-start .bxp-later{width:100%;min-height:44px;margin-top:4px;background:transparent;font-size:13.5px;color:var(--ink-2)}',
+    // 설정 > 알림: 잠금 화면에 보여 줄 것
+    '.bx-app .bx-lockset{display:flex;flex-direction:column;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.bx-app .bx-lock-h{font-size:15px;font-weight:700;margin-bottom:4px}',
+    '.bx-app .bx-lock-o{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;border-bottom:1px solid var(--line);background:transparent;text-align:left;color:var(--ink)}.bx-app .bx-lock-o:last-of-type{border-bottom:0}',
+    '.bx-app .bx-lock-o i{width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--line-2);box-sizing:border-box}.bx-app .bx-lock-o[aria-checked="true"] i{border:6px solid var(--accent)}',
+    '.bx-app .bx-lock-o span{display:flex;flex-direction:column;gap:1px}.bx-app .bx-lock-o b{font-size:15px;font-weight:500}.bx-app .bx-lock-o b small{font-size:12px;color:var(--ink-2)}.bx-app .bx-lock-o span>small{font-size:12.5px;line-height:1.45;color:var(--ink-2)}',
     '.bx-app .bx-nudge{margin:12px 0 2px;background:var(--accent-soft);align-items:flex-start;padding:16px 8px 16px 16px}.bx-app .bx-nudge .bxs-t{gap:4px}.bx-app .bx-nudge-go{display:flex;margin-top:10px}.bx-app .bx-nudge-go .btn{min-height:42px;padding:0 16px}.bx-app .bx-nudge-x{flex:none;width:40px;height:40px;margin-top:-8px}',
     // 고른 칸은 어디서나 파랑(명상·소리 고르기에서 검정이던 것 통일)
     '.bx-app .pick[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}',
@@ -445,14 +463,35 @@
       var widget = plugin('BxWidget');
       if (widget && typeof window.BX_widgetData === 'function') {
         var wd = window.BX_widgetData(list.filter(function (a) { return a.kind !== 'report'; }));
-        var wsig = wd ? JSON.stringify({ i: wd.items, a: wd.alarms }) : null;
+        var wsig = wd ? JSON.stringify({ i: wd.items, r: wd.routines, l: wd.late }) : null;
         if (wd && wsig !== lastWidget) { lastWidget = wsig; widget.update({ data: wd }).catch(function () { lastWidget = null; }); }
       }
-      var sig = JSON.stringify(list);
+      // 잠금 화면에 보여 줄 것(설정): alarm(기본) | title | none
+      var lock = typeof window.BX_lockMode === 'function' ? window.BX_lockMode() : 'alarm';
+      var sig = lock + JSON.stringify(list);
       if (sig === lastSig) return;
       lastSig = sig;
-      try { await alarm.sync({ alarms: list }); } catch (e) { lastSig = null; }
-      if (list.length && !checked) { checked = true; askPermissions(false); }
+      try { await alarm.sync({ alarms: list, lock: lock }); } catch (e) { lastSig = null; }
+      // 처음 알람이 생길 때 알람 허락 화면(전체 흐름 와이어프레임 6). 빠진 허락이 있을 때 한 번만
+      // 아침 보고만 있을 때는 묻지 않는다(사용자가 만든 첫 알람이 생길 때)
+      if (!checked && list.some(function (a) { return a.kind !== 'report'; })) { checked = true; permFirst(list); }
+    };
+    // 알람 허락 화면이 쓰는 휴대폰 쪽 함수(web-src/start.js의 bxPermOpen)
+    window.BX_perm = {
+      status: function () { return alarm.status(); },
+      notifications: function () { return alarm.requestNotifications(); },
+      open: function (which) { return alarm.openSettings({ which: which }); },
+      test: function () { return alarm.test({ seconds: 10 }); }
+    };
+    var permFirst = async function (list) {
+      try {
+        if (memo.get('bx:permShown') === '1' || typeof window.BX_permOpen !== 'function') return;
+        var st = await alarm.status();
+        if (st.notifications && st.exact && st.fullScreen) return;
+        memo.set('bx:permShown', '1');
+        var first = list.filter(function (a) { return a.kind !== 'report'; })[0];
+        window.BX_permOpen(first ? first.at : 0, st);
+      } catch (e) {}
     };
     var askPermissions = async function (fromTest) {
       try {
@@ -489,13 +528,17 @@
     };
     setTimeout(pullConfirmed, 1500);
     var app2 = plugin('App');
-    if (app2 && app2.addListener) app2.addListener('resume', function () { lastSig = null; pullConfirmed(); window.BX_afterRender(); if (window.BX_pcRefresh) window.BX_pcRefresh(true); });
+    if (app2 && app2.addListener) app2.addListener('resume', function () { if (window.BX_permRefresh) window.BX_permRefresh(); lastSig = null; pullConfirmed(); window.BX_afterRender(); if (window.BX_pcRefresh) window.BX_pcRefresh(true); });
     // 설정 > 알림 > 휴대폰 알람 시험
     document.addEventListener('click', async function (ev) {
       var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-alarm-test"]');
       if (!b) return;
       ev.preventDefault();
       ev.stopPropagation();
+      try {
+        var st0 = await alarm.status();
+        if (!(st0.notifications && st0.exact && st0.fullScreen) && typeof window.BX_permOpen === 'function') { window.BX_permOpen(0, st0); return; }
+      } catch (e0) {}
       var ok = await askPermissions(true);
       if (!ok) return;
       try {

@@ -49,16 +49,36 @@ public class AlarmActivity extends Activity {
     /** 이 화면이 떠 있는 동안 함께 울린 다른 알람(예: 출근 루틴과 약 먹기가 같은 시각). 지금 것을 처리하면 차례로 보여 준다. */
     private final ArrayDeque<JSONObject> waiting = new ArrayDeque<>();
     private final Runnable stopper = this::stopRinging;
+    /** 잠금을 풀면 가렸던 일정 제목을 보여 주려고 1초마다 잠금 상태를 본다 */
+    private boolean shownLocked = false;
+    private final Runnable lockWatch = new Runnable() {
+        @Override
+        public void run() {
+            if (isLocked() != shownLocked) setContentView(buildUi());
+            handler.postDelayed(this, 1000);
+        }
+    };
+
+    private boolean isLocked() {
+        android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        return km != null && km.isKeyguardLocked();
+    }
 
     /** 알림에서 '확인'·'5분 뒤'를 눌렀을 때: 그 알람이 지금 화면이면 다음 알람으로, 기다리는 중이면 목록에서 뺀다. */
-    static void handledElsewhere(String id) {
+    static void handledElsewhere(String id, String series) {
         AlarmActivity a = current.get();
         if (a == null || a.isFinishing()) return;
-        if (id != null && id.equals(a.alarm.optString("id"))) {
+        String curSeries = a.alarm.optString("series", "");
+        if ((id != null && id.equals(a.alarm.optString("id"))) || (series != null && !series.isEmpty() && series.equals(curSeries))) {
             a.dropSeries(a.alarm.optString("series", ""));
             a.showNext();
         }
-        else if (a.removeWaiting(id)) a.setContentView(a.buildUi());
+        else {
+            int before = a.waiting.size();
+            a.removeWaiting(id);
+            a.dropSeries(series);
+            if (a.waiting.size() != before) a.setContentView(a.buildUi());
+        }
     }
 
     private void dropSeries(String series) {
@@ -111,6 +131,7 @@ public class AlarmActivity extends Activity {
         alarm = AlarmNotify.fromIntent(getIntent());
         setContentView(buildUi());
         ring();
+        handler.postDelayed(lockWatch, 1000);
     }
 
     @Override
@@ -166,6 +187,11 @@ public class AlarmActivity extends Activity {
     private View buildUi() {
         boolean routine = "routine".equals(alarm.optString("kind"));
         int accent = routine ? 0xFF7A4FD6 : 0xFF3A5BF0;
+        // 잠금 화면에서는 일정 제목·장소를 가린다(대표 결정 10/31). 루틴 단계 이름과 남은 시간은 보인다
+        shownLocked = isLocked();
+        String mode = AlarmStore.lockMode(this);
+        boolean hide = shownLocked && !"title".equals(mode);
+        boolean none = shownLocked && "none".equals(mode);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -177,7 +203,7 @@ public class AlarmActivity extends Activity {
         root.addView(text(new SimpleDateFormat("M월 d일 EEEE", Locale.KOREAN).format(new Date(now)), 16, 0xFFC9CCD3, false), wrap(0));
         root.addView(text(hm(now), 72, Color.WHITE, true), wrap(0));
 
-        String group = alarm.optString("group", "");
+        String group = none ? "" : hide ? alarm.optString("pg", routine ? alarm.optString("group", "") : "") : alarm.optString("group", "");
         root.addView(text("박스웍스" + (group.isEmpty() ? "" : " · " + group), 13, 0xFFC9CCD3, false), wrap(32));
         if (!waiting.isEmpty()) {
             TextView more = text("함께 울린 알람 " + waiting.size() + "개가 더 있어요 · 확인하면 이어서 보여 줘요", 13, 0xFFFFD27A, true);
@@ -192,7 +218,7 @@ public class AlarmActivity extends Activity {
         ImageView icon = new ImageView(this);
         // 루틴 아이콘(책·연필·운동 등). 화면이 고른 이름의 ic_rt_ 그림이 있으면 그것, 없으면 종
         int iconRes = 0;
-        String iconKey = alarm.optString("icon", "");
+        String iconKey = none ? "" : alarm.optString("icon", "");
         if (iconKey.matches("[a-z]{2,20}")) iconRes = getResources().getIdentifier("ic_rt_" + iconKey, "drawable", getPackageName());
         icon.setImageResource(iconRes != 0 ? iconRes : R.drawable.ic_alarm_bell);
         circle.addView(icon, new FrameLayout.LayoutParams(dp(56), dp(56), Gravity.CENTER));
@@ -201,19 +227,20 @@ public class AlarmActivity extends Activity {
         clp.gravity = Gravity.CENTER_HORIZONTAL;
         root.addView(circle, clp);
 
-        String title = alarm.optString("title", "");
+        String title = hide ? AlarmNotify.pubTitle(this, alarm) : alarm.optString("title", "");
         TextView t = text(title.isEmpty() ? "박스웍스 알람" : title, 34, Color.WHITE, true);
         t.setMaxLines(2);
         root.addView(t, wrap(16));
 
-        String sub = alarm.optString("sub", alarm.optString("body", ""));
+        String sub = hide ? AlarmNotify.pubSub(this, alarm) : alarm.optString("sub", alarm.optString("body", ""));
         if (!sub.isEmpty()) root.addView(text(sub, 20, 0xFFE4E6EA, false), wrap(8));
 
         long from = alarm.optLong("from", 0), to = alarm.optLong("to", 0);
-        if (from > 0 && to > from) root.addView(progress(from, to, now, accent), wrap(18));
+        if (!none && from > 0 && to > from) root.addView(progress(from, to, now, accent), wrap(18));
 
-        String next = alarm.optString("next", "");
+        String next = none || (hide && !routine) ? "" : alarm.optString("next", "");
         if (!next.isEmpty()) root.addView(text("다음 " + next, 14, 0xFFA9ADB6, false), wrap(14));
+        if (alarm.optJSONObject("report") != null) root.addView(text(hide ? "확인하면 오늘 일정 알림이 와요 · 잠금을 풀면 보여요" : "확인하면 오늘 일정 알림이 와요", 13, 0xFFA9ADB6, false), wrap(10));
 
         View spacer = new View(this);
         root.addView(spacer, new LinearLayout.LayoutParams(1, 0, 1f));
@@ -226,11 +253,13 @@ public class AlarmActivity extends Activity {
             if (alarm.optJSONObject("report") != null) AlarmNotify.showReport(this, alarm.optJSONObject("report"));
             AlarmNotify.dismiss(this, alarm.optString("id"));
             dropSeries(alarm.optString("series", ""));
+            RoutineOngoing.post(this);
+            BxWidgetProvider.refreshAll(this);
             showNext();
         });
         root.addView(ok, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)));
 
-        Button snooze = button("5분 뒤", Color.TRANSPARENT, Color.WHITE, 0xFF4A505D, dp(26));
+        Button snooze = button("5분 뒤 · 같은 소리로 다시", Color.TRANSPARENT, Color.WHITE, 0xFF4A505D, dp(26));
         snooze.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         snooze.setOnClickListener(v -> {
             AlarmStore.confirm(this, alarm, false);

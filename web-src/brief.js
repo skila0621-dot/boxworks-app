@@ -45,8 +45,24 @@ function bxAddReports(out, days){
 function bxReportSetHtml(){
   const cfg = bxRepCfg();
   return setRow('아침에 오늘 일정 받기', segHtml('data-bxrep', [['0', '끄기'], ['1', '켜기']], cfg.on ? '1' : '0', '아침 보고', 150), 'tall') +
-    (cfg.on ? '<div class="set-ctl"><input type="time" id="bx-rep-t" class="inp big-time" step="300" value="' + cfg.at + '"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span></div>' : '');
+    (cfg.on ? '<div class="set-ctl"><input type="time" id="bx-rep-t" class="inp big-time" step="300" value="' + cfg.at + '"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span></div>' : '') +
+    bxLockSetHtml();
 }
+/* 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게) */
+const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목까지', '“치과 · 14:30 출발”처럼 제목도 보여요'], ['none', '아무것도', '알람도 “박스웍스 알람”으로만 보여요']];
+function bxLockMode(){ const m = M && M.settings && M.settings.bxLock; return m === 'title' || m === 'none' ? m : 'alarm'; }
+window.BX_lockMode = bxLockMode;
+function bxLockSetHtml(){
+  const cur = bxLockMode();
+  return '<div class="bx-lockset" role="radiogroup" aria-label="잠금 화면에 보여 줄 것"><b class="bx-lock-h">잠금 화면에 보여 줄 것</b>' +
+    BX_LOCK.map(o => '<button type="button" class="bx-lock-o" role="radio" aria-checked="' + (o[0] === cur) + '" data-bxlock="' + o[0] + '"><i aria-hidden="true"></i><span><b>' + o[1] + (o[0] === 'alarm' ? ' <small>기본</small>' : '') + '</b><small>' + o[2] + '</small></span></button>').join('') +
+    '<p class="p small">아침 보고와 루틴 진행 알림은 늘 잠금을 풀어야 보여요.</p></div>';
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-bxlock]'); if (!b || !window.BX_APP) return;
+  ev.stopPropagation();
+  saveSettings({bxLock: b.dataset.bxlock});
+}, true);
 document.addEventListener('click', ev => {
   if (!window.BX_APP) return;
   const b = ev.target.closest('[data-bxrep]'); if (!b) return;
@@ -58,28 +74,45 @@ document.addEventListener('change', ev => {
   saveSettings({bxReport: Object.assign({}, bxRepCfg(), {at: ev.target.value})});
 });
 
-/* 홈 화면 위젯에 넘길 것: 앞으로 사흘의 시간 있는 일정·시간표, 다가오는 알람 시각. 위젯이 지금 시각에 맞춰 고른다 */
+/* 홈 화면 위젯에 넘길 것(전체 흐름 와이어프레임 10)
+   items: 오늘(지난 것·완료 포함)부터 사흘의 시간 있는 일정·시간표·루틴. c = 분류 색, done = 완료
+   routines: 오늘·내일 루틴의 단계표('지금 단계' 2×2 위젯). late: 홈의 '확인 필요'와 같은 숫자 */
+function bxHex(c){ return /^#[0-9a-f]{6}$/i.test(String(c || '')) ? c : ''; }
 window.BX_widgetData = function(plan){
   if (!M || !S.firstServer) return null;
-  const now = Date.now(), until = now + 3 * 864e5, list = [];
+  const now = Date.now(), t0 = sod(new Date(now)).getTime(), until = now + 3 * 864e5, list = [];
   M.items.forEach(i => {
-    if (i.done || !i.start || !isDate(i.date)) return;
+    if (!i.start || !isDate(i.date) || i.deletedAt) return;
     const s = at(i.date, i.start).getTime(), e = i.end ? at(i.date, i.end).getTime() : s + 3600e3;
-    if (e <= now || s > until) return;
-    const p = tvPlan(i);
-    list.push({at: s, end: e, title: i.title || '(제목 없음)', place: i.location || '', go: p && p.travel ? p.leave.getTime() : 0});
+    if (e < t0 || s > until || (i.done && s < t0)) return;
+    const p = tvPlan(i), cat = M.catMap.get(i.categoryId);
+    list.push({at: s, end: e, title: i.title || '(제목 없음)', place: i.location || '', go: p && p.travel ? p.leave.getTime() : 0,
+      c: M.settings.catColors !== false && cat ? bxHex(cat.color) : '', k: 'item', done: !!i.done});
   });
+  const routines = [];
   for (let k = 0; k <= 3; k++) {
     const day = addDays(sod(new Date(now)), k), ds = ymd(day);
     ttList().forEach(e => {
       if (!ttOn(e, ds) || !isHM(e.start)) return;
       const s = addMin(day, toMin(e.start)).getTime(), en = isHM(e.end) ? addMin(day, toMin(e.end)).getTime() : s + 3600e3;
-      if (en > now && s <= until) list.push({at: s, end: en, title: e.name, place: e.place || '', go: 0});
+      if (en >= t0 && s <= until) list.push({at: s, end: en, title: e.name, place: e.place || '', go: 0, c: bxHex(e.color), k: 'tt'});
+    });
+    M.routines.forEach(rt => {
+      if (!rtActiveOn(rt, ds) || rt.sound === 'bowl') return;
+      const p = rtPlan(rt); if (p.bad) return;
+      const lg = M.rlogs.get(rt.id + '|' + ds) || {}; if (lg.skip) return;
+      const rows = p.rows.filter(r => r.kind !== 'wait'); if (!rows.length) return;
+      const done = lg.done || {}, from = addMin(day, p.start).getTime(), leave = p.leave != null ? addMin(day, p.leave).getTime() : 0;
+      const last = rows[rows.length - 1], end = leave || addMin(day, last.at + (last.min || 5)).getTime();
+      const allDone = rows.every(r => done[r.id]);
+      list.push({at: from, end, title: rt.name || '루틴', place: '', go: 0, c: '#3555D8', k: 'routine', done: allDone});
+      if (rows.length >= 2) routines.push({rid: rt.id, ds, name: rt.name || '루틴', from, leave,
+        steps: rows.map(r => ({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!done[r.id]}))});
     });
   }
   list.sort((a, b) => a.at - b.at);
-  const alarms = (plan || []).map(a => a.at).filter(t => t > now).sort((a, b) => a - b).slice(0, 30);
-  return {items: list.slice(0, 15), alarms, made: now};
+  const late = M.items.filter(isLate).length + bxRtMissed().length;
+  return {items: list.slice(0, 20), routines, late, made: now};
 };
 
 /* ---------- 루틴 단계를 확인하지 않았을 때(대표 요청) ----------

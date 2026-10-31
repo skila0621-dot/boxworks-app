@@ -53,6 +53,13 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/bx_widget_info" />
         </receiver>
+        <!-- 2×2 '지금 단계' 위젯(전체 흐름 와이어프레임 10) -->
+        <receiver android:name=".BxNowWidget" android:exported="false" android:label="@string/bx_now_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/bx_now_widget_info" />
+        </receiver>
         <!-- 재부팅·앱 업데이트·시간 변경 뒤 알람 다시 예약 -->
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter>

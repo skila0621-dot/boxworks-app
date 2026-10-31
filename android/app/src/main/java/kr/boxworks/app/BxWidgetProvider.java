@@ -19,7 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * 홈 화면 위젯(와이어프레임 4안-6): 다음 일정, 다음 알람, 이어지는 일정 두 개, 말하기 단추.
+ * 홈 화면 4×2 위젯 '오늘 일정'(전체 흐름 와이어프레임 10): 오늘 날짜·확인 필요·말하기, 시각·색이 있는 네 줄.
  * 박스웍스 화면이 앞으로 사흘의 일정과 알람 시각을 넘겨 두면(BxWidgetPlugin), 위젯은 지금 시각에 맞춰 고른다.
  * 앱을 열지 않아도 다음 일정 시각·끝 시각·15분마다 스스로 다시 그린다.
  */
@@ -61,9 +61,10 @@ public class BxWidgetProvider extends AppWidgetProvider {
             if (ids != null && ids.length > 0) render(c, m, ids);
         } catch (Exception ignored) {
         }
+        BxNowWidget.refresh(c);
     }
 
-    private static JSONObject load(Context c) {
+    static JSONObject load(Context c) {
         try {
             return new JSONObject(c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, "{}"));
         } catch (Exception e) {
@@ -99,59 +100,92 @@ public class BxWidgetProvider extends AppWidgetProvider {
         return h + "시간" + (r > 0 ? " " + r + "분" : "") + " 뒤";
     }
 
+    private static int color(String hex, int def) {
+        try {
+            return hex == null || hex.isEmpty() ? def : android.graphics.Color.parseColor(hex);
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    /**
+     * 4×2 '오늘 일정'(전체 흐름 와이어프레임 10): 머리(오늘 날짜·확인 필요·말하기) + 네 줄.
+     * 줄: 시각 | 색 막대 | 제목 | 오른쪽(진행 중·출발 시각·장소·완료). 오늘 지난 일 하나는 흐리게 남겨 지금 위치를 알 수 있게 한다.
+     */
     static void render(Context c, AppWidgetManager m, int[] ids) {
         long now = System.currentTimeMillis();
+        long today = dayStart(now);
         JSONObject d = load(c);
-        List<JSONObject> up = new ArrayList<>();
+        List<JSONObject> past = new ArrayList<>(), up = new ArrayList<>();
         JSONArray items = d.optJSONArray("items");
         if (items != null) {
             for (int i = 0; i < items.length(); i++) {
                 JSONObject o = items.optJSONObject(i);
-                if (o != null && o.optLong("end", o.optLong("at", 0) + 3600000L) > now) up.add(o);
+                if (o == null) continue;
+                long at = o.optLong("at", 0), end = o.optLong("end", at + 3600000L);
+                boolean gone = o.optBoolean("done", false) || end <= now;
+                if (gone) {
+                    if (at >= today) past.add(o);
+                } else {
+                    up.add(o);
+                }
             }
         }
-        long nextAlarm = 0;
-        JSONArray alarms = d.optJSONArray("alarms");
-        if (alarms != null) {
-            for (int i = 0; i < alarms.length(); i++) {
-                long t = alarms.optLong(i, 0);
-                if (t > now && (nextAlarm == 0 || t < nextAlarm)) nextAlarm = t;
-            }
+        java.util.Comparator<JSONObject> byAt = (a, b) -> Long.compare(a.optLong("at"), b.optLong("at"));
+        java.util.Collections.sort(up, byAt);
+        java.util.Collections.sort(past, byAt);
+        List<JSONObject> rows = new ArrayList<>();
+        if (!past.isEmpty() && up.size() < 4) rows.add(past.get(past.size() - 1));
+        for (JSONObject o : up) {
+            if (rows.size() >= 4) break;
+            rows.add(o);
         }
 
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.bx_widget);
-        if (nextAlarm > 0) {
-            v.setViewVisibility(R.id.w_alarm_box, View.VISIBLE);
-            v.setTextViewText(R.id.w_alarm, when(nextAlarm, now));
+        v.setTextViewText(R.id.w_head, "오늘 · " + new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN).format(new Date(now)));
+        int late = d.optInt("late", 0);
+        if (late > 0) {
+            v.setTextViewText(R.id.w_late, "확인 필요 " + late);
+            v.setViewVisibility(R.id.w_late, View.VISIBLE);
         } else {
-            v.setViewVisibility(R.id.w_alarm_box, View.GONE);
+            v.setViewVisibility(R.id.w_late, View.GONE);
         }
-
-        if (!up.isEmpty()) {
-            JSONObject a = up.get(0);
-            long at = a.optLong("at", 0), end = a.optLong("end", at + 3600000L), go = a.optLong("go", 0);
-            v.setTextViewText(R.id.w_title, a.optString("title", "일정"));
-            String sub;
-            if (at <= now) sub = "지금 · " + hm(end) + "까지";
-            else if (go > now) sub = when(at, now) + " · " + hm(go) + " 출발";
-            else sub = when(at, now) + " · " + left(at - now);
-            v.setTextViewText(R.id.w_sub, sub);
-        } else {
-            v.setTextViewText(R.id.w_title, "다가오는 일정이 없어요");
-            v.setTextViewText(R.id.w_sub, "말하기 단추로 바로 넣어 보세요");
-        }
-        int[][] rows = {{R.id.w_r1_box, R.id.w_r1_t, R.id.w_r1}, {R.id.w_r2_box, R.id.w_r2_t, R.id.w_r2}};
-        for (int i = 0; i < rows.length; i++) {
-            JSONObject r = up.size() > i + 1 ? up.get(i + 1) : null;
+        v.setViewVisibility(R.id.w_empty, rows.isEmpty() ? View.VISIBLE : View.GONE);
+        int ink = c.getResources().getColor(R.color.bx_w_ink, null);
+        int ink2 = c.getResources().getColor(R.color.bx_w_ink2, null);
+        int dim = c.getResources().getColor(R.color.bx_w_dim, null);
+        int accent = c.getResources().getColor(R.color.bx_w_accent, null);
+        int[][] slots = {
+            {R.id.w_r1_box, R.id.w_r1_t, R.id.w_r1_c, R.id.w_r1, R.id.w_r1_r},
+            {R.id.w_r2_box, R.id.w_r2_t, R.id.w_r2_c, R.id.w_r2, R.id.w_r2_r},
+            {R.id.w_r3_box, R.id.w_r3_t, R.id.w_r3_c, R.id.w_r3, R.id.w_r3_r},
+            {R.id.w_r4_box, R.id.w_r4_t, R.id.w_r4_c, R.id.w_r4, R.id.w_r4_r}};
+        for (int i = 0; i < slots.length; i++) {
+            int[] sl = slots[i];
+            JSONObject r = i < rows.size() ? rows.get(i) : null;
             if (r == null) {
-                v.setViewVisibility(rows[i][0], View.GONE);
+                v.setViewVisibility(sl[0], View.GONE);
                 continue;
             }
-            v.setViewVisibility(rows[i][0], View.VISIBLE);
-            v.setTextViewText(rows[i][1], when(r.optLong("at", 0), now));
-            v.setTextViewText(rows[i][2], r.optString("title", ""));
+            v.setViewVisibility(sl[0], View.VISIBLE);
+            long at = r.optLong("at", 0), end = r.optLong("end", at + 3600000L), go = r.optLong("go", 0);
+            boolean done = r.optBoolean("done", false), gone = done || end <= now, live = !gone && at <= now;
+            long dd = (dayStart(at) - today) / (24 * 3600 * 1000L);
+            String pre = dd == 1 ? "내일 · " : dd == 2 ? "모레 · " : dd > 2 ? new SimpleDateFormat("M/d · ", Locale.KOREA).format(new Date(at)) : "";
+            String right;
+            if (done) right = "완료";
+            else if (gone) right = "지남";
+            else if (live) right = "진행 중";
+            else if (go > now) right = hm(go) + " 출발";
+            else right = r.optString("place", "");
+            v.setTextViewText(sl[1], hm(at));
+            v.setTextViewText(sl[3], pre + r.optString("title", ""));
+            v.setTextViewText(sl[4], right);
+            v.setTextColor(sl[1], gone ? dim : ink);
+            v.setTextColor(sl[3], gone ? dim : ink);
+            v.setTextColor(sl[4], live ? accent : gone ? dim : ink2);
+            v.setInt(sl[2], "setBackgroundColor", gone ? 0xFFC9CED6 : color(r.optString("c"), accent));
         }
-        v.setViewVisibility(R.id.w_line, up.size() > 1 ? View.VISIBLE : View.GONE);
 
         Intent open = new Intent(c, MainActivity.class);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -164,14 +198,16 @@ public class BxWidgetProvider extends AppWidgetProvider {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
         m.updateAppWidget(ids, v);
 
-        // 다음에 다시 그릴 때: 15분 뒤, 또는 그보다 먼저 오는 일정 시작·끝, 알람 시각
+        // 다음에 다시 그릴 때: 15분 뒤, 또는 그보다 먼저 오는 일정 시작·끝·출발, 자정
         long next = now + TICK_MS;
         for (JSONObject o : up) {
-            long at = o.optLong("at", 0), end = o.optLong("end", 0);
+            long at = o.optLong("at", 0), end = o.optLong("end", 0), go = o.optLong("go", 0);
             if (at > now && at < next) next = at;
             if (end > now && end < next) next = end;
+            if (go > now && go < next) next = go;
         }
-        if (nextAlarm > now && nextAlarm < next) next = nextAlarm;
+        long midnight = today + 24 * 3600 * 1000L;
+        if (midnight < next) next = midnight;
         AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
         if (am != null) am.set(AlarmManager.RTC, next + 1000, tickIntent(c));
     }

@@ -44,6 +44,21 @@ public final class AlarmStore {
         return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
+    /**
+     * 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게).
+     * alarm(기본): 알람만, 단계 이름과 남은 시간. 일정 제목·장소는 잠금을 풀면.
+     * title: 일정 제목까지. none: 알람도 '박스웍스 알람'으로만.
+     */
+    static String lockMode(Context c) {
+        String m = prefs(c).getString("lock", "alarm");
+        return "title".equals(m) || "none".equals(m) ? m : "alarm";
+    }
+
+    static void setLockMode(Context c, String m) {
+        if (m == null || m.isEmpty()) return;
+        prefs(c).edit().putString("lock", m).apply();
+    }
+
     private static synchronized void save(Context c, JSONArray list) {
         prefs(c).edit().putString(KEY, list.toString()).apply();
     }

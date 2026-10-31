@@ -6,4 +6,8 @@
     <color name="bx_w_accent">#8FA3FF</color>
     <color name="bx_w_line">#343944</color>
     <color name="bx_w_chip">#2B303A</color>
+    <color name="bx_w_btn">#4A66E0</color>
+    <color name="bx_w_dim">#7D838E</color>
+    <color name="bx_w_warn">#FFB47A</color>
+    <color name="bx_w_warn_bg">#3A2A1C</color>
 </resources>

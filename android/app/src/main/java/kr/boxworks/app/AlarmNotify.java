@@ -49,11 +49,20 @@ final class AlarmNotify {
         return o;
     }
 
+    /** 잠금 화면에서 내용을 가리는 알람 채널. 채널의 잠금 화면 표시는 만든 뒤 바꿀 수 없어 따로 둔다 */
+    static final String CHANNEL_PRIVATE = "bx_alarm_p1";
+
     static void ensureChannel(Context c) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager nm = c.getSystemService(NotificationManager.class);
-        if (nm == null || nm.getNotificationChannel(CHANNEL) != null) return;
-        NotificationChannel ch = new NotificationChannel(CHANNEL, "일정·루틴 알람", NotificationManager.IMPORTANCE_HIGH);
+        if (nm == null) return;
+        // 예전 채널(잠금 화면에 내용 표시)은 이름만 바꾼다. 이미 있는 채널을 다시 만들면 이름·설명만 바뀌고 사용자 설정은 남는다
+        nm.createNotificationChannel(alarmChannel(CHANNEL, "일정·루틴 알람 (잠금 화면에 제목 표시)", Notification.VISIBILITY_PUBLIC));
+        if (nm.getNotificationChannel(CHANNEL_PRIVATE) == null) nm.createNotificationChannel(alarmChannel(CHANNEL_PRIVATE, "일정·루틴 알람", Notification.VISIBILITY_PRIVATE));
+    }
+
+    private static NotificationChannel alarmChannel(String id, String name, int lock) {
+        NotificationChannel ch = new NotificationChannel(id, name, NotificationManager.IMPORTANCE_HIGH);
         ch.setDescription("박스웍스 일정과 루틴 알람");
         Uri sound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         if (sound == null) sound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -63,8 +72,28 @@ final class AlarmNotify {
             .build());
         ch.enableVibration(true);
         ch.setVibrationPattern(new long[] {0, 600, 400, 600});
-        ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        nm.createNotificationChannel(ch);
+        ch.setLockscreenVisibility(lock);
+        return ch;
+    }
+
+    /** 잠금 화면에 보일 제목. 루틴 단계 이름은 보이고, 일정 제목은 화면이 넘긴 pt(예: '일정 알림')로 바꾼다 */
+    static String pubTitle(Context c, JSONObject o) {
+        if ("none".equals(AlarmStore.lockMode(c))) return "박스웍스 알람";
+        String pt = o.optString("pt", "");
+        if (!pt.isEmpty()) return pt;
+        return "routine".equals(o.optString("kind")) ? o.optString("title", "박스웍스 알람") : "박스웍스 알람";
+    }
+
+    static String pubSub(Context c, JSONObject o) {
+        if ("none".equals(AlarmStore.lockMode(c))) return "잠금을 풀면 보여요";
+        String ps = o.optString("ps", "");
+        if (!ps.isEmpty()) return ps;
+        return "routine".equals(o.optString("kind")) ? o.optString("sub", "") : "잠금을 풀면 보여요";
+    }
+
+    /** 잠금 화면에서 제목·내용을 그대로 보여도 되는지 */
+    static boolean showAllOnLock(Context c) {
+        return "title".equals(AlarmStore.lockMode(c));
     }
 
     /**
@@ -93,7 +122,14 @@ final class AlarmNotify {
         close.putExtra(EXTRA_ACT, "report-close");
         PendingIntent closePi = PendingIntent.getBroadcast(c, REPORT_ID + 1, close,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        // 아침 보고는 오늘 일정 목록이라 잠금 화면에서는 늘 가린다(대표 결정 10/31)
+        NotificationCompat.Builder pub = new NotificationCompat.Builder(c, CHANNEL_REPORT)
+            .setSmallIcon(R.drawable.ic_stat_bx)
+            .setContentTitle("오늘 일정")
+            .setContentText("잠금을 풀면 보여요");
         NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL_REPORT)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(pub.build())
             .setSmallIcon(R.drawable.ic_stat_bx)
             .setContentTitle(title)
             .setContentText(text.split("\n", 2)[0])
@@ -189,19 +225,31 @@ final class AlarmNotify {
         PendingIntent openPi = PendingIntent.getActivity(c, notifId(id) + 1, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL)
+        boolean all = showAllOnLock(c);
+        NotificationCompat.Builder b = new NotificationCompat.Builder(c, all ? CHANNEL : CHANNEL_PRIVATE)
             .setSmallIcon(R.drawable.ic_stat_bx)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setVisibility(all ? NotificationCompat.VISIBILITY_PUBLIC : NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .setContentIntent(openPi)
             .setFullScreenIntent(fullPi, true)
             .addAction(0, "확인", actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+        if (!all) {
+            // 잠금 화면에 대신 보이는 글: 루틴은 '씻기 · 출발까지 30분', 일정은 '일정 알림 · 잠금을 풀면 보여요'
+            b.setPublicVersion(new NotificationCompat.Builder(c, CHANNEL_PRIVATE)
+                .setSmallIcon(R.drawable.ic_stat_bx)
+                .setContentTitle(pubTitle(c, o))
+                .setContentText(pubSub(c, o))
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .addAction(0, "확인", actionPi(c, "ok", o))
+                .addAction(0, "5분 뒤", actionPi(c, "snooze", o))
+                .build());
+        }
         try {
             NotificationManagerCompat.from(c).notify(notifId(id), b.build());
         } catch (SecurityException ignored) {

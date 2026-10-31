@@ -37,6 +37,8 @@ public class AlarmReceiver extends BroadcastReceiver {
             }
         } else {
             AlarmNotify.show(context, o);
+            // 루틴 단계 알람이면 알림창의 '진행 중' 알림을 만들거나 고친다
+            if ("routine".equals(kind)) RoutineOngoing.onAlarm(context, o);
         }
         BxWidgetProvider.refreshAll(context);
     }

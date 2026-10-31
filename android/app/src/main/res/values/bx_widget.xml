@@ -2,11 +2,17 @@
 <!-- 홈 화면 위젯(4안-6) 색과 글. 어두운 모드 색은 values-night에 -->
 <resources>
     <color name="bx_w_bg">#FFFFFF</color>
-    <color name="bx_w_ink">#1B1E26</color>
-    <color name="bx_w_ink2">#5C6270</color>
-    <color name="bx_w_accent">#3A5BF0</color>
+    <color name="bx_w_ink">#1D2129</color>
+    <color name="bx_w_ink2">#5F6673</color>
+    <color name="bx_w_accent">#3555D8</color>
     <color name="bx_w_line">#E4E6EA</color>
     <color name="bx_w_chip">#F0F1F4</color>
-    <string name="bx_widget_label">박스웍스 다음 일정</string>
-    <string name="bx_widget_desc">다음 일정과 알람을 보고, 말로 바로 넣어요</string>
+    <color name="bx_w_btn">#3555D8</color>
+    <color name="bx_w_dim">#8A909B</color>
+    <color name="bx_w_warn">#A4500B</color>
+    <color name="bx_w_warn_bg">#FFF4E8</color>
+    <string name="bx_widget_label">박스웍스 오늘 일정</string>
+    <string name="bx_widget_desc">오늘 일정을 시각·색과 함께 보고, 말로 바로 넣어요</string>
+    <string name="bx_now_widget_label">박스웍스 지금 단계</string>
+    <string name="bx_now_widget_desc">루틴을 하는 동안 지금 할 단계와 출발까지 남은 시간을 보여 줘요</string>
 </resources>

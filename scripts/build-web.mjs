@@ -80,7 +80,7 @@ const patches = [
   {
     name: '휴대폰 뒤로 버튼: 열린 창 닫기 → 앞 창으로 → 오늘 화면으로, 오늘이면 앱을 뒤로 보냄',
     find: '\nboot();\n})();',
-    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (document.getElementById('bx-start')) { if (typeof BXR !== 'undefined' && BXR && !BXR.made && BXR.q > 0) { BXR.q--; bxRtHelpDraw(); } else if (typeof BXS !== 'undefined' && BXS && BXS.step === 2) { BXS.step = 1; bxStartDraw(); } else if (typeof BXR !== 'undefined' && BXR) { bxStartClose(); BXR = null; } return true; }\n  if (S.view === 'tt' && TTSEL) { ttUnselect(); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view === 'med') { go('routines', {}); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
+    replace: "\nwindow.BX_back = function(){\n  if (SH) { const b = SH.back; closeSheet(); if (b) b(); return true; }\n  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (document.getElementById('bx-start')) { if (typeof BXR !== 'undefined' && BXR && !BXR.made && BXR.q > 0) { BXR.q--; bxRtHelpDraw(); } else if (typeof BXS !== 'undefined' && BXS && BXS.step === 2) { BXS.step = 1; bxStartDraw(); } else if (typeof BXR !== 'undefined' && BXR) { bxStartClose(); BXR = null; } else if (typeof PERM !== 'undefined' && PERM) { bxPermClose(); } return true; }\n  if (S.view === 'tt' && TTSEL) { ttUnselect(); return true; }\n  if (S.view === 'week') { bxCalGo('month'); return true; }\n  if (S.view === 'med') { go('routines', {}); return true; }\n  if (S.view !== 'today') { go('today', {}); return true; }\n  if (S.homeDay) { homeDayGo(0); return true; }\n  return false;\n};\n" + `window.BX_toast = function(msg){ toast(msg); };
 // 앞으로 며칠 동안 울릴 알람 목록. 박스웍스의 알림 규칙(remindAt, 루틴 시간표)을 그대로 쓴다.
 window.BX_alarmPlan = function(days){
   if (!M || !S.firstServer) return null;
@@ -91,14 +91,18 @@ window.BX_alarmPlan = function(days){
     const tvs = tvAlarms(it);
     tvs.forEach(a => {
       if (a.at <= now || a.at > until) return;
+      // pt·ps·pg: 잠금 화면에 대신 보일 제목·내용·묶음 이름(대표 결정 10/31: 일정 제목·장소는 잠금을 풀면)
+      const isLeave = a.title === '출발할 시간';
       out.push({id: 'iv_' + it.id + '_' + a.id + '_' + a.at, at: a.at, kind: a.routine ? 'routine' : 'item', group: a.group, title: a.title, sub: a.sub,
-        body: a.sub, from: a.routine ? a.from : 0, to: a.routine ? a.to : 0, next: a.next});
+        body: a.sub, from: a.routine ? a.from : 0, to: a.routine ? a.to : 0, next: a.next,
+        pt: isLeave ? '출발할 시간' : a.routine ? a.title : '곧 출발', ps: isLeave ? '일정 내용은 잠금을 풀면 보여요' : a.sub, pg: a.routine ? String(a.group).split(' · ')[0] : '일정'});
     });
     tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
       const when = relDay(it.date, ymd(new Date(t))) + ' ' + timeText(it);
       out.push({id: 'i_' + it.id + '_' + t, at: t, kind: 'item', group: '일정', title: it.title || '(제목 없음)',
-        sub: when + (it.location ? ' · ' + it.location : ''), body: when + (it.location ? ' · ' + it.location : '')});
+        sub: when + (it.location ? ' · ' + it.location : ''), body: when + (it.location ? ' · ' + it.location : ''),
+        pt: '일정 알림', ps: bxLeadText(it.start ? at(it.date, it.start).getTime() - t : null, relDay(it.date, ymd(new Date(t)))) + ' · 잠금을 풀면 보여요', pg: '일정'});
     });
   });
   const reps = [];
@@ -113,6 +117,9 @@ window.BX_alarmPlan = function(days){
       if (!rtActiveOn(rt, ds)) continue;
       const lg = M.rlogs.get(rt.id + '|' + ds) || {}; if (lg.skip) continue;
       const doneMap = lg.done || {};
+      // 알림창 '진행 중'과 '지금 단계' 위젯이 쓰는 그날 단계표(첫 알람에만 싣는다)
+      const leaveAt = p.leave != null ? addMin(day, p.leave).getTime() : 0;
+      const steps = rows.map(r => ({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!doneMap[r.id]}));
       rows.forEach((r, i) => {
         if (doneMap[r.id]) return;
         const base = 'r_' + rt.id + '_' + ds + '_' + r.id, nx = rows[i + 1];
@@ -129,6 +136,8 @@ window.BX_alarmPlan = function(days){
             next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
           // series: 이 단계의 알람 묶음. 휴대폰에서 '확인'을 누르면 남은 다시 알림을 지우고, 앱에 '했어요'로 옮긴다
           a.series = base;
+          a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴';
+          if (!j && !bowl) { a.rid = rt.id; a.ds = ds; a.leave = leaveAt; a.steps = steps; }
           if (bowl) a.sound = 'bowl';
           (j ? reps : out).push(a);
         }
@@ -157,7 +166,8 @@ window.BX_alarmPlan = function(days){
       const t = addMin(day, toMin(e.start) - before).getTime(); if (t <= now || t > until) continue;
       const lead = before ? before + '분 뒤 시작' : '지금 시작';
       out.push({id: 'tt_' + e.id + '_' + ds, at: t, kind: 'item', group: '시간표', icon: bxIconFor(e.name) || 'school', title: e.name,
-        sub: (e.place ? e.place + ' · ' : '') + lead, body: e.start + (e.end ? '–' + e.end : '') + (e.place ? ' · ' + e.place : '') + ' · ' + lead});
+        sub: (e.place ? e.place + ' · ' : '') + lead, body: e.start + (e.end ? '–' + e.end : '') + (e.place ? ' · ' + e.place : '') + ' · ' + lead,
+        pt: '시간표 알림', ps: lead + ' · 잠금을 풀면 보여요', pg: '시간표'});
     }
   });
   // 휴대폰에 거는 알람은 최대 200개: 앞으로 7일의 기본 알람을 먼저, 남는 자리에 가까운 다시 알림부터
@@ -167,6 +177,15 @@ window.BX_alarmPlan = function(days){
   return bxAddReports(base.concat(reps.sort((a, b) => a.at - b.at).slice(0, Math.max(0, 200 - base.length))), days).sort((a, b) => a.at - b.at);
 };
 function hmOf(m){ m = Math.round(m); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+// 잠금 화면용 짧은 글: 시작까지 남은 시간만(일정 제목 없이)
+function bxLeadText(ms, rel){
+  if (ms == null) return (rel && rel !== '오늘' ? rel + ' ' : '오늘 ') + '일정이 있어요';
+  const m = Math.round(ms / 60000);
+  if (m <= 0) return '지금 시작';
+  if (m < 60) return m + '분 뒤 시작';
+  if (m < 1440) return Math.floor(m / 60) + '시간' + (m % 60 ? ' ' + (m % 60) + '분' : '') + ' 뒤 시작';
+  return (rel || '') + ' 일정';
+}
 boot();
 })();`
   },

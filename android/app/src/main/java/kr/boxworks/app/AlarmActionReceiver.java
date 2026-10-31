@@ -14,11 +14,18 @@ public class AlarmActionReceiver extends BroadcastReceiver {
             androidx.core.app.NotificationManagerCompat.from(context).cancel(AlarmNotify.REPORT_ID);
             return;
         }
+        if ("ongoing-x".equals(act)) {
+            RoutineOngoing.hide(context);
+            return;
+        }
         JSONObject o = AlarmNotify.fromIntent(intent);
         AlarmStore.confirm(context, o, !"snooze".equals(act));
         if ("snooze".equals(act)) AlarmNotify.snooze(context, o);
         else if (o.optJSONObject("report") != null) AlarmNotify.showReport(context, o.optJSONObject("report"));
         AlarmNotify.dismiss(context, o.optString("id"));
-        AlarmActivity.handledElsewhere(o.optString("id"));
+        AlarmActivity.handledElsewhere(o.optString("id"), o.optString("series"));
+        // 위젯의 '확인'(widget=true)도 같은 동작: 남은 다시 알림을 지우고 진행 알림·위젯을 고친다
+        RoutineOngoing.post(context);
+        BxWidgetProvider.refreshAll(context);
     }
 }
