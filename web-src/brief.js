@@ -81,3 +81,61 @@ window.BX_widgetData = function(plan){
   const alarms = (plan || []).map(a => a.at).filter(t => t > now).sort((a, b) => a - b).slice(0, 30);
   return {items: list.slice(0, 15), alarms, made: now};
 };
+
+/* ---------- 루틴 단계를 확인하지 않았을 때(대표 요청) ----------
+   1) 휴대폰 알람에서 '확인'을 누른 단계는 앱에도 '했어요'로 옮긴다(BxAlarm.confirmed → rlog done)
+   2) 시각이 10분 넘게 지났는데 하지 않은 단계는 오늘 화면 루틴 카드에 주의로 보이고, 아래 메뉴 '오늘'의 빨간 숫자에 더한다
+   3) 루틴이 끝난 10분 뒤에도 확인하지 않은 단계가 있으면 휴대폰이 한 번 더 알린다(BX_alarmPlan의 rcheck) */
+window.BX_applyConfirmed = function(map){
+  if (!M || !map) return 0;
+  let n = 0;
+  Object.keys(map).forEach(k => {
+    const m = /^r_(.+)_(\d{4}-\d{2}-\d{2})_([^_]+)$/.exec(k); if (!m) return;
+    const rid = m[1], ds = m[2], sid = m[3];
+    if (!M.routines.some(r => r.id === rid)) return;
+    const id = rtLogId(rid, ds), cur = getDoc(id) || {type: 'rlog', rid, date: ds, done: {}, started: {}, extra: {}, skip: false, createdAt: nowIso()};
+    if (cur.done && cur.done[sid]) return;
+    const nx = JSON.parse(JSON.stringify(cur)); nx.done = nx.done || {};
+    nx.done[sid] = new Date(+map[k] || Date.now()).toISOString(); nx.updatedAt = nowIso();
+    writeDoc(id, nx); n++;
+  });
+  return n;
+};
+function bxRtMissedOf(rt){
+  if (!rtActiveOn(rt, M.today)) return [];
+  const s = rtToday(rt); if (s.skip || s.finished) return [];
+  return s.rows.filter(r => r.kind !== 'wait' && !r.done && r.at + 10 <= s.nowM);
+}
+function bxRtMissed(){ return M && M.routines ? M.routines.reduce((a, rt) => a.concat(bxRtMissedOf(rt).map(r => ({rt, r}))), []) : []; }
+// 오늘 화면 루틴 카드에 주의 줄 붙이기(render 끝의 bxFoldDecorate에서 부름)
+function bxRtMissDecorate(){
+  if (S.view !== 'today' || S.homeDay) return;
+  let total = 0;
+  $$('.rt-sec .rt-card[data-rid]').forEach(c => {
+    const rt = M.routines.find(r => r.id === c.dataset.rid); if (!rt || c.querySelector('.bx-miss-line')) return;
+    const miss = bxRtMissedOf(rt); if (!miss.length) return;
+    total += miss.length;
+    c.classList.add('bx-miss');
+    const line = document.createElement('div');
+    line.className = 'bx-miss-line';
+    line.innerHTML = ICON.alert + '<span>확인하지 않은 단계 ' + miss.length + '개 · ' + esc(miss.map(r => r.leave ? '출발' : r.name).join(', ')) + '</span><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(rt.id) + '">모두 했어요</button>';
+    const hd = c.querySelector('.rt-h'); if (hd) hd.after(line); else c.prepend(line);
+  });
+  const h = document.getElementById('h-rt');
+  if (h && total && !h.parentNode.querySelector('.bx-miss-chip')) {
+    const chip = document.createElement('span'); chip.className = 'bx-miss-chip'; chip.textContent = '확인 ' + total;
+    const sub = h.parentNode.querySelector('.sec-sub'); (sub || h).after(chip);
+  }
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-act="bx-rt-alldone"]'); if (!b || !window.BX_APP) return;
+  ev.stopPropagation();
+  const rt = M.routines.find(r => r.id === b.dataset.rid); if (!rt) return;
+  const miss = bxRtMissedOf(rt), id = rtLogId(rt.id, M.today);
+  const cur = getDoc(id) || {type: 'rlog', rid: rt.id, date: M.today, done: {}, started: {}, extra: {}, skip: false, createdAt: nowIso()};
+  const keep = getDoc(id) ? JSON.parse(JSON.stringify(cur)) : null;
+  const nx = JSON.parse(JSON.stringify(cur)); nx.done = nx.done || {};
+  miss.forEach(r => { nx.done[r.id] = nowIso(); }); nx.updatedAt = nowIso();
+  writeDoc(id, nx);
+  toast(rt.name + ' · ' + miss.length + '단계를 했어요로 표시했어요', [['되돌리기', () => { if (keep) writeDoc(id, keep); else removeDoc(id); }]]);
+}, true);

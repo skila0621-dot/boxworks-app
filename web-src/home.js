@@ -12,6 +12,7 @@ function bxFoldApply(){ BX_FOLDS.forEach(([k]) => document.documentElement.class
 function bxFoldDecorate(){
   bxFoldApply();
   if (S.view !== 'today') return;
+  bxRtMissDecorate();
   BX_FOLDS.forEach(([k, hid]) => {
     const h = document.getElementById(hid); if (!h) return;
     const sh = h.closest('.sec-h'); if (!sh || sh.querySelector('.bx-fold-btn')) return;

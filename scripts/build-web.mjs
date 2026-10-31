@@ -124,10 +124,19 @@ window.BX_alarmPlan = function(days){
             title: r.leave ? '출발할 시간' : r.name, sub, body: (rt.name || '루틴') + (sub ? ' · ' + sub : ''),
             from: addMin(day, p.start).getTime(), to: p.leave != null ? addMin(day, p.leave).getTime() : 0,
             next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
-          if (rep) a.series = base;
+          // series: 이 단계의 알람 묶음. 휴대폰에서 '확인'을 누르면 남은 다시 알림을 지우고, 앱에 '했어요'로 옮긴다
+          a.series = base;
           (j ? reps : out).push(a);
         }
       });
+      // 루틴이 끝난 10분 뒤: 확인하지 않은 단계가 있으면 휴대폰이 한 번 더 알린다(대표 요청). 다 확인했으면 울리지 않는다
+      const todo = rows.filter(r => !doneMap[r.id]);
+      const endM = p.leave != null ? p.leave : rows.length ? rows[rows.length - 1].at + rows[rows.length - 1].min : null;
+      if (todo.length && endM != null) {
+        const tc = addMin(day, endM + 10).getTime();
+        if (tc > now && tc <= until) out.push({id: 'rc_' + rt.id + '_' + ds, at: tc, kind: 'rcheck', group: rt.name || '루틴', title: (rt.name || '루틴') + ' · 확인하지 않은 단계가 있어요', sub: '', body: '',
+          check: todo.map(r => ({s: 'r_' + rt.id + '_' + ds + '_' + r.id, n: r.leave ? '출발' : r.name})), from: addMin(day, p.start).getTime(), to: addMin(day, endM).getTime()});
+      }
     }
   });
   ttList().forEach(e => {

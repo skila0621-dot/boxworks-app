@@ -139,7 +139,7 @@ function ttHtml(){
   const empty = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 위 칸에 말하거나 적어 보세요. 시작 10분 전에 알람이 울려요.</p>';
   return '<div class="page-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복</span></p></div></div>' + add +
     '<div class="tt-sub"><button type="button" class="sec-link tt-rg" data-act="tt-range">' + ICON.clock + String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시</button><button type="button" class="sec-link" data-act="tt-new">' + ICON.plus + '직접 고르기</button></div>' + empty +
-    (list.length ? '<p class="p small tt-tip">블록 위·아래 끝을 끌면 시간이 바뀌고, 꾹 누르면 복제·지우기를 할 수 있어요.</p>' : '') +
+    (list.length ? '<p class="p small tt-tip">블록 위·아래 끝을 끌면 그 요일의 시간만 바뀌어요. 꾹 누르면 복제·요일 따로 고치기·지우기를 할 수 있어요.</p>' : '') +
     '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
     '<div class="tt-body" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + '</div></div>';
 }
@@ -234,6 +234,7 @@ document.addEventListener('click', ev => {
   if (act === 'tt-m-edit') { const id = el.dataset.id; closeSheet(); ttOpen(id); return; }
   if (act === 'tt-m-dup') { const e = ttList().find(x => x.id === el.dataset.id); closeSheet(); if (e) ttOpen(null, {name: e.name, days: [], start: e.start, end: e.end, place: e.place, remind: e.remind, color: e.color, hint: '복제했어요. 넣을 요일을 골라 주세요.'}); return; }
   if (act === 'tt-m-drop') { const id = el.dataset.id, d = +el.dataset.d, keep = getDoc(id); closeSheet(); if (keep) { writeDoc(id, Object.assign({}, keep, {days: keep.days.filter(x => x !== d), updatedAt: nowIso()})); toast(WD[d] + '요일에서 뺐어요', [['되돌리기', () => writeDoc(id, keep)]]); } return; }
+  if (act === 'tt-m-split') { const id = el.dataset.id, d = +el.dataset.d, keep = getDoc(id); closeSheet(); if (keep) { const nid = rid('tt_'); writeDoc(id, Object.assign({}, keep, {days: keep.days.filter(x => x !== d), updatedAt: nowIso()})); writeDoc(nid, Object.assign({}, keep, {days: [d], createdAt: nowIso(), updatedAt: nowIso()})); M = buildModel(); ttOpen(nid); if (TT) { TT.hint = WD[d] + '요일만 따로 떼었어요. 여기서 고친 것은 ' + WD[d] + '요일에만 적용돼요.'; ttDraw(); } } return; }
   if (act === 'tt-m-del') { const id = el.dataset.id, keep = getDoc(id); closeSheet(); if (keep) { removeDoc(id); toast('시간표에서 지웠어요', [['되돌리기', () => writeDoc(id, keep)]]); } return; }
   if (act === 'tt-add') { ttAddFromText(($('#tt-in') || {}).value); return; }
   if (!TT) return;
@@ -273,7 +274,8 @@ function ttMenu(id, d){
     '<div class="menu tt-menu">' +
       '<button type="button" class="menu-row" data-act="tt-m-edit" data-id="' + esc(id) + '"><span class="mi">' + ICON.edit + '</span><span class="ml">고치기</span></button>' +
       '<button type="button" class="menu-row" data-act="tt-m-dup" data-id="' + esc(id) + '"><span class="mi">' + ICON.plus + '</span><span class="ml">복제해서 다른 요일에 넣기</span></button>' +
-      (multi ? '<button type="button" class="menu-row" data-act="tt-m-drop" data-id="' + esc(id) + '" data-d="' + d + '"><span class="mi">' + ICON.close + '</span><span class="ml">' + WD[d] + '요일만 빼기</span></button>' : '') +
+      (multi ? '<button type="button" class="menu-row" data-act="tt-m-split" data-id="' + esc(id) + '" data-d="' + d + '"><span class="mi">' + ICON.edit + '</span><span class="ml">' + WD[d] + '요일만 따로 고치기</span></button>' +
+        '<button type="button" class="menu-row" data-act="tt-m-drop" data-id="' + esc(id) + '" data-d="' + d + '"><span class="mi">' + ICON.close + '</span><span class="ml">' + WD[d] + '요일만 빼기</span></button>' : '') +
       '<button type="button" class="menu-row danger" data-act="tt-m-del" data-id="' + esc(id) + '"><span class="mi">' + ICON.trash + '</span><span class="ml">' + (multi ? '모든 요일에서 지우기' : '지우기') + '</span></button>' +
     '</div>', '')});
 }
@@ -287,7 +289,7 @@ document.addEventListener('pointerdown', ev => {
   if (hd) {
     ev.preventDefault();
     const a = toMin(e.start), b = Math.max(toMin(e.end || e.start), a + 20);
-    ttGest.rs = {blk, e, side: hd.dataset.ttRs, y: ev.clientY, a, b, na: a, nb: b, h0: +blk.dataset.h0 || 0, id: ev.pointerId};
+    ttGest.rs = {blk, e, side: hd.dataset.ttRs, y: ev.clientY, a, b, na: a, nb: b, h0: +blk.dataset.h0 || 0, d: +blk.dataset.d, id: ev.pointerId};
     try { blk.setPointerCapture(ev.pointerId); } catch (x) { /* 일부 기기 */ }
     blk.classList.add('rs');
     return;
@@ -316,8 +318,19 @@ function ttGestEnd(){
   r.blk.classList.remove('rs');
   if (r.na === r.a && r.nb === r.b) return;
   const keep = getDoc(r.e.id); if (!keep) return;
-  writeDoc(r.e.id, Object.assign({}, keep, {start: fromMin(r.na), end: fromMin(r.nb), updatedAt: nowIso()}));
-  toast(r.e.name + ' · ' + ttFmtRange(r.na, r.nb) + (keep.days.length > 1 ? ' (' + ttDaysText(keep.days) + ' 모두)' : ''), [['되돌리기', () => writeDoc(r.e.id, keep)]]);
+  const times = {start: fromMin(r.na), end: fromMin(r.nb), updatedAt: nowIso()};
+  if (keep.days.length > 1) {
+    // 여러 요일에 있는 수업은 끈 요일만 따로 떼어 바꾼다(대표 요청: 요일마다 수업 길이가 다를 수 있음)
+    const nid = rid('tt_');
+    writeDoc(r.e.id, Object.assign({}, keep, {days: keep.days.filter(x => x !== r.d), updatedAt: nowIso()}));
+    writeDoc(nid, Object.assign({}, keep, times, {days: [r.d], createdAt: nowIso()}));
+    toast(WD[r.d] + '요일만 ' + ttFmtRange(r.na, r.nb) + '로 바꿨어요', [
+      ['모든 요일에', () => { removeDoc(nid); writeDoc(r.e.id, Object.assign({}, keep, times)); toast(ttDaysText(keep.days) + ' 모두 ' + ttFmtRange(r.na, r.nb)); }],
+      ['되돌리기', () => { removeDoc(nid); writeDoc(r.e.id, keep); }]]);
+    return;
+  }
+  writeDoc(r.e.id, Object.assign({}, keep, times));
+  toast(r.e.name + ' · ' + ttFmtRange(r.na, r.nb), [['되돌리기', () => writeDoc(r.e.id, keep)]]);
 }
 document.addEventListener('pointerup', ttGestEnd, true);
 document.addEventListener('pointercancel', ttGestEnd, true);

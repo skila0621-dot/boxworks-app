@@ -77,4 +77,11 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- 휴대폰 캘린더 읽기(D-05). 쓰기 권한은 받지 않는다 -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <!-- 말로 넣기: 앱 안에서 길게 듣기(소리는 휴대폰 음성 인식만 받고 저장하지 않는다) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
 </manifest>

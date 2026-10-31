@@ -217,7 +217,7 @@ public class AlarmActivity extends Activity {
         Button ok = button("확인", Color.WHITE, 0xFF1C1C1C, 0, dp(32));
         ok.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
         ok.setOnClickListener(v -> {
-            AlarmStore.confirm(this, alarm);
+            AlarmStore.confirm(this, alarm, true);
             // 아침 루틴 첫 알람이면 확인한 직후 아침 보고를 띄운다
             if (alarm.optJSONObject("report") != null) AlarmNotify.showReport(this, alarm.optJSONObject("report"));
             AlarmNotify.dismiss(this, alarm.optString("id"));
@@ -229,7 +229,7 @@ public class AlarmActivity extends Activity {
         Button snooze = button("5분 뒤", Color.TRANSPARENT, Color.WHITE, 0xFF4A505D, dp(26));
         snooze.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         snooze.setOnClickListener(v -> {
-            AlarmStore.confirm(this, alarm);
+            AlarmStore.confirm(this, alarm, false);
             AlarmNotify.snooze(this, alarm);
             AlarmNotify.dismiss(this, alarm.optString("id"));
             dropSeries(alarm.optString("series", ""));

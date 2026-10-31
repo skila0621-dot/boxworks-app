@@ -81,6 +81,18 @@ public class BxAlarmPlugin extends Plugin {
         call.resolve(statusObject());
     }
 
+    /** 휴대폰 알람에서 '확인'·'5분 뒤'를 누른 묶음(series → 누른 시각). 앱이 루틴 단계를 '했어요'로 옮길 때 쓴다 */
+    @PluginMethod
+    public void confirmed(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            r.put("done", new JSObject(AlarmStore.loadDone(getContext()).toString()));
+        } catch (Exception e) {
+            r.put("done", new JSObject());
+        }
+        call.resolve(r);
+    }
+
     /** 휴대폰 설정 화면을 연다: exact(정확한 알람), fullscreen(잠금 화면 알람), notifications, app */
     @PluginMethod
     public void openSettings(PluginCall call) {

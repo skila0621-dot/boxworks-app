@@ -15,7 +15,7 @@ public class AlarmActionReceiver extends BroadcastReceiver {
             return;
         }
         JSONObject o = AlarmNotify.fromIntent(intent);
-        AlarmStore.confirm(context, o);
+        AlarmStore.confirm(context, o, !"snooze".equals(act));
         if ("snooze".equals(act)) AlarmNotify.snooze(context, o);
         else if (o.optJSONObject("report") != null) AlarmNotify.showReport(context, o.optJSONObject("report"));
         AlarmNotify.dismiss(context, o.optString("id"));

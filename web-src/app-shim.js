@@ -138,6 +138,20 @@
     '@keyframes bxSlP{from{transform:translateX(-28px);opacity:.35}to{transform:none;opacity:1}}',
     '.bx-app .bx-sl-n{animation:bxSlN .22s ease-out}.bx-app .bx-sl-p{animation:bxSlP .22s ease-out}',
     '@media (prefers-reduced-motion:reduce){.bx-app .bx-sl-n,.bx-app .bx-sl-p{animation:none}}',
+    // 확인하지 않은 루틴 단계
+    '.bx-app .rt-card.bx-miss{border-color:var(--warn);box-shadow:0 0 0 1px var(--warn) inset}',
+    '.bx-app .bx-miss-line{display:flex;align-items:center;gap:8px;margin:4px 0 8px;padding:8px 10px;border-radius:12px;background:var(--warn-soft);color:var(--warn-ink);font-size:13.5px;font-weight:700}',
+    '.bx-app .bx-miss-line .i{width:16px;height:16px;flex:none}.bx-app .bx-miss-line span{flex:1;min-width:0}',
+    '.bx-app .bx-miss-line .btn{flex:none}',
+    '.bx-app .bx-miss-chip{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:11px;background:var(--warn-soft);color:var(--warn-ink);font-size:12px;font-weight:800}',
+    // 길게 듣기 막대
+    '.bx-listen{position:fixed;left:0;right:0;bottom:0;z-index:300;display:flex;flex-direction:column;gap:8px;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--bg);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.14);border-radius:20px 20px 0 0}',
+    '.bx-ls-top{display:flex;align-items:center;gap:8px;font-size:15px}.bx-ls-hint{margin-left:auto;font-size:12.5px;color:var(--ink-3)}',
+    '.bx-ls-dot{width:10px;height:10px;border-radius:50%;background:var(--danger);animation:bxLs 1s ease-in-out infinite}',
+    '@keyframes bxLs{50%{opacity:.25}}',
+    '.bx-ls-text{margin:0;min-height:48px;font-size:18px;line-height:1.4;color:var(--ink);word-break:keep-all}.bx-ls-text.ph{color:var(--ink-3)}',
+    '.bx-ls-stop{height:48px;font-size:16px}',
+    '@media (prefers-reduced-motion:reduce){.bx-ls-dot{animation:none}}',
     // 휴대폰 캘린더(D-05): 설정 칸, 캘린더 고르기, 일정 창
     '.bx-app .pc-set-note{margin:2px 0 10px;color:var(--ink-3)}',
     '.bx-app .pc-cals{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}',
@@ -255,8 +269,14 @@
       clearTimeout(timer);
       timer = setTimeout(syncAlarms, 700);
     };
+    // 휴대폰 알람에서 '확인'한 루틴 단계를 앱에 '했어요'로 옮긴다(켤 때·돌아올 때)
+    var pullConfirmed = function () {
+      if (!alarm.confirmed) return;
+      alarm.confirmed().then(function (r) { if (r && r.done && window.BX_applyConfirmed) window.BX_applyConfirmed(r.done); }).catch(function () {});
+    };
+    setTimeout(pullConfirmed, 1500);
     var app2 = plugin('App');
-    if (app2 && app2.addListener) app2.addListener('resume', function () { lastSig = null; window.BX_afterRender(); if (window.BX_pcRefresh) window.BX_pcRefresh(true); });
+    if (app2 && app2.addListener) app2.addListener('resume', function () { lastSig = null; pullConfirmed(); window.BX_afterRender(); if (window.BX_pcRefresh) window.BX_pcRefresh(true); });
     // 설정 > 알림 > 휴대폰 알람 시험
     document.addEventListener('click', async function (ev) {
       var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-alarm-test"]');
@@ -292,6 +312,26 @@
   // 말로 넣기(3단계). 휴대폰 기본 음성 인식으로 받은 글자를 칸에 넣고,
   // 박스웍스가 글자를 칠 때와 똑같이 해석하게 한다(날짜·시각 자동 인식).
   var speech = plugin('BxSpeech');
+  // 듣는 동안 화면 아래에 뜨는 막대: 들은 글자가 바로 보이고 '끝'으로 마친다
+  var listenLongUi = function (prompt) {
+    var bar = document.createElement('div');
+    bar.className = 'bx-listen';
+    bar.setAttribute('role', 'status');
+    bar.innerHTML = '<div class="bx-ls-top"><i class="bx-ls-dot"></i><b>듣는 중</b><span class="bx-ls-hint">말을 3초쯤 멈추면 끝나요</span></div><p class="bx-ls-text"></p><button type="button" class="btn primary bx-ls-stop">끝</button>';
+    bar.querySelector('.bx-ls-text').textContent = prompt;
+    bar.querySelector('.bx-ls-text').classList.add('ph');
+    document.body.appendChild(bar);
+    var sub = null;
+    if (speech.addListener) {
+      Promise.resolve(speech.addListener('partial', function (d) {
+        var t = bar.querySelector('.bx-ls-text');
+        if (d && d.text) { t.textContent = d.text; t.classList.remove('ph'); }
+      })).then(function (h) { sub = h; });
+    }
+    bar.querySelector('.bx-ls-stop').addEventListener('click', function (ev) { ev.stopPropagation(); speech.stop().catch(function () {}); });
+    var done = function () { if (sub && sub.remove) sub.remove(); bar.remove(); };
+    return speech.listenLong({ prompt: prompt }).then(function (r) { done(); return r; }, function (e) { done(); throw e; });
+  };
   if (speech) {
     window.BX_HAS_MIC = true;
     document.addEventListener('click', async function (ev) {
@@ -303,7 +343,13 @@
       var field = document.getElementById(b.getAttribute('data-for'));
       b.classList.add('busy');
       try {
-        var r = await speech.listen({ prompt: b.getAttribute('data-prompt') || '말해 보세요' });
+        var r = null;
+        if (speech.listenLong) {
+          // 앱 안에서 길게 듣기: 말이 잠깐 끊겨도 이어 듣고, '끝'을 누르면 마친다(대표 지적: 입력 시간이 너무 짧음)
+          try { r = await listenLongUi(b.getAttribute('data-prompt') || '말해 보세요'); }
+          catch (e2) { if (e2 && (e2.code === 'unavailable' || e2.code === 'denied')) r = null; else throw e2; }
+        }
+        if (!r) r = await speech.listen({ prompt: b.getAttribute('data-prompt') || '말해 보세요' });
         var text = (r && r.text ? String(r.text) : '').trim();
         field = document.getElementById(b.getAttribute('data-for')) || field;
         if (text && field) {

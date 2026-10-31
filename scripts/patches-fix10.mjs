@@ -34,5 +34,10 @@ export default [
     "name": "설정 > 알림에 '아침 보고' 켜기·시각(4안-5, 코드는 web-src/brief.js)",
     "find": "<span class=\"ml\">휴대폰 알람 시험</span><span class=\"mv\">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' : '') +",
     "replace": "<span class=\"ml\">휴대폰 알람 시험</span><span class=\"mv\">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' : '') + (window.BX_APP ? bxReportSetHtml() : '') +"
+  },
+  {
+    "name": "아래 메뉴 '오늘'의 빨간 숫자에 확인하지 않은 루틴 단계도 더함(대표 요청, 코드는 web-src/brief.js)",
+    "find": "  const n = M && S.firstServer ? M.items.filter(isLate).length : 0;",
+    "replace": "  const n = M && S.firstServer ? M.items.filter(isLate).length + (window.BX_APP ? bxRtMissed().length : 0) : 0;"
   }
 ];
