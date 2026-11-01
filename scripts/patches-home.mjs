@@ -52,9 +52,15 @@ export default [
     replace: "      (window.BX_APP ? bxMoreRows() : '') + menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·약') +"
   },
   {
-    name: '└ 늦은 일정 단추 \'확인\' → \'정리\'(미루기·옮기기·완료를 고르는 창이라)',
+    // 정리판(11/1): 앱에서는 '확인 필요'와 같은 카드(다 했어요·옮기기·날짜 고르기·그대로 두기)가 열리므로 이름도 '확인'
+    name: '└ 늦은 일정 단추: 앱에서는 확인 카드를 연다(이름 \'확인\')',
     find: `aria-label="시간이 지났어요. 지연·연기·완료 고르기"><i></i>확인</button>'`,
-    replace: `aria-label="시간이 지났어요. 미루기·옮기기·완료 고르기"><i></i>' + (window.BX_APP ? '정리' : '확인') + '</button>'`
+    replace: `aria-label="' + (window.BX_APP ? '시간이 지났어요. 다 했어요·옮기기·그대로 두기 고르기' : '시간이 지났어요. 지연·연기·완료 고르기') + '"><i></i>확인</button>'`
+  },
+  {
+    name: '└ 고치기 창의 지난 일정 단추 \'지연·연기\' → 앱에서는 \'확인\'(같은 카드)',
+    find: `data-act="late" data-id="' + esc(F.id) + '">지연·연기</button>`,
+    replace: `data-act="late" data-id="' + esc(F.id) + '">' + (window.BX_APP ? '확인' : '지연·연기') + '</button>`
   },
   {
     name: '위쪽 막대: 사용 설명서(◫처럼 보이던 아이콘) 대신 ⓘ \'이 화면 사용법\', 순서는 찾기 · ⓘ · ⋯',
@@ -99,7 +105,7 @@ export default [
   {
     name: '└ 소리·아이콘을 아래로, 삭제는 저장과 멀리',
     find: `'<p class="p small bx-rnote">0번이면 한 번만 울려요.</p></div>'`,
-    replace: `'<p class="p small bx-rnote">0번이면 한 번만 울려요.</p></div>' + bxIconPickHtml() + (R.id ? '<div class="bx-rdel"><button type="button" class="bx-del-link" data-act="rt-del">이 루틴 삭제</button></div>' : '')`
+    replace: `'<p class="p small bx-rnote">0번이면 한 번만 울려요.</p></div>' + bxIconPickHtml() + (R.id ? '<div class="bx-rdel"><button type="button" class="bx-del-link" data-act="rt-del">이 루틴 지우기</button></div>' : '')`
   },
   {
     name: '└ 아래 단추 줄은 저장만',

@@ -49,6 +49,12 @@ function medCardHtml(){
     '<div class="bx-med-t"><h2 id="bx-med-h">명상</h2><p class="p small">' + (run ? '진행 중 · ' + medMinText((MED.run.endAt - Date.now()) / 1000) + ' 남음' : '싱잉볼 소리로 시작과 끝을 알려 줘요' + (medWeek() ? ' · 이번 주 ' + medWeek() + '분' : '')) + '</p></div>' +
     '<button type="button" class="btn primary" data-act="bx-med-open">' + (run ? '이어 보기' : '시작') + '</button></div></section>';
 }
+function medMoreText(){
+  const b = (BX_BOWLS.find(x => x[0] === bxBowlType()) || BX_BOWLS[0])[1];
+  const bell = MED.bellS && MED.bellS < MED.min * 60 ? '중간 종 ' + medBellText(MED.bellS) + '마다' : '중간 종 없음';
+  return b + ' · ' + bell + ' · 호흡 안내 ' + (MED.breath ? '켬' : '끔');
+}
+document.addEventListener('toggle', ev => { const d = ev.target; if (d && d.classList && d.classList.contains('bx-med-more')) { MED.moreOpen = d.open; medSave(); } }, true);
 function medHtml(){
   const now = Date.now(), run = MED.run, live = run && run.endAt > now, done = run && run.endAt <= now;
   const head = '<div class="page-head"><div class="ph-t"><h1>명상</h1><p>' + (medLog()[M.today] ? '오늘 ' + medLog()[M.today] + '분' + (medWeek() > medLog()[M.today] ? ' · 이번 주 ' + medWeek() + '분' : '') : '편하게 앉아 숨에 집중해 보세요') + '</p></div></div>';
@@ -65,6 +71,8 @@ function medHtml(){
     '<div class="fg-l">시간</div><div class="picks">' + MED_MINS.map(m => pick('data-med-min', m, MED.min, m + '분')).join('') +
       '<button type="button" class="pick" data-med-custom="1" aria-pressed="' + !MED_MINS.includes(MED.min) + '">직접 입력</button></div>' +
     (MED_MINS.includes(MED.min) && !MED.cust ? '' : '<label class="bx-med-cmin"><input id="bx-med-cmin" class="inp" type="number" inputmode="numeric" min="1" max="120" value="' + MED.min + '"><span>분</span></label>') +
+    // 종소리·중간 종·호흡 안내는 한 줄로 접는다(정리판 14번, 대표 결정 11/1). 접힌 줄에 지금 고른 값이 보인다
+    '<details class="bx-med-more"' + (MED.moreOpen ? ' open' : '') + '><summary><span class="bx-mm-t"><b>소리와 호흡</b><small>' + esc(medMoreText()) + '</small></span>' + ICON.chevR + '</summary>' +
     '<div class="fg-l tv-h">종소리</div><div class="picks bx-bowl-picks">' + BX_BOWLS.map(b => '<button type="button" class="pick" data-bxbowl="' + b[0] + '" aria-pressed="' + (bxBowlType() === b[0]) + '">' + b[1] + '</button>').join('') + '</div>' +
     '<p class="p small bx-med-note">누르면 바로 들어 볼 수 있어요. 루틴의 싱잉볼 소리도 같이 바뀌어요.</p>' +
     '<div class="fg-l tv-h">중간 종 · 다시 치는 간격</div><div class="picks">' + pick('data-med-bell', 0, MED.bellS, '없음') +
@@ -72,7 +80,7 @@ function medHtml(){
       '<button type="button" class="pick" data-med-bellc="1" aria-pressed="' + !!(MED.bellCust && MED.bellS) + '">직접 입력</button></div>' +
     (MED.bellCust && MED.bellS !== 0 || MED.bellOpen ? '<label class="bx-med-cmin"><input id="bx-med-cbell" class="inp" type="number" inputmode="numeric" min="1" max="60" value="' + (MED.bellS ? Math.max(1, Math.round(MED.bellS / 60)) : 5) + '"><span>분마다</span></label>' : '') +
     '<div class="fg-l tv-h">호흡 안내</div><div class="picks">' + pick('data-med-breath', 1, MED.breath ? 1 : 0, '켜기') + pick('data-med-breath', 0, MED.breath ? 1 : 0, '끄기') + '</div>' +
-    '<p class="p small bx-med-note">호흡 안내를 켜면 원이 커질 때 들이쉬고(4초), 작아질 때 내쉬어요(6초).</p>' +
+    '<p class="p small bx-med-note">호흡 안내를 켜면 원이 커질 때 들이쉬고(4초), 작아질 때 내쉬어요(6초).</p></details>' +
     '<div class="bx-med-acts"><button type="button" class="btn" data-act="bx-med-hear">' + bxIconSpan('music', '') + '종소리 듣기</button><button type="button" class="btn primary grow" data-act="bx-med-start">' + MED.min + '분 시작</button></div>' +
     '</section>';
 }
@@ -138,5 +146,5 @@ document.addEventListener('click', ev => {
   if (act === 'bx-med-start') { medStart(); return; }
   if (act === 'bx-med-stop') { medStop(true); toast('명상을 끝냈어요'); return; }
   if (act === 'bx-med-again') { MED.run = null; medStart(); return; }
-  if (act === 'bx-med-close') { MED.run = null; medSave(); go('routines'); return; }
+  if (act === 'bx-med-close') { MED.run = null; medSave(); render(); return; }
 }, true);

@@ -25,7 +25,7 @@
     '.bx-app .c-chips{display:flex;flex-direction:column;gap:2px;min-width:0}',
     '.bx-app .c-chip{display:block;min-width:0;font-size:10.5px;font-weight:600;line-height:1.3;padding:1px 2px 1px 3px;border-left:2px solid var(--c);border-radius:3px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--ink);text-align:left;overflow:hidden;white-space:nowrap}',
     '.bx-app .c-chip .dot,.bx-app .c-chip .c-t{display:none}',
-    '.bx-app .c-chip span{display:block;overflow:hidden;white-space:nowrap;text-overflow:clip}',
+    '.bx-app .c-chip span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}',
     '.bx-app .c-chip.done span{text-decoration:line-through;color:var(--ink-3)}',
     '.bx-app .c-more{font-size:10.5px;font-weight:700;color:var(--ink-3);line-height:1.2;padding-left:3px;text-align:left}',
     '}',
@@ -222,7 +222,8 @@
     '.bx-app details.bx-reset:not([open]){box-shadow:var(--card-sh)}',
     '.bx-app details.bx-reset[open] > summary{margin-bottom:10px}',
     // 루틴 페이지: 새 루틴 단추, 알람 스위치 글자, 템플릿 고르기
-    '.bx-app .bx-rt-new{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:50px;margin-top:10px;border-radius:14px;border:1.5px dashed var(--accent);color:var(--accent);font-size:15px;font-weight:700;background:transparent}',
+    // 새 루틴: 루틴 화면의 파란 단추 하나(정리판 9번)
+    '.bx-app .bx-rt-new{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:52px;margin-top:12px;border-radius:14px;border:0;color:var(--accent-ink);font-size:15.5px;font-weight:700;background:var(--accent)}',
     '.bx-app .bx-rt-new .i{width:18px;height:18px}',
     '.bx-app .bx-togw{display:flex;flex-direction:column;align-items:center;gap:2px;flex:none}',
     '.bx-app .bx-togw small{font-size:11px;color:var(--ink-2)}',
@@ -235,7 +236,6 @@
     '.bx-app .bx-rt-blank{display:flex;align-items:center;gap:12px;width:100%;margin-top:18px;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--bg);text-align:left;color:var(--ink)}',
     '.bx-app .bx-rt-blank > .i{width:20px;height:20px;color:var(--ink-2);flex:none}',
     '.bx-app .bx-rt-blank span{flex:1;display:flex;flex-direction:column;gap:2px}.bx-app .bx-rt-blank b{font-size:14.5px;font-weight:700}.bx-app .bx-rt-blank small{font-size:12px;color:var(--ink-2)}',
-    '.bx-app .bx-plan textarea{margin-top:10px}',
     // 루틴 고치기: 소리 ▶, 아이콘 접기, 맨 아래 삭제
     '.bx-app .bx-sndrow{display:flex;align-items:center;gap:8px}',
     '.bx-app .bx-play{width:44px;height:44px;flex:none;border-radius:22px;border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;color:var(--ink)}',
@@ -276,10 +276,16 @@
     '#bx-start .bxs-t,.bx-app .bx-nudge .bxs-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}',
     '#bx-start .bxs-t b,.bx-app .bx-nudge .bxs-t b{font-size:16px;font-weight:700}#bx-start .bxs-t small,.bx-app .bx-nudge .bxs-t small{font-size:13.5px;line-height:1.55;color:var(--ink-2)}',
     '#bx-start .bxs-cn{display:flex;align-items:center;gap:6px;flex-wrap:wrap}#bx-start .bxs-cn em{font-style:normal;font-size:11.5px;font-weight:700;color:var(--ink-2);border:1px solid var(--line-2);border-radius:9px;padding:1px 7px}',
+    // 루틴 도우미 2/2 넣을 단계(골라 둔 채로, 한 줄에 하나)
+    '#bx-start .bxr-steps{display:flex;flex-direction:column;gap:8px;margin-top:22px}#bx-start .bxr-st{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 16px;border-radius:14px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink);text-align:left}',
+    '#bx-start .bxr-st b{flex:1;min-width:0;font-size:16.5px;font-weight:500}#bx-start .bxr-st small{font-size:14px;color:var(--ink-2)}#bx-start .bxr-st.on{border-color:var(--accent);background:var(--accent-soft)}#bx-start .bxr-st.on b{font-weight:700}',
+    '#bx-start .bxr-addbox{display:flex;gap:8px;margin-top:10px}#bx-start .bxr-addbox input{flex:1;min-width:0;min-height:52px;padding:0 14px;border-radius:12px;border:1px solid var(--accent);background:var(--bg);color:var(--ink);font:inherit;font-size:16px}#bx-start .bxr-addbox .btn{min-height:52px}',
     '#bx-start .bxs-chk{width:26px;height:26px;flex:none;border-radius:8px;border:2px solid var(--line-2);display:flex;align-items:center;justify-content:center;color:var(--accent-ink)}#bx-start .bxs-chk.on{background:var(--accent);border-color:var(--accent)}#bx-start .bxs-chk .i{width:16px;height:16px;stroke-width:2.6}',
     '#bx-start .bxs-sp{flex:1;min-height:24px}',
     '#bx-start .bxs-go{width:100%;min-height:56px;font-size:17px;border-radius:16px}',
     '#bx-start .bxs-go[disabled]{opacity:.45}',
+    // 다음·시작하기 단추는 늘 화면 아래에 보이게(첫 실행 2단계 '시작하기'가 화면 밖에 있던 문제 11/1)
+    '#bx-start .bxs-in > .bxs-go,#bx-start .bxs-in > .bxs-row{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:3;box-shadow:0 -16px 16px 2px var(--bg)}#bx-start .bxs-in > .bxs-row{background:var(--bg)}#bx-start .bxs-in > .bxs-go[disabled]{opacity:1;background:var(--sunk);color:var(--ink-3)}',
     '#bx-start .bxs-row{display:flex;gap:10px}#bx-start .bxs-row .bxs-go{flex:1;width:auto}#bx-start .bxs-back{min-height:56px;padding:0 22px;border-radius:16px}',
     '#bx-start .bxs-dock{display:grid;margin:0 -22px 16px;height:58px;border-top:1px solid var(--line);font-size:12px;font-weight:700;color:var(--ink-3)}#bx-start .bxs-dock span{display:flex;align-items:center;justify-content:center}#bx-start .bxs-dock span.on{color:var(--accent)}',
     '#bx-start .bxs-prog{height:6px;border-radius:3px;background:var(--line);margin-top:12px;overflow:hidden}#bx-start .bxs-prog span{display:block;height:100%;border-radius:3px;background:var(--accent)}',
@@ -298,6 +304,11 @@
     // 일정 꾹 누르기 메뉴: 지우기는 주의 색, 꾹 누르는 동안 글자가 잡히지 않게
     '.bx-app .menu-row.bx-im-del .ml,.bx-app .menu-row.bx-im-del .mi{color:var(--danger,#C62828)}.bx-app .row .row-main,.bx-app .c-chip{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}',
     '.bx-app .bx-bowl-picks{margin-top:8px}',
+    // 명상: '소리와 호흡' 접힌 줄(지금 고른 값이 보임)
+    '.bx-app .bx-med-more{margin-top:16px;border-top:1px solid var(--line)}.bx-app .bx-med-more > summary{display:flex;align-items:center;gap:10px;min-height:60px;list-style:none;cursor:pointer}.bx-app .bx-med-more > summary::-webkit-details-marker{display:none}',
+    '.bx-app .bx-mm-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.bx-app .bx-mm-t b{font-size:15.5px}.bx-app .bx-mm-t small{font-size:13px;color:var(--ink-2)}.bx-app .bx-med-more > summary .i{width:18px;height:18px;color:var(--ink-3);transition:transform .15s}.bx-app .bx-med-more[open] > summary .i{transform:rotate(90deg)}',
+    // ⋯ 메뉴 다크 모드 줄: 스위치 모양(지금 화면이 어두우면 켜짐)
+    '.bx-app .bx-dm-row[aria-pressed="true"] .tog{background:var(--accent)}.bx-app .bx-dm-row[aria-pressed="true"] .tog i{transform:translateX(20px)}',
     // 캘린더 머리: ‹ 10월 › 가운데, 월간|주간 작은 칩
     '.bx-app .page-head.bx-ch{display:flex;flex-direction:column;align-items:stretch;gap:0;margin:0 0 10px;padding-top:4px}',
     '.bx-app .bx-ch-top{display:flex;align-items:center;gap:8px;min-height:36px}.bx-app .bx-ch-top .tt-mode{margin:0;flex:1;justify-content:flex-start}',
@@ -315,7 +326,6 @@
     // 빈 홈의 예시 문장, + 단추 팁
     '.bx-app .bx-empty-ex{padding:14px 0 6px}.bx-app .bx-empty-ex .bx-todo-empty{padding:0;margin:0 0 10px;text-align:left}.bx-app .bx-ex-chips{display:flex;flex-wrap:wrap;gap:8px}',
     '.bx-app .bx-ex{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',
-    '.bx-fab-tip{position:fixed;right:92px;bottom:calc(var(--dock-h,66px) + 36px + env(safe-area-inset-bottom));z-index:30;padding:8px 12px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.18)}',
     // 새 일정: 자주 넣은 말
     '.bx-app .bx-freq{margin-top:12px}.bx-app .bx-freq-h{display:block;font-size:13px;font-weight:500;color:var(--ink-2);margin-bottom:6px}.bx-app .bx-freq-c{display:flex;flex-wrap:wrap;gap:8px}',
     '.bx-app .bx-freq-b{min-height:38px;padding:0 12px;border-radius:19px;border:1px solid var(--line-2);background:var(--bg);font-size:13.5px;color:var(--ink)}',
@@ -328,8 +338,17 @@
     '#bx-start .bxt-in textarea{flex:1;min-width:0;border:0;outline:0;resize:none;background:transparent;font:inherit;font-size:16px;line-height:1.6;color:var(--ink)}#bx-start .bxt-in .bx-mic{width:44px;height:44px;flex:none;border-radius:22px;background:var(--accent-soft);color:var(--accent)}',
     '#bx-start .bxt-prev{display:flex;flex-direction:column;gap:8px;margin-top:16px}#bx-start .bxt-ph{font-size:13px;font-weight:500;color:var(--ink-2)}',
     '#bx-start .bxt-row{display:flex;align-items:center;gap:12px;min-height:58px;padding:0 14px;border-radius:14px;background:var(--sunk)}#bx-start .bxt-row.bad small{color:var(--warn-ink)}#bx-start .bxt-bar{width:4px;height:30px;flex:none;border-radius:2px;background:var(--c)}#bx-start .bxt-row.bad .bxt-bar{background:var(--line-2)}',
-    // 위젯 두기 제안
-    '.bx-app .bx-wtip-mini{display:flex;flex-direction:column;gap:1px;width:74px;height:74px;flex:none;box-sizing:border-box;padding:8px;border-radius:16px;background:var(--bg);font-size:8.5px;color:var(--ink-2)}.bx-app .bx-wtip-mini b{font-size:12px;color:var(--ink)}.bx-app .bx-wtip-mini em{font-style:normal;font-weight:700;color:var(--accent)}.bx-app .bx-wtip-mini i{margin-top:auto;height:14px;border-radius:5px;background:var(--accent)}',
+    // 홈 화면 위젯 창(설정 › 화면), 지난 일정 카드 안 날짜 칸, 루틴을 펼친 곳의 '오늘 쉬기'
+    '.bx-app .bx-wg-row{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 0;border-bottom:1px solid var(--line)}.bx-app .bx-wg-row .bxs-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.bx-app .bx-wg-row b{font-size:15.5px}.bx-app .bx-wg-row small{font-size:13px;color:var(--ink-2);line-height:1.5}',
+    '.bx-app .bx-wg-row .btn{min-width:64px;min-height:44px;justify-content:center}.bx-app .bx-wg-on{display:flex;align-items:center;gap:4px;font-size:13.5px;color:var(--ink-2)}.bx-app .bx-wg-on .i{width:16px;height:16px;color:var(--accent)}',
+    '.bx-app .bx-lc-pick{display:flex;gap:8px;margin-top:10px}.bx-app .bx-lc-pick .inp{flex:1;min-width:0;min-height:46px}.bx-app .bx-lc-pick .btn{min-height:46px}',
+    // 작게 보이는 단추도 누르는 범위는 44px 안팎(보이는 크기는 그대로, 점검 11/1)
+    '.bx-app .rt-chk,.bx-app .bx-fold-btn,.bx-app .bx-sum-back,.bx-app .rdays-q .sec-link,.bx-app .bx-ch-top .seg button,.bx-app .tt-sw,.bx-app .bx-rt-tog{position:relative}',
+    '.bx-app .rt-chk::after{content:"";position:absolute;inset:-9px}.bx-app .bx-fold-btn::after{content:"";position:absolute;inset:-6px}',
+    '.bx-app .bx-sum-back::after{content:"";position:absolute;inset:-11px -4px}.bx-app .rdays-q .sec-link::after{content:"";position:absolute;inset:-4px -2px}.bx-app .bx-ch-top .seg button::after{content:"";position:absolute;inset:-7px 0}.bx-app .tt-sw::after{content:"";position:absolute;inset:-6px}.bx-app .bx-rt-tog::after{content:"";position:absolute;inset:-7px 0}',
+    '.bx-app .bx-file-btn{display:inline-flex;align-items:center;gap:6px;margin-top:6px}.bx-app .bx-file-btn .i{width:18px;height:18px}',
+    '.bx-app .bx-del-btn{gap:6px;color:var(--danger,#C62828);padding:0 16px}.bx-app .bx-del-btn .i{width:18px;height:18px}',
+    '.bx-app .bx-rt-foot{display:flex;justify-content:flex-end;padding:4px 0 2px}.bx-app .bx-rt-foot .sec-link{min-height:44px;padding:0 6px}.bx-app .rt-card:not(.bx-open) .bx-rt-foot{display:none}',
     // 설정: 울리는 방식
     '.bx-app .bx-lvset{display:flex;flex-direction:column;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.bx-app .bx-lv-fix{font-size:14px;color:var(--ink-2)}.bx-app .bx-lv-note{margin-top:6px}',
     // 캘린더: 휴대폰 캘린더 일정은 회색 테두리
@@ -340,6 +359,7 @@
     '.bx-app .bx-ft-h{margin:6px 0 2px;font-size:15px;font-weight:700}.bx-app .bx-ft-h+p+.bx-ft-row,.bx-app .bx-ft-row{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line);font-size:15px}.bx-app .bx-ft-row>span:first-child{flex:1}',
     '.bx-app .bx-ft-chips{display:flex;flex-wrap:wrap;gap:8px}.bx-app .bx-ft-chip{display:flex;align-items:center;gap:6px;min-height:42px;padding:0 14px;border-radius:21px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',
     '.bx-app .bx-ft-chip.on{padding-left:8px;border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:700}.bx-app .bx-ft-chip em{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:11px;background:var(--bg);color:var(--accent);font-style:normal;font-size:12px}',
+    '.bx-app .bx-ft-chip .i{width:16px;height:16px;stroke-width:2.6}',
     '.bx-app .bx-ft-chip.off{border-style:dashed;background:var(--sunk);color:var(--ink-2)}.bx-app .bx-ft-pv-h{display:block;margin-top:14px;font-size:13px;font-weight:500;color:var(--ink-2)}',
     '.bx-app .bx-ft-pv{display:grid;height:50px;margin-top:6px;border:1px solid var(--line);border-radius:14px;font-size:12.5px;font-weight:700;color:var(--ink-2)}.bx-app .bx-ft-pv span{display:flex;align-items:center;justify-content:center}.bx-app .bx-ft-pv span.on{color:var(--accent)}',
     // 첫 실행 2: 알람 허락 예고 줄

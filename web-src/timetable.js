@@ -205,7 +205,7 @@ function ttOpen(id, pre){
   TT = cur ? Object.assign({}, cur) : Object.assign({id: null, name: '', days: [], start: '09:00', end: '10:00', place: '', remind: '10', color: TT_COLORS[n % TT_COLORS.length]}, pre || {});
   if (!TT.start) TT.start = '09:00';
   if (!TT.end || toMin(TT.end) <= toMin(TT.start)) TT.end = fromMin(Math.min(toMin(TT.start) + 60, 1439));
-  openSheet({title: cur ? '시간표 고치기' : '시간표에 넣기', draw: ttDraw, onClose: () => { TT = null; }});
+  openSheet({title: cur ? (window.BX_APP ? '수업 고치기' : '시간표 고치기') : (window.BX_APP ? '수업 추가' : '시간표에 넣기'), draw: ttDraw, onClose: () => { TT = null; }});
 }
 function ttDraw(){
   if (!TT) return;
@@ -247,7 +247,7 @@ function ttCheck(o){
 const TT_MIC_I = '<svg class="i" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>';
 // 앱 툴바의 '말로 넣기': 넣는 칸을 창으로 연다
 function ttSayOpen(){
-  openSheet({title: '시간표에 넣기', draw: () => setSheet(
+  openSheet({title: '말로 넣기', draw: () => setSheet(
     '<p class="p small" style="margin:0 0 10px">한 문장으로 말하거나 적어요. 요일·시각·이름·장소를 알아서 나눠 넣어요.</p>' +
     '<div class="tt-add"><label class="sr" for="tt-in">시간표에 넣기</label><div class="bx-inrow"><input id="tt-in" class="inp" type="text" autocomplete="off" enterkeyhint="done" maxlength="120" placeholder="예) 월수 10시 반부터 12시까지 경영학원론 301호">' +
     bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">넣기</button></div></div>' +
@@ -369,7 +369,7 @@ function ttBarHtml(){
   const b = (act, icon, label, on) => '<button type="button" class="tt-xb' + (on ? ' on' : '') + '" data-act="' + act + '" aria-label="' + label + '">' + icon + '<small>' + label + '</small></button>';
   const nd = ttNextDate(TTSEL.d), off = ttSkipped(e, nd);
   return '<div class="tt-bar" id="tt-bar" role="toolbar" aria-label="' + esc(e.name) + ' 편집">' +
-    b('tt-x-clip', TT_CLIP, lk ? '연결 풀기' : '수업 묶기', lk) + b('tt-x-off', TT_OFF, off ? '휴강 취소' : ttMD(nd) + ' 휴강', off) + b('tt-x-dup', ICON.plus, '복제') + b('tt-x-edit', ICON.edit, '고치기') + b('tt-x-del', ICON.trash, '지우기') + b('tt-x-done', ICON.check, '완료') + '</div>';
+    b('tt-x-clip', TT_CLIP, lk ? '연결 풀기' : '수업 묶기', lk) + b('tt-x-off', TT_OFF, off ? '휴강 취소' : ttMD(nd) + ' 휴강', off) + b('tt-x-dup', ICON.plus, '복제') + b('tt-x-edit', ICON.edit, '고치기') + b('tt-x-del', ICON.trash, '지우기') + b('tt-x-done', ICON.check, '닫기') + '</div>';
 }
 // 도구 줄을 고른 블록 바로 위에 두고, 화면 밖으로 나가지 않게
 function ttPlaceBar(){

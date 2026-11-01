@@ -48,44 +48,62 @@ function bxStartDraw(){
   if (BXS.sel.report) cards.push(card('sun', '아침에 오늘 일정 받기', '', '매일 아침 알림 하나로 오늘 할 일을 보여 줘요. 처음엔 7:30, 아침 루틴을 만들면 그 시각에 맞춰요.'));
   if (BXS.sel.tt) cards.push(card('school', '시간표', pos('tt'), '“월수 10시 반 경영학원론”처럼 말하면 채워지고, 수업 전에 알려 줘요.'));
   if (BXS.sel.med) cards.push(card('lotus', '명상', pos('med'), '시간을 고르면 싱잉볼 소리로 시작과 끝을 알려 줘요.'));
-  const lab = {med: '명상', routines: '루틴', month: '캘린더', tt: '시간표'}, half = Math.ceil(keys.length / 2);
-  const dock = keys.slice(0, half).map(k => lab[k]).concat(['홈']).concat(keys.slice(half).map(k => lab[k]));
   bxStartOverlay(
     '<div class="bxs-top">' + bxDots(2, 2) + '</div>' +
     '<h1 class="bxs-h">이렇게 도와드려요</h1><p class="bxs-p">고른 기능은 아래 메뉴에 있어요. 설정할 게 있으면 그 기능에 처음 들어갈 때 물어볼게요.</p>' +
     '<div class="bxs-list">' + cards.join('') + '</div>' +
     '<div class="bxs-note">' + ICON.bell + '<span>알람이 처음 필요할 때 휴대폰 허락을 한 번 물어볼게요.</span></div><div class="bxs-sp"></div>' +
-    '<div class="bxs-dock" aria-label="아래 메뉴 미리 보기" style="grid-template-columns:repeat(' + dock.length + ',minmax(0,1fr))">' + dock.map(x => '<span class="' + (x === '홈' ? 'on' : '') + '">' + x + '</span>').join('') + '</div>' +
+    // 아래 메뉴 미리 보기는 뺐다: 카드마다 '아래 메뉴 N번째'가 있고, 잘려 보여서 끝난 화면처럼 보였음(점검 11/1)
     '<div class="bxs-row"><button type="button" class="btn bxs-back" data-bxs="back">이전</button><button type="button" class="btn primary bxs-go" data-bxs="done">시작하기</button></div>');
 }
 function bxStartDock(){ return ['med', 'routines', 'month', 'tt'].filter(k => k === 'month' || BXS.sel[k]); }
 function bxStartOpen(){ BXS = {step: 1, sel: Object.assign({}, bxStartMods())}; if (!(M.settings && M.settings.bxStart)) BXS.sel.tt = false; bxStartDraw(); }
 
-/* 루틴 도우미: 질문 하나씩 */
+/* 루틴 도우미: 질문 하나씩. 정리판(대표 결정 11/1): 질문은 둘 — 나가는 시각 → 넣을 단계.
+   약은 단계 하나로(점심·저녁 약은 새 루틴 템플릿 '약 먹기'), 아침 일정은 첫 실행·'내가 쓸 기능'에서 이미 골랐으니 묻지 않는다 */
 const BX_RH_Q = [
   {k: 'out', h: '아침에 보통\n몇 시에 나가요?', p: '나가는 시각에 맞춰 준비 루틴을 거꾸로 짜 드려요.', opts: [['07:30', '7:30'], ['08:00', '8:00'], ['08:30', '8:30'], ['09:00', '9:00']], none: '안 나가요', custom: '나가는 시각', def: '07:50'},
-  {k: 'med', h: '챙겨 먹는 약이\n있어요?', p: '약 먹을 때 알려 드려요. 약 이름은 묻지 않아요.', opts: [['am', '아침'], ['noon', '점심'], ['pm', '저녁'], ['bed', '자기 전']], none: '없어요', custom: '약 먹는 시각', def: '21:00'},
-  {k: 'rep', h: '아침에 오늘 일정도\n알려 드릴까요?', p: '알림 하나로 오늘 할 일·수업·루틴을 보여 줘요.', opts: [['attach', '루틴 첫 알람에 같이'], ['07:00', '7:00'], ['08:00', '8:00']], none: '안 받을래요', custom: '알림 시각', def: '07:30', wide: true}
+  {k: 'steps', h: '어떤 단계를\n넣을까요?', p: '골라 둔 대로 두면 돼요. 빼거나 더할 것만 누르세요.'}
 ];
-const BX_MED_AT = {am: '08:00', noon: '12:30', pm: '19:00', bed: '22:30'};
+// 적은 순서가 곧 루틴 순서. 처음부터 골라 둔 것 네 개, 더 넣을 것 두 개
+const BX_RH_STEPS = [['기상', 5, true], ['약 먹기', 2, false], ['씻기', 20, true], ['아침 먹기', 15, false], ['옷 입기', 10, true], ['짐 챙기기', 5, true]];
 let BXR = null;
-function bxRtHelpOpen(){ BXR = {q: 0, a: {}, cust: {}}; bxRtHelpDraw(); }
+function bxRtHelpOpen(){ BXR = {q: 0, a: {}, cust: {}, st: BX_RH_STEPS.map((x, i) => ({k: 's' + i, name: x[0], min: x[1], on: x[2]})), add: false}; bxRtHelpDraw(); }
 function bxRtHelpDraw(){
   if (BXR.q >= BX_RH_Q.length) { bxRtHelpResult(); return; }
   const Q = BX_RH_Q[BXR.q], cur = BXR.a[Q.k], isCust = cur === 'custom';
-  if (Q.k === 'rep' && !(BXR.a.out && /^\d/.test(BXR.a.out) || BXR.a.out === 'custom')) Q.opts[0][1] = '7:30';
-  const opt = o => '<button type="button" class="bxs-big' + (cur === o[0] ? ' on' : '') + '" aria-pressed="' + (cur === o[0]) + '" data-bxr="' + o[0] + '">' + o[1] + '</button>';
-  bxStartOverlay(
-    '<div class="bxs-top"><button type="button" class="bxs-back-i" data-bxr-nav="back" aria-label="뒤로">' + ICON.chevL + '</button><span class="bxs-tt">루틴 도우미</span><button type="button" class="bxs-skip" data-bxr-nav="skip">건너뛰기</button></div>' +
+  const top = '<div class="bxs-top"><button type="button" class="bxs-back-i" data-bxr-nav="back" aria-label="뒤로">' + ICON.chevL + '</button><span class="bxs-tt">루틴 도우미</span><button type="button" class="bxs-skip" data-bxr-nav="skip">건너뛰기</button></div>' +
     '<div class="bxs-prog"><span style="width:' + Math.round((BXR.q + 1) / BX_RH_Q.length * 100) + '%"></span></div><span class="bxs-pn">' + (BXR.q + 1) + ' / ' + BX_RH_Q.length + '</span>' +
-    '<h1 class="bxs-h big">' + esc(Q.h).replace('\n', '<br>') + '</h1><p class="bxs-p">' + Q.p + '</p>' +
+    '<h1 class="bxs-h big">' + esc(Q.h).replace('\n', '<br>') + '</h1><p class="bxs-p">' + Q.p + '</p>';
+  if (Q.k === 'steps') {
+    const n = BXR.st.filter(x => x.on).length;
+    bxStartOverlay(top +
+      '<div class="bxr-steps" role="group" aria-label="넣을 단계">' + BXR.st.map(x => '<button type="button" class="bxr-st' + (x.on ? ' on' : '') + '" role="checkbox" aria-checked="' + x.on + '" data-bxr-st="' + x.k + '">' + bxCheck(x.on) + '<b>' + esc(x.name) + '</b><small>' + x.min + '분</small></button>').join('') + '</div>' +
+      (BXR.add ? '<div class="bxs-custbox bxr-addbox"><input type="text" id="bxr-add" maxlength="20" placeholder="예) 고양이 밥 주기" aria-label="더 넣을 단계"><button type="button" class="btn sm primary" data-bxr-addok="1">넣기</button></div>'
+        : '<button type="button" class="bxs-cust" data-bxr-add="1">' + ICON.edit + '직접 입력</button>') +
+      '<div class="bxs-sp"></div>' +
+      '<button type="button" class="btn primary bxs-go" data-bxr-nav="next"' + (n ? '' : ' disabled') + '>루틴 만들기</button>');
+    return;
+  }
+  const opt = o => '<button type="button" class="bxs-big' + (cur === o[0] ? ' on' : '') + '" aria-pressed="' + (cur === o[0]) + '" data-bxr="' + o[0] + '">' + o[1] + '</button>';
+  bxStartOverlay(top +
     '<div class="bxs-grid' + (Q.wide ? ' wide' : '') + '">' + Q.opts.map(opt).join('') + '</div>' +
     '<button type="button" class="bxs-cust' + (isCust ? ' on' : '') + '" aria-pressed="' + isCust + '" data-bxr="custom">' + ICON.edit + '직접 입력</button>' +
     (isCust ? '<label class="bxs-custbox"><span>' + Q.custom + '</span><input type="time" id="bxr-time" value="' + (BXR.cust[Q.k] || Q.def) + '"></label>' : '') +
     '<div class="bxs-links"><button type="button" data-bxr="none"' + (cur === 'none' ? ' class="on"' : '') + '>' + Q.none + '</button><button type="button" data-bxr="later">나중에 할게요</button></div>' +
     '<div class="bxs-sp"></div>' +
-    '<button type="button" class="btn primary bxs-go" data-bxr-nav="next"' + (cur ? '' : ' disabled') + '>' + (BXR.q < BX_RH_Q.length - 1 ? '다음' : '루틴 만들기') + '</button>');
+    // 나가지 않거나 나중에 하면 단계 질문 없이 끝
+    '<button type="button" class="btn primary bxs-go" data-bxr-nav="next"' + (cur ? '' : ' disabled') + '>' + (cur === 'none' ? '마치기' : '다음') + '</button>');
 }
+// 직접 입력한 단계: 짐 챙기기 앞(나가기 바로 전 단계는 짐 챙기기로 두려고), 골라진 채로
+function bxRtHelpAdd(){
+  const i = $('#bxr-add'), v = i ? i.value.trim().slice(0, 20) : '';
+  if (!v) { BXR.add = false; bxRtHelpDraw(); return; }
+  const x = {k: 'c' + Date.now().toString(36), name: v, min: 10, on: true}, at = BXR.st.findIndex(y => y.name === '짐 챙기기');
+  if (at >= 0) BXR.st.splice(at, 0, x); else BXR.st.push(x);
+  BXR.add = false; bxRtHelpDraw();
+}
+document.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'bxr-add') { ev.preventDefault(); bxRtHelpAdd(); } }, true);
 function bxMakeRoutine(o){
   const id = rid('rt_'), r = rtNorm(o);
   const doc = Object.assign(r, {order: M.routines.length, createdAt: nowIso(), updatedAt: nowIso()});
@@ -97,18 +115,8 @@ function bxRtHelpResult(){
   if (!BXR.made) {
     const a = BXR.a, made = [], tv = k => a[k] === 'custom' ? (BXR.cust[k] || BX_RH_Q.find(q => q.k === k).def) : a[k];
     const outT = a.out && a.out !== 'none' && a.out !== 'later' ? tv('out') : null;
-    const medT = a.med && a.med !== 'none' && a.med !== 'later' ? (a.med === 'custom' ? tv('med') : a.med) : null;
-    if (outT) {
-      const steps = [['기상', 5], ['씻기', 20], ['옷 입기', 10], ['짐 챙기기', 5]];
-      if (medT === 'am') steps.splice(1, 0, ['약 먹기', 2]);
-      made.push(bxMakeRoutine({name: '아침 준비', days: RT_WD, mode: 'arrive', target: outT, travel: 0, buffer: 0, every: 5, times: 6, steps}));
-    }
-    if (medT && !(medT === 'am' && outT)) {
-      const at = BX_MED_AT[medT] || medT, nm = {am: '아침 약', noon: '점심 약', pm: '저녁 약', bed: '자기 전 약'}[medT] || '약 먹기';
-      made.push(bxMakeRoutine({name: nm, days: RT_ALL, mode: 'start', target: at, every: 10, times: 6, steps: [['약 먹기', 0]]}));
-    }
-    if (a.rep === 'none') saveSettings({bxReport: {on: false, at: bxRepCfg().at}});
-    else if (a.rep && a.rep !== 'later') saveSettings({bxReport: {on: true, at: a.rep === 'attach' ? '07:30' : tv('rep')}});
+    const steps = BXR.st.filter(x => x.on).map(x => [x.name, x.min]);
+    if (outT && steps.length) made.push(bxMakeRoutine({name: '아침 준비', days: RT_WD, mode: 'arrive', target: outT, travel: 0, buffer: 0, every: 5, times: 6, steps}));
     saveSettings({bxRtHelp: {at: nowIso(), made}});
     BXR.made = made;
   }
@@ -119,16 +127,13 @@ function bxRtHelpResult(){
     return '<div class="bxs-res col"><div class="bxs-rh"><span class="bxs-t"><b>' + esc(rt.name) + '</b><small>' + esc(rtWhenText(rt) + ' · 단계 ' + rt.steps.length + '개' + (tot ? ' · ' + tot + '분' : '') + (rt.mode === 'arrive' ? ' · ' + mm(p.start) + ' 시작' : '')) + '</small></span>' +
       '<span class="bx-togw"><span>알람</span><button type="button" class="tog" role="switch" aria-checked="' + (rt.on !== false) + '" aria-label="' + esc(rt.name) + ' 알람 켜기" data-bxr-tog="' + esc(id) + '"><i></i></button></span></div>' +
       '<ol class="bxs-tl">' + tl + '</ol></div>'; }).join('');
-  const rep = bxRepCfg();
-  const repRow = '<div class="bxs-res"><span class="bxs-ic">' + bxIconSpan('sun', '') + '</span><span class="bxs-t"><b>아침에 오늘 일정 받기</b><small>' + (rep.on ? '매일 · 아침 루틴이 있으면 첫 알람과 함께' : '받지 않아요 · 설정에서 켤 수 있어요') + '</small></span>' +
-    '<button type="button" class="tog" role="switch" aria-checked="' + rep.on + '" aria-label="아침 일정 받기" data-bxr-rep="1"><i></i></button></div>';
   const tpls = RT_TEMPLATES.filter(t => !['work', 'meds'].includes(t.key)).slice(0, 4).map(t => '<button type="button" class="bxs-chip" data-act="rt-tpl" data-key="' + t.key + '">+ ' + esc(t.name) + '</button>').join('');
   const first = BXR.made.map(getDoc).filter(Boolean).find(rt => rt.mode === 'arrive');
   const lead = first ? (() => { const p = rtPlan(first); return mm(p.leave) + '에 나가려면 ' + mm(p.start) + '에 시작해요.'; })() : '';
   bxStartOverlay(
     '<div class="bxs-top"><span class="bxs-tt">루틴 도우미</span></div>' +
-    '<h1 class="bxs-h">' + (BXR.made.length ? '이렇게 만들어 뒀어요' : '언제든 다시 만들 수 있어요') + '</h1><p class="bxs-p">' + (BXR.made.length ? (lead ? lead + ' ' : '') + '루틴을 누르면 단계·시간을 고쳐요. “씻기 30분으로”처럼 말로 고쳐도 돼요.' : '루틴 탭의 ‘+ 새 루틴’에서 템플릿을 고르거나 말로 만들 수 있어요.') + '</p>' +
-    '<div class="bxs-box">' + rows + repRow + '</div>' +
+    '<h1 class="bxs-h">' + (BXR.made.length ? '이렇게 만들어 뒀어요' : '언제든 다시 만들 수 있어요') + '</h1><p class="bxs-p">' + (BXR.made.length ? (lead ? lead + ' ' : '') + '루틴을 누르면 단계·시간을 고쳐요.' : '루틴 탭의 ‘+ 새 루틴’에서 템플릿을 고르거나 말로 만들 수 있어요.') + '</p>' +
+    (rows ? '<div class="bxs-box">' + rows + '</div>' : '') +
     '<h2 class="bxs-h2">이런 루틴도 있어요</h2><div class="bxs-chips">' + tpls + '</div><p class="bxs-p small">누르면 바로 열리고, 시각만 고쳐 저장하면 돼요.</p>' +
     '<div class="bxs-sp"></div><button type="button" class="btn primary bxs-go" data-bxr-nav="close">' + (BXR.made.length && PERM_PENDING ? '알람 켜기' : '내 루틴 보기') + '</button>');
 }
@@ -157,7 +162,9 @@ function bxPermDraw(){
     ['battery', '절전에서 빼기', '며칠 안 열어도 알람이 멈추지 않게', true]
   ];
   const row = r => '<li class="bxp-row"><span class="bxs-t"><b>' + r[1] + (r[3] ? ' <small class="bxp-tag">권장</small>' : '') + '</b><small>' + r[2] + '</small></span>' +
-    (st[r[0]] ? '<span class="bxp-ok">' + ICON.check + '허락됨</span>' : '<button type="button" class="btn sm' + (r[3] ? '' : ' primary') + '" data-bxp="' + r[0] + '">' + (r[3] ? '설정 열기' : '허락하기') + '</button>') + '</li>';
+    (st[r[0]] ? '<span class="bxp-ok">' + ICON.check + '허락됨</span>' : '<button type="button" class="btn sm" data-bxp="' + r[0] + '">' + (r[3] ? '설정 열기' : '허락하기') + '</button>') + '</li>';
+  // 파란 단추는 아래 하나(점검 11/1: 파란 단추가 셋). 아직 허락 안 한 것 중 첫째, 다 되면 '다 됐어요'
+  const need = rows.find(r => !r[3] && !st[r[0]]);
   bxStartOverlay(
     '<div class="bxs-top"><button type="button" class="bxs-back-i" data-bxp-nav="later" aria-label="닫기">' + ICON.chevL + '</button></div>' +
     '<span class="bxp-ic" aria-hidden="true">' + ICON.bell + '</span>' +
@@ -167,8 +174,9 @@ function bxPermDraw(){
     (st.battery ? '' : '<p class="bxs-p small">절전에서 빼기: 목록에서 박스웍스를 찾아 ‘제한 없음’이나 ‘최적화 안 함’으로 바꿔요.</p>') +
     '<div class="bxs-sp"></div>' +
     '<button type="button" class="btn bxs-test" data-bxp-nav="test"' + (st.notifications ? '' : ' disabled') + '>' + ICON.bell + '알람 한 번 들어 보기 · 10초 뒤</button>' +
-    '<button type="button" class="btn primary bxs-go" data-bxp-nav="done">다 됐어요</button>' +
-    '<button type="button" class="bxp-later" data-bxp-nav="later">나중에' + (st.notifications ? '' : ' · 그동안은 알람이 울리지 않아요') + '</button>');
+    (need ? '<button type="button" class="btn primary bxs-go" data-bxp="' + need[0] + '">' + need[1] + ' 허락하기</button>' : '<button type="button" class="btn primary bxs-go" data-bxp-nav="done">다 됐어요</button>') +
+    // 다 허락하지 않아도 나갈 길: 알림만 허락했으면 '이대로 둘게요', 알림도 안 했으면 '나중에'
+    (need ? '<button type="button" class="bxp-later" data-bxp-nav="later">' + (st.notifications ? '이대로 둘게요' : '나중에 · 그동안은 알람이 울리지 않아요') + '</button>' : ''));
 }
 function bxPermClose(){ PERM = null; const el = document.getElementById('bx-start'); if (el) el.remove(); document.documentElement.classList.remove('locked'); render(); }
 document.addEventListener('click', async ev => {
@@ -201,7 +209,7 @@ function bxRtNudgeHtml(){
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
-  const t = ev.target.closest('[data-bxs],[data-bxs-mod],[data-bxr],[data-bxr-nav],[data-bxr-tog],[data-bxr-rep],[data-act="bx-rt-help"],[data-act="bx-rt-help-x"],[data-act="bx-start-again"]');
+  const t = ev.target.closest('[data-bxs],[data-bxs-mod],[data-bxr],[data-bxr-nav],[data-bxr-tog],[data-bxr-st],[data-bxr-add],[data-bxr-addok],[data-act="bx-rt-help"],[data-act="bx-rt-help-x"],[data-act="bx-start-again"]');
   if (!t) return;
   if (t.dataset.act === 'rt-tpl') return;
   ev.preventDefault(); ev.stopPropagation();
@@ -223,7 +231,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.bxr) {
     const Q = BX_RH_Q[BXR.q], v = t.dataset.bxr;
     const ti = $('#bxr-time'); if (ti && ti.value) BXR.cust[Q.k] = ti.value;
-    if (v === 'later') { BXR.a[Q.k] = 'later'; BXR.q++; bxRtHelpDraw(); return; }
+    if (v === 'later') { BXR.a[Q.k] = 'later'; BXR.q = Q.k === 'out' ? BX_RH_Q.length : BXR.q + 1; bxRtHelpDraw(); return; }
     BXR.a[Q.k] = v; bxRtHelpDraw();
     if (v === 'custom') setTimeout(() => { const i = $('#bxr-time'); if (i) i.focus(); }, 50);
     return;
@@ -233,11 +241,13 @@ document.addEventListener('click', ev => {
     const Q = BX_RH_Q[BXR.q]; const ti = $('#bxr-time'); if (Q && ti && ti.value) BXR.cust[Q.k] = ti.value;
     if (nav === 'skip') { saveSettings({bxRtHelp: {at: nowIso(), skipped: true}}); bxStartClose(); BXR = null; return; }
     if (nav === 'back') { if (BXR.q > 0 && !BXR.made) { BXR.q--; bxRtHelpDraw(); } else { bxStartClose(); BXR = null; } return; }
-    if (nav === 'next') { BXR.q++; bxRtHelpDraw(); return; }
-    if (nav === 'close') { BXR = null; bxStartClose(); return; }
+    if (nav === 'next') { if (Q && Q.k === 'out' && (BXR.a.out === 'none')) BXR.q = BX_RH_Q.length; else BXR.q++; bxRtHelpDraw(); return; }
+    if (nav === 'close') { BXR = null; bxStartClose(); if (S.view !== 'routines' && bxModOn('routines')) go('routines'); return; }
   }
   if (t.dataset.bxrTog) { const id = t.dataset.bxrTog, d = getDoc(id); if (d) { patchDoc(id, {on: d.on === false}); M = buildModel(); bxRtHelpResult(); } return; }
-  if (t.dataset.bxrRep) { const c = bxRepCfg(); saveSettings({bxReport: {on: !c.on, at: c.at}}); bxRtHelpResult(); return; }
+  if (t.dataset.bxrSt) { const x = BXR.st.find(y => y.k === t.dataset.bxrSt); if (x) x.on = !x.on; bxRtHelpDraw(); return; }
+  if (t.dataset.bxrAdd) { BXR.add = true; bxRtHelpDraw(); setTimeout(() => { const i = $('#bxr-add'); if (i) i.focus(); }, 50); return; }
+  if (t.dataset.bxrAddok) { bxRtHelpAdd(); return; }
 }, true);
 // 도우미 결과 화면에서 템플릿을 누르면 도우미를 닫고 루틴 창을 연다
 document.addEventListener('click', ev => {

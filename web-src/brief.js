@@ -37,14 +37,14 @@ function bxAddReports(out, days){
     if (firstRt) { firstRt.report = rep; continue; }
     const t = addMin(day, toMin(cfg.at)).getTime();
     if (t <= now) continue;
-    out.push({id: 'rep_' + ds, at: t, kind: 'report', group: '아침 보고', title: rep.title, sub: rep.text, body: rep.text, report: rep});
+    out.push({id: 'rep_' + ds, at: t, kind: 'report', group: '오늘 일정', title: rep.title, sub: rep.text, body: rep.text, report: rep});
   }
   return out;
 }
 // 설정 > 알림의 '아침 보고' 줄
 function bxReportSetHtml(){
   const cfg = bxRepCfg();
-  return setRow('아침에 오늘 일정 받기', segHtml('data-bxrep', [['0', '끄기'], ['1', '켜기']], cfg.on ? '1' : '0', '아침 보고', 150), 'tall') +
+  return setRow('아침에 오늘 일정 받기', segHtml('data-bxrep', [['0', '끄기'], ['1', '켜기']], cfg.on ? '1' : '0', '아침에 오늘 일정 받기', 150), 'tall') +
     (cfg.on ? '<div class="set-ctl"><input type="time" id="bx-rep-t" class="inp big-time" step="300" value="' + cfg.at + '"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span></div>' : '') +
     bxLevelSetHtml() + bxLockSetHtml();
 }
@@ -56,7 +56,7 @@ function bxLockSetHtml(){
   const cur = bxLockMode();
   return '<div class="bx-lockset" role="radiogroup" aria-label="잠금 화면에 보여 줄 것"><b class="bx-lock-h">잠금 화면에 보여 줄 것</b>' +
     BX_LOCK.map(o => '<button type="button" class="bx-lock-o" role="radio" aria-checked="' + (o[0] === cur) + '" data-bxlock="' + o[0] + '"><i aria-hidden="true"></i><span><b>' + o[1] + (o[0] === 'alarm' ? ' <small>기본</small>' : '') + '</b><small>' + o[2] + '</small></span></button>').join('') +
-    '<p class="p small">아침 보고와 루틴 진행 알림은 늘 잠금을 풀어야 보여요.</p></div>';
+    '<p class="p small">아침에 오늘 일정 알림과 루틴 진행 알림은 늘 잠금을 풀어야 보여요.</p></div>';
 }
 document.addEventListener('click', ev => {
   const b = ev.target.closest && ev.target.closest('[data-bxlock]'); if (!b || !window.BX_APP) return;

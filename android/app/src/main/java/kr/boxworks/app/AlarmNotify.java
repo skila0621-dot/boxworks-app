@@ -104,8 +104,9 @@ final class AlarmNotify {
         if (r == null) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager nm = c.getSystemService(NotificationManager.class);
-            if (nm != null && nm.getNotificationChannel(CHANNEL_REPORT) == null) {
-                NotificationChannel ch = new NotificationChannel(CHANNEL_REPORT, "아침 보고", NotificationManager.IMPORTANCE_DEFAULT);
+            // 이름이 바뀌어도(11/1 "아침 보고" → "아침에 오늘 일정") 이미 있는 채널의 이름·설명만 새로 쓴다. 중요도·잠금 화면 표시는 처음 값 그대로
+            if (nm != null) {
+                NotificationChannel ch = new NotificationChannel(CHANNEL_REPORT, "아침에 오늘 일정", NotificationManager.IMPORTANCE_DEFAULT);
                 ch.setDescription("하루를 시작할 때 오늘 일정을 요약해 보여 줘요");
                 ch.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
                 nm.createNotificationChannel(ch);
@@ -134,7 +135,7 @@ final class AlarmNotify {
             .setContentTitle(title)
             .setContentText(text.split("\n", 2)[0])
             .setStyle(new NotificationCompat.BigTextStyle().setBigContentTitle(title).bigText(text))
-            .setSubText("아침 보고")
+            .setSubText("오늘 일정")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
