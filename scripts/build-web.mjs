@@ -142,7 +142,7 @@ window.BX_alarmPlan = function(days){
           a.series = base;
           a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴'; a.lv = lvR;
           if (!j && !bowl) { a.rid = rt.id; a.ds = ds; a.leave = leaveAt; a.steps = steps; }
-          if (bowl) { a.sound = 'bowl'; a.bowl = bxBowlType(); }
+          if (bowl) { a.sound = 'bowl'; a.bowl = rt.bowl || bxBowlType(); }
           (j ? reps : out).push(a);
         }
       });
@@ -152,7 +152,7 @@ window.BX_alarmPlan = function(days){
       // 싱잉볼 루틴(명상 등): 마지막 단계가 끝날 때 끝 종 세 번. 확인 안 한 단계 알림은 하지 않는다
       if (bowl && endM != null && rows.length && rows[rows.length - 1].min > 0) {
         const te = addMin(day, endM).getTime();
-        if (te > now && te <= until && !doneMap[rows[rows.length - 1].id]) out.push({id: 'r_' + rt.id + '_' + ds + '_end', at: te, kind: 'item', sound: 'bowl3', bowl: bxBowlType(), group: rt.name || '루틴', title: (rt.name || '루틴') + ' 끝', sub: '잘했어요', body: ''});
+        if (te > now && te <= until && !doneMap[rows[rows.length - 1].id]) out.push({id: 'r_' + rt.id + '_' + ds + '_end', at: te, kind: 'item', sound: 'bowl3', bowl: rt.bowl || bxBowlType(), group: rt.name || '루틴', title: (rt.name || '루틴') + ' 끝', sub: '잘했어요', body: ''});
       }
       if (todo.length && endM != null && !bowl) {
         const tc = addMin(day, endM + 10).getTime();

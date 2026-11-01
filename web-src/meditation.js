@@ -74,7 +74,7 @@ function medHtml(){
     // 종소리·중간 종·호흡 안내는 한 줄로 접는다(정리판 14번, 대표 결정 11/1). 접힌 줄에 지금 고른 값이 보인다
     '<details class="bx-med-more"' + (MED.moreOpen ? ' open' : '') + '><summary><span class="bx-mm-t"><b>소리와 호흡</b><small>' + esc(medMoreText()) + '</small></span>' + ICON.chevR + '</summary>' +
     '<div class="fg-l tv-h">종소리</div><div class="picks bx-bowl-picks">' + BX_BOWLS.map(b => '<button type="button" class="pick" data-bxbowl="' + b[0] + '" aria-pressed="' + (bxBowlType() === b[0]) + '">' + b[1] + '</button>').join('') + '</div>' +
-    '<p class="p small bx-med-note">누르면 바로 들어 볼 수 있어요. 루틴의 싱잉볼 소리도 같이 바뀌어요.</p>' +
+    '<p class="p small bx-med-note">누르면 바로 들어 볼 수 있어요.</p>' +
     '<div class="fg-l tv-h">중간 종 · 다시 치는 간격</div><div class="picks">' + pick('data-med-bell', 0, MED.bellS, '없음') +
       MED_BELLS.filter(b => b[0] < MED.min * 60).map(b => pick('data-med-bell', b[0], MED.bellCust ? -1 : MED.bellS, b[1] + '마다')).join('') +
       '<button type="button" class="pick" data-med-bellc="1" aria-pressed="' + !!(MED.bellCust && MED.bellS) + '">직접 입력</button></div>' +

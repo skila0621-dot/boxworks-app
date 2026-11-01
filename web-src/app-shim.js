@@ -304,6 +304,8 @@
     // 일정 꾹 누르기 메뉴: 지우기는 주의 색, 꾹 누르는 동안 글자가 잡히지 않게
     '.bx-app .menu-row.bx-im-del .ml,.bx-app .menu-row.bx-im-del .mi{color:var(--danger,#C62828)}.bx-app .row .row-main,.bx-app .c-chip{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}',
     '.bx-app .bx-bowl-picks{margin-top:8px}',
+    // 루틴 고치기 창 '알려 주는 방식'(대표 결정 11/1): 설정의 잠금 화면 고르기와 같은 모양
+    '.bx-app .bx-notify .bx-lockset{margin-top:4px;padding-top:0;border-top:0}.bx-app .bx-notify .bx-lock-o:last-child{border-bottom:0}.bx-app #bx-rrep,.bx-app #bx-rbowl{margin-top:6px}',
     // 명상: '소리와 호흡' 접힌 줄(지금 고른 값이 보임)
     '.bx-app .bx-med-more{margin-top:16px;border-top:1px solid var(--line)}.bx-app .bx-med-more > summary{display:flex;align-items:center;gap:10px;min-height:60px;list-style:none;cursor:pointer}.bx-app .bx-med-more > summary::-webkit-details-marker{display:none}',
     '.bx-app .bx-mm-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.bx-app .bx-mm-t b{font-size:15.5px}.bx-app .bx-mm-t small{font-size:13px;color:var(--ink-2)}.bx-app .bx-med-more > summary .i{width:18px;height:18px;color:var(--ink-3);transition:transform .15s}.bx-app .bx-med-more[open] > summary .i{transform:rotate(90deg)}',

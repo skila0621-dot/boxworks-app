@@ -91,6 +91,16 @@ export default [
     replace: "  {id:'c_work', name: window.BX_APP ? '일·공부' : '업무', color:'#2a78d6', order:1},"
   },
   {
+    name: '정리판 · 루틴 고치기 창(앱)은 web-src/rticons.js의 bxDrawRoutine: 이름 → 알려 주는 방식(대표 결정 11/1) → 언제 → 단계 → 아이콘',
+    find: "function drawRoutine(){\n  const days = [1, 2, 3, 4, 5, 6, 0]",
+    replace: "function drawRoutine(){\n  if (window.BX_APP) return bxDrawRoutine();\n  const days = [1, 2, 3, 4, 5, 6, 0]"
+  },
+  {
+    name: '└ 싱잉볼 종류를 루틴마다 저장(명상 화면의 종소리와 따로)',
+    find: "sound: o.sound === 'bowl' ? 'bowl' : null};",
+    replace: "sound: o.sound === 'bowl' ? 'bowl' : null, bowl: typeof o.bowl === 'string' && o.bowl ? o.bowl.slice(0, 12) : null};"
+  },
+  {
     name: '정리판 · 처음 그릴 때 뺀 설정 값 되돌리기(메인 색 파랑, 분류 색 켬)',
     find: "  if (M.settings.accent && M.settings.accent !== lsGet('bx:accent')) applyAccent(M.settings.accent);",
     replace: "  if (window.BX_APP) bxTidyBoot();\n  if (M.settings.accent && M.settings.accent !== lsGet('bx:accent')) applyAccent(M.settings.accent);"
