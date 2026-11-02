@@ -34,6 +34,14 @@ jobs:
           npm ci
           npm run sync
 
+      # 알람 계산·말 해석·자료 지키기·첫 실행을 헤드리스 크롬으로 확인한다. 하나라도 틀리면 설치 파일을 만들지 않는다
+      - name: 자동 시험
+        run: |
+          npm i --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+          set -o pipefail
+          node tests/run.cjs 2>&1 | tee "$GITHUB_WORKSPACE/test.log"
+
       - name: 설치 파일(APK) 만들기
         working-directory: android
         env:
@@ -83,6 +91,7 @@ jobs:
           mkdir -p /tmp/ci && cd /tmp/ci
           git init -q -b ci-results
           echo "run=${{ github.run_number }} sha=${{ github.sha }} result=${{ job.status }}" > status.txt
+          cp "$GITHUB_WORKSPACE/test.log" . 2>/dev/null || true
           if [ -f "$GITHUB_WORKSPACE/build.log" ]; then grep -E "error:|e: |FAILURE|What went wrong|BUILD (SUCCESSFUL|FAILED)" -A6 "$GITHUB_WORKSPACE/build.log" | head -200 > errors.txt || true; tail -80 "$GITHUB_WORKSPACE/build.log" > build-tail.txt; fi
           cp "$GITHUB_WORKSPACE"/boxworks-test-*.apk . 2>/dev/null || true
           cp "$GITHUB_WORKSPACE"/boxworks-*.aab . 2>/dev/null || true

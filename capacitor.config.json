@@ -3,8 +3,7 @@
   "appName": "박스웍스",
   "webDir": "www",
   "android": {
-    "allowMixedContent": false,
-    "webContentsDebuggingEnabled": true
+    "allowMixedContent": false
   },
   "plugins": {
     "SystemBars": {

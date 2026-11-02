@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.UserManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.HashSet;
@@ -40,8 +41,34 @@ public final class AlarmStore {
         }
     }
 
+    private static volatile boolean moved;
+
+    /**
+     * 알람 목록은 '기기 보호 저장소'에 둔다. 휴대폰을 다시 켠 뒤 잠금을 처음 풀기 전에도 읽어서 알람을 다시 걸 수 있다
+     * (전에는 잠금을 풀 때까지 알람이 하나도 없었음, 문제점 점검 기술 2). 예전 저장소에 있던 목록은 잠금이 풀려 있을 때 한 번 옮긴다.
+     */
     private static SharedPreferences prefs(Context c) {
-        return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        Context dp = c.createDeviceProtectedStorageContext();
+        if (!moved && unlocked(c)) {
+            moved = true;
+            try {
+                dp.moveSharedPreferencesFrom(c, PREFS);
+            } catch (Exception ignored) {
+            }
+        }
+        return dp.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    /** 잠금을 한 번이라도 풀었는지(풀기 전에는 위젯·진행 알림처럼 보통 저장소를 쓰는 일은 하지 않는다) */
+    static boolean unlocked(Context c) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return true;
+        try {
+            UserManager um = (UserManager) c.getSystemService(Context.USER_SERVICE);
+            return um == null || um.isUserUnlocked();
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     /**
@@ -222,6 +249,31 @@ public final class AlarmStore {
         save(c, stored);
     }
 
+    /**
+     * 휴대폰이 꺼져 있는 동안 지나간 알람(울린 알람은 목록에서 지워지므로 남아 있는 지난 알람이 놓친 것).
+     * 단계 묶음(series) 하나를 하나로 세고, 목록에서 지운다. 아침 보고·명상 종·'곧 끝나요'는 세지 않는다.
+     */
+    static synchronized int takeMissed(Context c, long withinMs) {
+        long now = System.currentTimeMillis();
+        JSONArray prev = load(c);
+        JSONArray stored = new JSONArray();
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < prev.length(); i++) {
+            JSONObject o = prev.optJSONObject(i);
+            if (o == null) continue;
+            long at = o.optLong("at", 0);
+            if (at > now) { stored.put(o); continue; }
+            String id = o.optString("id");
+            boolean skip = "report".equals(o.optString("kind")) || o.optString("sound").startsWith("bowl") || id.startsWith("med_") || "bx_renew".equals(id);
+            if (!skip && now - at <= withinMs) {
+                String series = o.optString("series", "");
+                seen.add(series.isEmpty() ? id : series);
+            }
+        }
+        save(c, stored);
+        return seen.size();
+    }
+
     /** 재부팅·앱 업데이트·시간 변경 뒤 저장해 둔 알람을 다시 예약한다. */
     static synchronized void rescheduleAll(Context c) {
         long now = System.currentTimeMillis();
@@ -260,8 +312,8 @@ public final class AlarmStore {
         boolean exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms();
         try {
             // 명상 종(med_)은 화면이 꺼져 있어도 30초 간격까지 정확히 울려야 해서 알람(setAlarmClock)으로 건다
-            if ("report".equals(o.optString("kind")) || (o.optString("sound").startsWith("bowl") && !id.startsWith("med_"))) {
-                // 아침 보고는 알람이 아니라 알림이라 상태 표시줄의 '다음 알람'에 넣지 않는다
+            if ("report".equals(o.optString("kind")) || "bx_renew".equals(id) || (o.optString("sound").startsWith("bowl") && !id.startsWith("med_"))) {
+                // 아침 보고와 '알람이 곧 끝나요'는 알람이 아니라 알림이라 상태 표시줄의 '다음 알람'에 넣지 않는다
                 if (exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
                 else am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
             } else if (exact) {
@@ -273,7 +325,12 @@ public final class AlarmStore {
                 am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
             }
         } catch (SecurityException e) {
-            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
+            try {
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
+            } catch (Exception ignored) {
+            }
+        } catch (IllegalStateException e) {
+            // 앱 하나가 걸 수 있는 알람(500개)을 넘었다. 나머지 예약은 계속한다
         }
     }
 

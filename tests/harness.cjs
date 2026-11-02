@@ -1,0 +1,88 @@
+// 자동 시험 도구. 앱 화면(www/index.html)을 헤드리스 크롬에서 열고, 휴대폰 쪽 기능(Capacitor 플러그인)은 흉내 낸다.
+// 먼저 `node scripts/build-web.mjs`로 www/index.html을 만든 뒤 `node tests/run.cjs`로 돌린다.
+const { chromium } = require('playwright');
+const path = require('path');
+const fs = require('fs');
+const { pathToFileURL } = require('url');
+
+const ROOT = path.resolve(__dirname, '..');
+const APP = path.join(ROOT, 'www', 'index.html');
+const APP_URL = pathToFileURL(APP).href;
+
+// 시험에 쓰는 '지금': 2026년 11월 2일 월요일 오전 6시 50분(한국 시각)
+const NOW = '2026-11-02T06:50:00+09:00';
+
+const ymdOf = ms => {
+  const d = new Date(ms + 9 * 3600e3);
+  return d.toISOString().slice(0, 10);
+};
+const hmOf = ms => new Date(ms + 9 * 3600e3).toISOString().slice(11, 16);
+
+/** 첫 실행을 마친 사용자 설정. mods로 켠 기능을 바꾼다 */
+function settings(extra = {}) {
+  const old = '2026-10-29T00:00:00.000Z';
+  return Object.assign({ type: 'settings', weekStart: 1, onboarded: true, welcomed: true,
+    bxStart: { at: old, mods: { report: false, routines: true, tt: true, med: true } }, bxRtHelp: { at: old }, bxTtHelp: { at: old } }, extra);
+}
+
+/**
+ * 앱을 연다.
+ * now: 시계 · data: [[id, 문서], ...] (처음 한 번만 넣는다) · perms: 알람 권한 상태 · speech: true | false | null(플러그인 없음)
+ */
+async function openApp({ now = NOW, data = null, perms = null, speech = true } = {}) {
+  if (!fs.existsSync(APP)) throw new Error('www/index.html이 없습니다. 먼저 node scripts/build-web.mjs');
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Seoul', locale: 'ko-KR' });
+  await ctx.addInitScript(({ data, perms, speech }) => {
+    window.__sync = [];
+    window.__perm = perms || { notifications: true, exact: true, fullScreen: true, battery: true };
+    const plugins = {
+      BxAlarm: {
+        sync: async x => { window.__sync.push(x); return {}; },
+        status: async () => window.__perm,
+        requestNotifications: async () => window.__perm,
+        confirmed: async () => ({ done: {} }),
+        local: async () => ({}), cancelLocal: async () => ({}), bowl: async () => {}, test: async () => ({}), openSettings: async () => ({})
+      },
+      BxWidget: { update: async () => {}, consumeLaunch: async () => ({}), placed: async () => ({ list: 0, now: 0, canPin: true }), pin: async () => ({ asked: true }) }
+    };
+    if (speech !== null) {
+      plugins.BxSpeech = {
+        available: async () => ({ available: speech === true }),
+        listen: async () => ({ text: '' }), listenLong: async () => ({ text: '' }), stop: async () => ({}),
+        addListener: () => ({ remove() {} })
+      };
+    }
+    window.Capacitor = { isNativePlatform: () => true, Plugins: plugins };
+    // 자료는 이 창에서 처음 열 때 한 번만 넣는다(다시 불러와도 앱이 저장한 것을 그대로 쓰게)
+    if (data && !sessionStorage.getItem('__seeded')) {
+      localStorage.setItem('bx:data', JSON.stringify(data));
+      sessionStorage.setItem('__seeded', '1');
+    }
+  }, { data, perms, speech });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.clock.setSystemTime(new Date(now));
+  await page.goto(APP_URL);
+  await ready(page);
+  return { browser, page, errors, close: () => browser.close() };
+}
+
+/** 앱이 다 뜰 때까지 기다린다(느린 CI에서도 같은 결과가 나오게) */
+async function ready(page) {
+  await page.waitForFunction(() => window.BX_T && typeof window.BX_alarmPlan === 'function' && (document.querySelector('.dock') || document.getElementById('bx-start')), null, { timeout: 20000 });
+  await page.waitForTimeout(500);
+}
+
+/** 간단한 확인 도구: 실패를 모아 두었다가 끝에 한꺼번에 알린다 */
+function checker(name) {
+  const fails = [];
+  let n = 0;
+  const ok = (cond, msg) => { n++; if (!cond) fails.push(msg); };
+  const eq = (got, want, msg) => ok(JSON.stringify(got) === JSON.stringify(want), msg + ' — 기대 ' + JSON.stringify(want) + ', 실제 ' + JSON.stringify(got));
+  const done = () => ({ name, n, fails });
+  return { ok, eq, done };
+}
+
+module.exports = { ROOT, NOW, openApp, ready, settings, checker, ymdOf, hmOf };

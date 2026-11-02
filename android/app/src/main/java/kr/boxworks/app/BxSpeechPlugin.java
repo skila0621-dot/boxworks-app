@@ -94,6 +94,27 @@ public class BxSpeechPlugin extends Plugin {
         else call.reject("마이크 권한이 없어요", "denied");
     }
 
+    /**
+     * 이 휴대폰에서 음성 인식을 쓸 수 있는지. 없으면 화면이 마이크를 숨기고 키보드의 마이크로 안내한다(D-10 보완 11/2).
+     * 앱 안에서 듣기(SpeechRecognizer)나 휴대폰 기본 음성 인식 창(RecognizerIntent) 가운데 하나라도 되면 쓸 수 있다고 본다.
+     */
+    @PluginMethod
+    public void available(PluginCall call) {
+        boolean ok = false;
+        try {
+            ok = SpeechRecognizer.isRecognitionAvailable(getContext());
+            if (!ok) {
+                Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                ok = i.resolveActivity(getContext().getPackageManager()) != null;
+            }
+        } catch (Exception ignored) {
+            ok = true; // 확인하다 실패하면 마이크를 숨기지 않는다(누르면 그때 안내)
+        }
+        JSObject r = new JSObject();
+        r.put("available", ok);
+        call.resolve(r);
+    }
+
     /** '끝'을 눌렀을 때. 지금까지 들은 것을 마무리해 listenLong에 돌려준다. */
     @PluginMethod
     public void stop(PluginCall call) {

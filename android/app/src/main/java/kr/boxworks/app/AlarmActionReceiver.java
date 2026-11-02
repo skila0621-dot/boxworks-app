@@ -15,7 +15,7 @@ public class AlarmActionReceiver extends BroadcastReceiver {
             return;
         }
         if ("ongoing-x".equals(act)) {
-            RoutineOngoing.hide(context);
+            if (AlarmStore.unlocked(context)) RoutineOngoing.hide(context);
             return;
         }
         JSONObject o = AlarmNotify.fromIntent(intent);
@@ -25,7 +25,10 @@ public class AlarmActionReceiver extends BroadcastReceiver {
         AlarmNotify.dismiss(context, o.optString("id"));
         AlarmActivity.handledElsewhere(o.optString("id"), o.optString("series"));
         // 위젯의 '확인'(widget=true)도 같은 동작: 남은 다시 알림을 지우고 진행 알림·위젯을 고친다
-        RoutineOngoing.post(context);
-        BxWidgetProvider.refreshAll(context);
+        // 잠금을 풀기 전에는 진행 알림·위젯이 쓰는 저장소를 읽을 수 없어 건너뛴다
+        if (AlarmStore.unlocked(context)) {
+            RoutineOngoing.post(context);
+            BxWidgetProvider.refreshAll(context);
+        }
     }
 }

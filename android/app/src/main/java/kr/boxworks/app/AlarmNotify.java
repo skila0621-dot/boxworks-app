@@ -1,5 +1,6 @@
 package kr.boxworks.app;
 
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,8 +11,10 @@ import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /** 알람이 울릴 때 띄우는 알림. 잠금 화면에서는 AlarmActivity가 화면 전체로 뜬다. */
@@ -196,6 +199,7 @@ final class AlarmNotify {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setSilent(true)
             .setAutoCancel(true)
+            .setTimeoutAfter(30 * 60 * 1000L)
             .setContentIntent(openPi);
         if (!o.optString("series").isEmpty()) b.addAction(0, "확인", actionPi(c, "ok", o));
         try {
@@ -262,6 +266,8 @@ final class AlarmNotify {
             .setContentIntent(openPi)
             .addAction(0, "확인", actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+        // 지난 일정 알림이 알림창에 쌓이지 않게 6시간 뒤 저절로 지운다('알람이 곧 끝나요'는 남긴다)
+        if (!"bx_renew".equals(id)) b.setTimeoutAfter(6 * 3600 * 1000L);
         try {
             NotificationManagerCompat.from(c).notify(notifId(id), b.build());
         } catch (SecurityException ignored) {
@@ -303,6 +309,8 @@ final class AlarmNotify {
             .setAutoCancel(true)
             .setContentIntent(openPi)
             .setFullScreenIntent(fullPi, true)
+            // 지난 알람이 알림창에 쌓이지 않게(아이콘 숫자 17, 대표 확인 11/2): 루틴 단계는 1시간 반, 그 밖은 3시간 뒤 저절로 지운다
+            .setTimeoutAfter("routine".equals(o.optString("kind")) ? 90 * 60 * 1000L : 3 * 3600 * 1000L)
             .addAction(0, "확인", actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
         if (!all) {
@@ -316,10 +324,91 @@ final class AlarmNotify {
                 .addAction(0, "5분 뒤", actionPi(c, "snooze", o))
                 .build());
         }
+        Notification n = b.build();
+        // 휴대폰을 쓰는 중이면 전체 화면 대신 위에서 내려오는 알림만 떠서 소리가 한 번으로 끝났다(문제점 점검 기술 3).
+        // 그때와 전체 화면을 쓸 수 없을 때는 확인하거나 알림창을 열 때까지 소리를 되풀이한다. 전체 화면이 뜰 때는 알람 화면이 직접 울린다
+        if (insist(c)) n.flags |= Notification.FLAG_INSISTENT;
         try {
-            NotificationManagerCompat.from(c).notify(notifId(id), b.build());
+            NotificationManagerCompat.from(c).notify(notifId(id), n);
         } catch (SecurityException ignored) {
             // 알림 권한이 꺼져 있으면 띄우지 못한다. 휴대폰 설정에서 다시 켤 수 있다.
+        }
+    }
+
+    /** 휴대폰을 켜고 쓰는 중이거나(잠금 풀림), 전체 화면 알람을 쓸 수 없는지 */
+    static boolean insist(Context c) {
+        try {
+            if (Build.VERSION.SDK_INT >= 34) {
+                NotificationManager nm = c.getSystemService(NotificationManager.class);
+                if (nm != null && !nm.canUseFullScreenIntent()) return true;
+            }
+            PowerManager pm = (PowerManager) c.getSystemService(Context.POWER_SERVICE);
+            KeyguardManager km = (KeyguardManager) c.getSystemService(Context.KEYGUARD_SERVICE);
+            return pm != null && pm.isInteractive() && (km == null || !km.isKeyguardLocked());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * 알람이 울리기 전에 지난 알림을 지운다: 같은 단계의 앞 알림·다시 알림·5분 뒤, 그리고 이 루틴의 앞 단계들.
+     * 전에는 울릴 때마다 알림이 하나씩 쌓여 앱 아이콘 숫자가 17까지 올라갔다(대표 확인 11/2).
+     */
+    static void tidyBefore(Context c, JSONObject o) {
+        String id = o.optString("id");
+        String series = o.optString("series", "");
+        if (!series.isEmpty()) dismissSeries(c, series, id);
+        JSONArray steps = o.optJSONArray("steps");
+        long at = o.optLong("at", 0);
+        if (steps == null) return;
+        for (int i = 0; i < steps.length(); i++) {
+            JSONObject st = steps.optJSONObject(i);
+            if (st == null) continue;
+            String s = st.optString("s", "");
+            if (s.isEmpty() || s.equals(series) || st.optLong("at", 0) >= at) continue;
+            dismissSeries(c, s, null);
+        }
+    }
+
+    /** 한 단계 묶음의 알림(처음 것, 다시 알림 1~12번, 5분 뒤)을 지운다. keep은 남긴다 */
+    static void dismissSeries(Context c, String series, String keep) {
+        String[] ids = new String[14];
+        ids[0] = series;
+        ids[1] = series + "_s";
+        for (int j = 1; j <= 12; j++) ids[j + 1] = series + "_r" + j;
+        for (String x : ids) if (keep == null || !keep.equals(x)) dismiss(c, x);
+    }
+
+    /** 알림 한 장(놓친 알람, 시간대 바뀜). 위에서 내려오는 일정 알림 채널을 쓴다 */
+    static void showInfo(Context c, int notifId, String title, String text) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = c.getSystemService(NotificationManager.class);
+            if (nm != null && nm.getNotificationChannel(CHANNEL_NOTICE) == null) {
+                NotificationChannel nc = new NotificationChannel(CHANNEL_NOTICE, "일정 알림", NotificationManager.IMPORTANCE_HIGH);
+                nc.setDescription("위에서 내려오고 소리가 한 번 나요");
+                nc.enableVibration(true);
+                nc.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+                nm.createNotificationChannel(nc);
+            }
+        }
+        Intent open = new Intent(c, MainActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent openPi = PendingIntent.getActivity(c, notifId, open,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL_NOTICE)
+            .setSmallIcon(R.drawable.ic_stat_bx)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(true)
+            .setTimeoutAfter(12 * 3600 * 1000L)
+            .setContentIntent(openPi);
+        try {
+            NotificationManagerCompat.from(c).notify(notifId, b.build());
+        } catch (SecurityException ignored) {
         }
     }
 

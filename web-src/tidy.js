@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 28;
+const BX_TRIAL = 29;
 
 /* 설정(앱): 화면 · 휴대폰 캘린더 · 알림 · 분류·데이터 · 데이터 초기화 · 정보.
    뺀 것: 메인 색(색은 파랑 하나, 10/31 결정), 분류 색 표시(늘 켬), 공휴일 데이터, 사용 설명서(웹 시절 내용), 웹의 연동·아침 일정 보고 칸 */
@@ -66,3 +66,13 @@ function bxShowDay(ds){
   if (S.view !== 'today') go('today'); else render();
 }
 const BX_UP_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M12 15V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg>';
+
+/* 자동 시험(tests/)이 쓰는 고리. 화면에서는 쓰지 않는다 */
+window.BX_T = {
+  backup: () => bxBackupText(),
+  restore: text => importJson({text: async () => text}),
+  docs: () => Array.from(allDocs().entries()),
+  write: (id, doc) => writeDoc(id, doc),
+  reset: kind => doReset(kind || 'all'),
+  banner: () => { const b = document.getElementById('banner'); return b && !b.hidden ? b.textContent : ''; }
+};

@@ -259,6 +259,7 @@
     '#bx-start .bxs-in{min-height:100%;box-sizing:border-box;max-width:560px;margin:0 auto;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 14px) 22px calc(env(safe-area-inset-bottom,0px) + 24px)}',
     '#bx-start .bxs-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}',
     '#bx-start .bxs-dots{display:flex;gap:6px}#bx-start .bxs-dots span{width:6px;height:6px;border-radius:3px;background:var(--line-2)}#bx-start .bxs-dots span.on{width:22px;background:var(--accent)}#bx-start .bxs-dots span.done{background:var(--accent)}',
+    '#bx-permbar{display:flex;align-items:center;gap:10px;margin:10px 16px 0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--danger) 12%,var(--bg));color:var(--danger);font-size:14px;font-weight:600;line-height:1.45}#bx-permbar span{flex:1}#bx-permbar .btn{flex:none}',
     '#bx-start .bxs-skip{min-height:44px;padding:0 6px;color:var(--ink-2);font-size:14px;background:transparent}',
     '#bx-start .bxs-back-i{width:44px;height:44px;margin-left:-12px;display:flex;align-items:center;justify-content:center;color:var(--ink)}#bx-start .bxs-back-i .i{width:22px;height:22px}',
     '#bx-start .bxs-tt{flex:1;font-size:15px;font-weight:700;color:var(--ink-2)}',
@@ -517,7 +518,7 @@
     });
   }
 
-  // 휴대폰 알람(2단계). 박스웍스가 계산한 앞으로 7일의 알람 목록을 휴대폰에 예약한다.
+  // 휴대폰 알람(2단계). 박스웍스가 계산한 앞으로 14일의 알람 목록을 휴대폰에 예약한다(끝나기 전날 '알람이 곧 끝나요').
   // 목록이 바뀐 때만 다시 예약하고, 알림 권한은 알람이 처음 생길 때 한 번만 묻는다(D-01).
   var alarm = plugin('BxAlarm');
   var memo = {
@@ -528,12 +529,14 @@
     var lastSig = null, lastWidget = null, timer = null, checked = false;
     var syncAlarms = async function () {
       if (typeof window.BX_alarmPlan !== 'function') return;
-      var list = window.BX_alarmPlan(7);
+      var list = window.BX_alarmPlan(14);
       if (!list) return;
+      var real = list.filter(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; }).length;
+      if ((real > 0) !== (permCount > 0)) { permCount = real; permCheck(); } else permCount = real;
       // 홈 화면 위젯(4안-6): 앞으로의 일정과 알람 시각을 넘긴다(아침 보고는 알람이 아니라 뺀다)
       var widget = plugin('BxWidget');
       if (widget && typeof window.BX_widgetData === 'function') {
-        var wd = window.BX_widgetData(list.filter(function (a) { return a.kind !== 'report'; }));
+        var wd = window.BX_widgetData(list.filter(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; }));
         var wsig = wd ? JSON.stringify({ i: wd.items, r: wd.routines, l: wd.late }) : null;
         if (wd && wsig !== lastWidget) { lastWidget = wsig; widget.update({ data: wd }).catch(function () { lastWidget = null; }); }
       }
@@ -545,7 +548,7 @@
       try { await alarm.sync({ alarms: list, lock: lock }); } catch (e) { lastSig = null; }
       // 처음 알람이 생길 때 알람 허락 화면(전체 흐름 와이어프레임 6). 빠진 허락이 있을 때 한 번만
       // 아침 보고만 있을 때는 묻지 않는다(사용자가 만든 첫 알람이 생길 때)
-      if (!checked && list.some(function (a) { return a.kind !== 'report'; })) { checked = true; permFirst(list); }
+      if (!checked && list.some(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; })) { checked = true; permFirst(list); }
     };
     // 알람 허락 화면이 쓰는 휴대폰 쪽 함수(web-src/start.js의 bxPermOpen)
     window.BX_perm = {
@@ -554,13 +557,44 @@
       open: function (which) { return alarm.openSettings({ which: which }); },
       test: function () { return alarm.test({ seconds: 10 }); }
     };
+    // 알림이나 정확한 알람이 꺼져 있으면 홈 맨 위에 빨간 줄(문제점 점검 기술 9). 앱을 열 때·돌아올 때·알람이 처음 생길 때 확인
+    var permCount = 0;
+    var permCheck = function () {
+      Promise.resolve(alarm.status()).then(function (st) {
+        var bad = permCount > 0 && st ? (!st.notifications ? 'notifications' : !st.exact ? 'exact' : '') : '';
+        var el = document.getElementById('bx-permbar');
+        if (!bad) { if (el) el.remove(); return; }
+        if (!el) {
+          var host = document.getElementById('banner');
+          if (!host || !host.parentNode) return;
+          el = document.createElement('div');
+          el.id = 'bx-permbar';
+          el.setAttribute('role', 'alert');
+          host.parentNode.insertBefore(el, host.nextSibling);
+        }
+        el.setAttribute('data-which', bad);
+        el.innerHTML = '<span>' + (bad === 'notifications' ? '알림이 꺼져 있어 알람이 울리지 않아요' : '정확한 알람이 꺼져 있어 알람이 늦을 수 있어요') + '</span><button type="button" class="btn sm" data-act="bx-perm-fix">켜기</button>';
+      }).catch(function () {});
+    };
+    window.BX_permCheck = permCheck;
+    document.addEventListener('click', function (ev) {
+      var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-perm-fix"]');
+      if (!b) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      var bar = document.getElementById('bx-permbar'), which = bar ? bar.getAttribute('data-which') : 'notifications';
+      var go = which === 'notifications'
+        ? Promise.resolve(alarm.requestNotifications()).then(function (st) { if (!st || !st.notifications) return alarm.openSettings({ which: 'notifications' }); permCheck(); })
+        : Promise.resolve(alarm.openSettings({ which: which }));
+      go.catch(function () {});
+    }, true);
     var permFirst = async function (list) {
       try {
         if (memo.get('bx:permShown') === '1' || typeof window.BX_permOpen !== 'function') return;
         var st = await alarm.status();
         if (st.notifications && st.exact && st.fullScreen) return;
         memo.set('bx:permShown', '1');
-        var first = list.filter(function (a) { return a.kind !== 'report'; })[0];
+        var first = list.filter(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; })[0];
         window.BX_permOpen(first ? first.at : 0, st);
       } catch (e) {}
     };
@@ -599,7 +633,7 @@
     };
     setTimeout(pullConfirmed, 1500);
     var app2 = plugin('App');
-    if (app2 && app2.addListener) app2.addListener('resume', function () { if (window.BX_permRefresh) window.BX_permRefresh(); lastSig = null; pullConfirmed(); window.BX_afterRender(); if (window.BX_pcRefresh) window.BX_pcRefresh(true); });
+    if (app2 && app2.addListener) app2.addListener('resume', function () { if (window.BX_permRefresh) window.BX_permRefresh(); permCheck(); lastSig = null; pullConfirmed(); window.BX_afterRender(); if (window.BX_pcRefresh) window.BX_pcRefresh(true); });
     // 설정 > 알림 > 휴대폰 알람 시험
     document.addEventListener('click', async function (ev) {
       var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-alarm-test"]');
@@ -670,6 +704,22 @@
   };
   if (speech) {
     window.BX_HAS_MIC = true;
+    // 음성 인식이 없는 휴대폰: 마이크를 숨기고, 일정 칸을 처음 누를 때 키보드 마이크를 안내한다(D-10 보완 11/2, P-17)
+    if (speech.available) {
+      Promise.resolve(speech.available()).then(function (r) {
+        if (!r || r.available !== false) return;
+        window.BX_HAS_MIC = false;
+        window.BX_NO_MIC = true;
+        if (window.BX_rerender) window.BX_rerender();
+      }).catch(function () {});
+    }
+    document.addEventListener('focusin', function (ev) {
+      var t = ev.target;
+      if (!window.BX_NO_MIC || !t || !/^(f-title|day-in|tt-in|rt-text|bx-rt-say)$/.test(t.id || '')) return;
+      if (memo.get('bx:noMicTold') === '1') return;
+      memo.set('bx:noMicTold', '1');
+      if (window.BX_toast) window.BX_toast('이 휴대폰에서는 박스웍스 마이크를 쓸 수 없어요. 키보드의 마이크로 말해도 똑같이 정리돼요.');
+    }, true);
     document.addEventListener('click', async function (ev) {
       var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-mic"]');
       if (!b) return;

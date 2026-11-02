@@ -253,8 +253,10 @@ public class AlarmActivity extends Activity {
             if (alarm.optJSONObject("report") != null) AlarmNotify.showReport(this, alarm.optJSONObject("report"));
             AlarmNotify.dismiss(this, alarm.optString("id"));
             dropSeries(alarm.optString("series", ""));
-            RoutineOngoing.post(this);
-            BxWidgetProvider.refreshAll(this);
+            if (AlarmStore.unlocked(this)) {
+                RoutineOngoing.post(this);
+                BxWidgetProvider.refreshAll(this);
+            }
             showNext();
         });
         root.addView(ok, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)));

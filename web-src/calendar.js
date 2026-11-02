@@ -7,6 +7,8 @@ const PC_CFG = 'bx:pcal', PC_CACHE = 'bx:pcache';
 const PC = {events: null, at: 0, busy: false, cals: null, calBusy: false, granted: null, colors: new Map()};
 const PC_SKIP = /공휴일|휴일|기념일|생일|holiday|birthday/i;
 const pcTvMemo = new Map();
+// 휴대폰 캘린더를 끄거나 권한을 거두면 읽어 둔 사본을 지운다(남의 일정이 남아 있었음, 문제점 점검 기술 13)
+function pcForget(){ PC.events = null; PC.at = 0; try { localStorage.removeItem(PC_CACHE); } catch (e) {} }
 function pcPlug(){ return (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BxCalendar) || null; }
 function pcCfg(){
   let o = {}; try { o = JSON.parse(lsGet(PC_CFG) || '{}') || {}; } catch (e) { o = {}; }
@@ -25,7 +27,7 @@ async function pcRefresh(force){
   PC.busy = true;
   try {
     const st = await pl.status(); PC.granted = !!(st && st.granted);
-    if (!PC.granted) { scheduleRender(); return; }
+    if (!PC.granted) { pcForget(); scheduleRender(); return; }
     const t0 = addDays(sod(new Date()), -14).getTime(), t1 = addDays(sod(new Date()), 63).getTime();
     const r = cfg.ids && !cfg.ids.length ? {events: []} : await pl.events(Object.assign({from: t0, to: t1}, cfg.ids ? {ids: cfg.ids} : {}));
     PC.events = ((r && r.events) || []).map(e => Object.assign({}, e, {description: String(e.description || '').slice(0, 600)}));
@@ -189,7 +191,7 @@ document.addEventListener('click', ev => {
     return;
   }
   const on = t.closest('[data-pc-on]');
-  if (on) { ev.stopPropagation(); if (on.dataset.pcOn === '1') pcEnable(); else { pcSetCfg({on: false}); M = buildModel(); scheduleRender(); } return; }
+  if (on) { ev.stopPropagation(); if (on.dataset.pcOn === '1') pcEnable(); else { pcSetCfg({on: false}); pcForget(); M = buildModel(); scheduleRender(); } return; }
   const al = t.closest('[data-pc-alarm]');
   if (al) { ev.stopPropagation(); pcSetCfg({alarm: al.dataset.pcAlarm === '1'}); M = buildModel(); scheduleRender(); return; }
   const cb = t.closest('[data-pc-cal]');

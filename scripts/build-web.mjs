@@ -8,6 +8,7 @@ import icons from './patches-icons.mjs';
 import fix10 from './patches-fix10.mjs';
 import home from './patches-home.mjs';
 import tidy from './patches-tidy.mjs';
+import safe from './patches-safe.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -174,11 +175,28 @@ window.BX_alarmPlan = function(days){
         pt: '시간표 알림', ps: lead + ' · 잠금을 풀면 보여요', pg: '시간표', lv: lvT});
     }
   });
-  // 휴대폰에 거는 알람은 최대 200개: 앞으로 7일의 기본 알람을 먼저, 남는 자리에 가까운 다시 알림부터
-  out.sort((a, b) => a.at - b.at);
-  const base = out.slice(0, 200);
-  // 아침 보고: 아침 루틴 첫 알람에 붙이거나, 없으면 정한 시각에 따로(web-src/brief.js)
-  return bxAddReports(base.concat(reps.sort((a, b) => a.at - b.at).slice(0, Math.max(0, 200 - base.length))), days).sort((a, b) => a.at - b.at);
+  // 휴대폰에 거는 알람은 최대 200개(앱 하나가 걸 수 있는 알람은 500개, 명상 종 몫을 남긴다). 고르는 순서(문제점 점검 기술 1):
+  // ① 앞으로 48시간의 알람과 다시 알림 ② 그 뒤의 첫 알람(최대 days일) ③ 남는 자리에 앞 7일의 다시 알림
+  const CAP = 200, near = now + 2 * 864e5, repEnd = now + 7 * 864e5, byAt = (a, b) => a.at - b.at;
+  out.sort(byAt); reps.sort(byAt);
+  const tierA = out.filter(a => a.at <= near).concat(reps.filter(a => a.at <= near)).sort(byAt);
+  const tierB = out.filter(a => a.at > near), tierC = reps.filter(a => a.at > near && a.at <= repEnd);
+  const pick = tierA.slice(0, CAP), takeB = tierB.slice(0, Math.max(0, CAP - pick.length));
+  // 알람이 이어지는 끝: 다 들어갔으면 계획 기간 끝, 잘렸으면 처음 빠진 알람 시각
+  const cut = tierA.length > CAP ? tierA[CAP].at : tierB.length > takeB.length ? tierB[takeB.length].at : until;
+  const plan = pick.concat(takeB, tierC.slice(0, Math.max(0, CAP - pick.length - takeB.length)));
+  // 아침 보고: 아침 루틴 첫 알람에 붙이거나, 없으면 정한 시각에 따로(web-src/brief.js). 알람이 끊기는 곳 뒤로는 걸지 않는다
+  const list = bxAddReports(plan, days).filter(a => a.kind !== 'report' || a.at < cut);
+  // 앱을 오래 열지 않는 사람: 알람이 끝나기 전날 낮 12시에 '알람이 곧 끝나요'. 앱을 열면 계획을 새로 세워 이 알림도 뒤로 밀린다
+  if (list.length) {
+    let t = addMin(sod(new Date(cut - 864e5)), 12 * 60).getTime();
+    if (t >= cut - 3 * 3600e3) t = cut - 3 * 3600e3;
+    if (t < now + 3600e3) t = now + 3600e3;
+    if (t < cut) list.push({id: 'bx_renew', at: t, kind: 'item', lv: 'notice', group: '박스웍스', icon: 'bell', title: '알람이 곧 끝나요',
+      sub: '앱을 한 번 열어 주세요', body: '앱을 한 번 열어 주세요. 열면 앞으로 2주 치 알람을 다시 걸어요.',
+      pt: '알람이 곧 끝나요', ps: '앱을 한 번 열어 주세요', pg: '박스웍스'});
+  }
+  return list.sort(byAt);
 };
 function hmOf(m){ m = Math.round(m); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 // 잠금 화면용 짧은 글: 시작까지 남은 시간만(일정 제목 없이)
@@ -355,7 +373,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy);
+patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;
