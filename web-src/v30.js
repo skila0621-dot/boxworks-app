@@ -87,6 +87,9 @@ document.addEventListener('click', ev => {
     '.bx-app .bx-ch-top .seg{grid-column:2;grid-row:1}',
     '.bx-app .bx-ch-top .bx-cal-lg{grid-column:1 / -1;grid-row:2;justify-self:center;margin-top:6px}',
     '.bx-app .bx-ch-top .bx-ch-today{grid-column:3;grid-row:1;justify-self:end}',
+    // 다 했어요 표시는 네모 칸(대표 지적 11/2: 수업 점·지금 줄·동그라미가 다 동그라미라 누르는 곳인지 모름). 루틴 단계 표시도 같게
+    '.bx-app .chk{border-radius:7px}',
+    '.bx-app .rt-chk{border-radius:7px;border-width:2px}',
     // 마이크에 '말하기' 글자
     '.bx-app .bx-mic{width:auto;min-width:44px;padding:0 14px 0 11px;gap:5px;font:inherit;font-size:14px;font-weight:800;white-space:nowrap}',
     '.bx-app .bx-mic svg{flex:none}'
