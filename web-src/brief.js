@@ -45,7 +45,8 @@ function bxAddReports(out, days){
 function bxReportSetHtml(){
   const cfg = bxRepCfg();
   return setRow('아침에 오늘 일정 받기', segHtml('data-bxrep', [['0', '끄기'], ['1', '켜기']], cfg.on ? '1' : '0', '아침에 오늘 일정 받기', 150), 'tall') +
-    (cfg.on ? '<div class="set-ctl"><input type="time" id="bx-rep-t" class="inp big-time" step="300" value="' + cfg.at + '"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span></div>' : '') +
+    // 켜기를 누른 자리 바로 아래 오른쪽에 시각(대표 지적 11/2, 규칙 12). 누르면 휴대폰 시계 창이 열린다
+    (cfg.on ? '<div class="bx-setsub"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span>' + bxTimeChip('bx-rep-t', cfg.at, '아침에 일정 받는 시각') + '</div>' : '') +
     bxLevelSetHtml() + bxLockSetHtml();
 }
 /* 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게) */

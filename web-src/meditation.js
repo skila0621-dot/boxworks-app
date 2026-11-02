@@ -3,12 +3,14 @@
    중간 종·끝 종이 휴대폰 알림으로 울린다(BxAlarm.local). 소리는 우리가 합성한 파일(scripts/sound/make-bowl.py)이라 저작권 걱정이 없다.
    진행 중인 명상과 설정은 이 휴대폰에만(localStorage), 명상한 시간 기록은 'medlog' 문서(백업에 들어감).
    앱 안 문구는 생활 습관 말로 쓴다(치료·증상 같은 말은 쓰지 않음: Play 건강 앱 분류). */
-const MED_KEY = 'bx:med', MED_MINS = [3, 5, 10, 15, 20];
+// 고르는 칸 규칙(규칙 11, D-10): 시간은 5·10·20분 + 직접 입력. 예전에 고른 3·15분은 직접 입력 값으로 보인다
+const MED_KEY = 'bx:med', MED_MINS = [5, 10, 20];
 // 싱잉볼 종류(2판, 대표 지적 10/31: 울림이 짧고 비어 버림 → 더 맑고 길게, 여러 가지). 루틴의 싱잉볼에도 같은 종류를 쓴다
 const BX_BOWLS = [['clear', '맑은 볼'], ['deep', '깊은 볼'], ['crystal', '크리스탈 볼'], ['chime', '작은 종']];
 function bxBowlType(){ const v = M && M.settings && M.settings.bxBowl; return BX_BOWLS.some(b => b[0] === v) ? v : 'clear'; }
 // 중간 종 간격(초). 30초~10분, 직접 입력(분). 명상 시간보다 짧은 것만 보인다
-const MED_BELLS = [[30, '30초'], [60, '1분'], [120, '2분'], [180, '3분'], [300, '5분'], [600, '10분']];
+// 규칙 11: 셋 + 직접 입력, '없음'은 아래 글자 단추. 예전에 고른 30초·2분·10분은 직접 입력 값으로 보인다
+const MED_BELLS = [[60, '1분'], [180, '3분'], [300, '5분']];
 function medBellText(sec){ return sec < 60 ? sec + '초' : (sec % 60 ? Math.floor(sec / 60) + '분 ' + (sec % 60) + '초' : sec / 60 + '분'); }
 // 직접 입력한 분(1–120)·중간 종 간격(분)은 바로 반영된다
 document.addEventListener('change', ev => {
@@ -67,18 +69,22 @@ function medHtml(){
       '</section>';
   }
   const pick = (attr, v, cur, label) => '<button type="button" class="pick" ' + attr + '="' + v + '" aria-pressed="' + (cur === v) + '">' + label + '</button>';
+  // 정해진 간격에 없는 값(직접 입력·예전 값)은 그 자리에서 입력칸으로
+  const bellCust = !!MED.bellS && (MED.bellCust || MED.bellOpen || !MED_BELLS.some(b => b[0] === MED.bellS));
   return head + '<section class="set-sec bx-med-set">' +
-    '<div class="fg-l">시간</div><div class="picks">' + MED_MINS.map(m => pick('data-med-min', m, MED.min, m + '분')).join('') +
-      '<button type="button" class="pick" data-med-custom="1" aria-pressed="' + !MED_MINS.includes(MED.min) + '">직접 입력</button></div>' +
-    (MED_MINS.includes(MED.min) && !MED.cust ? '' : '<label class="bx-med-cmin"><input id="bx-med-cmin" class="inp" type="number" inputmode="numeric" min="1" max="120" value="' + MED.min + '"><span>분</span></label>') +
+    // '직접 입력'은 그 칩 자리에서 입력칸이 된다(규칙 9·12)
+    '<div class="fg-l">시간</div><div class="picks">' + MED_MINS.map(m => pick('data-med-min', m, MED.cust ? -1 : MED.min, m + '분')).join('') +
+      (MED_MINS.includes(MED.min) && !MED.cust ? '<button type="button" class="pick" data-med-custom="1" aria-pressed="false">직접 입력</button>'
+        : '<span class="bx-cpick"><input id="bx-med-cmin" type="number" inputmode="numeric" min="1" max="120" value="' + MED.min + '" aria-label="명상 시간(분)"><span>분</span></span>') + '</div>' +
     // 종소리·중간 종·호흡 안내는 한 줄로 접는다(정리판 14번, 대표 결정 11/1). 접힌 줄에 지금 고른 값이 보인다
     '<details class="bx-med-more"' + (MED.moreOpen ? ' open' : '') + '><summary><span class="bx-mm-t"><b>소리와 호흡</b><small>' + esc(medMoreText()) + '</small></span>' + ICON.chevR + '</summary>' +
     '<div class="fg-l tv-h">종소리</div><div class="picks bx-bowl-picks">' + BX_BOWLS.map(b => '<button type="button" class="pick" data-bxbowl="' + b[0] + '" aria-pressed="' + (bxBowlType() === b[0]) + '">' + b[1] + '</button>').join('') + '</div>' +
     '<p class="p small bx-med-note">누르면 바로 들어 볼 수 있어요.</p>' +
-    '<div class="fg-l tv-h">중간 종 · 다시 치는 간격</div><div class="picks">' + pick('data-med-bell', 0, MED.bellS, '없음') +
-      MED_BELLS.filter(b => b[0] < MED.min * 60).map(b => pick('data-med-bell', b[0], MED.bellCust ? -1 : MED.bellS, b[1] + '마다')).join('') +
-      '<button type="button" class="pick" data-med-bellc="1" aria-pressed="' + !!(MED.bellCust && MED.bellS) + '">직접 입력</button></div>' +
-    (MED.bellCust && MED.bellS !== 0 || MED.bellOpen ? '<label class="bx-med-cmin"><input id="bx-med-cbell" class="inp" type="number" inputmode="numeric" min="1" max="60" value="' + (MED.bellS ? Math.max(1, Math.round(MED.bellS / 60)) : 5) + '"><span>분마다</span></label>' : '') +
+    '<div class="fg-l tv-h">중간 종 · 다시 치는 간격</div><div class="picks">' +
+      MED_BELLS.filter(b => b[0] < MED.min * 60).map(b => pick('data-med-bell', b[0], bellCust ? -1 : MED.bellS, b[1] + '마다')).join('') +
+      (bellCust ? '<span class="bx-cpick"><input id="bx-med-cbell" type="number" inputmode="numeric" min="1" max="60" value="' + (MED.bellS ? Math.max(1, Math.round(MED.bellS / 60)) : 5) + '" aria-label="중간 종 간격(분)"><span>분마다</span></span>'
+        : '<button type="button" class="pick" data-med-bellc="1" aria-pressed="false">직접 입력</button>') + '</div>' +
+    '<button type="button" class="bx-none" data-med-bell="0" aria-pressed="' + !MED.bellS + '">' + (!MED.bellS ? ICON.check : '') + '중간 종 없이</button>' +
     '<div class="fg-l tv-h">호흡 안내</div><div class="picks">' + pick('data-med-breath', 1, MED.breath ? 1 : 0, '켜기') + pick('data-med-breath', 0, MED.breath ? 1 : 0, '끄기') + '</div>' +
     '<p class="p small bx-med-note">호흡 안내를 켜면 원이 커질 때 들이쉬고(4초), 작아질 때 내쉬어요(6초).</p></details>' +
     '<div class="bx-med-acts"><button type="button" class="btn" data-act="bx-med-hear">' + bxIconSpan('music', '') + '종소리 듣기</button><button type="button" class="btn primary grow" data-act="bx-med-start">' + MED.min + '분 시작</button></div>' +
