@@ -75,5 +75,6 @@ window.BX_T = {
   docs: () => Array.from(allDocs().entries()),
   write: (id, doc) => writeDoc(id, doc),
   reset: kind => doReset(kind || 'all'),
+  day: ds => openDay(ds),
   banner: () => { const b = document.getElementById('banner'); return b && !b.hidden ? b.textContent : ''; }
 };

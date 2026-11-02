@@ -109,6 +109,17 @@ module.exports = async function () {
     c.eq(app.errors, [], '화면 오류(캘린더)');
   } finally { await app.close(); }
 
+  // 6) 날짜 창 아래(규칙 13): 넣는 칸이 흩어지지 않고, 넣기 단추는 창 맨 아래 가득 하나
+  app = await openApp({ data: data() });
+  try {
+    const p = app.page;
+    await p.evaluate(() => window.BX_T.day('2026-11-03')); await p.waitForTimeout(600);
+    const f = await p.evaluate(() => { const ft = document.querySelector('#sheet-root #sheet-f'); const bs = ft ? Array.from(ft.querySelectorAll('button,input')).filter(e => e.getBoundingClientRect().width > 0) : []; const r = bs[0] ? bs[0].getBoundingClientRect() : null; return { n: bs.length, t: bs.map(b => b.textContent.trim()), w: r ? Math.round(r.width) : 0, W: innerWidth }; });
+    c.ok(f.n === 1 && /이날 일정 넣기/.test(f.t[0]) && f.w > f.W * 0.8, '날짜 창 아래: 이날 일정 넣기 하나, 가득 ' + JSON.stringify(f));
+    await p.click('#sheet-root #sheet-f [data-act="new"]'); await p.waitForTimeout(500);
+    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="date"]') || {}).textContent.trim()), '내일', '같은 새 일정 창이 그 날짜(내일)로 열림');
+  } finally { await app.close(); }
+
   // 5) 명상: 5·10·20분 + 직접 입력, 직접 입력은 그 자리에서
   app = await openApp({ data: data() });
   try {
