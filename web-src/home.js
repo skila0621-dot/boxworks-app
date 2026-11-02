@@ -31,8 +31,6 @@ function bxFoldDecorate(){
     const sub = h.nextElementSibling && h.nextElementSibling.classList.contains('sec-sub') ? h.nextElementSibling : h;
     sub.after(b);
   });
-  // 시험판 30: 한 목록, 시각 순서로(web-src/v30.js)
-  if (typeof bxTimeline === 'function') bxTimeline();
   $$('.rt-sec .rt-card[data-rid]').forEach(c => {
     const rid = c.dataset.rid, st = c.querySelector('.rt-steps'), hd = c.querySelector('.rt-h');
     // '오늘 쉬기'는 단계를 펼친 곳 맨 아래로(정리판 5번). 쉬는 중의 '다시 켜기'는 그대로 위에
@@ -49,6 +47,8 @@ function bxFoldDecorate(){
     b.innerHTML = '단계 ' + n + '개 보기' + ICON_FOLD;
     hd.appendChild(b);
   });
+  // 시험판 30: 한 목록, 시각 순서로(web-src/v30.js). 루틴 카드를 다 꾸민 뒤에 옮긴다
+  if (typeof bxTimeline === 'function') bxTimeline();
 }
 function bxToggleFold(k){
   bxFold[k] = !bxFold[k]; bxSaveJson(BX_FOLD_KEY, bxFold); bxFoldApply();

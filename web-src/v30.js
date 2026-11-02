@@ -130,6 +130,11 @@ function bxTimeline(){
   ents.forEach(e => { if (!placed && e.t != null && e.t >= nowMin) { tl.append(nowLine); placed = true; } tl.append(e.el); });
   if (!placed) tl.append(nowLine);
   [rtSec, itSub, ttSub].forEach(x => { if (!x) return; x.querySelectorAll(':scope > :not(.sec-h):not(.list):not(.grp-h)').forEach(o => tl.after(o)); x.remove(); });
+  // 단계가 하나인 루틴: '오늘 쉬기'를 카드 아래 따로 두지 않고, 다른 루틴의 '단계 보기'와 같은 오른쪽 자리에(정렬, 대표 지적 11/2)
+  tl.querySelectorAll('.rt-card.bx-one').forEach(c => {
+    const sk = c.querySelector('.bx-rt-foot [data-act="rt-skip"]'), hd = c.querySelector('.rt-h');
+    if (sk && hd) { hd.appendChild(sk); const f = c.querySelector('.bx-rt-foot'); if (f) f.remove(); }
+  });
   // 칸별 접기는 쓰지 않는다(접어 둔 것이 있었으면 풀어 보인다)
   document.documentElement.classList.remove('bx-f-rt', 'bx-f-today', 'bx-f-tt');
 }
@@ -151,7 +156,13 @@ function bxTimeline(){
     '.bx-app .bx-tl-rt .rt-steps{margin-left:98px}',
     '.bx-app .bx-tl-late{margin-top:4px}',
     '.bx-app .bx-tl-late .list{border-top:0}',
-    '.bx-app .bx-tl .now-line{margin:0;border-bottom:0}'
+    '.bx-app .bx-tl .now-line{margin:0;border-bottom:0}',
+    // 줄마다 같은 칸(대표 지적 11/2: 아이콘 크기·새로 붙은 항목 때문에 정렬이 흐트러짐): 표시 24px(가운데 32px) · 시각 58px · 제목 118px
+    '.bx-app .bx-tl .bx-tl-rt .rt-h{column-gap:14px}',
+    '.bx-app .bx-tl .bx-tl-rt .rt-h .bx-ic.rt{width:24px;height:24px;border-radius:8px}',
+    '.bx-app .bx-tl .bx-tl-rt .rt-h .bx-ic.rt .i{width:15px;height:15px}',
+    '.bx-app .bx-tl .tt-row .tt-dot{margin:0 6px}',
+    '.bx-app .bx-tl .rt-h [data-act="rt-skip"]{flex:none;white-space:nowrap;min-height:36px;padding:0 4px}'
   ].join('');
   (document.head || document.documentElement).appendChild(st);
 })();
