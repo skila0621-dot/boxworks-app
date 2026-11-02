@@ -1,4 +1,4 @@
-// 시험판 30: 빈 공간 줄이기(주간·월간), 일정 넣는 입구 하나로·마이크에 글자(수정·보완 목록 18·19),
+// 시험판 30: 주간 빈 날 한 줄, 일정 넣는 입구 하나로·마이크에 글자(수정·보완 목록 18·19),
 // 누르면 나오는 칸은 누른 자리에서(제품 원칙 규칙 12, 목록 20). 화면 모양은 web-src/v30.js
 export default [
   {
@@ -15,21 +15,6 @@ export default [
     name: "└ '+ 추가'는 앱에서 + 하나(새 일정 +와 같은 그림, 규칙 1)",
     find: "const addBtn = (date, label) => '<button type=\"button\" class=\"sec-link add\" data-act=\"new\" data-date=\"' + date + '\"' + (label ? ' aria-label=\"' + esc(label) + '\"' : '') + '>' + ICON.plus + '추가</button>';",
     replace: "const addBtn = (date, label) => '<button type=\"button\" class=\"sec-link add\" data-act=\"new\" data-date=\"' + date + '\"' + (label ? ' aria-label=\"' + esc(label) + '\"' : window.BX_APP ? ' aria-label=\"이날 일정 넣기\"' : '') + '>' + ICON.plus + (window.BX_APP ? '' : '추가') + '</button>';"
-  },
-  {
-    name: '월간: 날짜를 누르면 창 대신 달력 아래 목록이 바뀐다(빈 공간, 대표 11/2 — 10/31의 그날 창 요청을 바꾸는 것이라 와이어프레임에서 확인)',
-    find: "(window.BX_APP ? 'day-open' : 'pick-day')",
-    replace: "'pick-day'"
-  },
-  {
-    name: '└ 달력 아래 고른 날 목록을 앱에서도 보인다',
-    find: "(window.BX_APP ? '' : '<section id=\"agenda\" aria-labelledby=\"h-agenda\">",
-    replace: "('<section id=\"agenda\" aria-labelledby=\"h-agenda\">"
-  },
-  {
-    name: '└ 휴대폰 칸에는 일정 하나 + 개수(제목은 아래 목록에)',
-    find: "const cmax = window.BX_APP && window.innerWidth < 720 ? 2 : 3;",
-    replace: "const cmax = window.BX_APP && window.innerWidth < 720 ? 1 : 3;"
   },
   {
     name: "날짜 창의 넣기 칸은 '이날 일정 넣기' 한 줄로, 같은 새 일정 창이 그 날짜로 열린다(입구 하나로, 규칙 8)",

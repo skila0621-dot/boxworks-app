@@ -3,7 +3,7 @@
       - 켜기를 누르면 그 바로 아래 오른쪽에 시각. 시각은 숫자를 치지 않고 휴대폰 시계 창으로 고르고, 24시간으로 보인다
       - '직접 입력'은 그 칩 자리에서 입력칸이 된다(규칙 9)
       - 새 일정 창의 칩을 누르면 칩은 제자리에 있고, 고르는 칸은 칩 바로 위에 열린다(아래쪽에 붙은 창이라 아래로 열면 칩이 밀려 올라감)
-   2) 빈 공간 줄이기(수정·보완 목록 18): 주간은 일정 없는 날을 한 줄로, 월간은 칸을 줄이고 아래에 고른 날 목록
+   2) 주간은 일정 없는 날을 한 줄로(대표 11/2 넣기로). 월간은 그대로 두고 날짜 창 아래만 '이날 일정 넣기' 한 줄(대표 결정 11/2)
    3) 일정 넣는 입구 하나로·마이크에 '말하기'(목록 19)
    화면 구조를 바꾸는 부분은 scripts/patches-v30.mjs */
 
@@ -81,12 +81,12 @@ document.addEventListener('click', ev => {
     '.bx-app .day-g.bx-wk-empty + .day-g.bx-wk-empty{margin-top:-12px}',
     '.bx-app .sec-link.add{width:40px;height:40px;padding:0;justify-content:center;border-radius:12px}',
     '.bx-app .sec-link.add .i{width:20px;height:20px}',
-    // 월간: 칸을 줄이고, 아래에 고른 날 목록
-    '@media (max-width:719px){.bx-app .cell{min-height:58px;padding:3px 1px 4px}}',
-    '.bx-app .month-wrap{gap:14px}',
-    '.bx-app #agenda > .sec-h{min-height:44px;margin-bottom:2px}',
-    '.bx-app #agenda > .sec-h h2{font-size:17px}',
-    '.bx-app #agenda .empty{margin:6px 0 0;color:var(--ink-3)}',
+    // 캘린더 머리의 월간|주간 칩은 가운데(대표 의견 11/2: 아래 ‹ 11월 › 과 같은 세로줄). '이번 달로'는 오른쪽, 휴대폰 캘린더 표시는 그 아래 줄
+    '.bx-app .bx-ch-top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center}',
+    '.bx-app .bx-ch-top .tt-mode{display:contents}',
+    '.bx-app .bx-ch-top .seg{grid-column:2;grid-row:1}',
+    '.bx-app .bx-ch-top .bx-cal-lg{grid-column:1 / -1;grid-row:2;justify-self:center;margin-top:6px}',
+    '.bx-app .bx-ch-top .bx-ch-today{grid-column:3;grid-row:1;justify-self:end}',
     // 마이크에 '말하기' 글자
     '.bx-app .bx-mic{width:auto;min-width:44px;padding:0 14px 0 11px;gap:5px;font:inherit;font-size:14px;font-weight:800;white-space:nowrap}',
     '.bx-app .bx-mic svg{flex:none}'
@@ -97,6 +97,21 @@ document.addEventListener('click', ev => {
 /* 홈 '오늘 할 일'을 한 목록, 시각 순서로(빈 공간 대표 11/2 · 문제점 점검 경험 1: 루틴·일정·수업 세 칸이라 10:30 수업이 맨 아래).
    칸 제목(루틴·일정·수업)과 접기를 빼고 시각 순서대로 한 목록에 둔다. 지난 일정(확인 필요)은 맨 위 그대로.
    각 줄은 원래 모양·누르는 동작 그대로 옮기기만 한다 */
+let bxPastOpen = false;
+// 줄에 '지금'·'다음' 꼬리표(일정 줄은 제목 아래, 수업 줄은 장소 줄 앞)
+function bxTag(el, txt){
+  if (el.classList.contains('rt-card')) return;
+  const tag = document.createElement('span'); tag.className = 'meta bx-next-tag'; tag.textContent = txt;
+  const meta = el.querySelector('.row-meta, .tt-meta');
+  if (meta) meta.prepend(tag); else { const t = el.querySelector('.row-title, .row-body > :first-child'); if (t) t.after(tag); }
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-act="bx-past"]'); if (!b || !window.BX_APP) return;
+  ev.preventDefault(); ev.stopPropagation();
+  bxPastOpen = !bxPastOpen;
+  b.setAttribute('aria-expanded', String(bxPastOpen));
+  const box = b.nextElementSibling; if (box && box.classList.contains('bx-past')) box.hidden = !bxPastOpen;
+}, true);
 function bxTimeline(){
   if (!window.BX_APP || S.view !== 'today') return;
   const body = document.querySelector('#tcard2 .tc-body'); if (!body || body.querySelector('.bx-tl')) return;
@@ -105,6 +120,7 @@ function bxTimeline(){
   const hm = t => { const m = /(\d{1,2}):(\d{2})/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; };
   const ents = [];
   let lateWrap = null, nowLine = null;
+  const hmAll = t => { const out = []; String(t || '').replace(/(\d{1,2}):(\d{2})/g, (m0, h, mm) => { out.push(+h * 60 + +mm); return m0; }); return out; };
   if (rtSec) rtSec.querySelectorAll(':scope > .rt-card[data-rid]').forEach((el, i) => {
     const meta = el.querySelector('.rt-h .rt-meta'), m = /(\d{1,2}:\d{2})\s*[–~-]\s*(\d{1,2}:\d{2})/.exec(meta ? meta.textContent : '');
     if (m && !el.querySelector('.bx-tl-t')) {
@@ -112,23 +128,61 @@ function bxTimeline(){
       const ic = el.querySelector('.rt-h .bx-ic'); if (ic) ic.after(s); else el.querySelector('.rt-h').prepend(s);
       el.classList.add('bx-tl-rt');
     }
-    ents.push({el, t: hm(meta && meta.textContent), k: 2, i});
+    const ts = hmAll(meta && meta.textContent);
+    ents.push({el, t: ts[0] == null ? null : ts[0], te: ts[1] == null ? ts[0] : ts[1], k: 2, i});
   });
   if (itSub) {
     const late = itSub.querySelector('#late-block'), ll = late && late.nextElementSibling && late.nextElementSibling.matches('.list') ? late.nextElementSibling : null;
-    if (late) { lateWrap = document.createElement('div'); lateWrap.className = 'bx-tl-late'; lateWrap.append(late); if (ll) lateWrap.append(ll); }
-    itSub.querySelectorAll('.list > .row').forEach((el, i) => { const b = el.querySelector('.row-time b'); ents.push({el, t: b && /종일/.test(b.textContent) ? -1 : hm(b && b.textContent), k: 0, i}); });
+    if (late) late.remove();
+    itSub.querySelectorAll('.list > .row').forEach((el, i) => {
+      const b = el.querySelector('.row-time b'), id = (el.querySelector('[data-id]') || {}).dataset ? el.querySelector('[data-id]').dataset.id : '';
+      const it = id ? M.items.find(x => x.id === id) : null, t = b && /종일/.test(b.textContent) ? -1 : hm(b && b.textContent);
+      ents.push({el, t, te: it && isHM(it.end) ? toMin(it.end) : t, k: 0, i, late: !!(ll && ll.contains(el))});
+    });
     nowLine = itSub.querySelector('.now-line');
   }
-  if (ttSub) ttSub.querySelectorAll('.row').forEach((el, i) => ents.push({el, t: hm((el.querySelector('.row-main') || el).textContent), k: 1, i}));
+  if (ttSub) ttSub.querySelectorAll('.row').forEach((el, i) => { const ts = hmAll((el.querySelector('.row-main') || el).textContent); ents.push({el, t: ts[0] == null ? null : ts[0], te: ts[1] == null ? ts[0] : ts[1], k: 1, i}); });
   ents.sort((a, b) => (a.t == null ? -1 : a.t) - (b.t == null ? -1 : b.t) || a.k - b.k || a.i - b.i);
   // rt-sec: 루틴 카드의 접기·펼치기 모양과 누르기를 그대로 쓰려고
   const tl = document.createElement('div'); tl.className = 'list bx-tl rt-sec';
-  const first = rtSec || itSub || ttSub; first.before(tl); if (lateWrap) tl.before(lateWrap);
-  const nowMin = M.now.getHours() * 60 + M.now.getMinutes();
-  let placed = !nowLine;
-  ents.forEach(e => { if (!placed && e.t != null && e.t >= nowMin) { tl.append(nowLine); placed = true; } tl.append(e.el); });
-  if (!placed) tl.append(nowLine);
+  const first = rtSec || itSub || ttSub; first.before(tl);
+  const nowMin = M.now.getHours() * 60 + M.now.getMinutes(), today = !S.homeDay;
+  // 다음 일정 표시는 여기서 다시 단다(루틴·수업도 다음이 될 수 있어서)
+  tl.ownerDocument.querySelectorAll('#tcard2 .bx-next').forEach(r => r.classList.remove('bx-next'));
+  tl.ownerDocument.querySelectorAll('#tcard2 .bx-next-tag').forEach(t => t.remove());
+  if (!today) { ents.forEach(e => tl.append(e.el)); if (nowLine) nowLine.remove(); }
+  else {
+    /* 오늘은 '지금'부터(대표 요청 11/2: 들어온 시각의 일정과 다음 일정을 먼저). 끝난 일과 어제까지 못 한 일은 맨 위 한 줄로 접는다.
+       확인이 필요한 지난 일은 맨 위 '확인 필요' 숫자에서도 본다 */
+    const past = [], allday = [], cur = [], fut = [];
+    ents.forEach(e => {
+      if (e.late) past.push(e);
+      else if (e.t == null || e.t < 0) allday.push(e);
+      else if (e.te < nowMin) past.push(e);
+      else if (e.t <= nowMin) cur.push(e);
+      else fut.push(e);
+    });
+    if (past.length) {
+      const tog = document.createElement('button'); tog.type = 'button'; tog.className = 'bx-past-tog'; tog.dataset.act = 'bx-past';
+      tog.setAttribute('aria-expanded', String(bxPastOpen));
+      tog.innerHTML = '<span class="bx-pt-i" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span><span>지난 일 ' + past.length + '개</span>';
+      const box = document.createElement('div'); box.className = 'bx-past'; box.hidden = !bxPastOpen;
+      // 어제까지 못 한 일이 먼저, 그다음 오늘 지난 일을 시각 순서로
+      past.sort((a, b) => (b.late ? 1 : 0) - (a.late ? 1 : 0)).forEach(e => box.append(e.el));
+      tl.append(tog, box);
+    }
+    allday.forEach(e => tl.append(e.el));
+    if (nowLine) tl.append(nowLine);
+    cur.forEach(e => { e.el.classList.add('bx-now'); bxTag(e.el, '지금'); tl.append(e.el); });
+    fut.forEach((e, n) => {
+      if (n === 0) {
+        e.el.classList.add(cur.length ? 'bx-next-soft' : 'bx-next');
+        if (!e.el.classList.contains('rt-card')) bxTag(e.el, '다음 · ' + untilText((e.t - nowMin) * 60000));
+      }
+      tl.append(e.el);
+    });
+    if (!cur.length && !fut.length) { const p = document.createElement('p'); p.className = 'bx-tl-done'; p.textContent = '오늘 남은 일은 없어요'; tl.append(p); }
+  }
   [rtSec, itSub, ttSub].forEach(x => { if (!x) return; x.querySelectorAll(':scope > :not(.sec-h):not(.list):not(.grp-h)').forEach(o => tl.after(o)); x.remove(); });
   // 단계가 하나인 루틴: '오늘 쉬기'를 카드 아래 따로 두지 않고, 다른 루틴의 '단계 보기'와 같은 오른쪽 자리에(정렬, 대표 지적 11/2)
   tl.querySelectorAll('.rt-card.bx-one').forEach(c => {
@@ -154,8 +208,18 @@ function bxTimeline(){
     '.bx-app .bx-tl-rt .bx-tl-t small{font-size:12.5px;color:var(--ink-3)}',
     '.bx-app .bx-tl-rt .rt-note{padding-left:98px;margin-top:2px}',
     '.bx-app .bx-tl-rt .rt-steps{margin-left:98px}',
-    '.bx-app .bx-tl-late{margin-top:4px}',
-    '.bx-app .bx-tl-late .list{border-top:0}',
+    // 지난 일 한 줄(접힘): 표시 칸에 꺾쇠, 글자는 시각 칸에서 시작
+    '.bx-app .bx-past-tog{display:flex;align-items:center;gap:14px;width:100%;min-height:44px;padding:0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink-3);font:inherit;font-size:14px;font-weight:600;text-align:left}',
+    '.bx-app .bx-pt-i{width:24px;display:inline-flex;justify-content:center;flex:none}.bx-app .bx-pt-i .i{width:18px;height:18px;transition:transform .15s}',
+    '.bx-app .bx-past-tog[aria-expanded="true"] .bx-pt-i .i{transform:rotate(180deg)}',
+    '.bx-app .bx-past > .row,.bx-app .bx-past > .rt-card{opacity:.62;border-bottom:1px solid var(--line)}',
+    '.bx-app .bx-past[hidden]{display:none}',
+    // 지금 하는 일: 배경, 다음 일: 지금 하는 일이 있으면 꼬리표만
+    '.bx-app .bx-todo .row.bx-now{background:var(--accent-soft)}',
+    '.bx-app .bx-todo .rt-card.bx-now,.bx-app .bx-todo .rt-card.bx-next{background:var(--accent-soft);border-radius:14px;margin:0 -10px!important;padding:10px 10px 8px!important;border-bottom-color:transparent}',
+    '.bx-app .bx-todo .row.bx-next-soft{background:none}',
+    '.bx-app .bx-next-tag{color:var(--accent);font-weight:700}',
+    '.bx-app .bx-tl-done{margin:10px 0 4px;color:var(--ink-3);font-size:14px;padding-left:58px}',
     '.bx-app .bx-tl .now-line{margin:0;border-bottom:0}',
     // 줄마다 같은 칸(대표 지적 11/2: 아이콘 크기·새로 붙은 항목 때문에 정렬이 흐트러짐): 표시 24px(가운데 32px) · 시각 58px · 제목 118px
     '.bx-app .bx-tl .bx-tl-rt .rt-h{column-gap:14px}',

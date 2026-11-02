@@ -54,6 +54,36 @@ module.exports = async function () {
     c.eq(app.errors, [], '화면 오류(홈·새 일정)');
   } finally { await app.close(); }
 
+  // 1-2) 홈은 '지금'부터(대표 요청 11/2): 하는 중인 일은 '지금', 다음 일은 '다음', 지난 일은 맨 위 한 줄로 접힘
+  for (const [now, want] of [
+    ['2026-11-02T07:40:00+09:00', { now: '아침 준비', next: '경영학원론', past: 0 }],
+    ['2026-11-02T16:00:00+09:00', { now: '', next: '', past: 3 }]
+  ]) {
+    app = await openApp({ data: data(), now });
+    try {
+      const p = app.page;
+      const r = await p.evaluate(() => {
+        const name = e => e ? (e.querySelector('.rt-h > b, .row-title') || e).textContent.trim() : '';
+        const tog = document.querySelector('.bx-past-tog'), box = document.querySelector('.bx-past');
+        return { now: name(document.querySelector('.bx-tl > .bx-now')), next: name(document.querySelector('.bx-tl > .bx-next, .bx-tl > .bx-next-soft')),
+          past: box ? box.children.length : 0, hidden: box ? box.hidden : null, tog: tog ? tog.textContent.trim() : '',
+          nextTag: (document.querySelector('.bx-tl > .bx-next-soft .bx-next-tag, .bx-tl > .bx-next .bx-next-tag') || {}).textContent || '',
+          done: !!document.querySelector('.bx-tl-done') };
+      });
+      const t = now.slice(11, 16);
+      c.eq(r.now, want.now, t + ' 지금 하는 일');
+      c.eq(r.next, want.next, t + ' 다음 일');
+      c.eq(r.past, want.past, t + ' 접힌 지난 일 개수');
+      if (want.past) {
+        c.ok(r.hidden === true && /지난 일 3개/.test(r.tog), t + ' 지난 일은 접힌 한 줄 ' + JSON.stringify(r));
+        c.ok(r.done, t + " 남은 일이 없으면 '오늘 남은 일은 없어요'");
+        await p.click('.bx-past-tog'); await p.waitForTimeout(200);
+        c.eq(await p.evaluate(() => document.querySelector('.bx-past').hidden), false, t + ' 누르면 지난 일이 펼쳐짐');
+      } else c.ok(/^다음 · /.test(r.nextTag), t + " 다음 일에 '다음 · N분 뒤' " + JSON.stringify(r.nextTag));
+      c.eq(app.errors, [], t + ' 화면 오류');
+    } finally { await app.close(); }
+  }
+
   // 2) 설정: 켜기를 누르면 시각 칩이 그 바로 아래 오른쪽에(오른쪽 끝이 켜기 단추와 같은 줄)
   app = await openApp({ data: data({ bxReport: { on: false, at: '07:30' } }) });
   try {
@@ -97,11 +127,14 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.click('.dock [data-view="month"]'); await p.waitForTimeout(600);
-    c.ok(await p.evaluate(() => !!document.querySelector('#agenda')), '월간 아래에 고른 날 목록');
     await p.evaluate(() => Array.from(document.querySelectorAll('.cal [data-date="2026-11-03"]')).find(e => e.getBoundingClientRect().width > 20).click());
     await p.waitForTimeout(600);
-    const ag = await p.evaluate(() => ({ sheet: !!document.querySelector('#sheet-root .sheet'), h: (document.querySelector('#h-agenda') || {}).textContent, rows: Array.from(document.querySelectorAll('#agenda .row-title')).map(e => e.textContent.trim()) }));
-    c.ok(!ag.sheet && /11월 3일/.test(ag.h || '') && ag.rows.includes('보고서 마감'), '날짜를 누르면 창 대신 아래 목록이 그날로 ' + JSON.stringify(ag));
+    const ds = await p.evaluate(() => ({ sheet: (document.querySelector('#sheet-title') || {}).textContent || '', foot: Array.from(document.querySelectorAll('#sheet-root #sheet-f button')).map(b => b.textContent.trim()) }));
+    c.ok(/11월 3일/.test(ds.sheet) && ds.foot.length === 1 && /이날 일정 넣기/.test(ds.foot[0]), "월간: 날짜를 누르면 그날 창, 아래는 '이날 일정 넣기' 하나 " + JSON.stringify(ds));
+    // 월간|주간 칩은 가운데(대표 의견 11/2)
+    await p.evaluate(() => { const c = document.querySelector('#sheet-root [data-act="sheet-close"]'); if (c) c.click(); }); await p.waitForTimeout(300);
+    const sw = await p.evaluate(() => { const r = document.querySelector('.bx-ch-top .seg').getBoundingClientRect(); return Math.round(r.left + r.width / 2 - innerWidth / 2); });
+    c.ok(Math.abs(sw) <= 2, '월간|주간 칩이 가운데 ' + sw);
     await p.locator('button', { hasText: '주간' }).filter({ visible: true }).first().click(); await p.waitForTimeout(600);
     const wk = await p.evaluate(() => Array.from(document.querySelectorAll('.day-g')).map(e => [e.id.slice(-2), e.classList.contains('bx-wk-empty'), Math.round(e.getBoundingClientRect().height)]));
     const empty = wk.filter(x => x[1]);
