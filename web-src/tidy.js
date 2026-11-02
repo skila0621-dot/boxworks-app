@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 30;
+const BX_TRIAL = 31;
 
 /* 설정(앱): 화면 · 휴대폰 캘린더 · 알림 · 분류·데이터 · 데이터 초기화 · 정보.
    뺀 것: 메인 색(색은 파랑 하나, 10/31 결정), 분류 색 표시(늘 켬), 공휴일 데이터, 사용 설명서(웹 시절 내용), 웹의 연동·아침 일정 보고 칸 */
@@ -23,10 +23,10 @@ function bxSettingsHtml(){
     '<section class="set-sec" aria-labelledby="s-alarm"><h2 id="s-alarm">알림</h2>' +
       '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-alarm-test"><span class="mi">' + ICON.bell + '</span><span class="ml">휴대폰 알람 시험</span><span class="mv">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' +
       bxReportSetHtml() +
-      setRow('일정 시작 전 알림(기본)', segHtml('data-pre-on', [['0', '끄기'], ['1', '켜기']], pre == null ? '0' : '1', '일정 시작 전 알림', 150), 'tall') +
-      // 켜기를 누르면 그 바로 아래 오른쪽에 값이 나온다(대표 지적 11/2, 규칙 12)
+      // 켜고 끄기는 스위치(대표 의견 11/2 밤). 켜면 그 바로 아래 오른쪽에 값이 나온다(대표 지적 11/2, 규칙 12)
+      setRow('일정 시작 전 알림(기본)', bxSwitch('data-pre-on', pre != null, '일정 시작 전 알림')) +
       (pre != null ? '<div class="bx-setsub"><span class="p small">새 일정에 처음 들어가는 값이에요. 0분은 정시</span><span class="bx-setsub-c">' + stepperHtml('set-pre-n', nu[0], 0, 999, 'set-pre-u') + unitSel('set-pre-u', nu[1]) + '</span></div>' : '') +
-      setRow('시간 없는 일정 알림 시각', segHtml('data-day-on', [['0', '끄기'], ['1', '켜기']], dayA ? '1' : '0', '시간 없는 일정 알림 시각', 150), 'tall') +
+      setRow('시간 없는 일정 알림 시각', bxSwitch('data-day-on', !!dayA, '시간 없는 일정 알림 시각')) +
       (dayA ? '<div class="bx-setsub"><span class="p small">시간 없는 일정은 그날 이 시각에 알려요</span>' + bxTimeChip('set-day-t', dayA.t, '시간 없는 일정 알림 시각') + '</div>' : '') +
     '</section>' +
     '<section class="set-sec" aria-labelledby="s-data"><h2 id="s-data">분류·데이터</h2><div class="set-menu">' +

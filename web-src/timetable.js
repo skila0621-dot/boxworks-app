@@ -208,13 +208,14 @@ function ttOpen(id, pre){
   if (!TT.end || toMin(TT.end) <= toMin(TT.start)) TT.end = fromMin(Math.min(toMin(TT.start) + 60, 1439));
   openSheet({title: cur ? (window.BX_APP ? '수업 고치기' : '시간표 고치기') : (window.BX_APP ? '수업 추가' : '시간표에 넣기'), draw: ttDraw, onClose: () => { TT = null; }});
 }
-// 수업 알림 칸. 정해진 칸에 맞는 게 없으면 '직접 입력'(대표 결정 10/31)이 그 칩 자리에서 입력칸이 된다(규칙 9·12)
+// 수업 알림 칸(대표 결정 11/2 밤: 켜기·끄기 스위치, 켰을 때만 아래에 셋 + 직접 입력). 정해진 칸에 맞는 게 없으면
+// '직접 입력'(대표 결정 10/31)이 그 칩 자리에서 입력칸이 된다(규칙 9·12)
 function ttRemsHtml(){
-  const v = String(TT.remind == null ? '' : TT.remind), none = v === '', std = TT_REMS.some(r => v === r[0]), cust = TT.remCust || (!none && !std);
-  return '<div class="tt-remw"><div class="tt-pills" role="group" aria-label="알림">' + TT_REMS.map(r => '<button type="button" class="tt-pill" data-act="tt-rem" data-v="' + r[0] + '" aria-pressed="' + (!cust && v === r[0]) + '">' + r[1] + '</button>').join('') +
-    (cust ? '<span class="bx-cpick"><input id="tt-rem-c" type="number" inputmode="numeric" min="1" max="240" value="' + (+v > 0 ? +v : 15) + '" aria-label="몇 분 전에 알릴지"><span>분 전</span></span>'
-      : '<button type="button" class="tt-pill" data-act="tt-rem" data-v="custom" aria-pressed="false">직접 입력</button>') + '</div>' +
-    '<button type="button" class="bx-none" data-act="tt-rem" data-v="" aria-pressed="' + (none && !cust) + '">' + (none && !cust ? ICON.check : '') + '알림 없이</button></div>';
+  const v = String(TT.remind == null ? '' : TT.remind), on = v !== '' || !!TT.remCust, std = TT_REMS.some(r => v === r[0]), cust = TT.remCust || (on && !std);
+  return '<div class="tt-remw"><div class="bx-swrow"><span class="tt-l">알림</span><button type="button" class="tog" role="switch" aria-checked="' + on + '" aria-label="수업 알림" data-act="tt-remsw"><i></i></button></div>' +
+    (on ? '<div class="tt-pills" role="group" aria-label="알림">' + TT_REMS.map(r => '<button type="button" class="tt-pill" data-act="tt-rem" data-v="' + r[0] + '" aria-pressed="' + (!cust && v === r[0]) + '">' + r[1] + '</button>').join('') +
+      (cust ? '<span class="bx-cpick"><input id="tt-rem-c" type="number" inputmode="numeric" min="1" max="240" value="' + (+v > 0 ? +v : 15) + '" aria-label="몇 분 전에 알릴지"><span>분 전</span></span>'
+        : '<button type="button" class="tt-pill" data-act="tt-rem" data-v="custom" aria-pressed="false">직접 입력</button>') + '</div>' : '') + '</div>';
 }
 function ttDraw(){
   if (!TT) return;
@@ -228,7 +229,7 @@ function ttDraw(){
       '<span class="tt-l">요일</span><div class="tt-days" role="group" aria-label="요일">' + dayBtns + '</div>' +
       '<span class="tt-l">시간</span><div class="tt-times"><input id="tt-start" class="inp" type="time" value="' + TT.start + '" aria-label="시작"><span>–</span><input id="tt-end" class="inp" type="time" value="' + TT.end + '" aria-label="끝"></div>' +
       '<label class="tt-l" for="tt-place">장소</label><input id="tt-place" class="inp" type="text" maxlength="40" autocomplete="off" placeholder="예) 301호" value="' + esc(TT.place || '') + '">' +
-      '<span class="tt-l">알림</span>' + rems +
+      rems +
       '<span class="tt-l">색</span><div class="tt-sws">' + colors + '</div>' +
     '</div>',
     (TT.id ? '<button type="button" class="btn" data-act="tt-del">' + ICON.trash + '지우기</button>' : '') + '<button type="button" class="btn primary grow" data-act="tt-save">저장</button>'
@@ -301,6 +302,14 @@ document.addEventListener('click', ev => {
   if (act === 'tt-add') { ttAddFromText(($('#tt-in') || {}).value); return; }
   if (!TT) return;
   if (act === 'tt-day') { const d = +el.dataset.d; TT.days = TT.days.includes(d) ? TT.days.filter(x => x !== d) : TT.days.concat([d]); el.setAttribute('aria-pressed', TT.days.includes(d)); return; }
+  if (act === 'tt-remsw') {
+    // 끄면 지금 값을 기억해 두었다가, 다시 켜면 그 값으로(처음엔 10분 전)
+    const v = String(TT.remind == null ? '' : TT.remind);
+    if (v !== '' || TT.remCust) { TT.remLast = v; TT.remCust = false; TT.remind = ''; }
+    else TT.remind = TT.remLast || '10';
+    const w = $('.tt-remw'); if (w) w.outerHTML = ttRemsHtml();
+    return;
+  }
   if (act === 'tt-rem') {
     // 알림 칸만 다시 그린다(창 전체를 다시 그리면 적던 이름·시각이 사라짐)
     const v = el.dataset.v;
@@ -319,7 +328,7 @@ document.addEventListener('click', ev => {
     TT.end = isHM(en) && toMin(en) > toMin(TT.start) ? en : fromMin(Math.min(toMin(TT.start) + 60, 1439));
     const rc = $('#tt-rem-c');
     if (rc) TT.remind = String(Math.max(1, Math.min(240, Math.round(+rc.value) || 15)));
-    delete TT.remCust;
+    delete TT.remCust; delete TT.remLast;
     const err = ttCheck(TT); if (err) { toast(err); return; }
     const o = Object.assign({}, TT); closeSheet(); ttSave(o); toast(o.id ? '고쳤어요' : '시간표에 넣었어요'); return;
   }

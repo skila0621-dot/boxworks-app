@@ -32,16 +32,18 @@ module.exports = async function () {
     // 새 일정 창: 마이크에 '말하기', 칩을 눌러도 칩이 움직이지 않는다
     await p.click('.bx-fab'); await p.waitForTimeout(500);
     c.ok(/말하기/.test(await p.evaluate(() => (document.querySelector('#sheet-root [data-act="bx-mic"]') || {}).innerText || '')), "마이크 단추에 '말하기' 글자");
-    c.ok(await p.evaluate(() => document.querySelectorAll('#f-panel [data-bx-fex]').length) === 3, '칩을 누르기 전 그 자리에 예문 셋');
-    let moved = [];
+    c.ok(await p.evaluate(() => { const fp = document.getElementById('f-panel'); return !!fp && fp.hidden; }), '새 일정 창은 작게 시작(고르는 칸은 칩을 누를 때만)');
+    c.ok(/내일 오후 3시 치과\|금요일 저녁 7시 친구 약속/.test(await p.evaluate(() => (document.querySelector('#sheet-root [data-act="bx-mic"]') || {}).getAttribute('data-ex') || '')), '말하기를 누르면 보여 줄 예문 둘');
+    // 칩을 누르면 고르는 칸이 칩 바로 아래에 붙어 열리고, 누른 칩은 화면 안에 있다(창은 부드럽게 커짐)
+    let off = [];
     for (const k of ['date', 'time', 'rem', 'cat', 'more', 'go']) {
       const sel = '#f-chips [data-fpanel="' + k + '"]';
-      const a = await rect(p, sel); if (!a) continue;
-      await p.click(sel); await p.waitForTimeout(300);
-      const b = await rect(p, sel);
-      if (!b || Math.abs(b.y - a.y) > 2) moved.push(k + ' ' + Math.round(a.y) + '→' + (b ? Math.round(b.y) : '없음'));
+      if (!(await rect(p, sel))) continue;
+      await p.click(sel); await p.waitForTimeout(500);
+      const b = await rect(p, sel), chips = await rect(p, '#f-chips'), pan = await rect(p, '#f-panel');
+      if (!b || b.y < 0 || b.y + b.h > 844 || !pan || pan.y - (chips.y + chips.h) > 24 || pan.y < chips.y + chips.h - 1) off.push(k + ' ' + JSON.stringify({ chip: b && Math.round(b.y), panel: pan && Math.round(pan.y), chipsBottom: chips && Math.round(chips.y + chips.h) }));
     }
-    c.eq(moved, [], '새 일정 창: 칩을 눌러도 칩이 제자리');
+    c.eq(off, [], '새 일정 창: 고르는 칸은 칩 바로 아래, 누른 칩은 화면 안');
     // 일정 알림 고르는 칸(규칙 11): 시간을 정한 일정은 정시·10분 전·1시간 전 + 직접 입력, '알림 없이'는 아래 글자 단추
     await p.fill('#f-title', '내일 오후 3시 치과'); await p.waitForTimeout(300);
     await p.click('#f-chips [data-fpanel="rem"]'); await p.waitForTimeout(300);
@@ -49,8 +51,11 @@ module.exports = async function () {
     c.eq(q, ['정시', '10분 전', '1시간 전', '직접 입력'].map((x, i) => i < 3 ? x : q[3]), '일정 알림 칩: ' + JSON.stringify(q));
     await p.click('#f-rem [data-bx-rem="60"]'); await p.waitForTimeout(200);
     c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '1시간 전', "칩 하나를 고르면 알림이 그 하나로");
-    await p.click('#f-rem [data-bx-rem=""]'); await p.waitForTimeout(200);
-    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '알림 없음', "'알림 없이'를 누르면 알림 없음");
+    await p.click('#f-rem [data-bx-remsw]'); await p.waitForTimeout(200);
+    const offState = await p.evaluate(() => ({ chip: (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim(), opts: document.querySelectorAll('#f-rem .bx-rem-q').length, sw: (document.querySelector('#f-rem [data-bx-remsw]') || {}).getAttribute('aria-checked') }));
+    c.eq(offState, { chip: '알림 없음', opts: 0, sw: 'false' }, '알림을 끄면 칩은 알림 없음, 아래 선택지는 없음');
+    await p.click('#f-rem [data-bx-remsw]'); await p.waitForTimeout(200);
+    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '1시간 전', '다시 켜면 끄기 전 값(1시간 전)');
     c.eq(app.errors, [], '화면 오류(홈·새 일정)');
   } finally { await app.close(); }
 
@@ -119,6 +124,14 @@ module.exports = async function () {
     await p.click('#sheet-root [data-act="tt-save"]'); await p.waitForTimeout(500);
     const tt = await p.evaluate(() => (window.BX_T.docs().find(([, d]) => d && d.type === 'tt' && d.name === '통계학') || [0, null])[1]);
     c.eq(tt && tt.remind, '20', '직접 입력한 20분 전이 저장됨');
+    // 알림 스위치를 끄면 아래 칸이 없어지고, 알림 없이 저장된다
+    await p.locator('button', { hasText: '수업 추가' }).filter({ visible: true }).first().click(); await p.waitForTimeout(500);
+    await p.click('[data-act="tt-remsw"]'); await p.waitForTimeout(200);
+    c.eq(await p.evaluate(() => document.querySelectorAll('.tt-pills').length), 0, '수업 알림을 끄면 아래 칸이 없음');
+    await p.fill('#tt-name', '선형대수'); await p.click('[data-act="tt-day"][data-d="4"]');
+    await p.click('#sheet-root [data-act="tt-save"]'); await p.waitForTimeout(500);
+    const tt2 = await p.evaluate(() => (window.BX_T.docs().find(([, d]) => d && d.type === 'tt' && d.name === '선형대수') || [0, null])[1]);
+    c.eq(tt2 && tt2.remind, '', '알림 없이 저장됨');
     c.eq(app.errors, [], '화면 오류(시간표)');
   } finally { await app.close(); }
 
@@ -162,6 +175,12 @@ module.exports = async function () {
     c.eq(mins, ['5분', '10분', '20분', '직접 입력'], '명상 시간: 셋 + 직접 입력');
     await p.click('[data-med-custom]'); await p.waitForTimeout(300);
     c.ok(await p.evaluate(() => !!document.querySelector('.bx-med-set .picks #bx-med-cmin')), '직접 입력이 칩 줄 안에서 입력칸으로');
+    // 중간 종: 스위치를 켜야 간격 칸이 나온다
+    await p.click('.bx-med-more summary'); await p.waitForTimeout(200);
+    const bell0 = await p.evaluate(() => document.querySelectorAll('[data-med-bell]').length);
+    await p.click('[data-med-bellsw]'); await p.waitForTimeout(300);
+    const bell1 = await p.evaluate(() => Array.from(document.querySelectorAll('[data-med-bell]')).map(b => b.textContent.trim() + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')));
+    c.ok(bell0 === 0 && bell1.length >= 2, '중간 종: 꺼져 있으면 간격 칸 없음, 켜면 나옴 ' + JSON.stringify(bell1));
     c.eq(app.errors, [], '화면 오류(명상)');
   } finally { await app.close(); }
   return c.done();

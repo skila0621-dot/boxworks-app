@@ -49,7 +49,7 @@ function bxDrawRoutine(){
     '<div class="fgrid"><label class="fg-l" for="r-name">이름</label>' + '<input id="r-name" class="inp full" value="' + esc(R.name) + '" maxlength="30"></div>' +
     bxNotifyHtml() +
     (R.once ? '<div class="fgrid"><span class="fg-l">언제</span><p class="rt-sum">' + esc(rtWhenText(R)) + ' · 끝나면 목록에서 사라져요</p><div id="r-timebox">' + rtTimesHtml() + '</div></div>' :
-    '<div class="fgrid"><div class="fg-lr"><span class="fg-l">요일</span><span class="rdays-q"><button type="button" class="sec-link" data-rdays="wd">평일</button><button type="button" class="sec-link" data-rdays="all">매일</button></span></div><div class="rdays">' + days + '</div></div>' +
+    '<div class="fgrid"><div class="fg-lr"><span class="fg-l">요일</span><span class="rdays-q"><button type="button" class="sec-link" data-rdays="wd">평일</button><button type="button" class="sec-link" data-rdays="all">매일</button></span></div><div class="rdays">' + days + '</div>' + bxHolRowHtml() + '</div>' +
     '<div class="fgrid"><span class="fg-l">기준</span>' + segHtml('data-rmode', [['arrive', '도착 시각에 맞추기'], ['start', '시작 시각부터']], R.mode, '시간 기준', 320) + '<div id="r-timebox">' + rtTimesHtml() + '</div></div>') +
     '<div class="fgrid"><div id="r-prev" class="rt-prev">' + rtPreviewHtml() + '</div></div>' +
     '<div class="fgrid"><span class="fg-l">단계 <small>이름 · 걸리는 시간(분) · 할 일/기다리기</small></span><div id="r-steps">' + rtStepsHtml() + '</div><div><button type="button" class="btn sm" data-act="rs-add">' + ICON.plus + '단계 추가</button></div></div>' +

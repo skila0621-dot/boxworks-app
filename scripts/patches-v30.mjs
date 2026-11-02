@@ -29,21 +29,31 @@ export default [
   {
     name: '└ 마이크 단추 이름도 보이는 글자와 같게',
     find: "data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말로 넣기\"><svg",
-    replace: "data-prompt=\"' + esc(prompt || '') + '\"><svg"
+    replace: "data-prompt=\"' + esc(prompt || '') + '\"' + (ex ? ' data-ex=\"' + esc(ex) + '\"' : '') + '><svg"
   },
   {
-    name: '새 일정·일정 고치기 창은 높이가 바뀌지 않게: 칩은 제자리, 고르는 칸은 칩 바로 아래 같은 자리에서 바뀐다(규칙 12)',
+    name: '새 일정·일정 고치기 창에 이름표(여백 줄이기·칸이 열릴 때 부드럽게 커지기, web-src/v30.js). 창은 작게 시작(대표 결정 11/2 밤)',
     find: "openSheet({title: F.mode === 'new' ? '새 일정' : (window.BX_APP ? '일정 고치기' : '일정 수정'), draw: drawEdit, refresh: null});",
-    replace: "openSheet({title: F.mode === 'new' ? '새 일정' : (window.BX_APP ? '일정 고치기' : '일정 수정'), draw: drawEdit, refresh: null});\n  if (window.BX_APP) { const sh = $('#sheet-root .sheet'); if (sh) sh.classList.add('bx-fsheet'); }"
-  },
-  {
-    name: '└ 고르는 칸이 닫혀 있을 때 그 자리: 새 일정은 이렇게 적어 보라는 예, 고치기는 한 줄 안내',
-    find: "  el.hidden = !k;\n  if (k === 'more') F.extra = true;",
-    replace: "  el.hidden = !k && !window.BX_APP;\n  if (window.BX_APP) el.classList.toggle('bx-idle', !k);\n  if (k === 'more') F.extra = true;\n  if (!k && window.BX_APP) { el.innerHTML = bxFormIdle(); return; }"
+    replace: "openSheet({title: F.mode === 'new' ? '새 일정' : (window.BX_APP ? '일정 고치기' : '일정 수정'), draw: drawEdit, refresh: null});\n  if (window.BX_APP) { const sh = $('#sheet-root .sheet'); if (sh) sh.classList.add('bx-esheet'); }"
   },
   {
     name: "일정 알림: 고르는 칸 규칙(규칙 11, D-10) — 정시·10분 전·1시간 전(시간 없는 일정은 당일 오전 9시·전날 오후 9시) + 직접 입력, '알림 없이'는 아래 글자 단추",
     find: "function drawFRem(){\n  drawFChips();\n  const el = $('#f-rem'); if (!el) return;",
     replace: "function drawFRem(){\n  drawFChips();\n  const el0 = $('#f-rem'); if (!el0) return;\n  if (window.BX_APP && !F.remAdv) { el0.innerHTML = bxRemQuick(); return; }\n  // 직접 입력: 칩 줄 바로 아래에 예전의 자세한 칸(여러 개·정한 시각)\n  let el = el0; if (window.BX_APP) { el0.innerHTML = bxRemQuick() + '<div class=\"bx-rem-adv\"></div>'; el = el0.querySelector('.bx-rem-adv'); }"
+  },
+  {
+    name: '└ 마이크 단추가 예문을 받는다(말하기를 누르면 듣는 동안 예문 두 개, 대표 11/2 밤)',
+    find: "function bxMic(id, prompt){",
+    replace: "function bxMic(id, prompt, ex){"
+  },
+  {
+    name: '└ 새 일정 제목 칸 마이크에 예문 두 개',
+    find: "bxMic('f-title', '예) 내일 오후 3시 치과')",
+    replace: "bxMic('f-title', '예) 내일 오후 3시 치과', '내일 오후 3시 치과|금요일 저녁 7시 친구 약속')"
+  },
+  {
+    name: "일정 알림 칩: 꺼져 있으면 사선 그은 종과 '알림 없음'(대표 11/2 밤: 알림 켜기·끄기가 보이게)",
+    find: "tab('rem', ICON.bell, !rems.length ? '알림 없음' :",
+    replace: "tab('rem', window.BX_APP && !rems.length ? BX_BELL_OFF : ICON.bell, !rems.length ? '알림 없음' :"
   }
 ];

@@ -120,7 +120,8 @@ function bxHomeStrip(h){
 }
 function bxHomeSplit(head, body, o){
   // 내가 쓸 기능에서 끈 기능은 홈에서도 뺀다(전체 흐름 와이어프레임 19)
-  const rtN = o.isT && bxModOn('routines') ? M.routines.filter(r => rtActiveOn(r, M.today)).length : 0;
+  // 공휴일이라 쉬는 루틴도 그 자리에 흐리게 보인다(시험판 31, web-src/v31.js)
+  const rtN = o.isT && bxModOn('routines') ? M.routines.filter(r => rtActiveOn(r, M.today) || bxHolOff(r, M.today)).length : 0;
   const rt = rtN ? bxHomeStrip(rtHomeHtml().replace('>오늘의 루틴</h2>', '>루틴</h2>')) : '';
   const ttOk = bxModOn('tt'), ttN = ttOk ? ttCountOn(o.vd) : 0, tt = ttOk ? bxHomeStrip(ttTodayHtml(o.vd, true)) : '';
   const total = rtN + ttN + o.n, late = body.indexOf('id="late-block"') >= 0;
@@ -186,7 +187,7 @@ function bxLateOpen(only){
 }
 // ⓘ: 지금 화면 사용법(꾹 누르기·밀기처럼 눌러 보기 전엔 모르는 것들)
 const BX_HELP = {
-  today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 안 한 루틴 단계가 모여요.', '동그라미를 누르면 완료. 일정을 꾹 누르면 고치기·다 했어요·내일로 미루기·지우기가 바로 나와요.', '오른쪽 아래 +로 새 일정. 꾹 누르면 바로 말로 넣어요.'],
+  today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 안 한 루틴 단계가 모여요.', '네모 칸을 누르면 완료. 일정을 꾹 누르면 고치기·다 했어요·내일로 미루기·지우기가 바로 나와요.', '오른쪽 아래 +로 새 일정. 꾹 누르면 바로 말로 넣어요.'],
   month: ['날짜를 누르면 그날 일정이 열리고, 거기서 바로 넣을 수 있어요. 일정을 꾹 누르면 고치기·지우기가 바로 나와요.', '옆으로 밀면 이전·다음 달로 넘어가요.', '위의 ‘주간’을 누르면 한 주를 요일별로 봐요.', '오른쪽 아래 +는 고른 날짜에 일정을 넣어요.'],
   week: ['옆으로 밀면 이전·다음 주로 넘어가요.', '요일 옆 ‘+ 추가’로 그날 일정을 넣어요.', '‘월간’을 누르면 달력으로 돌아가요.'],
   tt: ['아래 ‘말로 넣기’에 말하거나 적으면 시간표가 채워져요. 예) “월수 10시 반 경영학원론 301호”', '블록을 꾹 누르면 들어 올려져요. 끌어서 시간·요일을 옮기고, 위·아래 끝을 끌어 길이를 바꿔요.', '꾹 누른 뒤 나오는 줄에서 같은 수업 묶기, 휴강(그날만 쉬기), 복제, 지우기를 해요.', '아래 ‘보기 설정’에서 보이는 시간과 주말을 바꿔요.'],

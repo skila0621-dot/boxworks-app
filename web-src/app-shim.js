@@ -454,6 +454,7 @@
     '@keyframes bxLs{50%{opacity:.25}}',
     '.bx-ls-text{margin:0;min-height:48px;font-size:18px;line-height:1.4;color:var(--ink);word-break:keep-all}.bx-ls-text.ph{color:var(--ink-3)}',
     '.bx-ls-stop{height:48px;font-size:16px}',
+    '.bx-ls-ex{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--sunk)}.bx-ls-ex span{font-size:12.5px;color:var(--ink-3);font-weight:600}.bx-ls-ex b{font-size:15px;font-weight:600;color:var(--ink-2)}',
     '@media (prefers-reduced-motion:reduce){.bx-ls-dot{animation:none}}',
     // 휴대폰 캘린더(D-05): 설정 칸, 캘린더 고르기, 일정 창
     '.bx-app .pc-set-note{margin:2px 0 10px;color:var(--ink-3)}',
@@ -683,11 +684,14 @@
   // 박스웍스가 글자를 칠 때와 똑같이 해석하게 한다(날짜·시각 자동 인식).
   var speech = plugin('BxSpeech');
   // 듣는 동안 화면 아래에 뜨는 막대: 들은 글자가 바로 보이고 '끝'으로 마친다
-  var listenLongUi = function (prompt) {
+  var listenLongUi = function (prompt, ex) {
     var bar = document.createElement('div');
     bar.className = 'bx-listen';
     bar.setAttribute('role', 'status');
-    bar.innerHTML = '<div class="bx-ls-top"><i class="bx-ls-dot"></i><b>듣는 중</b><span class="bx-ls-hint">말을 3초쯤 멈추면 끝나요</span></div><p class="bx-ls-text"></p><button type="button" class="btn primary bx-ls-stop">끝</button>';
+    bar.innerHTML = '<div class="bx-ls-top"><i class="bx-ls-dot"></i><b>듣는 중</b><span class="bx-ls-hint">말을 3초쯤 멈추면 끝나요</span></div><p class="bx-ls-text"></p>' +
+      // 새 일정: 듣는 동안 예문 두 개(대표 결정 11/2 밤: 말하기를 누르면 설명이 뜨는 창)
+      (ex ? '<div class="bx-ls-ex"><span>이렇게 말해 보세요</span>' + String(ex).split('|').slice(0, 2).map(function (x) { return '<b>“' + x.replace(/[<>&]/g, '') + '”</b>'; }).join('') + '</div>' : '') +
+      '<button type="button" class="btn primary bx-ls-stop">끝</button>';
     bar.querySelector('.bx-ls-text').textContent = prompt;
     bar.querySelector('.bx-ls-text').classList.add('ph');
     document.body.appendChild(bar);
@@ -732,7 +736,7 @@
         var r = null;
         if (speech.listenLong) {
           // 앱 안에서 길게 듣기: 말이 잠깐 끊겨도 이어 듣고, '끝'을 누르면 마친다(대표 지적: 입력 시간이 너무 짧음)
-          try { r = await listenLongUi(b.getAttribute('data-prompt') || '말해 보세요'); }
+          try { r = await listenLongUi(b.getAttribute('data-prompt') || '말해 보세요', b.getAttribute('data-ex')); }
           catch (e2) { if (e2 && (e2.code === 'unavailable' || e2.code === 'denied')) r = null; else throw e2; }
         }
         if (!r) r = await speech.listen({ prompt: b.getAttribute('data-prompt') || '말해 보세요' });

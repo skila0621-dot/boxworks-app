@@ -159,10 +159,12 @@ function bxTimeline(){
        확인이 필요한 지난 일은 맨 위 '확인 필요' 숫자에서도 본다 */
     const past = [], allday = [], cur = [], fut = [];
     ents.forEach(e => {
+      // 쉬는 루틴(오늘 쉬기 · 공휴일)은 그 시각 자리에 흐리게 두고 '지금'·'다음'은 달지 않는다(시험판 31)
+      e.off = e.el.classList.contains('rt-card') && e.el.classList.contains('off');
       if (e.late) past.push(e);
       else if (e.t == null || e.t < 0) allday.push(e);
       else if (e.te < nowMin) past.push(e);
-      else if (e.t <= nowMin) cur.push(e);
+      else if (e.t <= nowMin && !e.off) cur.push(e);
       else fut.push(e);
     });
     if (past.length) {
@@ -177,14 +179,16 @@ function bxTimeline(){
     allday.forEach(e => tl.append(e.el));
     if (nowLine) tl.append(nowLine);
     cur.forEach(e => { e.el.classList.add('bx-now'); bxTag(e.el, '지금'); tl.append(e.el); });
-    fut.forEach((e, n) => {
-      if (n === 0) {
+    let tagged = false;
+    fut.forEach(e => {
+      if (!tagged && !e.off) {
+        tagged = true;
         e.el.classList.add(cur.length ? 'bx-next-soft' : 'bx-next');
         if (!e.el.classList.contains('rt-card')) bxTag(e.el, '다음 · ' + untilText((e.t - nowMin) * 60000));
       }
       tl.append(e.el);
     });
-    if (!cur.length && !fut.length) { const p = document.createElement('p'); p.className = 'bx-tl-done'; p.textContent = '오늘 남은 일은 없어요'; tl.append(p); }
+    if (!cur.length && !tagged) { const p = document.createElement('p'); p.className = 'bx-tl-done'; p.textContent = '오늘 남은 일은 없어요'; tl.append(p); }
   }
   [rtSec, itSub, ttSub].forEach(x => { if (!x) return; x.querySelectorAll(':scope > :not(.sec-h):not(.list):not(.grp-h)').forEach(o => tl.after(o)); x.remove(); });
   // 단계가 하나인 루틴: '오늘 쉬기'를 카드 아래 따로 두지 않고, 다른 루틴의 '단계 보기'와 같은 오른쪽 자리에(정렬, 대표 지적 11/2)
@@ -234,52 +238,68 @@ function bxTimeline(){
   (document.head || document.documentElement).appendChild(st);
 })();
 
-/* 새 일정·일정 고치기 창(규칙 12): 창 높이를 처음부터 정해 두어, 칩을 눌러도 칩이 밀려 올라가지 않는다.
-   고르는 칸은 칩 바로 아래 같은 자리에서 바뀌고, 닫혀 있을 때 그 자리는 예문(새 일정) 또는 한 줄 안내(고치기) */
-const BX_FORM_EX = ['내일 오후 3시 치과', '금요일 저녁 7시 친구 약속', '다음 주 월요일 보고서 마감'];
-function bxFormIdle(){
-  if (F && F.mode === 'new') return '<p class="bx-fi-h">이렇게 적거나 말해 보세요</p><div class="bx-fi-ex">' + BX_FORM_EX.map(x => '<button type="button" class="bx-fi-b" data-bx-fex="' + esc(x) + '">“' + esc(x) + '”</button>').join('') + '</div>' +
-    '<p class="bx-fi-n">날짜와 시각을 같이 적으면 위 칸이 알아서 채워져요</p>';
-  return '<p class="bx-fi-n">바꿀 칸을 누르면 여기에서 고쳐요</p>';
-}
-document.addEventListener('click', ev => {
-  const b = ev.target.closest && ev.target.closest('[data-bx-fex]'); if (!b || !window.BX_APP) return;
-  ev.preventDefault(); ev.stopPropagation();
-  const t = document.getElementById('f-title'); if (!t) return;
-  t.value = b.dataset.bxFex; t.dispatchEvent(new Event('input', {bubbles: true})); t.focus();
-}, true);
+/* 새 일정·일정 고치기 창: 작게 시작한다(대표 결정 11/2 밤: A2는 지금 모습이 좋음, 여백은 조금 줄이기).
+   칩을 눌러 칸이 열리면 창이 커지는데, 한 번에 튀지 않고 부드럽게 커져 눈이 누른 칩을 따라가게 한다 */
 (function bxFormStyle(){
   if (!window.BX_APP) return;
   const st = document.createElement('style');
   st.textContent = [
-    '.bx-app .sheet.bx-fsheet{height:min(640px,88vh);height:min(640px,88dvh)}',
-    '.bx-app .bx-fsheet .sheet-b{flex:1 1 auto;gap:14px;overflow:hidden}',
-    '.bx-app .bx-fsheet #f-hint{min-height:24px}',
-    '.bx-app .bx-fsheet #f-panel{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin-top:0}',
-    '.bx-app .bx-fsheet #f-panel.bx-idle{background:transparent;border:1.5px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}',
-    '.bx-app .bx-fi-h{margin:0;font-size:13.5px;font-weight:700;color:var(--ink-2)}',
-    '.bx-app .bx-fi-ex{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}',
-    '.bx-app .bx-fi-b{height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink);font:inherit;font-size:14px;font-weight:600}',
-    '.bx-app .bx-fi-n{margin:0;font-size:12.5px;color:var(--ink-3);line-height:1.5;word-break:keep-all}'
+    '.bx-app .bx-esheet .sheet-b{gap:14px;padding-bottom:16px}',
+    '.bx-app .bx-esheet #f-panel{margin-top:0;padding:12px}',
+    '.bx-app .bx-esheet .fchips{margin-top:0}',
+    '.bx-app .bx-esheet.bx-grow{transition:height .2s ease;overflow:hidden}',
+    '@media (prefers-reduced-motion:reduce){.bx-app .bx-esheet.bx-grow{transition:none}}'
   ].join('');
   (document.head || document.documentElement).appendChild(st);
 })();
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !ev.target.closest) return;
+  const chip = ev.target.closest('#sheet-root .bx-esheet .fchip, #sheet-root .bx-esheet [data-bx-remsw], #sheet-root .bx-esheet [data-bx-rem]'); if (!chip) return;
+  const sh = chip.closest('.sheet'), h0 = sh.getBoundingClientRect().height;
+  requestAnimationFrame(() => {
+    const h1 = sh.scrollHeight > 0 ? Math.min(sh.getBoundingClientRect().height, window.innerHeight * 0.92) : 0;
+    if (!h1 || Math.abs(h1 - h0) < 2) return;
+    sh.style.height = h0 + 'px'; void sh.offsetHeight;
+    sh.classList.add('bx-grow'); sh.style.height = h1 + 'px';
+    const done = () => { sh.classList.remove('bx-grow'); sh.style.height = ''; };
+    sh.addEventListener('transitionend', done, {once: true}); setTimeout(done, 400);
+  });
+}, true);
 
-/* 일정 알림 고르는 칸(규칙 11, D-10 · 문제점 점검 경험 9): 셋 + 직접 입력, '알림 없이'는 아래 글자 단추.
-   하나만 고르는 칸이라 칩을 누르면 그 알림 하나로 바뀐다. 여러 개·정한 시각은 '직접 입력'에서(예전 칸 그대로) */
+/* 일정 알림(대표 결정 11/2 밤: '알림 없음'을 고르면 아래 선택지가 없는 게 맞다, 켜기·끄기가 보여야 한다).
+   칩: 꺼져 있으면 사선 그은 종 + '알림 없음', 켜져 있으면 종 + 고른 값. 칸 맨 위에 알림 스위치, 켰을 때만 그 아래에
+   셋(시간을 정한 일정: 정시 · 10분 전 · 1시간 전 / 시간 없는 일정: 당일 오전 9시 · 전날 오후 9시) + 직접 입력(여러 개·정한 시각) */
+const BX_BELL_OFF = '<svg class="i" viewBox="0 0 24 24"><path d="M10.3 20a1.9 1.9 0 0 0 3.4 0"/><path d="M6 8.5a6 6 0 0 1 9.6-4.8M18 8.5c0 5 1.6 6.9 2.5 7.5H7"/><path d="M4 16c.9-.6 2-2.4 2-6.5"/><path d="M3 3l18 18"/></svg>';
 const BX_REM_Q = {t: [['0', '정시'], ['10', '10분 전'], ['60', '1시간 전']], d: [['d0@09:00', '당일 오전 9시'], ['d1@21:00', '전날 오후 9시']]};
+/* 켜고 끄는 칸은 앱 어디서나 같은 스위치 하나(대표 의견 11/2 밤 'ON / OFF가 더 직관적'을 설정·명상에도).
+   attr에는 누르면 될 값('1' 켜기 / '0' 끄기)이 들어가서, 예전 '끄기 | 켜기' 단추의 처리기를 그대로 쓴다 */
+function bxSwitch(attr, on, aria){
+  return '<button type="button" class="tog" role="switch" aria-checked="' + !!on + '" aria-label="' + esc(aria) + '" ' + attr + '="' + (on ? '0' : '1') + '"><i></i></button>';
+}
 function bxRemQuick(){
-  const cur = remList(fRem()), opts = F.timed ? BX_REM_Q.t : BX_REM_Q.d;
-  const one = cur.length === 1 ? cur[0] : null, std = !!one && opts.some(o => o[0] === one), none = !cur.length, cust = F.remAdv || (!none && !std);
-  return '<div class="picks bx-rem-q" role="group" aria-label="알림">' + opts.map(o => '<button type="button" class="pick" data-bx-rem="' + o[0] + '" aria-pressed="' + (!cust && one === o[0]) + '">' + o[1] + '</button>').join('') +
-    '<button type="button" class="pick" data-bx-rem="adv" aria-pressed="' + cust + '">' + (cust && !none ? esc(cur.length > 1 ? '알림 ' + cur.length + '개' : remLabel(cur[0])) : '직접 입력') + '</button></div>' +
-    '<button type="button" class="bx-none" data-bx-rem="" aria-pressed="' + (none && !F.remAdv) + '">' + (none && !F.remAdv ? ICON.check : '') + '알림 없이</button>';
+  const cur = remList(fRem()), opts = F.timed ? BX_REM_Q.t : BX_REM_Q.d, on = cur.length > 0 || !!F.remAdv;
+  const one = cur.length === 1 ? cur[0] : null, std = !!one && opts.some(o => o[0] === one), cust = F.remAdv || (on && !std);
+  return '<div class="bx-swrow"><span>알림</span><button type="button" class="tog" role="switch" aria-checked="' + on + '" aria-label="알림" data-bx-remsw="1"><i></i></button></div>' +
+    (on ? '<div class="picks bx-rem-q" role="group" aria-label="알림">' + opts.map(o => '<button type="button" class="pick" data-bx-rem="' + o[0] + '" aria-pressed="' + (!cust && one === o[0]) + '">' + o[1] + '</button>').join('') +
+      '<button type="button" class="pick" data-bx-rem="adv" aria-pressed="' + cust + '">' + (cust && cur.length ? esc(cur.length > 1 ? '알림 ' + cur.length + '개' : remLabel(cur[0])) : '직접 입력') + '</button></div>' : '');
 }
 document.addEventListener('click', ev => {
-  const b = ev.target.closest && ev.target.closest('[data-bx-rem]'); if (!b || !window.BX_APP || !F) return;
+  const sw = ev.target.closest && ev.target.closest('[data-bx-remsw]');
+  const b = !sw && ev.target.closest && ev.target.closest('[data-bx-rem]');
+  if ((!sw && !b) || !window.BX_APP || !F) return;
   ev.preventDefault(); ev.stopPropagation();
-  const v = b.dataset.bxRem;
-  if (v === 'adv') F.remAdv = true; else { F.remAdv = false; setFRem(v); }
+  if (sw) {
+    const on = remList(fRem()).length > 0 || F.remAdv;
+    if (on) { F.remLast = fRem(); F.remAdv = false; setFRem(''); }
+    else {
+      // 켜면 지난번 값, 처음엔 설정의 기본값(시간 있는 일정 10분 전, 시간 없는 일정 당일 오전 9시)
+      const def = F.timed ? (remList(remNorm(M.settings.defaultRemind, true, F.start))[0] || '10') : (remList(remNorm(M.settings.defaultRemindDay, false))[0] || 'd0@09:00');
+      setFRem(F.remLast && remList(F.remLast).length ? F.remLast : def);
+    }
+  } else {
+    const v = b.dataset.bxRem;
+    if (v === 'adv') F.remAdv = true; else { F.remAdv = false; setFRem(v); }
+  }
   drawFRem();
 }, true);
 (function bxRemStyle(){
@@ -287,6 +307,10 @@ document.addEventListener('click', ev => {
   const st = document.createElement('style');
   st.textContent = [
     '.bx-app .bx-rem-adv{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}',
+    // 켜기·끄기 줄: 이름은 왼쪽, 스위치는 오른쪽. 켰을 때만 아래에 고르는 칸
+    '.bx-app .bx-swrow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px}',
+    '.bx-app .bx-swrow > span{font-size:14.5px;font-weight:700;color:var(--ink)}',
+    '.bx-app .bx-swrow + .picks,.bx-app .bx-swrow + .tt-pills{margin-top:10px}',
     // 시간을 정하지 않은 일정의 '출발·준비': 안내 한 줄과 단추를 가운데에(어느 칩에서 눌러도 눈이 가운데로, 대표 11/2)
     '.bx-app #f-go:has(> [data-fpanel="time"]){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:100%;text-align:center}',
     '.bx-app #f-go:has(> [data-fpanel="time"]) > .p{margin:0;word-break:keep-all}'

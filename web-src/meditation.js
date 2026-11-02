@@ -80,12 +80,14 @@ function medHtml(){
     '<details class="bx-med-more"' + (MED.moreOpen ? ' open' : '') + '><summary><span class="bx-mm-t"><b>소리와 호흡</b><small>' + esc(medMoreText()) + '</small></span>' + ICON.chevR + '</summary>' +
     '<div class="fg-l tv-h">종소리</div><div class="picks bx-bowl-picks">' + BX_BOWLS.map(b => '<button type="button" class="pick" data-bxbowl="' + b[0] + '" aria-pressed="' + (bxBowlType() === b[0]) + '">' + b[1] + '</button>').join('') + '</div>' +
     '<p class="p small bx-med-note">누르면 바로 들어 볼 수 있어요.</p>' +
-    '<div class="fg-l tv-h">중간 종 · 다시 치는 간격</div><div class="picks">' +
+    // 중간 종: 켜기·끄기 스위치, 켰을 때만 간격(대표 결정 11/2 밤, 일정 알림과 같은 모양)
+    '<div class="bx-swrow tv-h"><span>중간 종 · 다시 치는 간격</span><button type="button" class="tog" role="switch" aria-checked="' + !!MED.bellS + '" aria-label="중간 종" data-med-bellsw="1"><i></i></button></div>' +
+    (MED.bellS ? '<div class="picks">' +
       MED_BELLS.filter(b => b[0] < MED.min * 60).map(b => pick('data-med-bell', b[0], bellCust ? -1 : MED.bellS, b[1] + '마다')).join('') +
       (bellCust ? '<span class="bx-cpick"><input id="bx-med-cbell" type="number" inputmode="numeric" min="1" max="60" value="' + (MED.bellS ? Math.max(1, Math.round(MED.bellS / 60)) : 5) + '" aria-label="중간 종 간격(분)"><span>분마다</span></span>'
-        : '<button type="button" class="pick" data-med-bellc="1" aria-pressed="false">직접 입력</button>') + '</div>' +
-    '<button type="button" class="bx-none" data-med-bell="0" aria-pressed="' + !MED.bellS + '">' + (!MED.bellS ? ICON.check : '') + '중간 종 없이</button>' +
-    '<div class="fg-l tv-h">호흡 안내</div><div class="picks">' + pick('data-med-breath', 1, MED.breath ? 1 : 0, '켜기') + pick('data-med-breath', 0, MED.breath ? 1 : 0, '끄기') + '</div>' +
+        : '<button type="button" class="pick" data-med-bellc="1" aria-pressed="false">직접 입력</button>') + '</div>' : '') +
+    // 호흡 안내도 같은 스위치(켜고 끄는 칸은 앱 어디서나 스위치 하나)
+    '<div class="bx-swrow tv-h"><span>호흡 안내</span>' + bxSwitch('data-med-breath', MED.breath, '호흡 안내') + '</div>' +
     '<p class="p small bx-med-note">호흡 안내를 켜면 원이 커질 때 들이쉬고(4초), 작아질 때 내쉬어요(6초).</p></details>' +
     '<div class="bx-med-acts"><button type="button" class="btn" data-act="bx-med-hear">' + bxIconSpan('music', '') + '종소리 듣기</button><button type="button" class="btn primary grow" data-act="bx-med-start">' + MED.min + '분 시작</button></div>' +
     '</section>';
@@ -132,7 +134,7 @@ if (MED.run && MED.run.endAt > Date.now()) setTimeout(medTick, 500);
 else if (MED.run && MED.run.endAt <= Date.now() && !MED.run.logged) setTimeout(() => { if (M && MED.run && !MED.run.logged) { MED.run.logged = true; medSave(); medAddLog(MED.run.min); } }, 1500);
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
-  const t = ev.target.closest('[data-act^="bx-med-"],[data-med-min],[data-med-bell],[data-med-bellc],[data-med-breath],[data-med-custom],[data-bxbowl]'); if (!t) return;
+  const t = ev.target.closest('[data-act^="bx-med-"],[data-med-min],[data-med-bell],[data-med-bellc],[data-med-bellsw],[data-med-breath],[data-med-custom],[data-bxbowl]'); if (!t) return;
   ev.stopPropagation();
   const act = t.dataset.act;
   if (t.dataset.bxbowl) {
@@ -141,6 +143,12 @@ document.addEventListener('click', ev => {
     medPlay('bowl', k);
     if (k !== bxBowlType()) saveSettings({bxBowl: k});
     return;
+  }
+  if (t.dataset.medBellsw != null) {
+    // 끄면 간격을 기억해 두었다가 다시 켜면 그 간격(처음엔 3분, 명상 시간보다 짧게)
+    if (MED.bellS) { MED.bellLast = MED.bellS; MED.bellS = 0; MED.bellCust = false; MED.bellOpen = false; }
+    else { const v = MED.bellLast || 180; MED.bellS = v < MED.min * 60 ? v : 60; }
+    medSave(); render(); return;
   }
   if (t.dataset.medBellc != null) { MED.bellOpen = true; MED.bellCust = true; if (!MED.bellS) MED.bellS = 300; medSave(); render(); setTimeout(() => { const i = $('#bx-med-cbell'); if (i) { i.focus(); i.select(); } }, 50); return; }
   if (t.dataset.medCustom != null) { MED.cust = true; render(); setTimeout(() => { const i = $('#bx-med-cmin'); if (i) { i.focus(); i.select(); } }, 50); return; }
