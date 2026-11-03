@@ -10,4 +10,7 @@
     <color name="bx_w_dim">#7D838E</color>
     <color name="bx_w_warn">#FFB47A</color>
     <color name="bx_w_warn_bg">#3A2A1C</color>
+    <color name="bx_w_live">#283152</color>
+    <color name="bx_w_btn2">#2A3150</color>
+    <color name="bx_w_thumb">#4A505C</color>
 </resources>

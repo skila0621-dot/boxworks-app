@@ -569,7 +569,7 @@
       var widget = plugin('BxWidget');
       if (widget && typeof window.BX_widgetData === 'function') {
         var wd = window.BX_widgetData(list.filter(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; }));
-        var wsig = wd ? JSON.stringify({ i: wd.items, r: wd.routines, l: wd.late }) : null;
+        var wsig = wd ? JSON.stringify({ i: wd.items, r: wd.routines, l: wd.late, li: wd.lateI }) : null;
         if (wd && wsig !== lastWidget) { lastWidget = wsig; widget.update({ data: wd }).catch(function () { lastWidget = null; }); }
       }
       // 잠금 화면에 보여 줄 것(설정): alarm(기본) | title | none
@@ -717,8 +717,25 @@
         setTimeout(function () { var m = document.querySelector('[data-act="bx-mic"][data-for="f-title"]'); if (m) m.click(); }, 350);
       }, 300);
     };
-    if (widgetPl.addListener) widgetPl.addListener('speak', speakNow);
-    if (widgetPl.consumeLaunch) widgetPl.consumeLaunch().then(function (r) { if (r && r.speak) setTimeout(speakNow, 700); }).catch(function () {});
+    // 위젯 '일정 추가'(시험판 36, 대표 요청 11/3: 일정 추가와 마이크를 따로): 새 일정 창만 연다(글자로 넣기)
+    var addNow = function () {
+      setTimeout(function () { var add = document.querySelector('.bx-fab'); if (add) add.click(); }, 300);
+    };
+    // 위젯의 줄을 누르면: 일정은 고치기 창, 루틴 · 시간표는 그 화면(web-src/v36.js BX_openFromWidget)
+    var openRow = function (o) {
+      setTimeout(function () { if (o && typeof window.BX_openFromWidget === 'function') window.BX_openFromWidget(o); }, 300);
+    };
+    if (widgetPl.addListener) {
+      widgetPl.addListener('speak', speakNow);
+      widgetPl.addListener('add', addNow);
+      widgetPl.addListener('open', openRow);
+    }
+    if (widgetPl.consumeLaunch) widgetPl.consumeLaunch().then(function (r) {
+      if (!r) return;
+      if (r.speak) setTimeout(speakNow, 700);
+      else if (r.add) setTimeout(addNow, 700);
+      else if (r.open) setTimeout(function () { openRow(r.open); }, 700);
+    }).catch(function () {});
   }
 
   // 다른 앱에서 '공유' → 박스웍스 일정으로(시험판 35): 받은 글로 새 일정 창(web-src/flow.js BX_openShared)

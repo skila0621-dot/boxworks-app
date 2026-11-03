@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- '오늘 일정' 위젯 목록의 날짜 구분선(시험판 32~): '내일 · 11/4 (수)' + 가는 선 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wd_root"
+    android:layout_width="match_parent"
+    android:layout_height="26dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp">
+    <TextView
+        android:id="@+id/wd_t"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="@color/bx_w_ink2"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="8dp"
+        android:layout_weight="1"
+        android:background="@color/bx_w_line" />
+</LinearLayout>

@@ -5,6 +5,8 @@
       'N일 뒤 · N일 후'는 오늘부터 N일 뒤. 'N일 동안 · N일간 · N일째 · N일마다 · N일 연속 · 1일 1회'는 날짜가 아니다.
       오늘 · 내일 · 모레 · 다음 주처럼 다른 날짜 말이 함께 있으면 그쪽을 따른다.
    2) 새 일정의 날짜가 오늘보다 앞이면 제목 아래에 '지난 날짜예요'(말한 날짜든 고른 날짜든)
+   3) 홈 화면 위젯(대표 요청 11/3, 위젯 시안 A): 밀어 보는 목록 · '루틴 포함 | 일정만' · '일정 추가'와 '말하기' 따로.
+      위젯 쪽은 BxWidgetProvider · BxWidgetService(안드로이드), 여기서는 줄을 눌렀을 때 열 화면
    화면 구조를 바꾸는 부분은 scripts/patches-v36.mjs */
 
 var BXQ_ALT = null;
@@ -54,3 +56,12 @@ document.addEventListener('click', ev => {
   F.date = d; F.touchedDate = true;
   drawFHint(); drawFDate(); if (typeof updRemWhen === 'function') updRemWhen();
 }, true);
+// 위젯의 줄을 누르면(BxWidget 'open' {k, id, ds}): 일정은 고치기 창, 루틴 · 시간표는 그 화면, 없어진 일정이면 그날 홈
+window.BX_openFromWidget = function(o){
+  if (!o || !M) return;
+  if (SH) closeSheet();
+  if (o.k === 'item' && o.id && getDoc(o.id) && !getDoc(o.id).deletedAt) { openEdit(o.id); return; }
+  if (o.k === 'routine' && bxModOn('routines')) { go('routines'); return; }
+  if (o.k === 'tt' && bxModOn('tt')) { go('tt'); return; }
+  go('today');
+};

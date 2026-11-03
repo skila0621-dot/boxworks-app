@@ -48,7 +48,9 @@ async function openApp({ now = NOW, data = null, perms = null, speech = true, so
         confirmed: async () => ({ done: {} }),
         local: async () => ({}), cancelLocal: async () => ({}), bowl: async () => {}, test: async () => ({}), openSettings: async () => ({})
       },
-      BxWidget: { update: async () => {}, consumeLaunch: async () => ({}), placed: async () => ({ list: 0, now: 0, canPin: true }), pin: async () => ({ asked: true }) }
+      // 위젯 단추로 앱이 열리는 것(시험판 36): window.__wl[이름](자료)로 흉내 낸다('speak' · 'add' · 'open')
+      BxWidget: { update: async x => { window.__wd = x.data; return {}; }, consumeLaunch: async () => ({}), placed: async () => ({ list: 0, now: 0, canPin: true }), pin: async () => ({ asked: true }),
+        addListener: (ev, cb) => { (window.__wl = window.__wl || {})[ev] = cb; return { remove() {} }; } }
     };
     // 배경 소리(시험판 33): 부른 것을 window.__bg에 남기고, 휴대폰이 알려 주는 'state'는 window.__bgL로 흉내 낸다
     if (sound) {

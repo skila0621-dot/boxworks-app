@@ -1,358 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 4×2 '오늘 일정' 위젯(전체 흐름 와이어프레임 10). 삼성 리마인더 위젯에서 빠져 불만이 많았던 시각·색·지난 일 구분을 지킨다.
-     시험판 32(대표 확인 11/3): 머리 줄 오른쪽 위 마이크 단추를 빼고 오른쪽 아래에 '＋ 일정 추가'(앱의 + 단추와 같은 자리),
-     내일 일정 앞에는 '내일 · 11/4 (수)' 구분선, 하는 중인 일은 앱 홈처럼 '지금'.
-     줄 안의 시각·제목·오른쪽 글자는 크기가 달라도 글자 바닥선을 맞춘다(가운데 맞춤은 작은 글자가 들떠 보였음, '진행 중' 정렬) -->
+<!-- 4×2 '오늘 일정' 위젯. 시험판 36(대표 요청 11/3): 위아래로 밀어 끝까지 보는 목록(ListView, BxWidgetService),
+     머리 줄 오른쪽 '루틴 포함 | 일정만'(위젯마다 기억), 아래 '일정 추가'(글자) · '말하기'(바로 듣기) 단추 둘.
+     모양은 위젯 시안 A(목록 + 아래 두 단추). 줄은 bx_widget_row · 날짜 구분선은 bx_widget_div.
+     하는 중인 줄은 연한 파란 띠라서 목록은 좌우 8dp 안쪽에서 시작하고, 머리 줄 · 단추 줄은 8dp 더 들어가 글자 왼쪽 끝을 맞춘다 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/w_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bx_widget_bg"
     android:orientation="vertical"
-    android:paddingLeft="16dp"
+    android:paddingLeft="8dp"
     android:paddingTop="12dp"
-    android:paddingRight="12dp"
-    android:paddingBottom="10dp">
+    android:paddingRight="8dp"
+    android:paddingBottom="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="30dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="6dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
         <TextView
             android:id="@+id/w_head"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
             android:text="오늘"
             android:textColor="@color/bx_w_ink"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:textStyle="bold" />
         <TextView
             android:id="@+id/w_late"
             android:layout_width="wrap_content"
-            android:layout_height="24dp"
+            android:layout_height="22dp"
+            android:layout_marginLeft="8dp"
             android:background="@drawable/bx_widget_late"
             android:gravity="center"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
+            android:maxLines="1"
+            android:paddingLeft="7dp"
+            android:paddingRight="7dp"
             android:textColor="@color/bx_w_warn"
-            android:textSize="12.5sp"
+            android:textSize="12sp"
             android:textStyle="bold"
             android:visibility="gone" />
-        <!-- 위젯이 아주 낮을 때만: 아래 줄 대신 머리 줄 오른쪽에 같은 단추 -->
-        <TextView
-            android:id="@+id/w_add_head"
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
-            android:layout_marginLeft="8dp"
-            android:background="@drawable/bx_widget_btn"
-            android:gravity="center"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"
-            android:text="＋ 일정 추가"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
+            android:layout_height="28dp"
+            android:background="@drawable/bx_widget_seg"
+            android:orientation="horizontal"
+            android:padding="2dp">
+            <TextView
+                android:id="@+id/w_f_all"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:contentDescription="루틴 포함해서 보기"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="루틴 포함"
+                android:textColor="@color/bx_w_ink2"
+                android:textSize="12.5sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/w_f_only"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:contentDescription="일정만 보기"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="일정만"
+                android:textColor="@color/bx_w_ink2"
+                android:textSize="12.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_marginTop="6dp"
+        android:layout_weight="1">
+        <!-- 오른쪽 가는 막대가 늘 보여 '더 있음'을 알린다(밀 때만 보이면 모름) -->
+        <ListView
+            android:id="@+id/w_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:fadeScrollbars="false"
+            android:listSelector="@android:color/transparent"
+            android:scrollbarSize="3dp"
+            android:scrollbarStyle="outsideOverlay"
+            android:scrollbarThumbVertical="@drawable/bx_widget_thumb"
+            android:scrollbars="vertical" />
         <TextView
             android:id="@+id/w_empty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="다가오는 일정이 없어요 · 아래 ‘일정 추가’로 말해 보세요"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="6dp"
+            android:text="다가오는 일정이 없어요 · 아래에서 넣어 보세요"
             android:textColor="@color/bx_w_ink2"
             android:textSize="14sp"
             android:visibility="gone" />
-    <LinearLayout
-        android:id="@+id/w_d1"
-        android:layout_width="match_parent"
-        android:layout_height="22dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone">
-        <TextView
-            android:id="@+id/w_d1_t"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink2"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginLeft="8dp"
-            android:layout_weight="1"
-            android:background="@color/bx_w_line" />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/w_r1_box"
-        android:layout_width="match_parent"
-        android:layout_height="28dp"
-        android:baselineAligned="true"
-        android:gravity="top"
-        android:orientation="horizontal"
-        android:paddingTop="4dp">
-        <TextView
-            android:id="@+id/w_r1_t"
-            android:layout_width="46dp"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink"
-            android:textSize="13.5sp"
-            android:textStyle="bold" />
-        <FrameLayout
-            android:id="@+id/w_r1_c"
-            android:layout_width="4dp"
-            android:layout_height="18dp"
-            android:background="@color/bx_w_accent" />
-        <TextView
-            android:id="@+id/w_r1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink"
-            android:textSize="14.5sp" />
-        <TextView
-            android:id="@+id/w_r1_r"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:ellipsize="end"
-            android:gravity="end"
-            android:maxLines="1"
-            android:maxWidth="110dp"
-            android:textColor="@color/bx_w_ink2"
-            android:textSize="13sp" />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/w_d2"
-        android:layout_width="match_parent"
-        android:layout_height="22dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone">
-        <TextView
-            android:id="@+id/w_d2_t"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink2"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginLeft="8dp"
-            android:layout_weight="1"
-            android:background="@color/bx_w_line" />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/w_r2_box"
-        android:layout_width="match_parent"
-        android:layout_height="28dp"
-        android:baselineAligned="true"
-        android:gravity="top"
-        android:orientation="horizontal"
-        android:paddingTop="4dp">
-        <TextView
-            android:id="@+id/w_r2_t"
-            android:layout_width="46dp"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink"
-            android:textSize="13.5sp"
-            android:textStyle="bold" />
-        <FrameLayout
-            android:id="@+id/w_r2_c"
-            android:layout_width="4dp"
-            android:layout_height="18dp"
-            android:background="@color/bx_w_accent" />
-        <TextView
-            android:id="@+id/w_r2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink"
-            android:textSize="14.5sp" />
-        <TextView
-            android:id="@+id/w_r2_r"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:ellipsize="end"
-            android:gravity="end"
-            android:maxLines="1"
-            android:maxWidth="110dp"
-            android:textColor="@color/bx_w_ink2"
-            android:textSize="13sp" />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/w_d3"
-        android:layout_width="match_parent"
-        android:layout_height="22dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone">
-        <TextView
-            android:id="@+id/w_d3_t"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink2"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginLeft="8dp"
-            android:layout_weight="1"
-            android:background="@color/bx_w_line" />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/w_r3_box"
-        android:layout_width="match_parent"
-        android:layout_height="28dp"
-        android:baselineAligned="true"
-        android:gravity="top"
-        android:orientation="horizontal"
-        android:paddingTop="4dp">
-        <TextView
-            android:id="@+id/w_r3_t"
-            android:layout_width="46dp"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink"
-            android:textSize="13.5sp"
-            android:textStyle="bold" />
-        <FrameLayout
-            android:id="@+id/w_r3_c"
-            android:layout_width="4dp"
-            android:layout_height="18dp"
-            android:background="@color/bx_w_accent" />
-        <TextView
-            android:id="@+id/w_r3"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink"
-            android:textSize="14.5sp" />
-        <TextView
-            android:id="@+id/w_r3_r"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:ellipsize="end"
-            android:gravity="end"
-            android:maxLines="1"
-            android:maxWidth="110dp"
-            android:textColor="@color/bx_w_ink2"
-            android:textSize="13sp" />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/w_d4"
-        android:layout_width="match_parent"
-        android:layout_height="22dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone">
-        <TextView
-            android:id="@+id/w_d4_t"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink2"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginLeft="8dp"
-            android:layout_weight="1"
-            android:background="@color/bx_w_line" />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/w_r4_box"
-        android:layout_width="match_parent"
-        android:layout_height="28dp"
-        android:baselineAligned="true"
-        android:gravity="top"
-        android:orientation="horizontal"
-        android:paddingTop="4dp">
-        <TextView
-            android:id="@+id/w_r4_t"
-            android:layout_width="46dp"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink"
-            android:textSize="13.5sp"
-            android:textStyle="bold" />
-        <FrameLayout
-            android:id="@+id/w_r4_c"
-            android:layout_width="4dp"
-            android:layout_height="18dp"
-            android:background="@color/bx_w_accent" />
-        <TextView
-            android:id="@+id/w_r4"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/bx_w_ink"
-            android:textSize="14.5sp" />
-        <TextView
-            android:id="@+id/w_r4_r"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:ellipsize="end"
-            android:gravity="end"
-            android:maxLines="1"
-            android:maxWidth="110dp"
-            android:textColor="@color/bx_w_ink2"
-            android:textSize="13sp" />
-    </LinearLayout>
-    </LinearLayout>
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/w_foot"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:gravity="end|center_vertical"
+        android:layout_height="38dp"
+        android:layout_marginLeft="6dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="6dp"
         android:orientation="horizontal">
-        <TextView
+        <LinearLayout
             android:id="@+id/w_add"
-            android:layout_width="wrap_content"
-            android:layout_height="34dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@drawable/bx_widget_btn"
-            android:contentDescription="일정 추가 · 누르면 바로 말로 넣어요"
+            android:contentDescription="일정 추가 · 글자로 넣어요"
             android:gravity="center"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:text="＋ 일정 추가"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_plus" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:importantForAccessibility="no"
+                android:text="일정 추가"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+        <FrameLayout
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+        <LinearLayout
+            android:id="@+id/w_mic"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bx_widget_btn2"
+            android:contentDescription="말하기 · 바로 말로 넣어요"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_mic_a" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:importantForAccessibility="no"
+                android:text="말하기"
+                android:textColor="@color/bx_w_accent"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -12,7 +12,10 @@
     <color name="bx_w_warn">#A4500B</color>
     <color name="bx_w_warn_bg">#FFF4E8</color>
     <string name="bx_widget_label">박스웍스 오늘 일정</string>
-    <string name="bx_widget_desc">오늘 일정을 시각·색과 함께 보고, 말로 바로 넣어요</string>
+    <string name="bx_widget_desc">오늘 일정을 시각·색과 함께 보고, 글자나 말로 바로 넣어요</string>
     <string name="bx_now_widget_label">박스웍스 지금 단계</string>
     <string name="bx_now_widget_desc">루틴을 하는 동안 지금 할 단계와 출발까지 남은 시간을 보여 줘요</string>
+    <color name="bx_w_live">#EEF1FD</color>
+    <color name="bx_w_btn2">#E9EDFC</color>
+    <color name="bx_w_thumb">#C9CED6</color>
 </resources>

@@ -8,7 +8,7 @@ const items = p => p.evaluate(() => JSON.parse(localStorage.getItem('bx:data')).
 const hint = p => p.evaluate(() => (document.querySelector('#f-hint') || {}).innerText || '');
 
 module.exports = async function () {
-  const c = checker('시험판 36 · 달 없이 말한 날 · 지난 날짜 · 확인 필요 날짜 고르기');
+  const c = checker('시험판 36 · 달 없이 말한 날 · 지난 날짜 · 확인 필요 날짜 고르기 · 위젯 단추');
 
   // (1) 11월 18일에 "17일 …"이라고 말하면 12월 17일(이번 달 17일은 지났음)
   let app = await openApp({ now: '2026-11-18T10:00:00+09:00', data: [['settings', settings()]] });
@@ -67,6 +67,27 @@ module.exports = async function () {
     await p.click('[data-bx-late="later"][data-id="it_b"]'); await p.waitForTimeout(400);
     const b = (await items(p)).find(i => i.id === 'it_b');
     c.eq([b.date, b.start], ['2026-11-02', '15:20'], '1시간 뒤로');
+    c.eq(app.errors, [], '화면 오류');
+  } finally { await app.close(); }
+  // (3) 홈 화면 위젯(시안 A): '일정 추가'는 새 일정 창만(마이크 없이), '말하기'는 새 일정 창 + 듣기, 줄을 누르면 그 일정
+  app = await openApp({ now: '2026-11-02T14:20:00+09:00', data: [['settings', settings()],
+    ['it_a', { type: 'item', title: '은행 서류 내기', date: '2026-11-01', start: '11:00', createdAt: old, updatedAt: old }],
+    ['it_d', { type: 'item', title: '치과 예약', date: '2026-11-02', start: '16:30', createdAt: old, updatedAt: old }]] });
+  try {
+    const p = app.page;
+    await p.waitForTimeout(800);
+    const wd = await p.evaluate(() => window.__wd || null);
+    c.ok(wd && wd.lateI === 1 && wd.late >= 1, '위젯 자료: 지난 일정 수(일정만일 때) ' + JSON.stringify(wd && [wd.late, wd.lateI]));
+    c.ok(wd && wd.items.some(i => i.k === 'item' && i.id === 'it_d' && i.title === '치과 예약'), '위젯 자료: 일정마다 id(줄을 누르면 그 일정)');
+    c.ok(await p.evaluate(() => ['speak', 'add', 'open'].every(k => typeof (window.__wl || {})[k] === 'function')), '위젯 알림 세 가지를 듣는다');
+    await p.evaluate(() => window.__wl.add({})); await p.waitForTimeout(900);
+    c.ok(await p.evaluate(() => !!document.querySelector('#f-title') && !document.querySelector('.bx-listen')), "'일정 추가': 새 일정 창, 마이크는 켜지 않음");
+    await p.evaluate(() => { const x = document.querySelector('[data-act="sheet-close"]'); if (x) x.click(); }); await p.waitForTimeout(400);
+    await p.evaluate(() => window.__wl.open({ k: 'item', id: 'it_d', ds: '2026-11-02' })); await p.waitForTimeout(900);
+    c.eq(await p.evaluate(() => { const t = document.querySelector('#f-title'); return t ? t.value : null; }), '치과 예약', '줄을 누르면 그 일정의 고치기 창');
+    await p.evaluate(() => { const x = document.querySelector('[data-act="sheet-close"]'); if (x) x.click(); }); await p.waitForTimeout(400);
+    await p.evaluate(() => window.__wl.open({ k: 'routine', id: '', ds: '2026-11-02' })); await p.waitForTimeout(700);
+    c.ok(await p.evaluate(() => !!document.querySelector('.dock [data-view="routines"][aria-current="page"]')), '루틴 줄을 누르면 루틴 화면');
     c.eq(app.errors, [], '화면 오류');
   } finally { await app.close(); }
   return c.done();

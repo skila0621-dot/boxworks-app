@@ -75,6 +75,8 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/bx_widget_info" />
         </receiver>
+        <!-- '오늘 일정' 위젯의 밀어 보는 목록(시험판 36) -->
+        <service android:name=".BxWidgetService" android:exported="false" android:permission="android.permission.BIND_REMOTEVIEWS" />
         <!-- 2×2 '지금 단계' 위젯(전체 흐름 와이어프레임 10) -->
         <receiver android:name=".BxNowWidget" android:exported="false" android:label="@string/bx_now_widget_label">
             <intent-filter>

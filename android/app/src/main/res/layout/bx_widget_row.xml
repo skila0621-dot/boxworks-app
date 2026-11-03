@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- '오늘 일정' 위젯의 한 줄(시험판 36, 위젯 시안 A): 시각 | 색 막대 | 제목 | 오른쪽(지금 · 끝 시각, 출발 시각, 장소, 완료).
+     하는 중인 줄은 연한 파란 띠(bx_widget_live). 시각 · 제목 · 오른쪽 글자는 글자 바닥선을 맞추고, 색 막대는 줄 가운데 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wr_root"
+    android:layout_width="match_parent"
+    android:layout_height="32dp"
+    android:baselineAligned="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp">
+    <TextView
+        android:id="@+id/wr_t"
+        android:layout_width="46dp"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="@color/bx_w_ink"
+        android:textSize="13.5sp"
+        android:textStyle="bold" />
+    <FrameLayout
+        android:id="@+id/wr_c"
+        android:layout_width="3dp"
+        android:layout_height="18dp"
+        android:layout_gravity="center_vertical"
+        android:background="@color/bx_w_accent" />
+    <TextView
+        android:id="@+id/wr_n"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/bx_w_ink"
+        android:textSize="14.5sp" />
+    <TextView
+        android:id="@+id/wr_m"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:ellipsize="end"
+        android:gravity="end"
+        android:maxLines="1"
+        android:maxWidth="130dp"
+        android:textColor="@color/bx_w_ink2"
+        android:textSize="12.5sp" />
+</LinearLayout>

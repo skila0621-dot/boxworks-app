@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 위젯 고르는 화면의 미리보기(목록 대신 고정 세 줄). 실제 위젯은 bx_widget.xml.
+     4×2 '오늘 일정' 위젯. 시험판 36(대표 요청 11/3): 위아래로 밀어 끝까지 보는 목록(ListView, BxWidgetService),
+     머리 줄 오른쪽 '루틴 포함 | 일정만'(위젯마다 기억), 아래 '일정 추가'(글자) · '말하기'(바로 듣기) 단추 둘.
+     모양은 위젯 시안 A(목록 + 아래 두 단추). 줄은 bx_widget_row · 날짜 구분선은 bx_widget_div.
+     하는 중인 줄은 연한 파란 띠라서 목록은 좌우 8dp 안쪽에서 시작하고, 머리 줄 · 단추 줄은 8dp 더 들어가 글자 왼쪽 끝을 맞춘다 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bx_widget_bg"
+    android:orientation="vertical"
+    android:paddingLeft="8dp"
+    android:paddingTop="12dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="오늘"
+            android:textColor="@color/bx_w_ink"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="22dp"
+            android:layout_marginLeft="8dp"
+            android:background="@drawable/bx_widget_late"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingLeft="7dp"
+            android:paddingRight="7dp"
+            android:textColor="@color/bx_w_warn"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:background="@drawable/bx_widget_seg"
+            android:orientation="horizontal"
+            android:padding="2dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:contentDescription="루틴 포함해서 보기"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:background="@drawable/bx_widget_seg_on"
+                android:text="루틴 포함"
+                android:textColor="#FFFFFF"
+                android:textSize="12.5sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:contentDescription="일정만 보기"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="일정만"
+                android:textColor="@color/bx_w_ink2"
+                android:textSize="12.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+        <LinearLayout
+            android:background="@drawable/bx_widget_live"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:baselineAligned="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp">
+            <TextView
+                android:layout_width="46dp"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="@color/bx_w_accent"
+                android:text="09:00"
+                android:textSize="13.5sp"
+                android:textStyle="bold" />
+            <FrameLayout
+                android:layout_width="3dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center_vertical"
+                android:background="@color/bx_w_accent" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/bx_w_ink"
+                android:text="출근 준비"
+                android:textSize="14.5sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:maxWidth="130dp"
+                android:textColor="@color/bx_w_accent"
+                android:text="지금 · 09:40까지"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <LinearLayout
+    
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:baselineAligned="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp">
+            <TextView
+                android:layout_width="46dp"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="@color/bx_w_ink"
+                android:text="12:30"
+                android:textSize="13.5sp"
+                android:textStyle="bold" />
+            <FrameLayout
+                android:layout_width="3dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center_vertical"
+                android:background="#D9468F" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/bx_w_ink"
+                android:text="점심 약속"
+                android:textSize="14.5sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:maxWidth="130dp"
+                android:textColor="@color/bx_w_ink2"
+                android:text="12:05 출발"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <LinearLayout
+    
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:baselineAligned="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp">
+            <TextView
+                android:layout_width="46dp"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="@color/bx_w_ink"
+                android:text="15:00"
+                android:textSize="13.5sp"
+                android:textStyle="bold" />
+            <FrameLayout
+                android:layout_width="3dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center_vertical"
+                android:background="#2E9E6A" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/bx_w_ink"
+                android:text="치과"
+                android:textSize="14.5sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:maxWidth="130dp"
+                android:textColor="@color/bx_w_ink2"
+                android:text="연세치과"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        </LinearLayout>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:layout_marginLeft="6dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="6dp"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bx_widget_btn"
+            android:contentDescription="일정 추가 · 글자로 넣어요"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_plus" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:importantForAccessibility="no"
+                android:text="일정 추가"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+        <FrameLayout
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bx_widget_btn2"
+            android:contentDescription="말하기 · 바로 말로 넣어요"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_mic_a" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:importantForAccessibility="no"
+                android:text="말하기"
+                android:textColor="@color/bx_w_accent"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

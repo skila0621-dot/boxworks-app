@@ -10,35 +10,58 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 /**
  * 홈 화면 위젯과 박스웍스 화면을 잇는 연결부. 웹에서는 Capacitor.Plugins.BxWidget.
  * update(data): 위젯에 보여 줄 앞으로의 일정·알람 시각을 넘긴다.
- * 위젯의 말하기 단추로 앱이 열리면 'speak' 알림을 보내고, 처음 켜질 때는 consumeLaunch()로 알려 준다.
+ * 위젯 단추로 앱이 열리면 알림을 보낸다: 'speak'(말하기) · 'add'(일정 추가, 시험판 36) · 'open'(줄 누르기 {k, id, ds}, 시험판 36).
+ * 앱이 꺼져 있다가 열렸으면 consumeLaunch()로 알려 준다.
  */
 @CapacitorPlugin(name = "BxWidget")
 public class BxWidgetPlugin extends Plugin {
     private boolean pendingSpeak = false;
+    private boolean pendingAdd = false;
+    private JSObject pendingOpen = null;
 
     @Override
     public void load() {
-        Intent i = getActivity() == null ? null : getActivity().getIntent();
-        if (i != null && BxWidgetProvider.ACTION_SPEAK.equals(i.getAction())) {
-            pendingSpeak = true;
-            i.setAction(Intent.ACTION_MAIN);
-        }
+        take(getActivity() == null ? null : getActivity().getIntent(), false);
     }
 
     @Override
     protected void handleOnNewIntent(Intent intent) {
         super.handleOnNewIntent(intent);
-        if (intent != null && BxWidgetProvider.ACTION_SPEAK.equals(intent.getAction())) {
-            intent.setAction(Intent.ACTION_MAIN);
-            notifyListeners("speak", new JSObject(), true);
+        take(intent, true);
+    }
+
+    /** 위젯에서 온 인텐트면 알리고(live) 아니면 남겨 둔다. 한 번 읽은 인텐트는 보통 열기로 바꿔 다시 읽지 않게 */
+    private void take(Intent i, boolean live) {
+        if (i == null || i.getAction() == null) return;
+        String a = i.getAction();
+        if (BxWidgetProvider.ACTION_SPEAK.equals(a)) {
+            if (live) notifyListeners("speak", new JSObject(), true);
+            else pendingSpeak = true;
+        } else if (BxWidgetProvider.ACTION_ADD.equals(a)) {
+            if (live) notifyListeners("add", new JSObject(), true);
+            else pendingAdd = true;
+        } else if (BxWidgetProvider.ACTION_OPEN.equals(a)) {
+            JSObject o = new JSObject();
+            o.put("k", i.getStringExtra("k"));
+            o.put("id", i.getStringExtra("id"));
+            o.put("ds", i.getStringExtra("ds"));
+            if (live) notifyListeners("open", o, true);
+            else pendingOpen = o;
+        } else {
+            return;
         }
+        i.setAction(Intent.ACTION_MAIN);
     }
 
     @PluginMethod
     public void consumeLaunch(PluginCall call) {
         JSObject r = new JSObject();
         r.put("speak", pendingSpeak);
+        r.put("add", pendingAdd);
+        if (pendingOpen != null) r.put("open", pendingOpen);
         pendingSpeak = false;
+        pendingAdd = false;
+        pendingOpen = null;
         call.resolve(r);
     }
 

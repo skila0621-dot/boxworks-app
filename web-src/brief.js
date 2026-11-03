@@ -88,7 +88,7 @@ window.BX_widgetData = function(plan){
     if (e < t0 || s > until || (i.done && s < t0)) return;
     const p = tvPlan(i), cat = M.catMap.get(i.categoryId);
     list.push({at: s, end: e, title: i.title || '(제목 없음)', place: i.location || '', go: p && p.travel ? p.leave.getTime() : 0,
-      c: M.settings.catColors !== false && cat ? bxHex(cat.color) : '', k: 'item', done: !!i.done});
+      c: M.settings.catColors !== false && cat ? bxHex(cat.color) : '', k: 'item', id: i.id, done: !!i.done});
   });
   const routines = [];
   for (let k = 0; k <= 3; k++) {
@@ -112,8 +112,9 @@ window.BX_widgetData = function(plan){
     });
   }
   list.sort((a, b) => a.at - b.at);
-  const late = M.items.filter(isLate).length + bxRtMissed().length;
-  return {items: list.slice(0, 20), routines, late, made: now};
+  // lateI: 지난 일정만(위젯 '일정만'일 때 확인 필요 숫자, 시험판 36). 위젯 목록은 밀어 보므로 40개까지
+  const lateI = M.items.filter(isLate).length, late = lateI + bxRtMissed().length;
+  return {items: list.slice(0, 40), routines, late, lateI, made: now};
 };
 
 /* ---------- 루틴 단계를 확인하지 않았을 때(대표 요청) ----------

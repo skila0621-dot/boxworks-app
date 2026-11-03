@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 위젯 목록 오른쪽의 가는 막대(밀어 볼 것이 더 있음) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/bx_w_thumb" />
+    <corners android:radius="2dp" />
+    <size android:width="3dp" />
+</shape>
