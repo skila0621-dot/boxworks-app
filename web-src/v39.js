@@ -160,6 +160,8 @@ function bxCalsDraw(){
   let h = '<div class="bx-grp bx-cals">' + M.cats.map(c => bxCalRowHtml(c.id, catColorRaw(c.id), c.name, '일정 ' + bxCalCount(c.id) + '개' + (def === c.id ? ' · 새 일정의 기본' : ''), c.home !== false, 'data-bxcalhome')).join('') +
     '<button type="button" class="bx-cal-add" data-act="bx-cal-add">' + ICON.plus + '<span>캘린더 만들기</span></button></div>' +
     '<p class="p small bx-cal-note">홈에 보이기를 끄면 홈 · 위젯 · 아침 요약의 그날 목록에서만 빠져요. 캘린더 화면 · 알림 · 놓친 일정은 그대로예요.</p>';
+  // 시험판 40: 시간표도 같은 목록에(캘린더 보완 안 ③ '캘린더 · 시간표 목록 · 홈에 보이기')
+  if (typeof bxTtsRowsHtml === 'function' && bxModOn('tt')) h += '<h3 class="bx-ft-hd">시간표</h3><div class="bx-grp bx-cals">' + bxTtsRowsHtml() + '</div>';
   const pcs = bxPcCals();
   if (pcs.length) h += '<h3 class="bx-ft-hd">휴대폰 캘린더</h3><div class="bx-grp bx-cals">' + pcs.map(p => bxCalRowHtml(p.id, p.color, p.name, '읽기만 · 일정 ' + bxCalCount(p.id) + '개', bxCalHome(p.id), 'data-bxpchome', true)).join('') + '</div>' +
     '<p class="p small bx-cal-note">어느 휴대폰 캘린더를 읽을지는 설정 › 휴대폰 캘린더에서 골라요.</p>';

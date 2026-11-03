@@ -238,7 +238,7 @@ document.addEventListener('click', ev => {
   if (nav === 'make') {
     const rem = BXT.rem === 'custom' ? String(Math.max(1, Math.min(240, Math.round(+BXT.cust) || 15))) : BXT.rem;
     const ok = bxTtParsed().filter(r => r.p.name && r.p.days.length && r.p.start), base = ttList().length, ids = [];
-    ok.forEach((r, i) => ids.push(ttSave({id: null, name: r.p.name, days: r.p.days, start: r.p.start, end: r.p.end, place: r.p.place, remind: rem, color: TT_COLORS[(base + i) % TT_COLORS.length]})));
+    ok.forEach((r, i) => ids.push(ttSave({id: null, name: r.p.name, days: r.p.days, start: r.p.start, end: r.p.end, place: r.p.place, remind: rem, color: TT_COLORS[(base + i) % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null})));
     saveSettings({bxTtHelp: {at: nowIso(), made: ids.length}});
     bxTtHelpClose();
     toast('시간표에 ' + ids.length + '개 넣었어요', [['되돌리기', () => ids.forEach(id => removeDoc(id))]]);

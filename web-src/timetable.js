@@ -18,7 +18,8 @@ function ttList(){
   allDocs().forEach((d, id) => { if (d && d.type === 'tt' && !d.deletedAt) out.push(Object.assign({}, d, {id})); });
   return out.sort((a, b) => toMin(a.start) - toMin(b.start) || String(a.name).localeCompare(String(b.name)));
 }
-function ttOn(e, ds){ return e.on !== false && Array.isArray(e.days) && e.days.includes(parseYmd(ds).getDay()) && !ttSkipped(e, ds); }
+// 시험판 40: 시간표의 기간 밖이면(끝남 · 시작 전) 그날 수업이 없는 것으로(알림 · 위젯 · 아침 요약 · 홈 모두)
+function ttOn(e, ds){ return e.on !== false && Array.isArray(e.days) && e.days.includes(parseYmd(ds).getDay()) && !ttSkipped(e, ds) && (typeof bxTtActive !== 'function' || bxTtActive(e, ds)); }
 // 휴강(대표 요청 2026-10-31): 그 날짜 하루만 끈다. 알람·아침 보고·위젯·오늘 할 일이 모두 ttOn을 거치므로 함께 빠진다
 function ttSkipped(e, ds){ return !!(e && e.skip && e.skip[ds]); }
 // 이 요일의 다음 수업 날짜(오늘 포함). 이미 지난 요일이면 다음 주
@@ -120,7 +121,8 @@ function bxCalGo(to){
 }
 
 function ttHtml(){
-  const list = ttList();
+  // 시험판 40: 고른 시간표 하나만(위 칩으로 바꿈)
+  const list = ttList().filter(e => typeof bxTtSetOf !== 'function' || bxTtSetOf(e) === bxTtCur());
   VBAR = {title: '시간표', nav: ''};
   // 보이는 요일(대표 지적 10/31: '주말 수업이 있을 때만'은 있으나 마나) → 월–금 | 월–일 두 가지.
   // 월–금이어도 토·일에 수업이 있으면 그 요일은 보인다(넣은 수업이 숨지 않게)
@@ -155,7 +157,7 @@ function ttHtml(){
   if (window.BX_APP) {
     const rangeTxt = String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : cols.length === 5 ? '월–금' : '월–금·' + cols.slice(5).map(d => WD[d]).join('·'));
     const emptyA = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 아래 ‘빠른 추가’로 넣어 보세요. 시작 10분 전에 알람이 울려요.</p>';
-    return '<div class="page-head bx-tt-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복 · ' + rangeTxt + '</span></p></div></div>' + emptyA +
+    return '<div class="page-head bx-tt-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복 · ' + rangeTxt + '</span></p></div></div>' + (typeof bxTtChipsHtml === 'function' ? bxTtChipsHtml() + bxTtNoteHtml() : '') + emptyA +
       (TTSEL ? '<p class="p small tt-tip">' + TT_TIP1 + '</p>' : '') +
       '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
       '<div class="tt-body' + (TTSEL ? ' editing' : '') + '" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + (TTSEL ? ttBarHtml() : '') + '</div></div>' +
@@ -178,9 +180,12 @@ function ttTodayHtml(ds, inner){
   if (!ds && S.homeDay) return '';
   ds = ds || M.today;
   const dow = parseYmd(ds).getDay();
-  const list = ttList().filter(e => e.on !== false && Array.isArray(e.days) && e.days.includes(dow));
+  // 시험판 40: 홈에 보이기를 끈 시간표 · 기간 밖의 시간표는 빼기(휴강은 그 자리에 흐리게 그대로)
+  const list = ttList().filter(e => e.on !== false && Array.isArray(e.days) && e.days.includes(dow) && (typeof bxTtHome !== 'function' || (bxTtHome(e) && bxTtActive(e, ds))));
   if (!list.length) return '';
   const nowM = M.now.getHours() * 60 + M.now.getMinutes();
+  // 시간표가 둘 이상이면 줄에 어느 시간표인지(시험판 40)
+  const multi = typeof bxTtSets === 'function' && bxTtSets().length > 1;
   const rows = list.map(e => {
     if (ttSkipped(e, ds)) return '<div class="row tt-row bx-off"><span class="tt-dot" style="--c:' + (e.color || TT_COLORS[0]) + '"></span>' +
       '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + e.start + '</b>' + (e.end ? '<small>' + e.end + '</small>' : '') + '</span>' +
@@ -189,7 +194,7 @@ function ttTodayHtml(ds, inner){
     const rem = e.remind === '' || e.remind == null ? '' : fromMin(Math.max(0, toMin(e.start) - (+e.remind || 0)));
     return '<div class="row tt-row' + (past ? ' done' : '') + '"><span class="tt-dot" style="--c:' + (e.color || TT_COLORS[0]) + '"></span>' +
       '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + e.start + '</b>' + (e.end ? '<small>' + e.end + '</small>' : '') + '</span>' +
-      '<span class="row-body"><span class="row-title">' + esc(e.name) + '</span><span class="row-meta">' + (e.place ? '<span class="meta">' + ICON.pin + esc(e.place) + '</span>' : '') +
+      '<span class="row-body"><span class="row-title">' + esc(e.name) + '</span><span class="row-meta">' + (multi ? '<span class="meta bx-tts-m">' + esc(bxTtSetDoc(bxTtSetOf(e)).name) + '</span>' : '') + (e.place ? '<span class="meta">' + ICON.pin + esc(e.place) + '</span>' : '') +
       (rem && !past ? '<span class="meta bx-rem">' + ICON.bell + rem + '</span>' : '') + '</span></span></button></div>';
   }).join('');
   const offN = list.filter(e => ttSkipped(e, ds)).length;
@@ -198,13 +203,13 @@ function ttTodayHtml(ds, inner){
   if (inner) return '<div class="bx-sub bx-tts">' + hd + '</div>';
   return '<section class="tcard tt-card" aria-labelledby="h-tt-today"><div class="tc-body">' + hd + '</div></section>';
 }
-function ttCountOn(ds){ return ttList().filter(e => ttOn(e, ds)).length; }
+function ttCountOn(ds){ return ttList().filter(e => ttOn(e, ds) && (typeof bxTtHome !== 'function' || bxTtHome(e))).length; }
 
 /* 넣기·고치기 창 */
 function ttOpen(id, pre){
   const cur = id ? (ttList().find(e => e.id === id) || null) : null;
   const n = ttList().length;
-  TT = cur ? Object.assign({}, cur) : Object.assign({id: null, name: '', days: [], start: '09:00', end: '10:00', place: '', remind: '10', color: TT_COLORS[n % TT_COLORS.length]}, pre || {});
+  TT = cur ? Object.assign({}, cur) : Object.assign({id: null, name: '', days: [], start: '09:00', end: '10:00', place: '', remind: '10', color: TT_COLORS[n % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null}, pre || {});
   if (!TT.start) TT.start = '09:00';
   if (!TT.end || toMin(TT.end) <= toMin(TT.start)) TT.end = fromMin(Math.min(toMin(TT.start) + 60, 1439));
   openSheet({title: cur ? (window.BX_APP ? '수업 수정' : '시간표 고치기') : (window.BX_APP ? '수업 추가' : '시간표에 넣기'), draw: ttDraw, onClose: () => { TT = null; }});
@@ -227,6 +232,7 @@ function ttDraw(){
     '<div class="tt-form">' +
       (TT.hint ? '<p class="p small tt-hint">' + esc(TT.hint) + '</p>' : '') +
       '<label class="tt-l" for="tt-name">이름</label><input id="tt-name" class="inp" type="text" maxlength="40" autocomplete="off" placeholder="예) 경영학원론" value="' + esc(TT.name) + '">' +
+      (typeof bxTtPickHtml === 'function' ? bxTtPickHtml() : '') +
       '<span class="tt-l">요일</span><div class="tt-days" role="group" aria-label="요일">' + dayBtns + '</div>' +
       '<span class="tt-l">시간</span><div class="tt-times"><input id="tt-start" class="inp" type="time" value="' + TT.start + '" aria-label="시작"><span>–</span><input id="tt-end" class="inp" type="time" value="' + TT.end + '" aria-label="끝"></div>' +
       '<label class="tt-l" for="tt-place">장소</label><input id="tt-place" class="inp" type="text" maxlength="40" autocomplete="off" placeholder="예) 301호" value="' + esc(TT.place || '') + '">' +
@@ -238,7 +244,9 @@ function ttDraw(){
 }
 function ttSave(o){
   const d = {type: 'tt', name: String(o.name || '').trim().slice(0, 40), days: TT_ORDER.filter(x => o.days.includes(x)), start: o.start, end: o.end,
-    place: String(o.place || '').trim().slice(0, 40), remind: o.remind == null ? '10' : String(o.remind), color: o.color || TT_COLORS[0], on: true, link: o.link || null, skip: o.skip || null, updatedAt: nowIso()};
+    place: String(o.place || '').trim().slice(0, 40), remind: o.remind == null ? '10' : String(o.remind), color: o.color || TT_COLORS[0], on: true, link: o.link || null, skip: o.skip || null, updatedAt: nowIso(),
+    // 시험판 40: 어느 시간표인지(처음 시간표면 비움)
+    set: o.set && typeof BX_TTS_MAIN !== 'undefined' && o.set !== BX_TTS_MAIN ? o.set : null};
   const id = o.id || rid('tt_');
   const prev = o.id ? getDoc(o.id) : null;
   d.createdAt = prev && prev.createdAt ? prev.createdAt : nowIso();
@@ -269,7 +277,7 @@ function ttAddFromText(text){
   text = String(text || '').trim();
   if (!text) { toast('예) 월수 10시 반부터 12시까지 경영학원론 301호'); return; }
   const p = ttParse(text);
-  const o = {id: null, name: p.name, days: p.days, start: p.start, end: p.end, place: p.place, remind: '10', color: TT_COLORS[ttList().length % TT_COLORS.length]};
+  const o = {id: null, name: p.name, days: p.days, start: p.start, end: p.end, place: p.place, remind: '10', color: TT_COLORS[ttList().length % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null};
   if (p.name && p.days.length && p.start) {
     if (SH && $('#tt-in')) closeSheet();
     const id = ttSave(o);
@@ -448,7 +456,7 @@ function ttClip(e, d){
     toast(WD[d] + '요일 ' + e.name + '을 따로 움직여요', [['되돌리기', () => { if (made) removeDoc(made); ttRestore(snap); TTSEL = {id: e.id, d}; }]]);
     return;
   }
-  const others = list.filter(x => x.id !== e.id && ttNameKey(x.name) === ttNameKey(e.name));
+  const others = list.filter(x => x.id !== e.id && ttNameKey(x.name) === ttNameKey(e.name) && (x.set || '') === (e.set || ''));
   if (!others.length) { toast('같은 이름의 수업이 없어요. 복제하면 함께 연결돼요'); return; }
   const lk = (others.find(x => x.link) || {}).link || rid('lk_'), snap = ttSnapshot([e.id].concat(others.map(x => x.id)));
   [e].concat(others).forEach(x => writeDoc(x.id, Object.assign({}, getDoc(x.id), {link: lk, updatedAt: nowIso()})));

@@ -9,7 +9,7 @@ function bxReportFor(ds){
   // 시험판 39: '홈에 보이기'를 끈 캘린더는 빼고, 여러 날 일정은 '부산 여행 (2/3일째)'로
   const items = dayItems(ds).filter(i => !i.done && (typeof bxHomeOk !== 'function' || bxHomeOk(i)));
   const rows = items.map(i => { const sp = typeof bxSpan === 'function' && bxSpan(i), first = !sp || i.date === ds, p = first ? tvPlan(i) : null; return {start: first ? i.start || '' : '', title: (i.title || '(제목 없음)') + (sp ? ' (' + bxSpanLabel(i, ds).split(' · ')[0] + ')' : ''), place: i.location || '', go: p && p.travel ? hm(p.leave) : ''}; })
-    .concat(ttList().filter(e => ttOn(e, ds)).map(e => ({start: e.start, title: e.name, place: e.place || '', go: ''})))
+    .concat(ttList().filter(e => ttOn(e, ds) && (typeof bxTtHome !== 'function' || bxTtHome(e))).map(e => ({start: e.start, title: e.name, place: e.place || '', go: ''})))
     .sort((a, b) => (a.start ? 1 : 0) - (b.start ? 1 : 0) || a.start.localeCompare(b.start));
   // 이어서 할 일: 지금 이미 지난(어제까지) 일만. 미래 날의 보고에서 그 사이 일을 지났다고 짐작하지 않는다
   const late = M.items.filter(i => !i.done && !i.pc && i.date < M.today && !(typeof bxSpan === 'function' && bxSpan(i)));
@@ -117,7 +117,7 @@ window.BX_widgetData = function(plan){
   for (let k = -BACK; k <= AHEAD; k++) {
     const day = addDays(sod(new Date(now)), k), ds = ymd(day);
     if (bxModOn('tt')) ttList().forEach(e => {
-      if (!ttOn(e, ds) || !isHM(e.start)) return;
+      if (!ttOn(e, ds) || !isHM(e.start) || (typeof bxTtHome === 'function' && !bxTtHome(e))) return;
       const s = addMin(day, toMin(e.start)).getTime(), en = isHM(e.end) ? addMin(day, toMin(e.end)).getTime() : s + 3600e3;
       if (en >= t0 && s <= until) list.push({at: s, end: en, title: e.name, place: e.place || '', go: 0, c: bxHex(e.color), k: 'tt'});
     });

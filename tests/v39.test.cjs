@@ -150,7 +150,7 @@ module.exports = async function () {
     const p = app.page;
     await p.click('.dock [data-view="month"]'); await p.waitForTimeout(600);
     await p.click('[data-act="bx-cals"]'); await p.waitForTimeout(500);
-    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .bx-calrow .bx-at b')).map(b => b.textContent.trim())), ['일·공부', '개인', '기타', '병원', '연인'], '캘린더 목록');
+    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .bx-calrow[data-cal] .bx-at b')).map(b => b.textContent.trim())), ['일·공부', '개인', '기타', '병원', '연인'], '캘린더 목록(시험판 40부터 아래에 시간표 줄)');
     await p.click('#sheet-root .bx-calrow[data-cal="c_hos"] [data-bxcalhome]'); await p.waitForTimeout(300);
     c.ok((await doc(p, 'c_hos')).home === true, '목록에서 병원 홈에 보이기 켜기');
     await p.click('#sheet-root [data-act="bx-cal-add"]'); await p.waitForTimeout(500);
