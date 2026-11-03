@@ -59,6 +59,7 @@ module.exports = async function () {
     await p.click('#sheet-root [data-fpanel="rem"]'); await p.waitForTimeout(300);
     const note = await p.evaluate(() => (document.querySelector('#sheet-root .bx-rem-def') || {}).textContent || '');
     c.ok(/켜면 당일 오전 9시/.test(note) && /시간을 정하면 10분 전/.test(note), '기본값 안내 · ' + note);
+    await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     await p.fill('#f-title', '내일 오후 3시 치과'); await p.waitForTimeout(400);
     c.eq(await chip(), '10분 전', '시간을 말하면 기본값 10분 전');
     // (4) 닫을 때 시트 그림이 내려가며 사라지고, 곧 치워진다

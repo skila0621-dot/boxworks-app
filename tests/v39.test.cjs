@@ -116,11 +116,13 @@ module.exports = async function () {
     const p = app.page;
     await p.click('.bx-fab'); await p.waitForTimeout(500);
     await p.fill('#f-title', '6일부터 8일까지 부산 여행'); await p.waitForTimeout(300);
-    c.eq(await p.evaluate(() => document.querySelector('#f-chips [data-fpanel="date"]').textContent.trim()), '11월 6일 ~ 8일', '날짜 칩: 11월 6일 ~ 8일');
+    const dts = () => p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt-d')).map(b => b.textContent.trim()));
+    c.eq(await dts(), ['11월 6일 (금)', '11월 8일 (일)'], '일정 창 날짜: 11월 6일 (금) → 11월 8일 (일)');
     c.ok(/11월 6일 ~ 8일/.test(await p.evaluate(() => document.getElementById('f-hint').textContent)), '해석 줄도 범위');
     await p.click('#f-chips [data-fpanel="cat"]'); await p.waitForTimeout(300);
     await p.click('#f-cat [data-fcat="c_personal"]'); await p.waitForTimeout(200);
     await p.click('#f-cat [data-fcolor="#e87ba4"]'); await p.waitForTimeout(200);
+    await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     await p.click('#sheet-root [data-act="save"]'); await p.waitForTimeout(600);
     const saved = await p.evaluate(() => window.BX_T.docs().filter(([k, d]) => d && d.type === 'item' && d.title === '부산 여행' && k !== 'it_4').map(([, d]) => [d.date, d.endDate, d.categoryId, d.color]));
     c.eq(saved, [['2026-11-06', '2026-11-08', 'c_personal', '#e87ba4']], '저장: 시작 · 끝나는 날 · 캘린더 · 이 일정 색');
@@ -132,11 +134,14 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => document.getElementById('f-end-in').value), '2026-11-03', '여러 날을 켜면 끝나는 날은 다음 날');
     await p.click('#f-date [data-fspan="3"]'); await p.waitForTimeout(200);
     await p.click('#f-date [data-fdate="2026-11-03"]'); await p.waitForTimeout(200);
-    c.eq(await p.evaluate(() => [document.getElementById('f-end-in').value, document.querySelector('#f-chips [data-fpanel="date"]').textContent.trim()]), ['2026-11-05', '11월 3일 ~ 5일'], '시작을 옮기면 끝나는 날도 같은 길이로');
-    await p.click('#f-chips [data-fpanel="time"]'); await p.waitForTimeout(200);
-    await p.click('#f-time [data-ftimed="1"]'); await p.waitForTimeout(200);
+    c.eq([await p.evaluate(() => document.getElementById('f-end-in').value), await dts()], ['2026-11-05', ['11월 3일 (화)', '11월 5일 (목)']], '시작을 옮기면 끝나는 날도 같은 길이로');
+    await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
+    // 시간은 일정 창의 '하루 종일'을 끄고 시각을 눌러 정한다(시험판 44)
+    await p.click('#f-chips [data-bxallday]'); await p.waitForTimeout(200);
+    await p.click('#f-chips .bx-edt-t'); await p.waitForTimeout(200);
     c.ok(await p.evaluate(() => !document.getElementById('f-dur') && /첫날 시작/.test(document.getElementById('f-time').textContent)), "여러 날 + 시간: '첫날 시작 ~ 마지막 날 끝', 소요 시간 칸 없음");
     await p.evaluate(() => { const e = document.getElementById('f-end'); e.value = '09:00'; e.dispatchEvent(new Event('change', { bubbles: true })); });
+    await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     await p.click('#sheet-root [data-act="save"]'); await p.waitForTimeout(600);
     const ws = await p.evaluate(() => window.BX_T.docs().filter(([, d]) => d && d.title === '워크숍').map(([, d]) => [d.date, d.endDate, d.start, d.end]));
     c.eq(ws.length, 1, '워크숍 저장');

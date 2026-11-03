@@ -44,17 +44,19 @@ module.exports = async function () {
     // (1) 일정 줄에 📎 개수
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#tcard2 .row')).map(r => [r.querySelector('.row-title').textContent, (r.querySelector('.bx-att-m') || {}).textContent || ''])),
       [['병원 예약', '첨부 2'], ['회의', '']], '홈 줄: 첨부가 있으면 📎 개수');
-    // (2) 첨부가 있는 일정을 열면 '사진·파일' 칸이 열린 채로
+    // (2) 첨부가 있는 일정: 줄에 '사진·파일 2개'. 시험판 44부터는 저절로 열지 않고, 줄을 누르면 사진·파일 페이지
     await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500);
+    c.ok(await p.evaluate(() => !document.getElementById('bx-ep')), '열 때 사진·파일 페이지를 저절로 열지 않음');
+    await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(300);
     const ed = await p.evaluate(() => ({
       chip: (document.querySelector('#f-chips [data-fpanel="att"]') || {}).textContent || '',
-      open: !!document.querySelector('#f-panel:not([hidden]) #f-att'),
+      open: !!document.querySelector('#bx-ep #f-panel:not([hidden]) #f-att'),
       thumbs: Array.from(document.querySelectorAll('#f-att .bx-att-th img')).map(i => i.getAttribute('src')),
       files: Array.from(document.querySelectorAll('#f-att .bx-att-f')).map(f => f.querySelector('.bx-att-fn').textContent + ' ' + f.querySelector('small').textContent),
       btns: Array.from(document.querySelectorAll('#f-att [data-bxatt-add]')).map(b => b.textContent.trim())
     }));
-    c.eq(ed.chip.trim(), '사진·파일 2', "칩 '사진·파일 2'");
-    c.ok(ed.open, '첨부가 있는 일정은 사진·파일 칸이 열린 채로');
+    c.eq(ed.chip.trim(), '사진·파일 2개', "줄 '사진·파일 2개'");
+    c.ok(ed.open, '줄을 누르면 사진·파일 페이지');
     c.eq(ed.thumbs, ['https://localhost/_capacitor_file_/data/user/0/kr.boxworks.app/files/attach/a1_t.jpg'], '사진은 작은 그림(앱 폴더 주소)');
     c.eq(ed.files, ['처방전.pdf 117KB'], '파일은 이름 · 크기');
     c.eq(ed.btns, ['사진 고르기', '사진 찍기', '파일'], '붙이기 단추 셋');
@@ -71,7 +73,8 @@ module.exports = async function () {
     c.eq((await calls(p, 'open')).map(x => x.path), ['attach/a1.jpg', 'attach/f1.pdf'], '파일은 누르면 휴대폰 앱으로 열기');
     // (5) 빼고 저장
     await p.click('#f-att [data-bxatt-del="f1"]'); await p.waitForTimeout(200);
-    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="att"]') || {}).textContent.trim()), '사진·파일 1', '빼면 칩 숫자도');
+    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="att"]') || {}).textContent.trim()), '사진·파일 1개', '빼면 줄 숫자도');
+    await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="save"]').click()); await p.waitForTimeout(500);
     c.eq(((await doc(p, 'it_1')).att || []).map(a => a.id), ['a1'], '저장하면 뺀 파일은 일정에서 빠짐');
     // (6) 새 일정에 사진 고르기 · 찍기
@@ -86,6 +89,7 @@ module.exports = async function () {
     await p.evaluate(x => { window.__attNext = [{ files: x }]; }, [img('c1', '사진 11월 2일 06:50.jpg')]);
     await p.click('#f-att [data-bxatt-add="cam"]'); await p.waitForTimeout(400);
     c.eq((await calls(p, 'takePhoto')).length, 1, '사진 찍기');
+    await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="save"]').click()); await p.waitForTimeout(500);
     const nid = await p.evaluate(() => (window.BX_T.docs().find(([, d]) => d && d.type === 'item' && /치과/.test(d.title || '')) || [null])[0]);
     const nd = nid && await doc(p, nid);
@@ -94,11 +98,14 @@ module.exports = async function () {
     await p.evaluate(id => window.BX_T.day('2026-11-03'), nid); await p.waitForTimeout(400);
     await p.evaluate(id => { const b = document.querySelector('#sheet-root [data-act="edit"][data-id="' + id + '"]'); if (b) b.click(); }, nid); await p.waitForTimeout(500);
     await p.evaluate(x => { window.__attNext = [{ files: x }]; }, Array.from({ length: 8 }, (_, i) => img('d' + i)));
+    await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(300);
     await p.click('#f-att [data-bxatt-add="img"]'); await p.waitForTimeout(400);
     c.eq((await calls(p, 'pickImages')).slice(-1), [{ max: 7 }], '세 장 있으면 7장까지 고르기');
     const full = await p.evaluate(() => ({ n: document.querySelectorAll('#f-att .bx-att-th').length, dis: Array.from(document.querySelectorAll('#f-att [data-bxatt-add]')).every(b => b.disabled), note: document.querySelector('#f-att .bx-att-note').textContent }));
     c.ok(full.n === 10 && full.dis && /10개까지/.test(full.note), '10개면 단추가 잠기고 한 줄 안내 ' + JSON.stringify(full));
     c.ok(/1개는 10개가 넘어서 뺐어요/.test(await toasts(p)), '넘친 것은 빼고 알려 줌');
+    await p.evaluate(() => window.BX_back()); await p.waitForTimeout(300);
+    c.ok(await p.evaluate(() => !document.getElementById('bx-ep') && !!document.getElementById('f-chips') && /사진·파일 3개/.test(document.querySelector('#f-chips [data-fpanel="att"]').textContent)), '휴대폰 뒤로: 페이지에서 바꾼 것을 되돌리고 일정 창으로(3개)');
     await p.evaluate(() => window.BX_back()); await p.waitForTimeout(300);
     c.eq(((await doc(p, nid)).att || []).length, 3, '저장하지 않고 닫으면 그대로(3개)');
     // (8) '메모 …'로 시작해도 사진을 붙이면 일정으로
@@ -107,6 +114,7 @@ module.exports = async function () {
     await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(200);
     await p.evaluate(x => { window.__attNext = [{ files: x }]; }, [img('e1')]);
     await p.click('#f-att [data-bxatt-add="img"]'); await p.waitForTimeout(400);
+    await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="save"]').click()); await p.waitForTimeout(500);
     c.ok(await p.evaluate(() => window.BX_T.docs().some(([, d]) => d && d.type === 'item' && (d.att || []).some(a => a.id === 'e1')) && !window.BX_T.docs().some(([, d]) => d && d.type === 'memo')), "'메모 …'라도 첨부가 있으면 일정으로(메모에는 첨부가 없음)");
     // (9) 안 쓰는 파일 정리: 어느 일정에도 없고 하루가 지난 것만(f1은 방금 뺐지만 하루가 지났다고 침)

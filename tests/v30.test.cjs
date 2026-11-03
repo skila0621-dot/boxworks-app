@@ -34,16 +34,18 @@ module.exports = async function () {
     c.ok(/말하기/.test(await p.evaluate(() => (document.querySelector('#sheet-root [data-act="bx-mic"]') || {}).innerText || '')), "마이크 단추에 '말하기' 글자");
     c.ok(await p.evaluate(() => { const fp = document.getElementById('f-panel'); return !!fp && fp.hidden; }), '새 일정 창은 작게 시작(고르는 칸은 칩을 누를 때만)');
     c.ok(/내일 오후 3시 치과\|금요일 저녁 7시 친구 약속/.test(await p.evaluate(() => (document.querySelector('#sheet-root [data-act="bx-mic"]') || {}).getAttribute('data-ex') || '')), '말하기를 누르면 보여 줄 예문 둘');
-    // 칩을 누르면 고르는 칸이 칩 바로 아래에 붙어 열리고, 누른 칩은 화면 안에 있다(창은 부드럽게 커짐)
+    // 시험판 44(대표 11/4 1:34 · 1:50): 줄을 누르면 그 아래로 펼치지 않고 페이지가 열린다. 줄 자리는 움직이지 않는다
     let off = [];
-    for (const k of ['date', 'time', 'rem', 'cat', 'more', 'go']) {
-      const sel = '#f-chips [data-fpanel="' + k + '"]';
-      if (!(await rect(p, sel))) continue;
-      await p.click(sel); await p.waitForTimeout(500);
-      const b = await rect(p, sel), chips = await rect(p, '#f-chips'), pan = await rect(p, '#f-panel');
-      if (!b || b.y < 0 || b.y + b.h > 844 || !pan || pan.y - (chips.y + chips.h) > 24 || pan.y < chips.y + chips.h - 1) off.push(k + ' ' + JSON.stringify({ chip: b && Math.round(b.y), panel: pan && Math.round(pan.y), chipsBottom: chips && Math.round(chips.y + chips.h) }));
+    for (const [sel, t] of [['.bx-edt-d', '날짜'], ['[data-bxsub="loc"]', '장소'], ['[data-fpanel="cat"]', '캘린더'], ['[data-fpanel="rem"]', '알림'], ['[data-fpanel="go"]', '출발·준비'], ['[data-bxsub="note"]', '메모']]) {
+      const s2 = '#f-chips ' + sel;
+      const b0 = await rect(p, s2); if (!b0) { off.push(t + ' 줄 없음'); continue; }
+      await p.click(s2); await p.waitForTimeout(400);
+      const pg = await p.evaluate(() => { const e = document.getElementById('bx-ep'); return e ? [e.querySelector('#bx-ep-t').textContent, e.getBoundingClientRect().height] : null; });
+      const b1 = await rect(p, s2);
+      if (!pg || pg[0] !== t || pg[1] < 800 || !b1 || Math.abs(b1.y - b0.y) > 1) off.push(t + ' ' + JSON.stringify({ pg, y0: Math.round(b0.y), y1: b1 && Math.round(b1.y) }));
+      await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(250);
     }
-    c.eq(off, [], '새 일정 창: 고르는 칸은 칩 바로 아래, 누른 칩은 화면 안');
+    c.eq(off, [], '새 일정 창: 줄을 누르면 페이지(이름 · 완료), 줄 자리는 그대로');
     // 일정 알림 고르는 칸(규칙 11): 시간을 정한 일정은 정시·10분 전·1시간 전 + 직접 입력, '알림 없이'는 아래 글자 단추
     await p.fill('#f-title', '내일 오후 3시 치과'); await p.waitForTimeout(300);
     await p.click('#f-chips [data-fpanel="rem"]'); await p.waitForTimeout(300);
@@ -53,9 +55,10 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '1시간 전', "칩 하나를 고르면 알림이 그 하나로");
     await p.click('#f-rem [data-bx-remsw]'); await p.waitForTimeout(200);
     const offState = await p.evaluate(() => ({ chip: (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim(), opts: document.querySelectorAll('#f-rem .bx-rem-q').length, sw: (document.querySelector('#f-rem [data-bx-remsw]') || {}).getAttribute('aria-checked') }));
-    c.eq(offState, { chip: '알림', opts: 0, sw: 'false' }, '알림을 끄면 칩은 이름만(알림), 아래 선택지는 없음(시험판 37)');
+    c.eq(offState, { chip: '알림', opts: 0, sw: 'false' }, '알림을 끄면 줄은 회색 이름만(알림), 아래 선택지는 없음(시험판 37)');
     await p.click('#f-rem [data-bx-remsw]'); await p.waitForTimeout(200);
     c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '1시간 전', '다시 켜면 끄기 전 값(1시간 전)');
+    await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     c.eq(app.errors, [], '화면 오류(홈·새 일정)');
   } finally { await app.close(); }
 
@@ -167,7 +170,7 @@ module.exports = async function () {
     const f = await p.evaluate(() => { const ft = document.querySelector('#sheet-root #sheet-f'); const bs = ft ? Array.from(ft.querySelectorAll('button,input')).filter(e => e.getBoundingClientRect().width > 0) : []; const r = bs[0] ? bs[0].getBoundingClientRect() : null; return { n: bs.length, t: bs.map(b => b.textContent.trim()), w: r ? Math.round(r.width) : 0, W: innerWidth }; });
     c.ok(f.n === 1 && /일정 추가/.test(f.t[0]) && f.w > f.W * 0.8, '날짜 창 아래: 이날 일정 넣기 하나, 가득 ' + JSON.stringify(f));
     await p.click('#sheet-root #sheet-f [data-act="new"]'); await p.waitForTimeout(500);
-    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="date"]') || {}).textContent.trim()), '내일', '같은 새 일정 창이 그 날짜(내일)로 열림');
+    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="date"]') || {}).textContent.trim()), '11월 3일 (화)', '같은 새 일정 창이 그 날짜(11월 3일)로 열림');
   } finally { await app.close(); }
 
   // 5) 명상: 5·10·20분 + 직접 입력, 직접 입력은 그 자리에서
