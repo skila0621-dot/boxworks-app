@@ -35,6 +35,21 @@ public class MainActivity extends BridgeActivity {
         if (AlarmStore.cancelPrefix(c, "med_") > 0) SoundPrefs.medCancel(c, System.currentTimeMillis());
     }
 
+    /**
+     * 시험판 47: 이 앱의 카드(최근 목록)가 남아 있는지. 사용자가 최근 목록에서 지웠으면 false.
+     * 뒤로 · 홈 단추로 내려 둔 것, 휴대폰이 메모리 때문에 앱을 잠시 끈 것은 카드가 남아 있어 true. 알 수 없으면 true(종은 그대로 울림)
+     */
+    static boolean hasTask(android.content.Context c) {
+        try {
+            android.app.ActivityManager am = (android.app.ActivityManager) c.getSystemService(android.content.Context.ACTIVITY_SERVICE);
+            if (am == null) return true;
+            java.util.List<android.app.ActivityManager.AppTask> t = am.getAppTasks();
+            return t == null || !t.isEmpty();
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     @Override
     public void onDestroy() {
         // 최근 목록에서 지워 끝날 때만(화면 돌리기 · 뒤로 단추는 앱을 뒤로 보낼 뿐이라 여기 오지 않음)

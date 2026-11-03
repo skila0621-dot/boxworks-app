@@ -58,6 +58,7 @@ cd android && ./gradlew assembleDebug
 - 일정 창은 삼성 캘린더 방식 줄 목록이다(`web-src/v44.js`의 `bxEdList`). 줄을 누르면 페이지(`#bx-ep`)가 열린다. 원래의 고르는 칸(`#f-panel`)을 페이지로 옮겨 쓰고, '완료'는 그대로 두고 ‹ · 휴대폰 뒤로는 연 순간의 값(`bxEpSnap`)으로 되돌린다
 - 명상 소리 크기: `BxSound.setVolume({bell, bg})` → `SoundPrefs`(기기 보호 저장소). `BowlPlayer` · `BgPlayer`가 소리에 곱한다
 - 앱을 최근 목록에서 지우면 배경 소리와 남은 명상 종을 멈춘다(`BxSoundService.onTaskRemoved`, `MainActivity.onDestroy`). 앱은 `BxSound.status().medCancel`을 보고 '명상 중' 화면을 치운다
+- 배경 소리 없이 종만 쓰는 명상은 소리 서비스가 없어 최근 목록에서 지운 순간을 모른다. 그래서 명상 종(`med_` 알람)이 울릴 때 앱 카드가 남아 있는지(`MainActivity.hasTask`, `ActivityManager.getAppTasks`) 보고, 없으면 울리지 않고 남은 종을 지운다(시험판 47)
 
 ## 수업 창 · 휴대폰 캘린더 일정 창 · 루틴 고치기 (시험판 45)
 

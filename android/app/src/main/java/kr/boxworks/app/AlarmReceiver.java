@@ -18,6 +18,13 @@ public class AlarmReceiver extends BroadcastReceiver {
         boolean unlocked = AlarmStore.unlocked(context);
         String kind = o.optString("kind");
         if (o.optString("sound").startsWith("bowl")) {
+            // 시험판 47(대표 11/4 2:09 "앱을 종료했다가 다시 실행해도 소리가 나온다"): 명상 중에 앱을 최근 목록에서 지웠으면
+            // 남은 명상 종은 울리지 않고 지운다. 배경 소리 없이 종만 쓰는 명상은 소리 서비스가 없어 지운 순간을 알 수 없어서, 종이 울릴 때 앱 카드가 남아 있는지 본다
+            if (o.optString("id").startsWith("med_") && !MainActivity.hasTask(context)) {
+                MainActivity.stopMeditation(context, true);
+                SoundPrefs.medCancel(context, System.currentTimeMillis());
+                return;
+            }
             // 종소리는 알림 소리에 맡기지 않고 앱이 직접 끝까지 튼다(알림은 소리 없이 글만)
             AlarmNotify.showSoft(context, o);
             // 시험판 44: 종소리를 끈 명상은 끝날 때 소리 없이 알림 글만(bowl_none)
