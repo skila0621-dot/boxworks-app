@@ -140,7 +140,7 @@ public class BxAlarmPlugin extends Plugin {
         call.resolve(r);
     }
 
-    /** 휴대폰 설정 화면을 연다: exact(정확한 알람), fullscreen(잠금 화면 알람), notifications, app */
+    /** 휴대폰 설정 화면을 연다: exact(정확한 알람), fullscreen(잠금 화면 알람), notifications, battery(앱 정보 → 배터리), app */
     @PluginMethod
     public void openSettings(PluginCall call) {
         String which = call.getString("which", "app");
@@ -151,9 +151,10 @@ public class BxAlarmPlugin extends Plugin {
             i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + pkg));
         } else if ("fullscreen".equals(which) && Build.VERSION.SDK_INT >= 34) {
             i = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:" + pkg));
-        } else if ("battery".equals(which) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // 배터리 최적화 목록. 삼성은 앱 정보 → 배터리 → '제한 없음'과 같은 설정이다
-            i = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+        } else if ("battery".equals(which)) {
+            // 박스웍스 앱 정보 → '배터리' → '제한 없음'(시험판 34, 대표 지적 11/3: 삼성 '절전 앱·깊은 절전 앱'에 들어가면 알람이 늦거나 안 울림).
+            // 예전에 열던 '배터리 사용량 최적화' 목록은 길어서 박스웍스를 찾기 번거로웠다. 삼성은 '제한 없음'인 앱을 자동 절전에서 뺀다
+            i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + pkg));
         } else if ("notifications".equals(which) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
             i.putExtra(Settings.EXTRA_APP_PACKAGE, pkg);
@@ -190,11 +191,30 @@ public class BxAlarmPlugin extends Plugin {
             android.os.PowerManager pm = (android.os.PowerManager) c.getSystemService(Context.POWER_SERVICE);
             battery = pm != null && pm.isIgnoringBatteryOptimizations(c.getPackageName());
         }
+        // 배터리 '제한'(백그라운드 실행 막힘)이면 알람이 울리지 않을 수 있다. 대기 버킷(10 활성 · 40 드묾 · 45 제한)은 문제를 볼 때 쓴다
+        boolean restricted = false;
+        int bucket = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                android.app.ActivityManager amg = (android.app.ActivityManager) c.getSystemService(Context.ACTIVITY_SERVICE);
+                restricted = amg != null && amg.isBackgroundRestricted();
+            } catch (Exception ignored) {
+            }
+            try {
+                android.app.usage.UsageStatsManager us = (android.app.usage.UsageStatsManager) c.getSystemService(Context.USAGE_STATS_SERVICE);
+                if (us != null) bucket = us.getAppStandbyBucket();
+            } catch (Exception ignored) {
+            }
+        }
         JSObject r = new JSObject();
         r.put("notifications", notificationsOn());
         r.put("exact", exact);
         r.put("fullScreen", full);
         r.put("battery", battery);
+        r.put("restricted", restricted);
+        r.put("bucket", bucket);
+        // 삼성 휴대폰은 '절전 앱·깊은 절전 앱' 때문에 절전에서 빼기를 꼭 할 일로 묻는다
+        r.put("maker", Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.toLowerCase(java.util.Locale.ROOT));
         r.put("sdk", Build.VERSION.SDK_INT);
         r.put("scheduled", AlarmStore.load(c).length());
         return r;

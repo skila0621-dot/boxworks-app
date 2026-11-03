@@ -565,11 +565,12 @@
       open: function (which) { return alarm.openSettings({ which: which }); },
       test: function () { return alarm.test({ seconds: 10 }); }
     };
-    // 알림이나 정확한 알람이 꺼져 있으면 홈 맨 위에 빨간 줄(문제점 점검 기술 9). 앱을 열 때·돌아올 때·알람이 처음 생길 때 확인
+    // 알림이나 정확한 알람이 꺼져 있으면 홈 맨 위에 빨간 줄(문제점 점검 기술 9). 앱을 열 때·돌아올 때·알람이 처음 생길 때 확인.
+    // 시험판 34: 배터리가 '제한'이거나, 삼성인데 '제한 없음'이 아니면(절전 앱·깊은 절전 앱에 들어갈 수 있음) 그것도(대표 지적 11/3)
     var permCount = 0;
     var permCheck = function () {
       Promise.resolve(alarm.status()).then(function (st) {
-        var bad = permCount > 0 && st ? (!st.notifications ? 'notifications' : !st.exact ? 'exact' : '') : '';
+        var bad = permCount > 0 && st ? (!st.notifications ? 'notifications' : !st.exact ? 'exact' : st.restricted ? 'restricted' : (st.maker === 'samsung' && !st.battery) ? 'battery' : '') : '';
         var el = document.getElementById('bx-permbar');
         if (!bad) { if (el) el.remove(); return; }
         if (!el) {
@@ -581,7 +582,10 @@
           host.parentNode.insertBefore(el, host.nextSibling);
         }
         el.setAttribute('data-which', bad);
-        el.innerHTML = '<span>' + (bad === 'notifications' ? '알림이 꺼져 있어 알람이 울리지 않아요' : '정확한 알람이 꺼져 있어 알람이 늦을 수 있어요') + '</span><button type="button" class="btn sm" data-act="bx-perm-fix">켜기</button>';
+        var msg = { notifications: '알림이 꺼져 있어 알람이 울리지 않아요', exact: '정확한 알람이 꺼져 있어 알람이 늦을 수 있어요',
+          restricted: '배터리가 ‘제한’이라 알람이 울리지 않을 수 있어요. 앱 정보 › 배터리 › ‘제한 없음’',
+          battery: '삼성 절전 때문에 알람이 늦거나 안 울릴 수 있어요. 앱 정보 › 배터리 › ‘제한 없음’' }[bad];
+        el.innerHTML = '<span>' + msg + '</span><button type="button" class="btn sm" data-act="bx-perm-fix">' + (bad === 'battery' || bad === 'restricted' ? '설정 열기' : '켜기') + '</button>';
       }).catch(function () {});
     };
     window.BX_permCheck = permCheck;
@@ -593,14 +597,15 @@
       var bar = document.getElementById('bx-permbar'), which = bar ? bar.getAttribute('data-which') : 'notifications';
       var go = which === 'notifications'
         ? Promise.resolve(alarm.requestNotifications()).then(function (st) { if (!st || !st.notifications) return alarm.openSettings({ which: 'notifications' }); permCheck(); })
-        : Promise.resolve(alarm.openSettings({ which: which }));
+        : Promise.resolve(alarm.openSettings({ which: which === 'restricted' ? 'battery' : which }));
       go.catch(function () {});
     }, true);
     var permFirst = async function (list) {
       try {
         if (memo.get('bx:permShown') === '1' || typeof window.BX_permOpen !== 'function') return;
         var st = await alarm.status();
-        if (st.notifications && st.exact && st.fullScreen) return;
+        // 삼성은 절전에서 빼기도 꼭 할 일(시험판 34)
+        if (st.notifications && st.exact && st.fullScreen && !(st.maker === 'samsung' && !st.battery)) return;
         memo.set('bx:permShown', '1');
         var first = list.filter(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; })[0];
         window.BX_permOpen(first ? first.at : 0, st);

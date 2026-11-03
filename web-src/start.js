@@ -141,7 +141,8 @@ function bxRtHelpResult(){
 
 /* ---------- 알람 허락 (전체 흐름 와이어프레임 6, 대표 결정 A: 처음 알람이 생길 때) ----------
    첫 실행에서 묻지 않고, 처음 알람이 생겼을 때 그 알람('내일 07:18')을 이유로 든다. 허락된 줄은 '허락됨'.
-   휴대폰 설정에서 돌아오면(resume) 다시 확인해 줄을 고친다. 절전 예외는 '권장'(대표 결정 B) */
+   휴대폰 설정에서 돌아오면(resume) 다시 확인해 줄을 고친다. 절전 예외는 '권장'(대표 결정 B).
+   시험판 34: 삼성 휴대폰은 꼭 할 일(대표 지적 11/3: '절전 앱·깊은 절전 앱'에 들어가면 알람이 늦거나 안 울림) */
 let PERM = null, PERM_PENDING = null;
 window.BX_permOpen = function(at, st){
   if (!window.BX_APP || !window.BX_perm) return;
@@ -154,16 +155,16 @@ window.BX_permRefresh = async function(){
   try { PERM.st = await window.BX_perm.status(); if (PERM && document.getElementById('bx-start')) bxPermDraw(); } catch (e) {}
 };
 function bxPermDraw(){
-  const st = PERM.st || {}, d = PERM.at ? new Date(PERM.at) : null;
+  const st = PERM.st || {}, d = PERM.at ? new Date(PERM.at) : null, sam = st.maker === 'samsung';
   const when = d ? relDay(ymd(d), M.today) + (d.getHours() < 12 ? ' 아침 ' : ' ') + hm(d) : '';
   const rows = [
     ['notifications', '알림 보내기', '알람과 아침 일정을 알려 줘요'],
     ['exact', '정확한 시각에 울리기', when ? hm(d) + ' 알람이 늦게 울리지 않게' : '정한 시각에 늦지 않게'],
     ['fullScreen', '잠금 화면에 알람 띄우기', '화면이 꺼져 있어도 알람처럼 크게. 일정 내용은 안 보여요'],
-    ['battery', '절전에서 빼기', '절전 때문에 알람이 늦거나 빠지지 않게', true]
+    ['battery', '절전에서 빼기', sam ? '‘절전 앱·깊은 절전 앱’에 들어가면 알람이 늦거나 안 울려요' : '절전 때문에 알람이 늦거나 빠지지 않게', !sam]
   ];
   const row = r => '<li class="bxp-row"><span class="bxs-t"><b>' + r[1] + (r[3] ? ' <small class="bxp-tag">권장</small>' : '') + '</b><small>' + r[2] + '</small></span>' +
-    (st[r[0]] ? '<span class="bxp-ok">' + ICON.check + '허락됨</span>' : '<button type="button" class="btn sm" data-bxp="' + r[0] + '">' + (r[3] ? '설정 열기' : '허락하기') + '</button>') + '</li>';
+    (st[r[0]] ? '<span class="bxp-ok">' + ICON.check + '허락됨</span>' : '<button type="button" class="btn sm" data-bxp="' + r[0] + '">' + (r[0] === 'battery' ? '설정 열기' : '허락하기') + '</button>') + '</li>';
   // 파란 단추는 아래 하나(점검 11/1: 파란 단추가 셋). 아직 허락 안 한 것 중 첫째, 다 되면 '다 됐어요'
   const need = rows.find(r => !r[3] && !st[r[0]]);
   bxStartOverlay(
@@ -172,10 +173,10 @@ function bxPermDraw(){
     '<h1 class="bxs-h">' + (when ? esc(when) + '에<br>울리려면 허락이 필요해요' : '알람이 울리려면<br>허락이 필요해요') + '</h1>' +
     '<p class="bxs-p">휴대폰은 허락한 앱만 정한 시각에 알람을 울려요. 한 번만 하면 돼요.</p>' +
     '<ul class="bxs-box bxp-list">' + rows.map(row).join('') + '</ul>' +
-    (st.battery ? '' : '<p class="bxs-p small">절전에서 빼기: 목록에서 박스웍스를 찾아 ‘제한 없음’이나 ‘최적화 안 함’으로 바꿔요.</p>') +
+    (st.battery ? '' : '<p class="bxs-p small">절전에서 빼기: 박스웍스 앱 정보가 열리면 ‘배터리’를 눌러 ‘제한 없음’을 골라요.' + (sam ? ' ‘제한 없음’인 앱은 삼성 자동 절전에서 빠져요.' : '') + '</p>') +
     '<div class="bxs-sp"></div>' +
     '<button type="button" class="btn bxs-test" data-bxp-nav="test"' + (st.notifications ? '' : ' disabled') + '>' + ICON.bell + '알람 한 번 들어 보기 · 10초 뒤</button>' +
-    (need ? '<button type="button" class="btn primary bxs-go" data-bxp="' + need[0] + '">' + need[1] + ' 허락하기</button>' : '<button type="button" class="btn primary bxs-go" data-bxp-nav="done">다 됐어요</button>') +
+    (need ? '<button type="button" class="btn primary bxs-go" data-bxp="' + need[0] + '">' + (need[0] === 'battery' ? need[1] : need[1] + ' 허락하기') + '</button>' : '<button type="button" class="btn primary bxs-go" data-bxp-nav="done">다 됐어요</button>') +
     // 다 허락하지 않아도 나갈 길: 알림만 허락했으면 '이대로 둘게요', 알림도 안 했으면 '나중에'
     (need ? '<button type="button" class="bxp-later" data-bxp-nav="later">' + (st.notifications ? '이대로 둘게요' : '나중에 · 그동안은 알람이 울리지 않아요') + '</button>' : ''));
 }
