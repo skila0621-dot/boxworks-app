@@ -447,6 +447,13 @@
     '.bx-app .bx-med-stop{width:100%;max-width:320px;height:50px;flex:none;justify-content:center}',
     '.bx-app .bx-med-run .bx-med-acts{width:100%;max-width:320px;margin-top:4px}',
     '@media (prefers-reduced-motion:reduce){.bx-app .bx-med-run.breath .bx-med-circle{animation:none}}',
+    // 명상 배경 소리(시험판 33): 맨 위 '파도 나오는 중 · 끄기' 줄, 소리와 호흡 안의 '소리만 틀기'
+    '.bx-app .bx-bg-now{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:10px 10px 10px 14px;border-radius:14px;background:color-mix(in srgb,var(--accent) 12%,var(--bg))}',
+    '.bx-app .bx-bg-now-t{flex:1;min-width:0;display:flex;align-items:center;gap:10px}.bx-app .bx-bg-now-t > span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}',
+    '.bx-app .bx-bg-now b{font-size:15.5px}.bx-app .bx-bg-now small{font-size:12.5px;color:var(--ink-2)}.bx-app .bx-bg-now .btn{height:44px;flex:none}',
+    '.bx-app .bx-bg-now .bx-ic{color:var(--accent)}.bx-app .bx-bg-now .bx-ic .i{width:20px;height:20px}',
+    '.bx-app .bx-bg-only{display:flex;align-items:center;gap:12px;margin-top:12px}.bx-app .bx-bg-only .btn{height:44px;flex:none}.bx-app .bx-bg-only .bx-ic{margin-right:4px}',
+    '.bx-app .bx-bg-only .p{color:var(--ink-3);margin:0;line-height:1.4}.bx-app .bx-bg-credit{color:var(--ink-3);margin:16px 0 0;font-size:12px}',
     // 길게 듣기 막대
     '.bx-listen{position:fixed;left:0;right:0;bottom:0;z-index:300;display:flex;flex-direction:column;gap:8px;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--bg);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.14);border-radius:20px 20px 0 0}',
     '.bx-ls-top{display:flex;align-items:center;gap:8px;font-size:15px}.bx-ls-hint{margin-left:auto;font-size:12.5px;color:var(--ink-3)}',

@@ -33,7 +33,7 @@ module.exports = async function () {
     c.eq(home.rows.map(r => r[1]), ['화면', '알림', '분류·데이터'], '설정 첫 화면은 묶음 목록(휴대폰 캘린더는 그 기능이 있을 때만)');
     c.ok(home.secs === 0, '첫 화면에는 세부 칸이 없다 ' + home.secs);
     c.ok(/아침 07:30/.test(home.rows[1][2]) && /10분 전/.test(home.rows[1][2]) && /월요일 시작/.test(home.rows[0][2]), '묶음 줄 오른쪽에 지금 고른 값 ' + JSON.stringify(home.rows));
-    c.ok(/시험판 32/.test(home.foot), '맨 아래 한 줄에 앱 버전 ' + JSON.stringify(home.foot));
+    c.ok(/^이 휴대폰에만 저장 · 시험판 \d+$/.test(home.foot), '맨 아래 한 줄에 앱 버전 ' + JSON.stringify(home.foot));
     await p.click('[data-bxset="alarm"]'); await p.waitForTimeout(400);
     const al = await p.evaluate(() => ({ h: (document.querySelector('.page-head h1') || {}).textContent, back: !!document.querySelector('.bx-set-back'), rep: !!document.querySelector('[data-bxrep]'), view: !!document.querySelector('[data-theme-set]') }));
     c.ok(al.h === '알림' && al.back && al.rep && !al.view, "알림을 누르면 알림 칸만(제목 '알림', 왼쪽 위 ‹) " + JSON.stringify(al));

@@ -1,3 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 싱잉볼 소리는 이름으로 찾아 쓰므로(BowlPlayer.rawFor) 줄이기(shrinkResources)에서 지우지 않게 -->
-<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@raw/bx_bowl_*" />
+<!-- 싱잉볼 소리(BowlPlayer.rawFor)와 배경 소리(BgPlayer.decode)는 이름으로 찾아 쓰므로 줄이기(shrinkResources)에서 지우지 않게 -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@raw/bx_bowl_*,@raw/bx_bg_*" />

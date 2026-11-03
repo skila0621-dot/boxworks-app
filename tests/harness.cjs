@@ -28,13 +28,15 @@ function settings(extra = {}) {
 /**
  * 앱을 연다.
  * now: 시계 · data: [[id, 문서], ...] (처음 한 번만 넣는다) · perms: 알람 권한 상태 · speech: true | false | null(플러그인 없음)
+ * sound: 배경 소리 플러그인(BxSound)을 둘지
  */
-async function openApp({ now = NOW, data = null, perms = null, speech = true } = {}) {
+async function openApp({ now = NOW, data = null, perms = null, speech = true, sound = true } = {}) {
   if (!fs.existsSync(APP)) throw new Error('www/index.html이 없습니다. 먼저 node scripts/build-web.mjs');
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Seoul', locale: 'ko-KR' });
-  await ctx.addInitScript(({ data, perms, speech }) => {
+  await ctx.addInitScript(({ data, perms, speech, sound }) => {
     window.__sync = [];
+    window.__bg = [];
     window.__perm = perms || { notifications: true, exact: true, fullScreen: true, battery: true };
     const plugins = {
       BxAlarm: {
@@ -46,6 +48,18 @@ async function openApp({ now = NOW, data = null, perms = null, speech = true } =
       },
       BxWidget: { update: async () => {}, consumeLaunch: async () => ({}), placed: async () => ({ list: 0, now: 0, canPin: true }), pin: async () => ({ asked: true }) }
     };
+    // 배경 소리(시험판 33): 부른 것을 window.__bg에 남기고, 휴대폰이 알려 주는 'state'는 window.__bgL로 흉내 낸다
+    if (sound) {
+      const off = { playing: false, sound: '', mode: '', until: 0 };
+      plugins.BxSound = {
+        st: off,
+        play: async x => { window.__bg.push(['play', x]); plugins.BxSound.st = { playing: true, sound: x.sound, mode: x.mode, until: x.until || 0 }; return plugins.BxSound.st; },
+        preview: async x => { window.__bg.push(['preview', x]); return {}; },
+        stop: async () => { window.__bg.push(['stop']); plugins.BxSound.st = off; return {}; },
+        status: async () => plugins.BxSound.st,
+        addListener: (ev, cb) => { if (ev === 'state') window.__bgL = cb; return { remove() {} }; }
+      };
+    }
     if (speech !== null) {
       plugins.BxSpeech = {
         available: async () => ({ available: speech === true }),
@@ -59,7 +73,7 @@ async function openApp({ now = NOW, data = null, perms = null, speech = true } =
       localStorage.setItem('bx:data', JSON.stringify(data));
       sessionStorage.setItem('__seeded', '1');
     }
-  }, { data, perms, speech });
+  }, { data, perms, speech, sound });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
