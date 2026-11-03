@@ -259,6 +259,9 @@
     '#bx-start .bxs-in{min-height:100%;box-sizing:border-box;max-width:560px;margin:0 auto;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 14px) 22px calc(env(safe-area-inset-bottom,0px) + 24px)}',
     '#bx-start .bxs-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}',
     '#bx-start .bxs-dots{display:flex;gap:6px}#bx-start .bxs-dots span{width:6px;height:6px;border-radius:3px;background:var(--line-2)}#bx-start .bxs-dots span.on{width:22px;background:var(--accent)}#bx-start .bxs-dots span.done{background:var(--accent)}',
+    // 창을 열면 머리 줄(로고·⋯)이 내린 만큼 위로 밀려 사라지던 문제(대표 지적 11/3): body까지 overflow:hidden이면 body가 스크롤 상자가 되어
+    // 머리 줄의 sticky가 풀린다. 앱은 html만 잠근다(뒤 화면은 그대로 안 움직임)
+    'html.bx-app.locked body{overflow:visible}',
     '#bx-permbar{display:flex;align-items:center;gap:10px;margin:10px 16px 0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--danger) 12%,var(--bg));color:var(--danger);font-size:14px;font-weight:600;line-height:1.45}#bx-permbar span{flex:1}#bx-permbar .btn{flex:none}',
     '#bx-start .bxs-skip{min-height:44px;padding:0 6px;color:var(--ink-2);font-size:14px;background:transparent}',
     '#bx-start .bxs-back-i{width:44px;height:44px;margin-left:-12px;display:flex;align-items:center;justify-content:center;color:var(--ink)}#bx-start .bxs-back-i .i{width:22px;height:22px}',

@@ -25,7 +25,7 @@ import androidx.core.content.ContextCompat;
 /**
  * 명상·공부 배경 소리(시험판 33, 대표 요청·결정 11/3, 결정 기록 D-12). 화면을 꺼도 계속 나오게 음악 앱처럼
  * 미디어 재생 포그라운드 서비스(mediaPlayback)로 튼다. 알림창에 '배경 소리 · 파도'와 '끄기'가 보인다.
- * mode: only(소리만 틀기, 끌 때까지) · med(명상, until에 8초 동안 줄이며 끝 종과 함께 꺼짐).
+ * mode: only(소리만 틀기, 끌 때까지) · med(명상: until(끝 종 2초 전)부터 3초 동안 줄여 끝 종이 또렷하게 들림, 대표 지적 11/3).
  * 멈추는 때: 앱의 '소리 끄기'·알림의 '끄기', 명상이 끝남, 이어폰이 빠짐, 다른 앱이 소리를 틂(전화·음성 입력은 잠깐 멈췄다 이어짐).
  * 싱잉볼 종은 알람 소리(BowlPlayer)로 따로 울려 배경 소리 위에 들린다.
  */
@@ -51,6 +51,10 @@ public class BxSoundService extends Service {
     private boolean hasFocus = false;
     private PowerManager.WakeLock wake;
     private boolean noisyOn = false;
+    /** 명상 배경 소리가 끝난 뒤에도 남아 있으면(재생기가 멈춰 시각을 못 본 경우) 끝 10초 뒤에 끈다 */
+    private final Runnable guard = () -> {
+        if (player != null && "med".equals(nowMode)) stopPlaying(0.5f);
+    };
 
     private final AudioManager.OnAudioFocusChangeListener focusL = change -> {
         BgPlayer p = player;
@@ -154,7 +158,9 @@ public class BxSoundService extends Service {
             }
         }
         BgPlayer old = player;
-        player = new BgPlayer(this, sound, startAt, until, 3f, 8f, this::onPlayerEnded);
+        player = new BgPlayer(this, sound, startAt, until, 3f, 3f, this::onPlayerEnded);
+        handler.removeCallbacks(guard);
+        if (until > 0) handler.postDelayed(guard, Math.max(1000L, until - System.currentTimeMillis() + 10_000L));
         if (old != null) old.finish(0.4f);
         nowSound = sound;
         nowMode = mode;
@@ -181,6 +187,7 @@ public class BxSoundService extends Service {
     }
 
     private void finishService() {
+        handler.removeCallbacks(guard);
         abandonFocus();
         if (noisyOn) {
             try {
@@ -293,6 +300,7 @@ public class BxSoundService extends Service {
 
     @Override
     public void onDestroy() {
+        handler.removeCallbacks(guard);
         BgPlayer p = player;
         player = null;
         if (p != null) p.finish(0.05f);

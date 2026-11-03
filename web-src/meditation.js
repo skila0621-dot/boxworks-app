@@ -17,8 +17,12 @@ function bgName(k){ const b = k && BX_BGS.find(x => x[0] === k); return b ? b[1]
 function bgCur(){ return BX_BGS.some(b => b[0] === MED.bg) ? MED.bg : ''; }
 // 지금 휴대폰에서 나오는 배경 소리. sound가 ''이면 꺼짐, mode: only(소리만 틀기) | med(명상)
 let BG = {sound: '', mode: ''};
+// 명상의 배경 소리는 끝 종 2초 전부터 줄어든다(휴대폰 쪽에서 3초 동안)
+const BG_END_LEAD = 2000;
 function bgSet(st){
   const s = st && st.playing && st.sound ? {sound: st.sound, mode: st.mode === 'med' ? 'med' : 'only'} : {sound: '', mode: ''};
+  // 명상이 끝났는데 명상 배경 소리가 남아 있으면 끈다(앱으로 돌아왔을 때)
+  if (s.sound && s.mode === 'med' && (!MED.run || Date.now() > MED.run.endAt + 5000)) { bgStop(); if (S.view === 'med' && !SH) render(); return; }
   if (s.sound === BG.sound && s.mode === BG.mode) return;
   BG = s;
   const typing = document.activeElement && document.activeElement.tagName === 'INPUT';
@@ -84,7 +88,7 @@ function medCardHtml(){
 function medMoreText(){
   const b = (BX_BOWLS.find(x => x[0] === bxBowlType()) || BX_BOWLS[0])[1];
   const bell = MED.bellS && MED.bellS < MED.min * 60 ? '중간 종 ' + medBellText(MED.bellS) + '마다' : '중간 종 없음';
-  return b + ' · ' + bell + ' · 호흡 안내 ' + (MED.breath ? '켬' : '끔') + (bgPlug() ? ' · 배경 소리 ' + (bgName(bgCur()) || '없음') : '');
+  return b + (MED.startBell === false ? ' · 시작 종 없음' : '') + ' · ' + bell + ' · 호흡 안내 ' + (MED.breath ? '켬' : '끔') + (bgPlug() ? ' · 배경 소리 ' + (bgName(bgCur()) || '없음') : '');
 }
 document.addEventListener('toggle', ev => { const d = ev.target; if (d && d.classList && d.classList.contains('bx-med-more')) { MED.moreOpen = d.open; medSave(); } }, true);
 function medHtml(){
@@ -96,12 +100,13 @@ function medHtml(){
     return head + '<section class="bx-med-run' + (lead ? ' lead' : MED.breath && live ? ' breath' : '') + (done ? ' done' : '') + '" aria-live="polite">' +
       '<div class="bx-med-circle"' + (live && MED.breath && !lead ? ' style="animation-delay:-' + ((now - run.startAt) % 10000) + 'ms"' : '') + '><span class="bx-med-left tnum" id="bx-med-left">' + (done ? '끝' : lead ? String(Math.ceil((run.startAt - now) / 1000)) : medMinText(left)) + '</span><span class="bx-med-cue" id="bx-med-cue">' + (done ? run.min + '분 명상을 마쳤어요' : lead ? '휴대폰을 내려놓고 편히 앉으세요' : MED.breath ? '들이쉬고' : '') + '</span></div>' +
       (done ? '<div class="bx-med-acts"><button type="button" class="btn grow" data-act="bx-med-close">닫기</button><button type="button" class="btn primary grow" data-act="bx-med-again">한 번 더</button></div>'
-        : '<p class="p small bx-med-note">휴대폰을 내려놓아도 ' + (run.bellS ? medBellText(run.bellS) + '마다 종이, 끝나면 ' : '끝나면 ') + '세 번 울려요.' + (run.bg && bgName(run.bg) ? ' ' + bgName(run.bg) + '도 그때 함께 꺼져요.' : '') + '</p><button type="button" class="btn bx-med-stop" data-act="bx-med-stop">끝내기</button>') +
+        : '<p class="p small bx-med-note">휴대폰을 내려놓아도 ' + (run.bellS ? medBellText(run.bellS) + '마다 종이, 끝나면 ' : '끝나면 ') + '세 번 울려요.' + (run.bg && bgName(run.bg) ? ' ' + bgName(run.bg) + '는 끝 종 앞에서 줄어들어요.' : '') + '</p><button type="button" class="btn bx-med-stop" data-act="bx-med-stop">끝내기</button>') +
       '</section>';
   }
   const pick = (attr, v, cur, label) => '<button type="button" class="pick" ' + attr + '="' + v + '" aria-pressed="' + (cur === v) + '">' + label + '</button>';
   // 정해진 간격에 없는 값(직접 입력·예전 값)은 그 자리에서 입력칸으로
   const bellCust = !!MED.bellS && (MED.bellCust || MED.bellOpen || !MED_BELLS.some(b => b[0] === MED.bellS));
+  const startOn = MED.startBell !== false;
   // 소리만 틀어 둔 중이면 맨 위에 무엇이 나오는지와 끄기(잊고 켜 두지 않게)
   const bgNow = bgPlug() && BG.sound && BG.mode === 'only' ? '<div class="bx-bg-now" role="status"><span class="bx-bg-now-t">' + bxIconSpan('music', '') + '<span><b>' + esc(bgName(BG.sound)) + ' 나오는 중</b><small>화면을 꺼도 계속 나와요</small></span></span><button type="button" class="btn" data-act="bx-med-bgstop">끄기</button></div>' : '';
   // 배경 소리: 종소리·중간 종 다음, 호흡 안내 앞(소리 먼저, 숨은 나중). 고르면 '소리만 틀기'(공부할 때)
@@ -117,7 +122,10 @@ function medHtml(){
     // 종소리·중간 종·호흡 안내는 한 줄로 접는다(정리판 14번, 대표 결정 11/1). 접힌 줄에 지금 고른 값이 보인다
     '<details class="bx-med-more"' + (MED.moreOpen ? ' open' : '') + '><summary><span class="bx-mm-t"><b>소리와 호흡</b><small>' + esc(medMoreText()) + '</small></span>' + ICON.chevR + '</summary>' +
     '<div class="fg-l tv-h">종소리</div><div class="picks bx-bowl-picks">' + BX_BOWLS.map(b => '<button type="button" class="pick" data-bxbowl="' + b[0] + '" aria-pressed="' + (bxBowlType() === b[0]) + '">' + b[1] + '</button>').join('') + '</div>' +
-    '<p class="p small bx-med-note">누르면 바로 들어 볼 수 있어요.</p>' +
+    '<p class="p small bx-med-note">누르면 바로 들어 볼 수 있어요. 끝날 때는 늘 세 번 울려요(눈을 감고 있어도 끝을 알게).</p>' +
+    // 시작 종 스위치(대표 요청 11/3 오후: 배경 소리만 듣고 싶을 수도, 종소리와 섞고 싶을 수도). 끝 종은 끄지 않는다(대표 지적 11/3: 끝을 소리로 알아야 함)
+    '<div class="bx-swrow tv-h"><span>시작 종</span>' + bxSwitch('data-med-startbell', startOn, '시작 종') + '</div>' +
+    (startOn ? '' : '<p class="p small bx-med-note">첫 종 없이 시작해요. 배경 소리를 고르면 그 소리로 시작해요.</p>') +
     // 중간 종: 켜기·끄기 스위치, 켰을 때만 간격(대표 결정 11/2 밤, 일정 알림과 같은 모양)
     '<div class="bx-swrow tv-h"><span>중간 종 · 다시 치는 간격</span><button type="button" class="tog" role="switch" aria-checked="' + !!MED.bellS + '" aria-label="중간 종" data-med-bellsw="1"><i></i></button></div>' +
     (MED.bellS ? '<div class="picks">' +
@@ -135,18 +143,20 @@ function medHtml(){
 // 시작을 누르면 5초를 센 뒤 첫 종(대표 요청 11/3: 휴대폰을 내려놓고 자세와 자리를 잡을 시간). 첫 종도 휴대폰 알람으로 걸어 화면을 꺼도 울린다
 const MED_LEAD = 5000;
 function medStart(){
-  const now = Date.now(), start = now + MED_LEAD, min = MED.min, bellS = MED.bellS && MED.bellS < min * 60 ? MED.bellS : 0, type = bxBowlType();
+  const now = Date.now(), start = now + MED_LEAD, min = MED.min, startBell = MED.startBell !== false, bellS = MED.bellS && MED.bellS < min * 60 ? MED.bellS : 0, type = bxBowlType();
   const bg = bgPlug() ? bgCur() : '';
-  MED.run = {startAt: start, endAt: start + min * 60000, min, bellS, leadAt: now, bg};
+  MED.run = {startAt: start, endAt: start + min * 60000, min, bellS, leadAt: now, bg, startBell};
   medSave();
-  // 배경 소리: 첫 종과 함께 서서히 커지고, 끝 종이 울릴 때 8초 동안 줄어든다(휴대폰이 시각을 알고 있어 화면이 꺼져도)
-  if (bg) { bgPlug().play({sound: bg, mode: 'med', startAt: start, until: MED.run.endAt}).catch(() => {}); BG = {sound: bg, mode: 'med'}; }
+  // 배경 소리: 첫 종과 함께 서서히 커지고, 끝 종 2초 전부터 3초 동안 줄어 끝 종이 또렷하게 들린다(대표 지적 11/3: 끝나도 소리가 계속 나와 끝을 모름).
+  // 휴대폰이 시각을 알고 있어 화면이 꺼져도 맞게 꺼진다
+  if (bg) { bgPlug().play({sound: bg, mode: 'med', startAt: start, until: MED.run.endAt - BG_END_LEAD}).catch(() => {}); BG = {sound: bg, mode: 'med'}; }
   else if (BG.sound) bgStop();
   const al = medAlarm();
-  if (!al) setTimeout(() => { if (MED.run && MED.run.startAt === start) medPlay('bowl', type); }, MED_LEAD);
+  if (!al && startBell) setTimeout(() => { if (MED.run && MED.run.startAt === start) medPlay('bowl', type); }, MED_LEAD);
   if (al) {
-    const list = [{id: 'med_start', at: start, kind: 'item', sound: 'bowl', bowl: type, group: '명상', title: '명상을 시작해요', sub: min + '분 · 편하게 숨 쉬어요'},
-      {id: 'med_end', at: MED.run.endAt, kind: 'item', sound: 'bowl3', bowl: type, group: '명상', title: '명상을 마쳤어요', sub: min + '분 동안 잘했어요'}];
+    // 시작 종을 끄면 첫 종 알람만 빼고, 끝 종(세 번)은 늘 건다
+    const list = [{id: 'med_end', at: MED.run.endAt, kind: 'item', sound: 'bowl3', bowl: type, group: '명상', title: '명상을 마쳤어요', sub: min + '분 동안 잘했어요'}];
+    if (startBell) list.unshift({id: 'med_start', at: start, kind: 'item', sound: 'bowl', bowl: type, group: '명상', title: '명상을 시작해요', sub: min + '분 · 편하게 숨 쉬어요'});
     // 중간 종: 다시 치는 간격마다(소리가 40초 넘게 울려서 짧은 간격이면 겹쳐 이어진다). 휴대폰 알람은 150개까지
     if (bellS) for (let t = bellS; t < min * 60 && list.length < 150; t += bellS) list.push({id: 'med_b' + t, at: start + t * 1000, kind: 'item', sound: 'bowl_soft', bowl: type, group: '명상', title: '명상 ' + medMinText(t), sub: medMinText(min * 60 - t) + ' 남았어요'});
     al.cancelLocal({prefix: 'med_'}).catch(() => {}).then(() => al.local({alarms: list})).catch(() => {});
@@ -171,6 +181,8 @@ function medTick(){
     if (left <= 0) {
       clearInterval(medTimer); medTimer = null;
       if (!MED.run.logged) { MED.run.logged = true; medSave(); medAddLog(MED.run.min); if (!medAlarm()) medPlay('bowl3'); }
+      // 휴대폰이 배경 소리를 끝 종 앞에서 끄지만, 혹시 남아 있으면 앱이 한 번 더 끈다
+      if (BG.sound && BG.mode === 'med') setTimeout(() => { if (BG.sound && BG.mode === 'med' && (!MED.run || Date.now() >= MED.run.endAt)) bgStop(); }, 3000);
       if (S.view === 'med') render();
       return;
     }
@@ -190,7 +202,7 @@ if (MED.run && MED.run.endAt > Date.now()) setTimeout(medTick, 500);
 else if (MED.run && MED.run.endAt <= Date.now() && !MED.run.logged) setTimeout(() => { if (M && MED.run && !MED.run.logged) { MED.run.logged = true; medSave(); medAddLog(MED.run.min); } }, 1500);
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
-  const t = ev.target.closest('[data-act^="bx-med-"],[data-med-min],[data-med-bell],[data-med-bellc],[data-med-bellsw],[data-med-breath],[data-med-custom],[data-bxbowl],[data-bxbg]'); if (!t) return;
+  const t = ev.target.closest('[data-act^="bx-med-"],[data-med-min],[data-med-bell],[data-med-bellc],[data-med-bellsw],[data-med-breath],[data-med-startbell],[data-med-custom],[data-bxbowl],[data-bxbg]'); if (!t) return;
   ev.stopPropagation();
   const act = t.dataset.act;
   if (t.dataset.bxbowl) {
@@ -222,6 +234,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.medMin != null) { MED.cust = false; MED.min = +t.dataset.medMin; if (MED.bellS >= MED.min * 60) MED.bellS = 0; medSave(); render(); return; }
   if (t.dataset.medBell != null) { MED.bellS = +t.dataset.medBell; MED.bellCust = false; MED.bellOpen = false; medSave(); render(); return; }
   if (t.dataset.medBreath != null) { MED.breath = t.dataset.medBreath === '1'; medSave(); render(); return; }
+  if (t.dataset.medStartbell != null) { MED.startBell = t.dataset.medStartbell === '1'; medSave(); render(); return; }
   if (act === 'bx-med-open') { closeSheet(); go('med'); return; }
   if (act === 'bx-med-hear') { medPlay('bowl'); return; }
   if (act === 'bx-med-bgonly') { bgOnly(); return; }
