@@ -171,7 +171,7 @@ function bxLateOpen(only){
     const card = i => '<div class="bx-lc"><div class="bx-lc-t"><b>' + (esc(i.title) || '(제목 없음)') + '</b><small>' + esc(relDay(i.date, M.today) + ' ' + timeText(i)) + '</small></div><div class="bx-lc-a">' +
       '<button type="button" class="btn sm primary" data-bx-late="done" data-id="' + esc(i.id) + '">다 했어요</button>' +
       (i.date < M.today ? '<button type="button" class="btn sm" data-bx-late="today" data-id="' + esc(i.id) + '">오늘로 옮기기</button>' : '<button type="button" class="btn sm" data-bx-late="later" data-id="' + esc(i.id) + '">1시간 뒤로</button>') +
-      '<button type="button" class="btn sm" data-bx-late="pick" data-id="' + esc(i.id) + '">날짜 고르기</button>' +
+      '<button type="button" class="btn sm" data-bx-late="pick" data-id="' + esc(i.id) + '" aria-expanded="' + (BXL_PICK === i.id) + '">날짜 고르기</button>' +
       '<button type="button" class="btn sm" data-bx-late="keep" data-id="' + esc(i.id) + '">그대로 두기</button></div>' +
       // 휴대폰 달력 창이 안 열리는 경우에만: 그 자리에 날짜 칸(내일이 골라져 있음)
       (BXL_PICK === i.id ? '<div class="bx-lc-pick"><input type="date" class="inp" id="bx-lc-date" value="' + tmr + '" min="' + esc(M.today) + '" aria-label="옮길 날짜"><button type="button" class="btn sm primary" data-bx-late="move" data-id="' + esc(i.id) + '">이 날로 옮기기</button></div>' : '') + '</div>';

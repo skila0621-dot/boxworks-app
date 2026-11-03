@@ -36,8 +36,26 @@ const CASES = [
   ['다음 주 수요일 오전 11시 치과 정기검진', '2026-11-04', '11:00', '치과 정기검진']
 ];
 
+// 시험판 36: 달 없이 'N일'(대표 지적 11/3: "17일 오후 3시 늘푸른 병원 예약"이 오늘로 들어감). 기준 11월 3일 오후 3시 45분.
+// 이번 달 그날이 지났으면 다음 달(alt = 이번 달 그날, 새 일정 창에서 한 번에 바꿈), 날짜가 아닌 'N일 동안 · N일차 · 1일 1회'는 그대로
+const DAY_CASES = [
+  ['17일 오후 3시 늘푸른 병원 예약', '2026-11-17', '15:00', '늘푸른 병원 예약', null],
+  ['2일 오후 3시 치과', '2026-12-02', '15:00', '치과', '2026-11-02'],
+  ['3일 저녁 7시 회식', '2026-11-03', '19:00', '회식', null],
+  ['31일 송년회', '2026-12-31', null, '송년회', null],
+  ['30일까지 보고서', '2026-11-30', null, '보고서', null],
+  ['3일 뒤 오전 10시 병원', '2026-11-06', '10:00', '병원', null],
+  ['17일날 저녁 7시 모임', '2026-11-17', '19:00', '모임', null],
+  ['7일에 엄마 생신', '2026-11-07', null, '엄마 생신', null],
+  ['17일 내과 예약', '2026-11-17', null, '내과 예약', null],
+  ['3일 동안 여행', null, null, '3일 동안 여행', null],
+  ['2일차 교육', null, null, '2일차 교육', null],
+  ['1일 1회 약 먹기', null, null, '1일 1회 약 먹기', null],
+  ['이번 달 2일 병원', '2026-11-02', null, '병원', null]
+];
+
 module.exports = async function () {
-  const c = checker('말로 넣기 30문장');
+  const c = checker('말로 넣기 30문장 + 달 없이 말한 날짜');
   const app = await openApp({ data: null });
   try {
     const out = await app.page.evaluate(cases => {
@@ -46,6 +64,15 @@ module.exports = async function () {
       return cases.map(([t]) => { const r = window.BX_parseAt(t, now); return { date: ymd(r.date), start: r.start || null, title: (r.title || '').trim() }; });
     }, CASES);
     CASES.forEach(([t, d, st, ti], i) => c.eq(out[i], { date: d, start: st, title: ti }, '“' + t + '”'));
+    const day = await app.page.evaluate(([cases, iso]) => {
+      const now = new Date(iso);
+      const ymd = d => typeof d === 'string' ? d : d ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : null;
+      return cases.map(([t]) => { const r = window.BX_parseAt(t, now); return { date: ymd(r.date), start: r.start || null, title: (r.title || '').trim(), alt: r.alt || null }; });
+    }, [DAY_CASES, '2026-11-03T15:45:00+09:00']);
+    DAY_CASES.forEach(([t, d, st, ti, alt], i) => c.eq(day[i], { date: d, start: st, title: ti, alt }, '달 없이 “' + t + '”'));
+    // 12월에 말한 '5일'은 이듬해 1월 5일
+    const ny = await app.page.evaluate(() => { const r = window.BX_parseAt('5일 오후 2시 세미나', new Date('2026-12-20T10:00:00+09:00')); return [r.date, r.start, r.title, r.alt]; });
+    c.eq(ny, ['2027-01-05', '14:00', '세미나', '2026-12-05'], '해를 넘기는 다음 달');
     c.eq(app.errors, [], '화면 오류');
   } finally {
     await app.close();

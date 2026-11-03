@@ -142,16 +142,14 @@ function bxLateMove(id, d, base){
   if (!base) { base = {slips: (it.slips || 0) + 1, ackAt: null, snoozeUntil: null, lateKeep: null}; if (!it.origDate) { base.origDate = it.date; base.origStart = it.start || null; } }
   bxLatePatch(id, Object.assign(base, {date: d}), fmtMD(d) + '로 옮겼어요');
 }
+// 시험판 36(대표 지적 11/3 "확인 필요에서 다 했어요 · 그대로 두기 말고는 안 된다"): 숨긴 날짜 칸에 showPicker()를 부르던 방식은
+// 휴대폰(웹뷰)에서 달력 창이 열리지 않는 것으로 보였다(시험 브라우저에서는 오류 없이 지나가 알 수 없었음). 늘 카드 안에 날짜 칸(내일이 골라져 있음)과
+// '이 날로 옮기기'를 연다. 날짜 칸을 누르면 휴대폰 달력이 열린다. '날짜 고르기'를 다시 누르면 닫힘
 function bxLatePickDate(id){
-  document.querySelectorAll('.bx-hid-date').forEach(e => e.remove());
-  const inp = document.createElement('input');
-  inp.type = 'date'; inp.className = 'bx-hid-date'; inp.min = M.today; inp.value = ymd(addDays(parseYmd(M.today), 1));
-  inp.setAttribute('aria-hidden', 'true'); inp.tabIndex = -1;
-  inp.style.cssText = 'position:fixed;left:50%;top:50%;width:1px;height:1px;opacity:0;pointer-events:none';
-  document.body.appendChild(inp);
-  inp.addEventListener('change', () => { const d = inp.value; inp.remove(); if (isDate(d) && d >= M.today) bxLateMove(id, d); });
-  try { if (typeof inp.showPicker !== 'function') throw new Error('no picker'); inp.showPicker(); }
-  catch (e) { inp.remove(); BXL_PICK = id; if (SH && SH.refresh) SH.refresh(); setTimeout(() => { const f = $('#bx-lc-date'); if (f) f.focus(); }, 60); }
+  BXL_PICK = BXL_PICK === id ? null : id;
+  // (한 줄로 'if (SH && SH.refresh) SH.refresh();'라고 쓰면 build-web의 다른 바꾸기와 겹친다)
+  if (SH && SH.refresh) { SH.refresh(); }
+  if (BXL_PICK) setTimeout(() => { const f = $('#bx-lc-date'); if (f) { f.focus(); f.scrollIntoView({block: 'nearest'}); } }, 60);
 }
 // 목록의 주황 '확인' 단추와 고치기 창의 '확인'은 같은 카드 한 장(옛 지연·연기 창 대신)
 document.addEventListener('click', ev => {

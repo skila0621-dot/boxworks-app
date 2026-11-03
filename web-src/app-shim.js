@@ -349,7 +349,7 @@
     // 홈 화면 위젯 창(설정 › 화면), 지난 일정 카드 안 날짜 칸, 루틴을 펼친 곳의 '오늘 쉬기'
     '.bx-app .bx-wg-row{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 0;border-bottom:1px solid var(--line)}.bx-app .bx-wg-row .bxs-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.bx-app .bx-wg-row b{font-size:15.5px}.bx-app .bx-wg-row small{font-size:13px;color:var(--ink-2);line-height:1.5}',
     '.bx-app .bx-wg-row .btn{min-width:64px;min-height:44px;justify-content:center}.bx-app .bx-wg-on{display:flex;align-items:center;gap:4px;font-size:13.5px;color:var(--ink-2)}.bx-app .bx-wg-on .i{width:16px;height:16px;color:var(--accent)}',
-    '.bx-app .bx-lc-pick{display:flex;gap:8px;margin-top:10px}.bx-app .bx-lc-pick .inp{flex:1;min-width:0;min-height:46px}.bx-app .bx-lc-pick .btn{min-height:46px}',
+    '.bx-app .bx-lc-pick{display:flex;gap:8px;margin-top:10px}.bx-app .bx-lc-pick .inp{flex:1;min-width:0;min-height:46px}.bx-app .bx-lc-pick .btn{min-height:46px}.bx-app .bx-lc-a .btn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}.bx-app .hint.bx-dn{align-items:center}.bx-app .hint.bx-dn > span{flex:1;min-width:0}.bx-app .hint.bx-dn.warn{color:var(--warn-ink);background:var(--warn-soft)}.bx-app .hint.bx-dn .btn{flex:none;height:34px;padding:0 12px;font-weight:700}',
     // 작게 보이는 단추도 누르는 범위는 44px 안팎(보이는 크기는 그대로, 점검 11/1)
     '.bx-app .rt-chk,.bx-app .bx-fold-btn,.bx-app .bx-sum-back,.bx-app .rdays-q .sec-link,.bx-app .bx-ch-top .seg button,.bx-app .tt-sw,.bx-app .bx-rt-tog{position:relative}',
     '.bx-app .rt-chk::after{content:"";position:absolute;inset:-9px}.bx-app .bx-fold-btn::after{content:"";position:absolute;inset:-6px}',
