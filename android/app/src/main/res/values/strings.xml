@@ -1,8 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">박스웍스</string>
-    <string name="title_activity_main">박스웍스</string>
+    <!-- 앱 이름은 여기 한 곳에서만 정한다(대표 결정 11/3 23:40 '일단 스케줄러, 나중에 바꿀 때 두 이름을 찾다가 틀리지 않게').
+         알림 · 알람 화면 · 위젯은 이 값을 읽고, 앱 화면(www)도 빌드할 때 이 값을 읽는다(scripts/build-web.mjs) -->
+    <string name="app_name">스케줄러</string>
+    <string name="title_activity_main">@string/app_name</string>
     <string name="package_name">kr.boxworks.app</string>
     <string name="custom_url_scheme">kr.boxworks.app</string>
-    <string name="bx_share_label">박스웍스 일정으로</string>
+    <string name="bx_share_label">일정으로 넣기</string>
 </resources>

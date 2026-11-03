@@ -41,6 +41,16 @@ npm run sync
 cd android && ./gradlew assembleDebug
 ```
 
+## 앱 이름 바꾸기
+
+앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.
+
+- 휴대폰 앱 이름 · 알림 · 알람 화면 · 위젯은 이 값을 읽습니다(`AlarmNotify.appName`)
+- 앱 화면 글자는 `npm run sync` 때 같은 값을 읽어 `window.BX_NAME`으로 넣습니다(`scripts/build-web.mjs`). 화면 코드에서는 이름을 직접 쓰지 말고 `window.BX_NAME`을 씁니다
+- 위젯 이름('오늘 일정', '지금 단계')과 공유 메뉴('일정으로 넣기')에는 앱 이름을 넣지 않습니다
+- `capacitor.config.json`의 `appName`은 앱에 쓰이지 않지만 헷갈리지 않게 같이 바꿉니다
+- 앱 ID `kr.boxworks.app`(설치 · 업데이트에 쓰는 주소)은 이름과 따로이며 바꾸지 않습니다
+
 ## 웹 박스웍스가 바뀌었을 때
 
 1. 새 원본을 `web-src/boxworks.html`에 덮어쓴다

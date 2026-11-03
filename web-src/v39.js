@@ -121,7 +121,8 @@ function bxMonthCellsHtml(y, m){
         const g = vis.find(x => x.L === L);
         lanes += !g ? '<span class="c-gap"></span>' : g.span ? (col === g.s ? bxBarHtml(g) : '<span class="c-gap"></span>') : bxChipHtml(g.it);
       }
-      out.push('<button type="button" class="cell ' + dayClass(ds) + (d.getMonth() !== m ? ' other' : '') + (ds === M.today ? ' today' : '') + (ds === S.selDate ? ' sel' : '') + '" data-act="day-open" data-date="' + ds + '" title="두 번 누르면 이 날 일정 추가" aria-pressed="' + (ds === S.selDate) + '" aria-label="' + esc(fmtMD(ds)) + ' 일정 ' + mine.length + '개">' +
+      const mmN = typeof bxMemoOn === 'function' && bxMemoOn() ? bxMemos(ds).length : 0;
+      out.push('<button type="button" class="cell ' + dayClass(ds) + (d.getMonth() !== m ? ' other' : '') + (ds === M.today ? ' today' : '') + (ds === S.selDate ? ' sel' : '') + '" data-act="day-open" data-date="' + ds + '" title="두 번 누르면 이 날 일정 추가" aria-pressed="' + (ds === S.selDate) + '" aria-label="' + esc(fmtMD(ds)) + ' 일정 ' + mine.length + '개' + (mmN ? ' · 메모 ' + mmN + '개' : '') + '">' + (mmN ? '<i class="bx-mm-mark" aria-hidden="true"></i>' : '') +
         '<span class="c-top"><span class="c-num">' + d.getDate() + '</span>' + (hol ? '<span class="c-hol">' + esc(hol) + '</span>' : '') + '</span><span class="c-dots"></span><span class="c-chips">' + lanes + (hid ? '<span class="c-more">+' + hid + '</span>' : '') + '</span></button>');
     });
   }

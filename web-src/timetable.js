@@ -104,7 +104,7 @@ function bxCalBar(cur){
     '<button type="button" data-act="tt-cal" data-to="month" aria-pressed="' + (cur === 'month') + '">월간</button>' +
     '<button type="button" data-act="tt-cal" data-to="week" aria-pressed="' + (cur === 'week') + '">주간</button></div>' +
     // 시험판 39: 박스웍스 · 휴대폰 캘린더 표시 자리에 캘린더 칩 줄(누르면 그 캘린더만, 휴대폰 캘린더 칩은 테두리)
-    (typeof bxCalChipsHtml === 'function' ? bxCalChipsHtml() : pc ? '<span class="bx-cal-lg"><span><i class="bx"></i>박스웍스</span><span><i class="pc"></i>휴대폰 캘린더</span></span>' : '') + '</div>';
+    (typeof bxCalChipsHtml === 'function' ? bxCalChipsHtml() : pc ? '<span class="bx-cal-lg"><span><i class="bx"></i>' + esc(window.BX_NAME || '박스웍스') + '</span><span><i class="pc"></i>휴대폰 캘린더</span></span>' : '') + '</div>';
 }
 // 월간에서 고른 날이 든 주로, 주간에서는 그 주가 든 달로
 function bxCalGo(to){
@@ -161,10 +161,11 @@ function ttHtml(){
       (TTSEL ? '<p class="p small tt-tip">' + TT_TIP1 + '</p>' : '') +
       '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
       '<div class="tt-body' + (TTSEL ? ' editing' : '') + '" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + (TTSEL ? ttBarHtml() : '') + '</div></div>' +
+      // 순서: 보기 설정 · 수업 추가 · 빠른 추가(대표 11/3 23:35). 자주 쓰는 빠른 추가를 엄지가 닿는 오른쪽 끝에(규칙 13: 마지막 단추는 늘 같은 자리)
       '<nav class="bx-ttbar" aria-label="시간표 도구">' +
-        '<button type="button" class="bx-ttb main" data-act="bx-tt-say">' + TT_MIC_I + '<span>빠른 추가</span></button>' +
         '<button type="button" class="bx-ttb" data-act="tt-range" aria-label="보기 설정 · ' + rangeTxt + '">' + ICON.clock + '<span>보기 설정</span></button>' +
-        '<button type="button" class="bx-ttb" data-act="tt-new">' + ICON.plus + '<span>수업 추가</span></button></nav>';
+        '<button type="button" class="bx-ttb" data-act="tt-new">' + ICON.plus + '<span>수업 추가</span></button>' +
+        '<button type="button" class="bx-ttb main" data-act="bx-tt-say">' + TT_MIC_I + '<span>빠른 추가</span></button></nav>';
   }
   const empty = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 위 칸에 말하거나 적어 보세요. 시작 10분 전에 알람이 울려요.</p>';
   return '<div class="page-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복</span></p></div></div>' + add +
@@ -194,7 +195,7 @@ function ttTodayHtml(ds, inner){
     const rem = e.remind === '' || e.remind == null ? '' : fromMin(Math.max(0, toMin(e.start) - (+e.remind || 0)));
     return '<div class="row tt-row' + (past ? ' done' : '') + '"><span class="tt-dot" style="--c:' + (e.color || TT_COLORS[0]) + '"></span>' +
       '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + e.start + '</b>' + (e.end ? '<small>' + e.end + '</small>' : '') + '</span>' +
-      '<span class="row-body"><span class="row-title">' + esc(e.name) + '</span><span class="row-meta">' + (multi ? '<span class="meta bx-tts-m">' + esc(bxTtSetDoc(bxTtSetOf(e)).name) + '</span>' : '') + (e.place ? '<span class="meta">' + ICON.pin + esc(e.place) + '</span>' : '') +
+      '<span class="row-body"><span class="row-title">' + esc(e.name) + '</span><span class="row-meta">' + (multi ? '<span class="meta bx-tts-m"><i class="dot" style="--c:' + bxTtColor(bxTtSetOf(e)) + '"></i>' + esc(bxTtSetDoc(bxTtSetOf(e)).name) + '</span>' : '') + (e.place ? '<span class="meta">' + ICON.pin + esc(e.place) + '</span>' : '') +
       (rem && !past ? '<span class="meta bx-rem">' + ICON.bell + rem + '</span>' : '') + '</span></span></button></div>';
   }).join('');
   const offN = list.filter(e => ttSkipped(e, ds)).length;
@@ -209,7 +210,7 @@ function ttCountOn(ds){ return ttList().filter(e => ttOn(e, ds) && (typeof bxTtH
 function ttOpen(id, pre){
   const cur = id ? (ttList().find(e => e.id === id) || null) : null;
   const n = ttList().length;
-  TT = cur ? Object.assign({}, cur) : Object.assign({id: null, name: '', days: [], start: '09:00', end: '10:00', place: '', remind: '10', color: TT_COLORS[n % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null}, pre || {});
+  TT = cur ? Object.assign({}, cur) : Object.assign({id: null, name: '', days: [], start: '09:00', end: '10:00', place: '', remind: '10', color: typeof bxTtColor === 'function' ? bxTtColor(bxTtCur()) : TT_COLORS[n % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null}, pre || {});
   if (!TT.start) TT.start = '09:00';
   if (!TT.end || toMin(TT.end) <= toMin(TT.start)) TT.end = fromMin(Math.min(toMin(TT.start) + 60, 1439));
   openSheet({title: cur ? (window.BX_APP ? '수업 수정' : '시간표 고치기') : (window.BX_APP ? '수업 추가' : '시간표에 넣기'), draw: ttDraw, onClose: () => { TT = null; }});
@@ -277,7 +278,7 @@ function ttAddFromText(text){
   text = String(text || '').trim();
   if (!text) { toast('예) 월수 10시 반부터 12시까지 경영학원론 301호'); return; }
   const p = ttParse(text);
-  const o = {id: null, name: p.name, days: p.days, start: p.start, end: p.end, place: p.place, remind: '10', color: TT_COLORS[ttList().length % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null};
+  const o = {id: null, name: p.name, days: p.days, start: p.start, end: p.end, place: p.place, remind: '10', color: typeof bxTtColor === 'function' ? bxTtColor(bxTtCur()) : TT_COLORS[ttList().length % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null};
   if (p.name && p.days.length && p.start) {
     if (SH && $('#tt-in')) closeSheet();
     const id = ttSave(o);

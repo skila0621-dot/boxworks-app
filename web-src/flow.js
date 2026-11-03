@@ -238,7 +238,7 @@ document.addEventListener('click', ev => {
   if (nav === 'make') {
     const rem = BXT.rem === 'custom' ? String(Math.max(1, Math.min(240, Math.round(+BXT.cust) || 15))) : BXT.rem;
     const ok = bxTtParsed().filter(r => r.p.name && r.p.days.length && r.p.start), base = ttList().length, ids = [];
-    ok.forEach((r, i) => ids.push(ttSave({id: null, name: r.p.name, days: r.p.days, start: r.p.start, end: r.p.end, place: r.p.place, remind: rem, color: TT_COLORS[(base + i) % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null})));
+    ok.forEach((r, i) => ids.push(ttSave({id: null, name: r.p.name, days: r.p.days, start: r.p.start, end: r.p.end, place: r.p.place, remind: rem, color: typeof bxTtColor === 'function' ? bxTtColor(bxTtCur()) : TT_COLORS[(base + i) % TT_COLORS.length], set: typeof bxTtCur === 'function' ? bxTtCur() : null})));
     saveSettings({bxTtHelp: {at: nowIso(), made: ids.length}});
     bxTtHelpClose();
     toast('시간표에 ' + ids.length + '개 넣었어요', [['되돌리기', () => ids.forEach(id => removeDoc(id))]]);
@@ -261,7 +261,7 @@ function bxWidgetOpen(){
         (w[k] ? '<span class="bx-wg-on">' + ICON.check + '추가됨</span>' : can ? '<button type="button" class="btn sm" data-bx-wpin="' + k + '">추가</button>' : '') + '</div>').join('') + '</div>' +
       // 시험판 36(대표 결정 11/3 17:01): 위젯은 작게 두고 '루틴 포함 / 일정만'은 여기 스위치 하나(처음엔 루틴도 보임)
       '<div class="bx-grp"><div class="bx-swrow bx-wg-rt"><span><b>오늘 일정 위젯에 루틴도 보기</b><small>끄면 일정 · 시간표만</small></span>' + bxSwitch('data-bxwrt', M.settings.bxWidgetRt !== false, '오늘 일정 위젯에 루틴도 보기') + '</div></div>' +
-      '<p class="p small">' + (can ? '추가를 누르면 휴대폰이 놓을 자리를 물어요. ' : '') + '홈 화면을 길게 누른 뒤 위젯 › 박스웍스에서도 추가할 수 있어요.</p>', '');
+      '<p class="p small">' + (can ? '추가를 누르면 휴대폰이 놓을 자리를 물어요. ' : '') + '홈 화면을 길게 누른 뒤 위젯 › ' + esc(window.BX_NAME) + '에서도 추가할 수 있어요.</p>', '');
   };
   openSheet({title: '홈 화면 위젯', draw, refresh: draw});
 }
@@ -279,7 +279,7 @@ document.addEventListener('click', async ev => {
     if (window.BX_widgetPin) await window.BX_widgetPin(b.dataset.bxWpin);
     toast('휴대폰 화면에서 위젯 놓을 자리를 골라 주세요');
   } catch (e) {
-    toast('홈 화면을 길게 누른 뒤 위젯 › 박스웍스에서 추가할 수 있어요');
+    toast('홈 화면을 길게 누른 뒤 위젯 › ' + window.BX_NAME + '에서 추가할 수 있어요');
   }
 }, true);
 
@@ -304,14 +304,14 @@ document.addEventListener('click', ev => {
 
 /* 19. 내가 쓸 기능 · 아래 메뉴: 기능을 끄면 홈·메뉴·알림에서 사라진다(넣어 둔 내용은 남음). 아래 메뉴는 누른 순서대로, 홈은 가운데 */
 let FEAT = null;
-const BX_FEAT = [['routines', '루틴'], ['report', '아침 요약'], ['tt', '시간표'], ['med', '명상']];
+const BX_FEAT = [['routines', '루틴'], ['report', '아침 요약'], ['tt', '시간표'], ['memo', '메모'], ['med', '명상']];
 // 묶음(시험판 35): 시간 · 행동 관리가 주 목적, 명상 같은 그 밖의 기능은 켜도 아래 메뉴가 아니라 ⋯ 더보기에(원하면 아래 메뉴에 넣음)
 const BX_FEAT_ETC = ['med'];
 function bxFeatOpen(){
   FEAT = {mods: Object.assign({}, bxStartMods()), dock: bxDockKeys().slice()};
   openSheet({title: '기능 · 메뉴 편집', draw: bxFeatDraw, refresh: bxFeatDraw, onClose: () => { FEAT = null; }});
 }
-function bxFeatDockOk(k){ return !(k === 'routines' || k === 'tt' || k === 'med') || FEAT.mods[k] !== false; }
+function bxFeatDockOk(k){ return !(k === 'routines' || k === 'tt' || k === 'med' || k === 'memo') || FEAT.mods[k] !== false; }
 function bxFeatDraw(){
   // 줄마다 무엇을 해 주는지 한 줄(대표 지적 11/3: '아침에 오늘 일정 받기'를 켰는데 어디서 무엇이 오는지 모름)
   const desc = k => (BX_MODS.find(m => m[0] === k) || [])[2] || '';
@@ -330,7 +330,7 @@ function bxFeatDraw(){
     '<div class="bx-grp"><div class="bx-ft-row"><span>일정 · 캘린더</span><span class="bx-lv-fix">늘 켜짐</span></div>' + BX_FEAT.filter(f => !BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') + '</div>' +
     '<div class="bx-ft-hd"><h3 class="bx-ft-h">그 밖의 기능</h3><p class="p small">켜면 ⋯ 더보기에 있어요. 아래 메뉴에도 넣을 수 있어요.</p></div>' +
     '<div class="bx-grp">' + BX_FEAT.filter(f => BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') + '</div>' +
-    '<div class="bx-ft-hd"><h3 class="bx-ft-h">아래 메뉴</h3><p class="p small">누른 순서대로 왼쪽부터 놓여요. 홈은 가운데, 4개까지. 처음엔 시간 · 행동 관리(루틴 · 캘린더 · 시간표). 더보기는 왼쪽 위 메뉴 단추에 있어요.</p></div>' +
+    '<div class="bx-ft-hd"><h3 class="bx-ft-h">아래 메뉴</h3><p class="p small">누른 순서대로 왼쪽부터 놓여요. 홈은 가운데, 4개까지. 처음엔 시간 · 행동 관리(루틴 · 캘린더 · 시간표 · 메모). 더보기는 왼쪽 위 메뉴 단추에 있어요.</p></div>' +
     '<div class="bx-grp bx-grp-pad"><div class="bx-ft-chips">' + Object.keys(BX_DOCK_ALL).filter(k => k !== 'more').map(chip).join('') + '</div>' +
     '<span class="bx-ft-pv-h">미리 보기</span><div class="bx-ft-pv" aria-hidden="true" style="grid-template-columns:repeat(' + prev.length + ',minmax(0,1fr))">' + prev.map(x => '<span class="' + (x === '홈' ? 'on' : '') + '">' + x + '</span>').join('') + '</div></div>',
     '<button type="button" class="btn grow" data-bx-fnav="reset">기본값</button>');
@@ -346,7 +346,12 @@ document.addEventListener('click', ev => {
     const on = FEAT.mods[k] === false; FEAT.mods[k] = on;
     if (!on) FEAT.dock = FEAT.dock.filter(x => x !== k);
     // 시간 · 행동 관리 기능은 켜면 아래 메뉴에(자리가 있으면 '더보기' 앞에). 그 밖의 기능은 ⋯ 더보기에
-    else if ((k === 'routines' || k === 'tt') && FEAT.dock.length < 4 && !FEAT.dock.includes(k)) { const at = FEAT.dock.indexOf('more'); if (at >= 0) FEAT.dock.splice(at, 0, k); else FEAT.dock.push(k); }
+    // 시험판 41: 기본 순서(루틴 · 캘린더 · 시간표 · 메모)의 제자리로. 기본 순서에서 뒤에 오는 것 앞에 넣는다
+    else if ((k === 'routines' || k === 'tt' || k === 'memo') && FEAT.dock.length < 4 && !FEAT.dock.includes(k)) {
+      const di = x => { const i = BX_DOCK_DEF.indexOf(x); return i < 0 ? 99 : i; };
+      let at = FEAT.dock.findIndex(x => x === 'more' || di(x) > di(k)); if (at < 0) at = FEAT.dock.length;
+      FEAT.dock.splice(at, 0, k);
+    }
     bxFeatApply(); bxFeatDraw(); return;
   }
   if (d) {
@@ -355,16 +360,17 @@ document.addEventListener('click', ev => {
     else { toast('4개까지 고를 수 있어요. 하나를 먼저 빼 주세요'); return; }
     bxFeatApply(); bxFeatDraw(); return;
   }
-  if (nav === 'reset') { FEAT = {mods: {report: true, routines: true, tt: true, med: true}, dock: BX_DOCK_DEF.slice()}; bxFeatApply(); bxFeatDraw(); return; }
+  if (nav === 'reset') { FEAT = {mods: {report: true, routines: true, tt: true, memo: true, med: true}, dock: BX_DOCK_DEF.slice()}; bxFeatApply(); bxFeatDraw(); return; }
 }, true);
 // 누르는 대로 바로 저장(아래 메뉴·홈·알람이 그 자리에서 바뀐다)
 function bxFeatApply(){
   if (!FEAT) return;
   const st = Object.assign({at: nowIso()}, (M.settings && M.settings.bxStart) || {}, {mods: Object.assign({}, FEAT.mods)});
   const rep = Object.assign({}, bxRepCfg(), {on: FEAT.mods.report !== false});
-  saveSettings({bxStart: st, bxDock: FEAT.dock.slice(), bxDockMig: 1, bxReport: rep});
+  saveSettings({bxStart: st, bxDock: FEAT.dock.slice(), bxDockMig: 1, bxDockMemo: 1, bxReport: rep});
 }
-window.BX_rerender = function(){ if (S.view === 'today' && !SH && !document.getElementById('bx-start')) render(); };
+// 메모를 적는 동안은 미룬다(시험판 41: 칸이 새로 그려지면 키보드가 내려감, 칸을 떠나면 그림)
+window.BX_rerender = function(){ if (S.view === 'today' && !SH && !document.getElementById('bx-start') && !(typeof bxMmHold === 'function' && bxMmHold())) render(); };
 
 /* 일정 꾹 누르기 메뉴(대표 요청 10/31: 지우려고 매번 들어가는 건 비효율). 홈·날짜 창·주간·찾기·월간 칩 어디서든 같다 */
 let bxIlp = null, bxIlpAt = 0;

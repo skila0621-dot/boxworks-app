@@ -40,14 +40,17 @@ function bxTtPeriodText(s){
   const rng = s.from && s.to ? md(s.from) + ' ~ ' + md(s.to) : s.to ? md(s.to) + '까지' : md(s.from) + '부터';
   return st === 'ended' ? '끝남 · ' + rng : st === 'before' ? (s.from ? md(s.from) + '부터 시작' : rng) : rng;
 }
-function bxTtColor(id){ const e = bxTtOf(id)[0]; return (e && e.color) || 'var(--ink-3)'; }
+// 시간표 색(대표 11/3 23:30 "학교 · 학원 · 물리치료 메뉴에서 컬러를 지정해서 구분"): 만들 때 쓰지 않은 색이 저절로, 설정에서 바꿈.
+// 색을 고른 적 없는 시간표는 순서대로 기본 색. 새 수업은 그 시간표 색으로 시작한다(캘린더와 같은 규칙)
+function bxTtSetColor(s){ return (s && s.color) || TT_COLORS[((s && s.order) || 0) % TT_COLORS.length]; }
+function bxTtColor(id){ return bxTtSetColor(bxTtSetDoc(id)); }
 
 /* ---------- 시간표 화면 위: 칩 줄 · 기간 한 줄 ---------- */
 function bxTtChipsHtml(){
   const cur = bxTtCur();
   return '<div class="bx-cchips bx-ttchips" role="group" aria-label="시간표 고르기">' + bxTtSets().map(s => {
     const st = bxTtState(s);
-    return '<button type="button" class="bx-cchip' + (st === 'ended' ? ' bx-ended' : '') + '" data-bxtts="' + esc(s.id) + '" aria-pressed="' + (s.id === cur) + '"><span>' + esc(s.name) + (st === 'ended' ? ' · 끝남' : '') + '</span></button>';
+    return '<button type="button" class="bx-cchip' + (st === 'ended' ? ' bx-ended' : '') + '" data-bxtts="' + esc(s.id) + '" aria-pressed="' + (s.id === cur) + '"><i class="bx-cdot" style="--c:' + bxTtSetColor(s) + '"></i><span>' + esc(s.name) + (st === 'ended' ? ' · 끝남' : '') + '</span></button>';
   }).join('') + '<button type="button" class="bx-cchip bx-cchip-add" data-act="bx-ttsets" aria-label="시간표 만들기 · 관리">' + ICON.plus + '<span>시간표</span></button></div>';
 }
 function bxTtNoteHtml(){
@@ -70,7 +73,7 @@ function bxTtsRowsHtml(){
   return bxTtSets().map(s => {
     const n = bxTtOf(s.id).length;
     return '<div class="bx-arow bx-arow-sw bx-calrow" data-tts="' + esc(s.id) + '"><button type="button" class="bx-at" data-bxttsopen="' + esc(s.id) + '">' +
-      '<b><i class="bx-cdot" style="--c:' + bxTtColor(s.id) + '"></i>' + esc(s.name) + '</b><small' + (bxTtState(s) === 'ended' ? ' class="bx-tt-end"' : '') + '>수업 ' + n + '개 · ' + esc(bxTtPeriodText(s)) + '</small></button>' +
+      '<b><i class="bx-cdot" style="--c:' + bxTtSetColor(s) + '"></i>' + esc(s.name) + '</b><small' + (bxTtState(s) === 'ended' ? ' class="bx-tt-end"' : '') + '>수업 ' + n + '개 · ' + esc(bxTtPeriodText(s)) + '</small></button>' +
       '<i class="bx-adiv" aria-hidden="true"></i><span class="bx-calrow-sw">' + bxSwitch('data-bxttshome', s.home !== false, s.name + ' 홈에 보이기') + '<small>홈에 보이기</small></span></div>';
   }).join('') + '<button type="button" class="bx-cal-add" data-act="bx-tts-add">' + ICON.plus + '<span>시간표 만들기</span></button>';
 }
@@ -87,7 +90,9 @@ function bxTtsDetailOpen(id, focus){
 function bxTtsDetailDraw(id){
   const s = bxTtSetDoc(id); if (!s) { bxTtsOpen(); return; }
   const n = bxTtOf(id).length, home = s.home !== false, per = !!(s.from || s.to);
-  setSheet('<div class="bx-grp bx-cald"><div class="fld"><label class="fld-l" for="bx-tts-name">이름</label><input id="bx-tts-name" class="inp full" data-bxttsname="' + esc(id) + '" value="' + esc(s.name) + '" maxlength="20" autocomplete="off" enterkeyhint="done" placeholder="예) 학교 · 학원 · 치료"></div></div>' +
+  const col = bxTtSetColor(s), sw = TT_COLORS.map(c => '<button type="button" class="swatch" style="--c:' + c + '" data-bxttscol="' + c + '" aria-label="색" aria-pressed="' + (col.toLowerCase() === c) + '"></button>').join('');
+  setSheet('<div class="bx-grp bx-cald"><div class="fld"><label class="fld-l" for="bx-tts-name">이름</label><input id="bx-tts-name" class="inp full" data-bxttsname="' + esc(id) + '" value="' + esc(s.name) + '" maxlength="20" autocomplete="off" enterkeyhint="done" placeholder="예) 학교 · 학원 · 치료"></div>' +
+    '<div class="fld"><span class="fld-l">색</span><div class="swatches" role="group" aria-label="시간표 색">' + sw + '</div><p class="p small bx-tts-colnote">새로 넣는 수업이 이 색으로 시작해요. 이미 넣은 수업 색은 그대로예요.</p></div></div>' +
     '<div class="bx-grp bx-cals"><div class="bx-arow bx-arow-sw"><span class="bx-at"><b>홈에 보이기</b><small>' + (home ? '홈 · 위젯 · 아침 요약에 보여요' : '홈에서 뺐어요 · 알림은 울려요') + '</small></span>' + bxSwitch('data-bxttshome', home, '홈에 보이기') + '</div>' +
       '<div class="bx-arow bx-arow-sw"><span class="bx-at"><b>기간</b><small>' + (per ? esc(bxTtPeriodText(s)) : '정하지 않으면 계속 반복돼요') + '</small></span>' + bxSwitch('data-bxttsper', per, '기간') + '</div>' +
       (per ? '<div class="bx-ttper"><div class="fld"><label class="fld-l" for="bx-tts-from">시작 날</label><input type="date" id="bx-tts-from" class="inp" value="' + esc(s.from || '') + '"></div>' +
@@ -102,8 +107,9 @@ function bxTtsPatch(id, patch){
   else writeDoc(id, Object.assign({type: 'ttset', name: '시간표', home: true, from: null, to: null, order: 0, createdAt: nowIso()}, patch, {updatedAt: nowIso()}));
 }
 function bxTtsAdd(){
-  const sets = bxTtSets(), id = rid('tts_');
-  writeDoc(id, {type: 'ttset', name: '새 시간표', home: true, from: null, to: null, order: Math.max.apply(null, sets.map(s => s.order || 0)) + 1, createdAt: nowIso()});
+  const sets = bxTtSets(), id = rid('tts_'), used = new Set(sets.map(s => bxTtSetColor(s).toLowerCase()));
+  const color = TT_COLORS.find(c => !used.has(c)) || TT_COLORS[sets.length % TT_COLORS.length];
+  writeDoc(id, {type: 'ttset', name: '새 시간표', color, home: true, from: null, to: null, order: Math.max.apply(null, sets.map(s => s.order || 0)) + 1, createdAt: nowIso()});
   bxTtSel = id; lsSet('bx:ttSel', id);
   bxTtsDetailOpen(id, true);
 }
@@ -150,6 +156,8 @@ document.addEventListener('click', ev => {
     if (pr.dataset.bxttsper === '1') { const i = document.getElementById('bx-tts-to'); if (i) i.focus(); }
     return;
   }
+  const cc = t.closest('[data-bxttscol]');
+  if (cc && SH.bxTts) { ev.preventDefault(); ev.stopPropagation(); bxTtsPatch(SH.bxTts, {color: cc.dataset.bxttscol}); M = buildModel(); bxTtsDetailDraw(SH.bxTts); return; }
   if (t.closest('[data-act="bx-tts-add"]')) { ev.preventDefault(); ev.stopPropagation(); bxTtsAdd(); return; }
   if (t.closest('[data-act="bx-tts-del"]') && SH.bxTts) { ev.preventDefault(); ev.stopPropagation(); bxTtsRemove(SH.bxTts); return; }
 }, true);
@@ -179,6 +187,7 @@ document.addEventListener('change', ev => {
     'html.bx-app .bx-tt-note span{flex:1;min-width:0}html.bx-app .bx-tt-note .i{width:16px;height:16px;color:var(--ink-3);flex:none}',
     'html.bx-app .bx-tt-note.warn{background:color-mix(in srgb,var(--warn) 12%,transparent);color:var(--ink)}',
     'html.bx-app .bx-tt-end{color:var(--ink-3)!important}',
+    'html.bx-app .bx-tts-colnote{margin:8px 0 0;color:var(--ink-3)}html.bx-app .bx-cald .swatches .swatch{width:30px;height:30px}',
     'html.bx-app .bx-ttper{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0 16px}html.bx-app .bx-ttper .inp{width:100%;min-width:0}'
   ].join('\n');
   (document.head || document.documentElement).appendChild(st);

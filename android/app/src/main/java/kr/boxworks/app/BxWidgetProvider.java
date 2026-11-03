@@ -40,6 +40,8 @@ public class BxWidgetProvider extends AppWidgetProvider {
     static final String ACTION_SPEAK = "kr.boxworks.app.SPEAK";
     static final String ACTION_ADD = "kr.boxworks.app.ADD";
     static final String ACTION_OPEN = "kr.boxworks.app.OPEN_ROW";
+    // ✎ 메모(시험판 41, 대표 요청 11/3 23:38): 앱의 메모 화면을 열고 바로 적기
+    static final String ACTION_MEMO = "kr.boxworks.app.MEMO";
     static final String ACTION_TICK = "kr.boxworks.app.WIDGET_TICK";
     static final String ACTION_DAY = "kr.boxworks.app.WIDGET_DAY";
     private static final long DAY_MS = 24 * 3600 * 1000L;
@@ -338,6 +340,9 @@ public class BxWidgetProvider extends AppWidgetProvider {
         // 새 일정(＋) = 새 일정 창(글자로), 말하기(🎤) = 새 일정 창 + 바로 듣기. 보고 있는 날짜로(대표 요청 11/3: 따로)
         v.setOnClickPendingIntent(R.id.w_add, activityPi(c, 0x0B13, ACTION_ADD, ds));
         v.setOnClickPendingIntent(R.id.w_mic, activityPi(c, 0x0B11, ACTION_SPEAK, ds));
+        // ✎ 메모는 오늘 메모로(떠오른 때가 기준). '기능 · 메뉴 편집'에서 메모를 끄면 숨김(앱이 넘겨 준 memo)
+        v.setOnClickPendingIntent(R.id.w_memo, activityPi(c, 0x0B16, ACTION_MEMO, null));
+        v.setViewVisibility(R.id.w_memo, d.optBoolean("memo", true) ? View.VISIBLE : View.GONE);
         return v;
     }
 

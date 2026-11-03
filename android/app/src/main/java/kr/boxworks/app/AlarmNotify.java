@@ -60,13 +60,18 @@ final class AlarmNotify {
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         if (nm == null) return;
         // 예전 채널(잠금 화면에 내용 표시)은 이름만 바꾼다. 이미 있는 채널을 다시 만들면 이름·설명만 바뀌고 사용자 설정은 남는다
-        nm.createNotificationChannel(alarmChannel(CHANNEL, "일정·루틴 알람 (잠금 화면에 제목 표시)", Notification.VISIBILITY_PUBLIC));
-        if (nm.getNotificationChannel(CHANNEL_PRIVATE) == null) nm.createNotificationChannel(alarmChannel(CHANNEL_PRIVATE, "일정·루틴 알람", Notification.VISIBILITY_PRIVATE));
+        nm.createNotificationChannel(alarmChannel(c, CHANNEL, "일정·루틴 알람 (잠금 화면에 제목 표시)", Notification.VISIBILITY_PUBLIC));
+        if (nm.getNotificationChannel(CHANNEL_PRIVATE) == null) nm.createNotificationChannel(alarmChannel(c, CHANNEL_PRIVATE, "일정·루틴 알람", Notification.VISIBILITY_PRIVATE));
     }
 
-    private static NotificationChannel alarmChannel(String id, String name, int lock) {
+    /** 앱 이름은 res/values/strings.xml 의 app_name 한 곳에서만 정한다(대표 결정 11/3 23:40, 웹 화면도 빌드 때 같은 값을 읽음) */
+    static String appName(Context c) {
+        return c.getString(R.string.app_name);
+    }
+
+    private static NotificationChannel alarmChannel(Context c, String id, String name, int lock) {
         NotificationChannel ch = new NotificationChannel(id, name, NotificationManager.IMPORTANCE_HIGH);
-        ch.setDescription("박스웍스 일정과 루틴 알람");
+        ch.setDescription(appName(c) + " 일정과 루틴 알람");
         Uri sound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         if (sound == null) sound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         ch.setSound(sound, new AudioAttributes.Builder()
@@ -81,10 +86,10 @@ final class AlarmNotify {
 
     /** 잠금 화면에 보일 제목. 루틴 단계 이름은 보이고, 일정 제목은 화면이 넘긴 pt(예: '일정 알림')로 바꾼다 */
     static String pubTitle(Context c, JSONObject o) {
-        if ("none".equals(AlarmStore.lockMode(c))) return "박스웍스 알람";
+        if ("none".equals(AlarmStore.lockMode(c))) return appName(c) + " 알람";
         String pt = o.optString("pt", "");
         if (!pt.isEmpty()) return pt;
-        return "routine".equals(o.optString("kind")) ? o.optString("title", "박스웍스 알람") : "박스웍스 알람";
+        return "routine".equals(o.optString("kind")) ? o.optString("title", appName(c) + " 알람") : appName(c) + " 알람";
     }
 
     static String pubSub(Context c, JSONObject o) {
@@ -157,7 +162,7 @@ final class AlarmNotify {
     private static PendingIntent sharePi(Context c, String title, String text) {
         Intent send = new Intent(Intent.ACTION_SEND);
         send.setType("text/plain");
-        send.putExtra(Intent.EXTRA_SUBJECT, "박스웍스 · " + title);
+        send.putExtra(Intent.EXTRA_SUBJECT, appName(c) + " · " + title);
         send.putExtra(Intent.EXTRA_TEXT, title + "\n\n" + text);
         Intent chooser = Intent.createChooser(send, "오늘 일정 보내기");
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -189,7 +194,7 @@ final class AlarmNotify {
         PendingIntent openPi = PendingIntent.getActivity(c, notifId(id) + 1, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         String title = o.optString("title");
-        if (title.isEmpty()) title = "박스웍스";
+        if (title.isEmpty()) title = appName(c);
         NotificationCompat.Builder b = new NotificationCompat.Builder(c, ch)
             .setSmallIcon(R.drawable.ic_stat_bx)
             .setContentTitle(title)
@@ -292,7 +297,7 @@ final class AlarmNotify {
         String id = o.optString("id");
         String title = o.optString("title");
         String body = o.optString("body", o.optString("sub"));
-        if (title.isEmpty()) title = "박스웍스";
+        if (title.isEmpty()) title = appName(c);
         Intent open = new Intent(c, MainActivity.class);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openPi = PendingIntent.getActivity(c, notifId(id) + 1, open,
@@ -336,7 +341,7 @@ final class AlarmNotify {
         String id = o.optString("id");
         String title = o.optString("title");
         String body = o.optString("body");
-        if (title.isEmpty()) title = "박스웍스 알람";
+        if (title.isEmpty()) title = appName(c) + " 알람";
 
         Intent full = new Intent(c, AlarmActivity.class);
         full.putExtra(AlarmStore.EXTRA_JSON, o.toString());

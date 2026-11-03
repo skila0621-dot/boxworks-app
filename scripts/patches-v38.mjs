@@ -10,7 +10,7 @@ export default [
   {
     name: '처음 여는 화면: 로고 + 스케줄러 + 차오르는 게이지(대표 결정 11/3 18:58)',
     find: '\n<div class="app">\n',
-    replace: '\n<div id="bx-splash" aria-hidden="true"><div class="bxsp-in"><svg viewBox="0 0 32 32" class="bxsp-logo">' + LOGO_PATHS + '</svg><b class="bxsp-name">스케줄러</b><i class="bxsp-bar"><i></i></i></div></div>\n' +
+    replace: '\n<div id="bx-splash" aria-hidden="true"><div class="bxsp-in"><svg viewBox="0 0 32 32" class="bxsp-logo">' + LOGO_PATHS + '</svg><b class="bxsp-name">@@BX_NAME@@</b><i class="bxsp-bar"><i></i></i></div></div>\n' +
       '<style>#bx-splash{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center;pointer-events:none;transition:opacity .3s ease}' +
       '#bx-splash.bx-done{opacity:0}#bx-splash .bxsp-in{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:-8vh}' +
       '#bx-splash .bxsp-logo{width:76px;height:76px}#bx-splash .bxsp-name{font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}' +

@@ -26,13 +26,13 @@ public class BootReceiver extends BroadcastReceiver {
             int missed = AlarmStore.takeMissed(context, MISSED_WITHIN_MS);
             if (missed > 0) {
                 AlarmNotify.showInfo(context, MISSED_ID, "지나간 알람 " + missed + "개",
-                    "휴대폰이 꺼져 있거나 시간이 바뀌는 동안 울리지 못한 알람이 있어요. 박스웍스에서 확인해 주세요.");
+                    "휴대폰이 꺼져 있거나 시간이 바뀌는 동안 울리지 못한 알람이 있어요. " + AlarmNotify.appName(context) + "에서 확인해 주세요.");
             }
         }
         AlarmStore.rescheduleAll(context);
         if (Intent.ACTION_TIMEZONE_CHANGED.equals(action)) {
             AlarmNotify.showInfo(context, TZ_ID, "시간대가 바뀌었어요",
-                "박스웍스를 한 번 열면 알람 시각을 새 시간대에 맞춰요.");
+                "앱을 한 번 열면 알람 시각을 새 시간대에 맞춰요.");
         }
         if (AlarmStore.unlocked(context)) BxWidgetProvider.refreshAll(context);
     }

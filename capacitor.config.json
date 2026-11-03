@@ -1,6 +1,6 @@
 {
   "appId": "kr.boxworks.app",
-  "appName": "박스웍스",
+  "appName": "스케줄러",
   "webDir": "www",
   "android": {
     "allowMixedContent": false

@@ -327,7 +327,7 @@
     '.bx-app .page-head.bx-ch>p{margin:2px 0 0;text-align:center;font-size:13px;color:var(--ink-2)}',
     // 시간표: 머리는 제목만, 도구는 아래 메뉴 위 툴바
     '.bx-app .bx-tt-head{margin-bottom:8px}.bx-app .bx-tt-head h1{font-size:22px}.bx-app .bx-tt-head p{font-size:13px}',
-    '.bx-app .bx-ttbar{position:fixed;left:0;right:0;bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px));z-index:39;display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;padding:8px 12px;background:color-mix(in srgb,var(--bg) 96%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}',
+    '.bx-app .bx-ttbar{position:fixed;left:0;right:0;bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px));z-index:39;display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;padding:8px 12px;background:color-mix(in srgb,var(--bg) 96%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}',
     '.bx-app .bx-ttb{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border-radius:14px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;font-weight:700;color:var(--ink)}.bx-app .bx-ttb .i{width:19px;height:19px}',
     '.bx-app .bx-ttb.main{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}',
     'html.bx-ttbar-on .content{padding-bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 76px)}html.bx-ttbar-on #toasts{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 72px)}',
@@ -641,18 +641,18 @@
         if (!st.notifications && (fromTest || memo.get('bx:askNotif') !== '1')) {
           memo.set('bx:askNotif', '1');
           st = await alarm.requestNotifications();
-          if (!st.notifications && fromTest && window.confirm('알림이 꺼져 있어서 알람이 울리지 않아요. 휴대폰 설정에서 박스웍스 알림을 켤까요?')) {
+          if (!st.notifications && fromTest && window.confirm('알림이 꺼져 있어서 알람이 울리지 않아요. 휴대폰 설정에서 ' + window.BX_NAME + ' 알림을 켤까요?')) {
             alarm.openSettings({ which: 'notifications' });
             return false;
           }
         }
         if (st.notifications && !st.exact && (fromTest || memo.get('bx:askExact') !== '1')) {
           memo.set('bx:askExact', '1');
-          if (window.confirm('알람이 정확한 시각에 울리려면 다음 화면에서 박스웍스를 허용해 주세요.')) alarm.openSettings({ which: 'exact' });
+          if (window.confirm('알람이 정확한 시각에 울리려면 다음 화면에서 ' + window.BX_NAME + ' 앱을 허용해 주세요.')) alarm.openSettings({ which: 'exact' });
         }
         if (st.notifications && !st.fullScreen && (fromTest || memo.get('bx:askFull') !== '1')) {
           memo.set('bx:askFull', '1');
-          if (window.confirm('잠금 화면에서도 알람을 크게 띄우려면 다음 화면에서 박스웍스를 허용해 주세요.')) alarm.openSettings({ which: 'fullscreen' });
+          if (window.confirm('잠금 화면에서도 알람을 크게 띄우려면 다음 화면에서 ' + window.BX_NAME + ' 앱을 허용해 주세요.')) alarm.openSettings({ which: 'fullscreen' });
         }
         return !!st.notifications;
       } catch (e) {
@@ -728,15 +728,23 @@
     var openRow = function (o) {
       setTimeout(function () { if (o && typeof window.BX_openFromWidget === 'function') window.BX_openFromWidget(o); }, 300);
     };
+    // 위젯 ✎ 메모(시험판 41, 대표 요청 11/3 23:38): 메모 화면 + 맨 위 칸에 커서(web-src/v41.js BX_memoQuick)
+    var memoNow = function () {
+      setTimeout(function () { if (typeof window.BX_memoQuick === 'function') window.BX_memoQuick(); }, 300);
+    };
+    // 누르지 않은 칸에 커서만 두면 키보드가 안 뜰 때가 있어 휴대폰 쪽에서 올린다(BxWidgetPlugin.keyboard)
+    window.BX_keyboard = function () { if (widgetPl.keyboard) widgetPl.keyboard().catch(function () {}); };
     if (widgetPl.addListener) {
       widgetPl.addListener('speak', speakNow);
       widgetPl.addListener('add', addNow);
       widgetPl.addListener('open', openRow);
+      widgetPl.addListener('memo', memoNow);
     }
     if (widgetPl.consumeLaunch) widgetPl.consumeLaunch().then(function (r) {
       if (!r) return;
       if (r.speak) setTimeout(function () { speakNow(r); }, 700);
       else if (r.add) setTimeout(function () { addNow(r); }, 700);
+      else if (r.memo) setTimeout(memoNow, 700);
       else if (r.open) setTimeout(function () { openRow(r.open); }, 700);
     }).catch(function () {});
   }
@@ -791,7 +799,7 @@
       if (!window.BX_NO_MIC || !t || !/^(f-title|day-in|tt-in|rt-text|bx-rt-say)$/.test(t.id || '')) return;
       if (memo.get('bx:noMicTold') === '1') return;
       memo.set('bx:noMicTold', '1');
-      if (window.BX_toast) window.BX_toast('이 휴대폰에서는 박스웍스 마이크를 쓸 수 없어요. 키보드의 마이크로 말해도 똑같이 정리돼요.');
+      if (window.BX_toast) window.BX_toast('이 휴대폰에서는 ' + window.BX_NAME + ' 마이크를 쓸 수 없어요. 키보드의 마이크로 말해도 똑같이 정리돼요.');
     }, true);
     document.addEventListener('click', async function (ev) {
       var b = ev.target && ev.target.closest && ev.target.closest('[data-act="bx-mic"]');

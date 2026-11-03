@@ -10,13 +10,15 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 /**
  * 홈 화면 위젯과 박스웍스 화면을 잇는 연결부. 웹에서는 Capacitor.Plugins.BxWidget.
  * update(data): 위젯에 보여 줄 앞으로의 일정·알람 시각을 넘긴다.
- * 위젯 단추로 앱이 열리면 알림을 보낸다: 'speak'(말하기) · 'add'(일정 추가, 시험판 36) · 'open'(줄 누르기 {k, id, ds}, 시험판 36).
+ * 위젯 단추로 앱이 열리면 알림을 보낸다: 'speak'(말하기) · 'add'(일정 추가, 시험판 36) · 'open'(줄 누르기 {k, id, ds}, 시험판 36)
+ * · 'memo'(✎ 메모, 시험판 41).
  * 앱이 꺼져 있다가 열렸으면 consumeLaunch()로 알려 준다.
  */
 @CapacitorPlugin(name = "BxWidget")
 public class BxWidgetPlugin extends Plugin {
     private boolean pendingSpeak = false;
     private boolean pendingAdd = false;
+    private boolean pendingMemo = false;
     private String pendingDs = null;
     private JSObject pendingOpen = null;
 
@@ -47,6 +49,10 @@ public class BxWidgetPlugin extends Plugin {
             if (ds != null) o.put("ds", ds);
             if (live) notifyListeners("add", o, true);
             else { pendingAdd = true; pendingDs = ds; }
+        } else if (BxWidgetProvider.ACTION_MEMO.equals(a)) {
+            // ✎ 메모(시험판 41, 대표 요청 11/3 23:38): 메모 화면 + 맨 위 칸에 커서
+            if (live) notifyListeners("memo", new JSObject(), true);
+            else pendingMemo = true;
         } else if (BxWidgetProvider.ACTION_OPEN.equals(a)) {
             JSObject o = new JSObject();
             o.put("k", i.getStringExtra("k"));
@@ -65,13 +71,41 @@ public class BxWidgetPlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("speak", pendingSpeak);
         r.put("add", pendingAdd);
+        r.put("memo", pendingMemo);
         if (pendingDs != null) r.put("ds", pendingDs);
         if (pendingOpen != null) r.put("open", pendingOpen);
         pendingSpeak = false;
         pendingAdd = false;
+        pendingMemo = false;
         pendingDs = null;
         pendingOpen = null;
         call.resolve(r);
+    }
+
+    /**
+     * 키보드 올리기(시험판 41): 위젯 ✎로 메모 화면을 열면 웹에서 맨 위 칸에 커서를 둔 뒤 부른다.
+     * 사람이 누르지 않은 칸은 커서만 가고 키보드가 안 뜰 때가 있어서 휴대폰 쪽에서 띄운다
+     */
+    @PluginMethod
+    public void keyboard(PluginCall call) {
+        final android.app.Activity act = getActivity();
+        if (act == null || getBridge() == null || getBridge().getWebView() == null) {
+            call.resolve();
+            return;
+        }
+        act.runOnUiThread(() -> {
+            try {
+                android.webkit.WebView wv = getBridge().getWebView();
+                wv.requestFocus();
+                if (android.os.Build.VERSION.SDK_INT >= 30 && wv.getWindowInsetsController() != null) {
+                    wv.getWindowInsetsController().show(android.view.WindowInsets.Type.ime());
+                }
+                android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) act.getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+                if (imm != null) imm.showSoftInput(wv, 0);
+            } catch (Exception ignored) {
+            }
+            call.resolve();
+        });
     }
 
     /** 홈 화면에 놓인 위젯 수(list: 4×2 오늘 일정, now: 2×2 지금 단계)와 앱에서 바로 놓기를 할 수 있는지 */

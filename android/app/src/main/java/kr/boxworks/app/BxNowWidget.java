@@ -155,7 +155,7 @@ public class BxNowWidget extends AppWidgetProvider {
                 v.setViewVisibility(R.id.n_left, View.VISIBLE);
                 if (from < nextTick) nextTick = from;
             } else {
-                v.setTextViewText(R.id.n_label, "박스웍스");
+                v.setTextViewText(R.id.n_label, AlarmNotify.appName(c));
                 v.setTextViewText(R.id.n_step, "예정된 루틴이 없어요");
                 v.setViewVisibility(R.id.n_left, View.GONE);
             }

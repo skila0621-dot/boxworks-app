@@ -35,6 +35,8 @@ module.exports = async function () {
     // (3) 시간표 화면: 칩으로 하나씩
     await p.click('.dock [data-view="tt"]'); await p.waitForTimeout(700);
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('.bx-ttchips .bx-cchip')).map(b => b.textContent.trim())), ['학교', '학원', '물리치료 · 끝남', '시간표'], '시간표 칩 줄');
+    // 시간표 색(대표 11/3 23:30): 칩마다 색 점. 고른 적 없으면 순서대로 기본 색
+    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('.bx-ttchips [data-bxtts] .bx-cdot')).map(i => i.style.getPropertyValue('--c'))), ['#2a78d6', '#1baf7a', '#eda100'], '칩의 시간표 색 점');
     c.eq(await blocks(p), ['경영학원론', '경영학원론'], '학교 시간표의 수업만');
     c.ok(/9월 1일 ~ 12월 18일/.test(await p.evaluate(() => (document.querySelector('.bx-tt-note') || {}).textContent || '')), '기간 한 줄');
     await p.click('[data-bxtts="tts_a"]'); await p.waitForTimeout(500);
@@ -49,8 +51,8 @@ module.exports = async function () {
     await p.fill('#tt-name', '영어 학원');
     await p.click('[data-act="tt-day"][data-d="5"]');
     await p.click('[data-act="tt-save"]'); await p.waitForTimeout(500);
-    const eng = await p.evaluate(() => window.BX_T.docs().filter(([, d]) => d && d.type === 'tt' && d.name === '영어 학원').map(([, d]) => d.set));
-    c.eq(eng, ['tts_a'], '새 수업 → 학원');
+    const eng = await p.evaluate(() => window.BX_T.docs().filter(([, d]) => d && d.type === 'tt' && d.name === '영어 학원').map(([, d]) => [d.set, d.color]));
+    c.eq(eng, [['tts_a', '#1baf7a']], '새 수업 → 학원, 색은 학원 색으로 시작');
     // 수업을 다른 시간표로 옮기기
     await p.click('.tt-b[data-id="tt_m"]'); await p.waitForTimeout(400);
     await p.click('[data-bxttpick="tts_main"]'); await p.waitForTimeout(150);
@@ -61,6 +63,8 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => (document.querySelector('#sheet-title') || {}).textContent), '시간표', '고른 칩을 한 번 더 누르면 그 시간표 설정');
     await p.click('#sheet-root [data-bxttshome]'); await p.waitForTimeout(300);
     c.eq((await doc(p, 'tts_a')).home, true, '홈에 보이기 켜기');
+    await p.click('#sheet-root [data-bxttscol="#6250d6"]'); await p.waitForTimeout(300);
+    c.ok((await doc(p, 'tts_a')).color === '#6250d6' && await p.evaluate(() => document.querySelector('.bx-ttchips [data-bxtts="tts_a"] .bx-cdot').style.getPropertyValue('--c')) === '#6250d6' && (await doc(p, 'tt_m')).color === '#6250d6', '시간표 색 바꾸기 → 칩 점 · 이미 넣은 수업 색은 그대로');
     await p.click('#sheet-root [data-bxttsper]'); await p.waitForTimeout(300);
     let a = await doc(p, 'tts_a');
     c.ok(a.from === '2026-11-02' && a.to === null && await p.evaluate(() => !!document.getElementById('bx-tts-to')), '기간 켜기: 오늘부터, 끝나는 날은 고르게 비움');
@@ -79,6 +83,7 @@ module.exports = async function () {
     await p.fill('#bx-tts-name', '치과 교정'); await p.waitForTimeout(700);
     const nid = await p.evaluate(() => localStorage.getItem('bx:ttSel'));
     c.ok((await doc(p, nid)).name === '치과 교정', '새 시간표 이름 · 새 시간표를 고름');
+    c.eq((await doc(p, nid)).color, '#1baf7a', '새 시간표 색은 쓰지 않은 색부터(학교 파랑 · 학원 보라 · 물리치료 노랑 → 청록)');
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="sheet-close"]').click()); await p.waitForTimeout(300);
     c.eq(await blocks(p), [], '새 시간표는 비어 있음');
     await p.click('[data-bxtts="tts_b"]'); await p.waitForTimeout(400);

@@ -147,7 +147,9 @@ function bxHomeSplit(head, body, o){
       tile('bx-late-open', '', '확인 필요', need, need ? ' warn' : ' zero') + '</div>';
   return '<section class="tcard bx-sumcard" id="tcard" aria-label="' + (o.isT ? '오늘' : esc(o.title.replace(/ 일정$/, ''))) + ' 요약" aria-roledescription="날짜별로 넘겨 보는 일정"><div class="tc-head">' + sum + '</div></section>' +
     '<section class="tcard bx-todo" id="tcard2" aria-labelledby="h-todo"><div class="tc-body"><div class="sec-h bx-todo-h"><h2 id="h-todo">' + name + '</h2></div>' +
-    (o.isT ? bxRtNudgeHtml() : '') + rt + items + tt + '</div></section>';
+    (o.isT ? bxRtNudgeHtml() : '') + rt + items + tt + '</div></section>' +
+    // 시험판 41: '오늘 할 일' 아래 따로 '오늘의 메모'(대표 아이디어 11/3 15:17)
+    (typeof bxMemoOn === 'function' && bxMemoOn() ? bxMemoCardHtml(o.vd) : '');
 }
 let BX_NEXT = null;
 // '다음 일정'은 따로 카드 대신 목록의 그 줄에 표시
@@ -263,15 +265,19 @@ document.addEventListener('contextmenu', ev => { if (ev.target.closest && ev.tar
 // 시험판 35(대표 의견 11/3): 아래 메뉴 기본값은 이 앱의 주 목적인 '시간 · 행동 관리'만. 명상 같은 그 밖의 기능은 ⋯ 더보기에 묶고,
 // 원하면 '내가 쓸 기능 · 아래 메뉴'에서 넣는다. 오른쪽 끝 '더보기'(위 ⋯와 같은 창)로 홈이 가운데에 온다
 // 시험판 38(대표 결정 11/3 18:58): '더보기'는 왼쪽 위 메뉴 단추로 옮겨 아래 메뉴에서 뺀다. 아래 메뉴는 기능만(루틴 · 캘린더 · 홈 · 시간표)
-const BX_DOCK_DEF = ['routines', 'month', 'tt'];
+// 시험판 41(대표 요청 11/3 23:38): 명상이 빠진 자리에 '메모'(퀵 메모) → 루틴 · 캘린더 · 홈 · 시간표 · 메모
+const BX_DOCK_DEF = ['routines', 'month', 'tt', 'memo'];
 // 예전 기본값(명상 · 루틴 · 캘린더 · 시간표)을 그대로 쓰던 휴대폰은 새 기본값으로 바꿔 보인다. 한 번이라도 고치면(bxDockMig) 그대로 둔다
 const BX_DOCK_OLD = 'med,routines,month,tt';
 // 기능 묶음: 시간 · 행동 관리(주 목적) / 그 밖의 기능(명상 등, 앞으로 늘어날 것)
-const BX_GROUP_TIME = ['month', 'routines', 'tt'], BX_GROUP_ETC = ['med'];
+const BX_GROUP_TIME = ['month', 'routines', 'tt', 'memo'], BX_GROUP_ETC = ['med'];
+// 메모 아이콘: 모서리가 접힌 메모지에 두 줄(위젯 ✎ 단추 · 첫 실행 카드와 같은 모양)
+const BX_MEMO_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M14.5 20.5h-8a3 3 0 0 1-3-3v-11a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3v8z"/><path d="M14.5 20.5v-4a2 2 0 0 1 2-2h4"/><path d="M8 8.5h8M8 12h5"/></svg>';
 const BX_DOCK_ALL = {
   month: {label: '캘린더', sub: '달력·주간 일정', icon: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.4h.01M12 17.4h.01" stroke-width="2.6"/></svg>', attr: 'data-act="go" data-view="month"'},
   tt: {label: '시간표', sub: '매주 반복되는 수업·학원·알바', icon: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16.5" rx="3"/><path d="M3.5 9.5h17M9.5 9.5v11M15 9.5v11"/></svg>', attr: 'data-act="go" data-view="tt"'},
   routines: {label: '루틴', sub: '아침 준비·약 먹기 같은 반복 습관', icon: '<svg class="i" viewBox="0 0 24 24"><path d="M4.5 11a7.5 7.5 0 0 1 13-4.6L19.5 8.5"/><path d="M19.5 4v4.5H15"/><path d="M19.5 13a7.5 7.5 0 0 1-13 4.6L4.5 15.5"/><path d="M4.5 20v-4.5H9"/></svg>', attr: 'data-act="go" data-view="routines"'},
+  memo: {label: '메모', sub: '떠오른 것을 바로 적어 두기', icon: BX_MEMO_ICON, attr: 'data-act="go" data-view="memo"'},
   med: {label: '명상', sub: '싱잉볼 소리로 시작과 끝을 알려 줘요', icon: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5c1.8 2 2.8 4 2.8 6.3s-1.2 4.2-2.8 5.2c-1.6-1-2.8-2.9-2.8-5.2S10.2 7 12 5z"/><path d="M12 16.5c-3.5 0-6.5-2-7.5-5.5 2.7-.3 5.2.6 7 2.5"/><path d="M12 16.5c3.5 0 6.5-2 7.5-5.5-2.7-.3-5.2.6-7 2.5"/><path d="M5 19.5h14"/></svg>', attr: 'data-act="go" data-view="med"'},
   more: {label: '더보기', sub: '그 밖의 기능 · 설정을 모아 둔 곳', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>', attr: 'data-act="more"'},
   search: {label: '검색', sub: '지난 일정·루틴 찾기', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>', attr: 'data-menu="search"'},
@@ -280,11 +286,13 @@ const BX_DOCK_ALL = {
 const BX_HOME_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 9v10.5h12V9"/><path d="M10 19.5v-5h4v5"/></svg>';
 function bxDockKeys(){
   const st = M && M.settings, v = st && st.bxDock;
-  const keys = Array.isArray(v) && !(!st.bxDockMig && v.join(',') === BX_DOCK_OLD) ? v.filter(k => BX_DOCK_ALL[k] && k !== 'more') : BX_DOCK_DEF;
+  let keys = Array.isArray(v) && !(!st.bxDockMig && v.join(',') === BX_DOCK_OLD) ? v.filter(k => BX_DOCK_ALL[k] && k !== 'more') : BX_DOCK_DEF;
+  // 시험판 41: 아래 메뉴를 고쳐 둔 휴대폰에도 자리가 있으면 '메모'를 한 번 넣는다. 그 뒤 아래 메뉴를 저장하면(bxDockMemo) 고른 대로
+  if (keys !== BX_DOCK_DEF && !st.bxDockMemo && !keys.includes('memo') && keys.length < 4) keys = keys.concat(['memo']);
   return keys.filter(bxDockOk).slice(0, 4);
 }
-// 끈 기능(루틴·시간표·명상)은 아래 메뉴·⋯ 메뉴에서도 뺀다
-function bxDockOk(k){ return !(k === 'routines' || k === 'tt' || k === 'med') || bxModOn(k); }
+// 끈 기능(루틴·시간표·메모·명상)은 아래 메뉴·⋯ 메뉴에서도 뺀다
+function bxDockOk(k){ return !(k === 'routines' || k === 'tt' || k === 'med' || k === 'memo') || bxModOn(k); }
 let bxDockSig = '';
 function bxDockBuild(){
   const keys = bxDockKeys(), sig = keys.join(','); if (sig === bxDockSig) return;
@@ -324,7 +332,7 @@ document.addEventListener('click', ev => {
   if (act === 'bx-go') { closeSheet(); go(t.dataset.view); return; }
   if (act === 'bx-dock-edit') { closeSheet(); bxDockEdit(); return; }
   if (act === 'bx-dock-reset') { bxDockSel = BX_DOCK_DEF.slice(); if (SH && SH.draw) SH.draw(); return; }
-  if (act === 'bx-dock-save') { const v = bxDockSel.slice(); closeSheet(); saveSettings({bxDock: v}); toast('아래 메뉴를 바꿨어요'); return; }
+  if (act === 'bx-dock-save') { const v = bxDockSel.slice(); closeSheet(); saveSettings({bxDock: v, bxDockMemo: 1}); toast('아래 메뉴를 바꿨어요'); return; }
   const k = t.dataset.bxDock;
   if (bxDockSel.includes(k)) bxDockSel = bxDockSel.filter(x => x !== k);
   else if (bxDockSel.length < 4) bxDockSel.push(k);

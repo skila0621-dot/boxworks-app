@@ -16,7 +16,7 @@ module.exports = async function () {
       fixed: (document.querySelector('#bx-start .bxs-opt.fixed') || {}).innerText || '',
       go: (document.querySelector('#bx-start [data-bxs="next"]') || {}).innerText || ''
     }));
-    c.eq(s1.checked, ['false', 'false', 'false', 'false'], '쓸 기능 네 개는 비어 있음');
+    c.eq(s1.checked, ['false', 'false', 'false', 'false', 'false'], '쓸 기능 다섯 개(시험판 41: 메모)는 비어 있음');
     c.ok(/추천 기본 기능/.test(s1.fixed), "'일정·캘린더'에 '추천 기본 기능' 표시");
     c.eq(s1.go.replace(/\s+/g, ' ').trim(), '다음 · 1개 선택', '다음 단추');
     // 루틴만 고르고 시작하면 루틴만 켜진다
@@ -25,7 +25,7 @@ module.exports = async function () {
     await p.click('#bx-start [data-bxs="done"]');
     await p.waitForTimeout(500);
     const mods = await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxStart.mods);
-    c.eq(mods, { report: false, routines: true, tt: false, med: false }, '고른 기능만 켜짐');
+    c.eq(mods, { report: false, routines: true, tt: false, memo: false, med: false }, '고른 기능만 켜짐');
     // 루틴 도우미: 나가는 시각은 미리 고르지 않고, 단계도 비어 있다
     await p.click('.dock [data-view="routines"]');
     await p.waitForTimeout(700);
@@ -53,7 +53,7 @@ module.exports = async function () {
     await p.click('#bx-start [data-bxs="skip"]');
     await p.waitForTimeout(500);
     const st = await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1]);
-    c.eq(st.bxStart && st.bxStart.mods, { report: false, routines: false, tt: false, med: false }, '건너뛰면 기능을 켜지 않음');
+    c.eq(st.bxStart && st.bxStart.mods, { report: false, routines: false, tt: false, memo: false, med: false }, '건너뛰면 기능을 켜지 않음');
     c.eq(st.bxReport && st.bxReport.on, false, '건너뛰면 아침 일정 알림도 꺼짐');
   } finally { await app.close(); }
 

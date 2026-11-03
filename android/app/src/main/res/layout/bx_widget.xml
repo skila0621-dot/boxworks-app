@@ -94,7 +94,7 @@
             android:textColor="@color/bx_w_ink2"
             android:textSize="14sp"
             android:visibility="gone" />
-        <!-- 일정이 많으면 아래가 흐려지고, 오른쪽 아래에 아이콘만 작게(엄지 닿는 곳): 말하기 · 새 일정 -->
+        <!-- 일정이 많으면 아래가 흐려지고, 오른쪽 아래에 아이콘만 작게(엄지 닿는 곳): 메모 · 말하기 · 새 일정(시험판 41: ✎ 메모를 맨 왼쪽에) -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="52dp"
@@ -105,6 +105,21 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:orientation="horizontal">
+            <FrameLayout
+                android:id="@+id/w_memo"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginRight="4dp"
+                android:contentDescription="메모 · 떠오른 것을 바로 적기">
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bx_widget_round2"
+                    android:importantForAccessibility="no"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_widget_memo" />
+            </FrameLayout>
             <FrameLayout
                 android:id="@+id/w_mic"
                 android:layout_width="44dp"

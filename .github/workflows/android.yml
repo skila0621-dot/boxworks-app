@@ -86,7 +86,7 @@ jobs:
           prerelease: true
           files: boxworks-test-${{ github.run_number }}.apk
           body: |
-            박스웍스 안드로이드 시험판 ${{ steps.ver.outputs.trial }}입니다(앱 설정 › 정보에 '시험판 ${{ steps.ver.outputs.trial }}'로 보여요). 휴대폰에서 아래 apk 파일을 눌러 받은 뒤 설치하세요.
+            안드로이드 시험판 ${{ steps.ver.outputs.trial }}입니다(앱 설정 › 정보에 '시험판 ${{ steps.ver.outputs.trial }}'로 보여요). 휴대폰에서 아래 apk 파일을 눌러 받은 뒤 설치하세요.
             빌드 ${{ github.run_number }} · 커밋: ${{ github.sha }}
 
       # 저장소를 비공개로 바꿔도 결과(성공·실패, 오류 내용, 설치 파일)를 git으로 받을 수 있게 남긴다

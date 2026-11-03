@@ -127,7 +127,7 @@ function pcDraw(id){
     const p = tvPlan(it);
     if (p) body += tvLineHtml(p, it.start, it.title);
   }
-  body += '<p class="p small pc-ro">제목·날짜·시간은 휴대폰 캘린더 앱에서 고쳐요. 박스웍스는 읽기만 해요.</p>';
+  body += '<p class="p small pc-ro">제목·날짜·시간은 휴대폰 캘린더 앱에서 고쳐요. ' + esc(window.BX_NAME) + '에서는 읽기만 해요.</p>';
   setSheet(body, '<button type="button" class="btn grow" data-act="pc-open-app" data-id="' + esc(id) + '">' + ICON.cal + '캘린더 앱에서 열기</button>' +
     '<button type="button" class="btn grow' + (it.done ? '' : ' primary') + '" data-act="pc-done" data-id="' + esc(id) + '">' + (it.done ? '완료 취소' : ICON.check + '완료') + '</button>');
 }
@@ -138,7 +138,7 @@ function pcSetHtml(){
   const cfg = pcCfg();
   let h = '<section class="set-sec" aria-labelledby="s-pcal"><h2 id="s-pcal">휴대폰 캘린더</h2>' +
     setRow('휴대폰 캘린더 함께 보기', bxSwitch('data-pc-on', cfg.on, '휴대폰 캘린더 함께 보기')) +
-    '<p class="p small pc-set-note">구글 캘린더 같은 휴대폰 캘린더의 일정을 오늘·주간·월간에 함께 보여 줘요. 박스웍스는 읽기만 하고 고치지 않아요. Claude나 Gemini에게 말해서 넣은 일정도 이 길로 들어와요.</p>';
+    '<p class="p small pc-set-note">구글 캘린더 같은 휴대폰 캘린더의 일정을 오늘·주간·월간에 함께 보여 줘요. ' + esc(window.BX_NAME) + '에서는 읽기만 하고 고치지 않아요. Claude나 Gemini에게 말해서 넣은 일정도 이 길로 들어와요.</p>';
   if (cfg.on) {
     if (PC.granted === false) {
       h += '<div class="set-menu"><button type="button" class="menu-row" data-act="pc-perm"><span class="mi">' + ICON.alert + '</span><span class="ml">캘린더 읽기 권한 허용하기</span><span class="mv">' + ICON.chevR + '</span></button></div>';

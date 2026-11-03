@@ -63,7 +63,7 @@ public class BxAlarmPlugin extends Plugin {
             o.put("group", "알람 시험");
             o.put("title", call.getString("title", "알람 시험"));
             o.put("sub", call.getString("sub", "이렇게 울려요"));
-            o.put("body", call.getString("body", "박스웍스 알람이 이렇게 울려요"));
+            o.put("body", call.getString("body", "실제 알람도 이렇게 울려요"));
             AlarmStore.addLocal(getContext(), o);
             call.resolve();
         } catch (Exception e) {

@@ -18,6 +18,7 @@ import v37 from './patches-v37.mjs';
 import v38 from './patches-v38.mjs';
 import v39 from './patches-v39.mjs';
 import v40 from './patches-v40.mjs';
+import v41 from './patches-v41.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,11 +28,27 @@ const out = join(root, 'www');
 
 let html = readFileSync(src, 'utf8');
 
+// 앱 이름은 한 곳에서만 정한다(대표 결정 11/3 23:40 '일단 스케줄러, 나중에 바꿀 때 두 이름을 찾다가 틀리지 않게').
+// 안드로이드 res/values/strings.xml 의 app_name 을 읽어 화면 글자(window.BX_NAME)와 <title>, 처음 여는 화면에 넣는다
+const APP_NAME = (/<string name="app_name">([^<]+)<\/string>/.exec(readFileSync(join(root, 'android', 'app', 'src', 'main', 'res', 'values', 'strings.xml'), 'utf8')) || [])[1];
+if (!APP_NAME) { console.error('strings.xml 에서 app_name 을 찾지 못했습니다'); process.exit(1); }
+
 const patches = [
   {
     name: '앱 연결부를 가장 먼저 불러오기',
     find: '<head>',
-    replace: '<head><script src="app-shim.js"></script>'
+    // 글자 인코딩을 정하는 meta보다 앞이라 이름은 \uXXXX로 적는다(어느 경우에도 깨지지 않게)
+    replace: '<head><script>window.BX_NAME = ' + JSON.stringify(APP_NAME).replace(/[\u0080-\uffff]/g, ch => '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0')) + ';</script><script src="app-shim.js"></script>'
+  },
+  {
+    name: '앱 이름(strings.xml app_name): 문서 제목',
+    find: '<title>박스웍스 스케줄러</title>',
+    replace: '<title>' + APP_NAME + '</title>'
+  },
+  {
+    name: '└ 알람 수가 붙는 문서 제목',
+    find: "document.title = (alarms.length ? '(' + alarms.length + ') ' : '') + '박스웍스 스케줄러';",
+    replace: "document.title = (alarms.length ? '(' + alarms.length + ') ' : '') + (window.BX_APP ? window.BX_NAME : '박스웍스 스케줄러');"
   },
   {
     name: '앱에서는 "이 브라우저에만 임시 저장" 안내를 띄우지 않기',
@@ -207,9 +224,9 @@ window.BX_alarmPlan = function(days){
     let t = addMin(sod(new Date(cut - 864e5)), 12 * 60).getTime();
     if (t >= cut - 3 * 3600e3) t = cut - 3 * 3600e3;
     if (t < now + 3600e3) t = now + 3600e3;
-    if (t < cut) list.push({id: 'bx_renew', at: t, kind: 'item', lv: 'notice', group: '박스웍스', icon: 'bell', title: '알람이 곧 끝나요',
+    if (t < cut) list.push({id: 'bx_renew', at: t, kind: 'item', lv: 'notice', group: window.BX_NAME, icon: 'bell', title: '알람이 곧 끝나요',
       sub: '앱을 한 번 열어 주세요', body: '앱을 한 번 열어 주세요. 열면 앞으로 2주 치 알람을 다시 걸어요.',
-      pt: '알람이 곧 끝나요', ps: '앱을 한 번 열어 주세요', pg: '박스웍스'});
+      pt: '알람이 곧 끝나요', ps: '앱을 한 번 열어 주세요', pg: window.BX_NAME});
   }
   return list.sort(byAt);
 };
@@ -309,7 +326,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'setall.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v38.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v39.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v40.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'setall.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v38.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v39.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v40.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v41.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
@@ -388,7 +405,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words, ...v37, ...v38, ...v39, ...v40);
+patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words, ...v37, ...v38, ...v39, ...v40, ...v41);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;
@@ -416,6 +433,8 @@ for (const p of patches) {
     catch (e) { console.error('문법 오류: ' + e.message + '\n' + (e.stack || '').split('\n').slice(0, 3).join('\n')); process.exit(1); }
   }
 }
+// 처음 여는 화면 같은 곳의 앱 이름 자리(@@BX_NAME@@)
+html = html.split('@@BX_NAME@@').join(APP_NAME);
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, 'index.html'), html);
 copyFileSync(join(root, 'web-src', 'app-shim.js'), join(out, 'app-shim.js'));

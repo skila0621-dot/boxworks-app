@@ -145,7 +145,7 @@ final class RoutineOngoing {
         boolean none = "none".equals(AlarmStore.lockMode(c));
         Notification pub = new NotificationCompat.Builder(c, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_bx)
-            .setContentTitle(none ? "박스웍스 · 진행 중" : name + " · 진행 중")
+            .setContentTitle(none ? AlarmNotify.appName(c) + " · 진행 중" : name + " · 진행 중")
             .setContentText("잠금을 풀면 보여요")
             .build();
         NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL)

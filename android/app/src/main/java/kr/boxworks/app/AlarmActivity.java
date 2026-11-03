@@ -204,7 +204,7 @@ public class AlarmActivity extends Activity {
         root.addView(text(hm(now), 72, Color.WHITE, true), wrap(0));
 
         String group = none ? "" : hide ? alarm.optString("pg", routine ? alarm.optString("group", "") : "") : alarm.optString("group", "");
-        root.addView(text("박스웍스" + (group.isEmpty() ? "" : " · " + group), 13, 0xFFC9CCD3, false), wrap(32));
+        root.addView(text(AlarmNotify.appName(this) + (group.isEmpty() ? "" : " · " + group), 13, 0xFFC9CCD3, false), wrap(32));
         if (!waiting.isEmpty()) {
             TextView more = text("함께 울린 알람 " + waiting.size() + "개가 더 있어요 · 확인하면 이어서 보여 줘요", 13, 0xFFFFD27A, true);
             root.addView(more, wrap(6));
@@ -228,7 +228,7 @@ public class AlarmActivity extends Activity {
         root.addView(circle, clp);
 
         String title = hide ? AlarmNotify.pubTitle(this, alarm) : alarm.optString("title", "");
-        TextView t = text(title.isEmpty() ? "박스웍스 알람" : title, 34, Color.WHITE, true);
+        TextView t = text(title.isEmpty() ? AlarmNotify.appName(this) + " 알람" : title, 34, Color.WHITE, true);
         t.setMaxLines(2);
         root.addView(t, wrap(16));
 

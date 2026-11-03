@@ -43,8 +43,11 @@ const bodyStart = html.indexOf('<body>');
 const headPart = html.slice(0, bodyStart);
 let body = html.slice(bodyStart + 6).replace(/<\/body>\s*<\/html>\s*$/, '');
 if (!headPart.includes('<script src="app-shim.js"></script>')) throw new Error('app-shim 자리를 찾지 못했습니다');
-const title = '<title>박스웍스 시험판</title>';
-body = body.replace('<title>박스웍스 스케줄러</title>', '');
+// 앱 이름(window.BX_NAME, strings.xml app_name)은 머리에 있어 같이 옮긴다
+const nameJs = (/<script>(window\.BX_NAME = [^<]*)<\/script>/.exec(headPart) || [])[1];
+if (!nameJs) throw new Error('앱 이름 자리를 찾지 못했습니다');
+const title = '<title>' + JSON.parse(nameJs.replace(/^window\.BX_NAME = |;$/g, '')) + ' 시험판</title>';
+body = body.replace(/<title>[^<]*<\/title>/, '');
 const badge = '<style>.bx-app .brand-t small::after{content:" · 미리보기";color:var(--accent)}</style>';
-writeFileSync(out, title + '\n' + mock + '\n<script>\n' + shim + '\n</script>\n' + badge + '\n' + body);
+writeFileSync(out, title + '\n<script>' + nameJs + '</script>\n' + mock + '\n<script>\n' + shim + '\n</script>\n' + badge + '\n' + body);
 console.log('미리보기 만듦: ' + out + ' (' + Math.round((title.length + mock.length + shim.length + body.length) / 1024) + 'KB)');

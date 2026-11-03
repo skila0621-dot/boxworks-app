@@ -25,7 +25,7 @@ function bxReportFor(ds){
     const d2 = ymd(addDays(parseYmd(ds), k)), nx = dayItems(d2).find(i => !i.done && i.start && i.date === d2 && (typeof bxHomeOk !== 'function' || bxHomeOk(i)));
     if (nx) { const p = tvPlan(nx); lines.push('다가오는 일: ' + bxShortDay(d2) + ' ' + nx.start + ' ' + nx.title + (p && p.travel ? ' · ' + hm(p.leave) + ' 출발' : '')); break; }
   }
-  return {title, text: lines.join('\n') || '오늘 할 일을 넣으려면 박스웍스를 열어 말해 보세요.'};
+  return {title, text: lines.join('\n') || '오늘 할 일을 넣으려면 앱을 열어 말해 보세요.'};
 }
 // BX_alarmPlan이 만든 목록에 아침 보고를 붙이거나 끼워 넣는다
 function bxAddReports(out, days){
@@ -50,7 +50,7 @@ function bxReportSetHtml(){
     (cfg.on ? '<div class="bx-setsub"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span>' + bxTimeChip('bx-rep-t', cfg.at, '아침에 일정 받는 시각') + '</div>' : '');
 }
 /* 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게) */
-const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목', '“치과 · 14:30 출발”처럼 제목도 보여요'], ['none', '표시 안 함', '알람도 “박스웍스 알람”으로만 보여요']];
+const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목', '“치과 · 14:30 출발”처럼 제목도 보여요'], ['none', '표시 안 함', '알람도 “' + window.BX_NAME + ' 알람”으로만 보여요']];
 function bxLockMode(){ const m = M && M.settings && M.settings.bxLock; return m === 'title' || m === 'none' ? m : 'alarm'; }
 window.BX_lockMode = bxLockMode;
 function bxLockSetHtml(){
@@ -138,7 +138,8 @@ window.BX_widgetData = function(plan){
   // lateI: 지난 일정만(위젯 '일정만'일 때 확인 필요 숫자, 시험판 36). 위젯 목록은 밀어 보므로 40개까지
   const lateI = M.items.filter(isLate).length, late = lateI + bxRtMissed().length;
   // only: 위젯에서 루틴을 뺄지(앱 ⋯ › 위젯 추가의 '루틴도 보기' 스위치)
-  return {items: list.slice(0, 300), routines, late, lateI, made: now, back: BACK, ahead: AHEAD, only: M.settings.bxWidgetRt === false};
+  // memo: 위젯 ✎ 단추를 보일지(시험판 41, '기능 · 메뉴 편집'에서 메모를 끄면 숨김)
+  return {items: list.slice(0, 300), routines, late, lateI, made: now, back: BACK, ahead: AHEAD, only: M.settings.bxWidgetRt === false, memo: typeof bxMemoOn !== 'function' || bxMemoOn()};
 };
 
 /* ---------- 루틴 단계를 확인하지 않았을 때(대표 요청) ----------
