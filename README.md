@@ -53,6 +53,12 @@ cd android && ./gradlew assembleDebug
 - `bxCalFit`이 화면 높이에 맞춰 날짜 칸 높이(`--bx-cell-h`)와 칸마다 일정 줄 수(2~4)를 정한다
 - '일'은 캘린더 안 하루 보기(`bxDayViewHtml`, `S.view = 'day'`). 휴대폰 뒤로 단추는 일 → 월
 
+## 일정 창 · 명상 소리 (시험판 44)
+
+- 일정 창은 삼성 캘린더 방식 줄 목록이다(`web-src/v44.js`의 `bxEdList`). 줄을 누르면 페이지(`#bx-ep`)가 열린다. 원래의 고르는 칸(`#f-panel`)을 페이지로 옮겨 쓰고, '완료'는 그대로 두고 ‹ · 휴대폰 뒤로는 연 순간의 값(`bxEpSnap`)으로 되돌린다
+- 명상 소리 크기: `BxSound.setVolume({bell, bg})` → `SoundPrefs`(기기 보호 저장소). `BowlPlayer` · `BgPlayer`가 소리에 곱한다
+- 앱을 최근 목록에서 지우면 배경 소리와 남은 명상 종을 멈춘다(`BxSoundService.onTaskRemoved`, `MainActivity.onDestroy`). 앱은 `BxSound.status().medCancel`을 보고 '명상 중' 화면을 치운다
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.
