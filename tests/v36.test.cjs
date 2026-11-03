@@ -29,7 +29,10 @@ module.exports = async function () {
     c.ok(/11월 17일/.test(await hint(p)), '제목을 고쳐도 바꾼 날짜 유지');
     await p.click('[data-act="bx-date-alt"]'); await p.waitForTimeout(300);
     c.ok(/12월 17일/.test(await hint(p)) && /12월로 넣었어요/.test(await hint(p)), '다시 12월 17일로');
+    c.ok(/장소 늘푸른 병원/.test(await hint(p)), '해석 결과에 장소 · ' + await hint(p));
     await p.click('[data-act="save"]'); await p.waitForTimeout(500);
+    const placeSaved = await p.evaluate(() => (JSON.parse(localStorage.getItem('bx:data')).find(([k, d]) => d.type === 'item' && /늘푸른/.test(d.title)) || [])[1]);
+    c.eq(placeSaved && placeSaved.location, '늘푸른 병원', '저장하면 장소 칸에 늘푸른 병원');
     const saved = (await items(p)).find(i => /늘푸른/.test(i.title));
     c.eq(saved && [saved.date, saved.start, saved.title], ['2026-12-17', '15:00', '늘푸른 병원 예약 검진'], '저장: 12월 17일 15:00');
     // 그냥 지난 날짜(달을 말함)

@@ -7,6 +7,8 @@
    2) 새 일정의 날짜가 오늘보다 앞이면 제목 아래에 '지난 날짜예요'(말한 날짜든 고른 날짜든)
    3) 홈 화면 위젯(대표 요청 11/3, 위젯 시안 A): 밀어 보는 목록 · '루틴 포함 | 일정만' · '일정 추가'와 '말하기' 따로.
       위젯 쪽은 BxWidgetProvider · BxWidgetService(안드로이드), 여기서는 줄을 눌렀을 때 열 화면
+   4) 목록 줄 정렬(아래 bxRowAlignStyle)
+   5) 말로 넣기: 장소도 알아듣기(대표 확인 11/3 "날짜 및 장소 분류가 안 된다"). 제목은 말한 그대로 두고 장소 칸에 넣는다
    화면 구조를 바꾸는 부분은 scripts/patches-v36.mjs */
 
 var BXQ_ALT = null;
@@ -65,3 +67,72 @@ window.BX_openFromWidget = function(o){
   if (o.k === 'tt' && bxModOn('tt')) { go('tt'); return; }
   go('today');
 };
+
+/* 4) 목록 줄 정렬(대표 지적 11/3 "정렬이 흐트러졌다"): 시작 시각 · 제목 · 왼쪽 표시(체크 · 점 · 아이콘) · 오른쪽 단추를 첫 줄 한가운데에 맞춘다.
+      전에는 줄 안을 가운데 맞춤이라 제목이 두 줄 시각(시작 · 끝)의 가운데로 내려가거나, 시각이 제목 · 장소 두 줄의 가운데로 내려갔다.
+      첫 줄 높이 22px, 위아래 13px. 끝 시각 · 장소 같은 둘째 줄은 그 밑으로 */
+(function bxRowAlignStyle(){
+  if (!window.BX_APP) return;
+  const st = document.createElement('style');
+  st.textContent = [
+    '.bx-app .row{align-items:flex-start;padding-top:0!important;padding-bottom:0!important;min-height:48px}',
+    '.bx-app .row-main{align-items:flex-start;min-height:48px;padding:13px 0;box-sizing:border-box}',
+    '.bx-app .row-time{gap:1px}',
+    '.bx-app .row-time b,.bx-app .row-title{line-height:22px}',
+    '.bx-app .row-body{gap:2px}',
+    '.bx-app .row > .chk{margin-top:12px}',
+    '.bx-app .row.tt-row > .tt-dot,.bx-app .bx-tl .row.tt-row > .tt-dot{margin-top:18px}',
+    '.bx-app .row > .lamp{align-self:flex-start;margin-top:calc(24px - var(--bx-lamp-h, 32px) / 2)}',
+    '.bx-app .bx-tl-rt .rt-h{align-items:flex-start}',
+    '.bx-app .bx-tl-rt .rt-h .bx-ic{margin-top:-1px}',
+    '.bx-app .bx-tl-rt .bx-tl-t .bx-tl-s,.bx-app .bx-tl-rt .rt-h b{line-height:22px}',
+    '.bx-app .bx-tl-rt .bx-tl-t{gap:1px}',
+    '.bx-app .bx-tl-rt .rt-h .bx-rt-tog{margin-top:-4px}',
+    '.bx-app .bx-tl-rt .rt-h [data-act="rt-skip"]{margin-top:-7px}'
+  ].join('');
+  (document.head || document.documentElement).appendChild(st);
+})();
+
+/* 5) 장소 알아듣기. "강남역에서 만나" → 강남역, "늘푸른 병원 예약" → 늘푸른 병원, "연세치과 예약" → 연세치과.
+   '…에서' 앞의 말은 장소. '에서'가 없으면 병원 · 치과 · 역 · 카페처럼 장소를 뜻하는 말로 끝나고 이름이 붙은 것만(그냥 "치과 예약"은 아님) */
+const BX_PLACE_HEAD = ['한의원', '대학병원', '병원', '의원', '치과', '약국', '은행', '카페', '식당', '학교', '학원', '센터', '마트', '백화점', '공원', '도서관', '시청', '구청', '군청', '우체국', '헬스장', '미용실', '호텔', '교회', '성당', '극장', '영화관', '체육관', '대학교', '터미널', '공항', '빌딩', '타워', '회관', '경기장', '수영장', '사무소', '법원', '경찰서', '보건소', '클리닉', '편의점', '서점', '어린이집', '유치원', '초등학교', '중학교', '고등학교', '본사', '매장', '스튜디오'];
+const BX_PLACE_STOP = new Set(['출발점', '시작점', '기준점', '교차점', '문제점', '장단점', '공통점', '차이점', '연결점', '중간점', '종착점', '개선점', '특이점']);
+const BX_PLACE_NOTNAME = /^(예약|진료|검진|약속|회의|수업|방문|가기|가서|다녀오기|오늘|내일|모레|글피|오전|오후|아침|점심|저녁|밤|새벽|낮|주말|평일|다음|이번|지난|매주|매일|그|이|저|큰|작은|동네|근처|새|우리|내|친구|엄마|아빠|가족)$/;
+function bxPlaceHead(w){
+  if (!w || BX_PLACE_STOP.has(w)) return 0;
+  if (w.length >= 3 && /역$/.test(w)) return 1;
+  if (w.length >= 3 && /점$/.test(w)) return 2;
+  return BX_PLACE_HEAD.some(h => w.endsWith(h)) ? (BX_PLACE_HEAD.includes(w) ? 3 : 1) : 0;   // 3 = 이름 없이 그 말만("병원")
+}
+const bxNameOk = w => !!w && !/\d|[시분일]$/.test(w) && !BX_PLACE_NOTNAME.test(w) && !bxPlaceHead(w);
+function bxPlaceOf(title){
+  const t = String(title || '').replace(/[,.!?~]/g, ' ').split(/\s+/).filter(Boolean);
+  // '…에서'
+  for (let i = 0; i < t.length; i++) {
+    const m = /^(.+?)에서$/.exec(t[i]); if (!m) continue;
+    const w = m[1], k = bxPlaceHead(w);
+    if ((k === 3 || k === 2) && bxNameOk(t[i - 1])) return t[i - 1] + ' ' + w;
+    if (!/\d/.test(w)) return w;
+  }
+  for (let i = 0; i < t.length; i++) {
+    // 조사는 장소 말이 아닐 때만 뗀다('연세치과'의 '과'를 떼면 안 됨)
+    let w = t[i], k = bxPlaceHead(w);
+    if (!k) { w = w.replace(/(으로|로|에|까지|부터|은|는|이|가|을|를|과|와|랑|이랑|의)$/, ''); k = bxPlaceHead(w); }
+    if (!k) continue;
+    if (k === 3 || k === 2) { if (bxNameOk(t[i - 1])) return t[i - 1] + ' ' + w; if (k === 3) continue; }
+    return w;
+  }
+  return null;
+}
+function bxPlaceTag(r){
+  if (r && r.title) { const pl = bxPlaceOf(r.title); if (pl) r.place = pl; }
+  return r;
+}
+// 새 일정 창: 알아들은 장소를 장소 칸에(손으로 적은 장소는 건드리지 않음). 제목에서 장소가 빠지면 넣었던 것도 뺀다
+function bxPlaceOnParse(p){
+  if (!F || F.mode !== 'new') return;
+  const loc = (F.location || '').trim(), pl = p && p.place;
+  if (pl) { if (!loc || loc === F.bxPlaceAuto) { F.location = pl; F.bxPlaceAuto = pl; } }
+  else if (F.bxPlaceAuto && loc === F.bxPlaceAuto) { F.location = ''; F.bxPlaceAuto = null; }
+}
+function bxPlaceHint(){ return F && F.bxPlaceAuto && (F.location || '').trim() === F.bxPlaceAuto ? ' · 장소 ' + esc(F.bxPlaceAuto) : ''; }

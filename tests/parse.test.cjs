@@ -54,8 +54,24 @@ const DAY_CASES = [
   ['이번 달 2일 병원', '2026-11-02', null, '병원', null]
 ];
 
+// 시험판 36: 장소(대표 확인 11/3 "날짜 및 장소 분류가 안 된다"). 제목은 말한 그대로, 장소만 따로
+const PLACE_CASES = [
+  ['17일 오후 3시 늘푸른 병원 예약', '늘푸른 병원'],
+  ['내일 3시 강남역에서 친구 만나기', '강남역'],
+  ['연세치과 예약', '연세치과'],
+  ['스타벅스 강남점에서 미팅', '스타벅스 강남점'],
+  ['회사에서 회의', '회사'],
+  ['서울대병원 진료 오후 2시', '서울대병원'],
+  ['금요일 3시 서울역 KTX', '서울역'],
+  ['치과 예약', null],
+  ['병원 가기', null],
+  ['내일 지역 모임', null],
+  ['내일 출발점 확인', null],
+  ['엄마 병원 모시고 가기', null]
+];
+
 module.exports = async function () {
-  const c = checker('말로 넣기 30문장 + 달 없이 말한 날짜');
+  const c = checker('말로 넣기 30문장 + 달 없이 말한 날짜 + 장소');
   const app = await openApp({ data: null });
   try {
     const out = await app.page.evaluate(cases => {
@@ -73,6 +89,8 @@ module.exports = async function () {
     // 12월에 말한 '5일'은 이듬해 1월 5일
     const ny = await app.page.evaluate(() => { const r = window.BX_parseAt('5일 오후 2시 세미나', new Date('2026-12-20T10:00:00+09:00')); return [r.date, r.start, r.title, r.alt]; });
     c.eq(ny, ['2027-01-05', '14:00', '세미나', '2026-12-05'], '해를 넘기는 다음 달');
+    const pl = await app.page.evaluate(cases => cases.map(([t]) => window.BX_parseAt(t, new Date('2026-11-03T15:45:00+09:00')).place || null), PLACE_CASES);
+    PLACE_CASES.forEach(([t, want], i) => c.eq(pl[i], want, '장소 “' + t + '”'));
     c.eq(app.errors, [], '화면 오류');
   } finally {
     await app.close();
