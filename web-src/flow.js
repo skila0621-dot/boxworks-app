@@ -36,7 +36,8 @@ function bxCalHead(){
   const mid = document.createElement('div'); mid.className = 'bx-ch-mid'; mid.append(prev, h1, next);
   ph.textContent = ''; ph.classList.add('bx-ch'); ph.append(top, mid); if (p) ph.append(p);
   // 박스웍스 · 휴대폰 캘린더 표시는 달 넘기기 · 개수 줄 아래(대표 요청 11/3, 시험판 35). 종류가 많아지면 옆으로 밀어 본다
-  const lg = top.querySelector('.bx-cal-lg'); if (lg) ph.append(lg);
+  // 시험판 39: 그 자리에 캘린더 칩 줄([전체] [캘린더…] [＋])
+  const lg = top.querySelector('.bx-cchips, .bx-cal-lg'); if (lg) ph.append(lg);
 }
 
 /* 받은 글로 새 일정(시험판 35, 공유의 첫걸음 · 결정 기록 D-12). 카톡에서 약속 메시지를 '공유' → '박스웍스 일정으로'.
@@ -412,6 +413,8 @@ document.addEventListener('click', ev => {
   if (op === 'del') { softDelete(id); return; }
   if (op === 'tmr') {
     const patch = {date: ymd(addDays(parseYmd(M.today), 1)), slips: (it.slips || 0) + 1, ackAt: null, snoozeUntil: null, lateKeep: null};
+    // 여러 날 일정은 끝나는 날도 같은 만큼 옮긴다(시험판 39)
+    if (typeof bxSpan === 'function' && bxSpan(it)) patch.endDate = ymd(addDays(parseYmd(it.endDate), diffDays(patch.date, it.date)));
     if (!it.origDate) { patch.origDate = it.date; patch.origStart = it.start || null; }
     record([id]); patchDoc(id, patch);
     toast('내일로 미뤘어요', [['되돌리기', doUndo]]);

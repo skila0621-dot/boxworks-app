@@ -139,8 +139,11 @@ function bxTimeline(){
     if (late) late.remove();
     itSub.querySelectorAll('.list > .row').forEach((el, i) => {
       const b = el.querySelector('.row-time b'), id = (el.querySelector('[data-id]') || {}).dataset ? el.querySelector('[data-id]').dataset.id : '';
-      const it = id ? M.items.find(x => x.id === id) : null, t = b && /종일/.test(b.textContent) ? -1 : hm(b && b.textContent);
-      ents.push({el, t, te: it && isHM(it.end) ? toMin(it.end) : t, k: 0, i, late: !!(ll && ll.contains(el))});
+      const it = id ? M.items.find(x => x.id === id) : null;
+      let t = b && /종일/.test(b.textContent) ? -1 : hm(b && b.textContent), te = it && isHM(it.end) ? toMin(it.end) : t;
+      // 여러 날 일정(시험판 39): 시간이 있으면 첫날은 그 시각 자리(그날 끝까지 '지금'), 다른 날은 맨 위 줄
+      if (it && typeof bxSpan === 'function' && bxSpan(it)) { if (it.start && it.date === homeViewDate()) te = 24 * 60; else t = te = -1; }
+      ents.push({el, t, te, k: 0, i, late: !!(ll && ll.contains(el))});
     });
     nowLine = itSub.querySelector('.now-line');
   }

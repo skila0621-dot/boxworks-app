@@ -6,12 +6,13 @@ const BX_REP_DEF = {on: true, at: '07:30'};
 function bxRepCfg(){ const r = (M && M.settings && M.settings.bxReport) || {}; return {on: r.on !== false, at: isHM(r.at) ? r.at : BX_REP_DEF.at}; }
 function bxShortDay(ds){ const d = parseYmd(ds); return (d.getMonth() + 1) + '/' + d.getDate() + ' (' + WD[d.getDay()] + ')'; }
 function bxReportFor(ds){
-  const items = dayItems(ds).filter(i => !i.done);
-  const rows = items.map(i => { const p = tvPlan(i); return {start: i.start || '', title: i.title || '(제목 없음)', place: i.location || '', go: p && p.travel ? hm(p.leave) : ''}; })
+  // 시험판 39: '홈에 보이기'를 끈 캘린더는 빼고, 여러 날 일정은 '부산 여행 (2/3일째)'로
+  const items = dayItems(ds).filter(i => !i.done && (typeof bxHomeOk !== 'function' || bxHomeOk(i)));
+  const rows = items.map(i => { const sp = typeof bxSpan === 'function' && bxSpan(i), first = !sp || i.date === ds, p = first ? tvPlan(i) : null; return {start: first ? i.start || '' : '', title: (i.title || '(제목 없음)') + (sp ? ' (' + bxSpanLabel(i, ds).split(' · ')[0] + ')' : ''), place: i.location || '', go: p && p.travel ? hm(p.leave) : ''}; })
     .concat(ttList().filter(e => ttOn(e, ds)).map(e => ({start: e.start, title: e.name, place: e.place || '', go: ''})))
     .sort((a, b) => (a.start ? 1 : 0) - (b.start ? 1 : 0) || a.start.localeCompare(b.start));
   // 이어서 할 일: 지금 이미 지난(어제까지) 일만. 미래 날의 보고에서 그 사이 일을 지났다고 짐작하지 않는다
-  const late = M.items.filter(i => !i.done && !i.pc && i.date < M.today);
+  const late = M.items.filter(i => !i.done && !i.pc && i.date < M.today && !(typeof bxSpan === 'function' && bxSpan(i)));
   const first = rows.find(r => r.start);
   let title = rows.length ? '오늘 ' + rows.length + '건' + (first ? ' · 첫 일정 ' + first.start + ' ' + first.title : '') : '오늘은 정해진 일정이 없어요';
   if (late.length) title += ' · 이어서 ' + late.length + '건';
@@ -21,7 +22,7 @@ function bxReportFor(ds){
   if (rows.length > 6) lines.push('외 ' + (rows.length - 6) + '건');
   // 다가오는 일: 다음 사흘 안의 시간 있는 일정 하나(출발이 있으면 출발 시각도)
   for (let k = 1; k <= 3; k++) {
-    const d2 = ymd(addDays(parseYmd(ds), k)), nx = dayItems(d2).find(i => !i.done && i.start);
+    const d2 = ymd(addDays(parseYmd(ds), k)), nx = dayItems(d2).find(i => !i.done && i.start && i.date === d2 && (typeof bxHomeOk !== 'function' || bxHomeOk(i)));
     if (nx) { const p = tvPlan(nx); lines.push('다가오는 일: ' + bxShortDay(d2) + ' ' + nx.start + ' ' + nx.title + (p && p.travel ? ' · ' + hm(p.leave) + ' 출발' : '')); break; }
   }
   return {title, text: lines.join('\n') || '오늘 할 일을 넣으려면 박스웍스를 열어 말해 보세요.'};
@@ -85,19 +86,32 @@ window.BX_widgetData = function(plan){
   const now = Date.now(), t0 = addDays(sod(new Date(now)), -BACK).getTime(), until = addDays(sod(new Date(now)), AHEAD + 1).getTime(), list = [];
   M.items.forEach(i => {
     if (!isDate(i.date) || i.deletedAt) return;
+    // 시험판 39: '홈에 보이기'를 끈 캘린더는 위젯에서도 뺀다(놓친 일정은 그대로)
+    if (typeof bxHomeOk === 'function' && !bxHomeOk(i)) return;
+    // 여러 날 일정: 날마다 한 줄 '부산 여행 · 2/3일째'. 시간이 있으면 첫날은 그 시각부터
+    if (typeof bxSpan === 'function' && bxSpan(i)) {
+      const n = bxSpanN(i), cat = M.catMap.get(i.categoryId), hex = i.color && !i.pc ? i.color : cat ? cat.color : '';
+      for (let k = 0; k < n; k++) {
+        const d0 = addDays(parseYmd(i.date), k).getTime(); if (d0 + 864e5 <= t0 || d0 >= until) continue;
+        const timed = k === 0 && !!i.start, at0 = timed ? at(i.date, i.start).getTime() : d0;
+        list.push({at: at0, end: d0 + 864e5 - 1, allDay: !timed, title: (i.title || '(제목 없음)') + ' · ' + (k + 1) + '/' + n + '일째', place: i.location || '', go: 0,
+          c: M.settings.catColors !== false && hex ? bxHex(hex) : '', k: 'item', id: i.id, done: !!i.done});
+      }
+      return;
+    }
     if (!i.start) {
       const d0 = parseYmd(i.date).getTime();
       if (d0 < t0 || d0 >= until) return;
       const cat = M.catMap.get(i.categoryId);
       list.push({at: d0, end: d0 + 864e5 - 1, allDay: true, title: i.title || '(제목 없음)', place: i.location || '', go: 0,
-        c: M.settings.catColors !== false && cat ? bxHex(cat.color) : '', k: 'item', id: i.id, done: !!i.done});
+        c: M.settings.catColors !== false && (i.color || cat) ? bxHex(i.color && !i.pc ? i.color : cat.color) : '', k: 'item', id: i.id, done: !!i.done});
       return;
     }
     const s = at(i.date, i.start).getTime(), e = i.end ? at(i.date, i.end).getTime() : s + 3600e3;
     if (e < t0 || s >= until) return;
     const p = tvPlan(i), cat = M.catMap.get(i.categoryId);
     list.push({at: s, end: e, title: i.title || '(제목 없음)', place: i.location || '', go: p && p.travel ? p.leave.getTime() : 0,
-      c: M.settings.catColors !== false && cat ? bxHex(cat.color) : '', k: 'item', id: i.id, done: !!i.done});
+      c: M.settings.catColors !== false && (i.color || cat) ? bxHex(i.color && !i.pc ? i.color : cat.color) : '', k: 'item', id: i.id, done: !!i.done});
   });
   const routines = [];
   for (let k = -BACK; k <= AHEAD; k++) {

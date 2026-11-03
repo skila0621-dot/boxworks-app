@@ -102,7 +102,8 @@ function bxCalBar(cur){
   return '<div class="tt-mode"><div class="seg" role="group" aria-label="캘린더 보기" style="width:200px">' +
     '<button type="button" data-act="tt-cal" data-to="month" aria-pressed="' + (cur === 'month') + '">월간</button>' +
     '<button type="button" data-act="tt-cal" data-to="week" aria-pressed="' + (cur === 'week') + '">주간</button></div>' +
-    (pc ? '<span class="bx-cal-lg"><span><i class="bx"></i>박스웍스</span><span><i class="pc"></i>휴대폰 캘린더</span></span>' : '') + '</div>';
+    // 시험판 39: 박스웍스 · 휴대폰 캘린더 표시 자리에 캘린더 칩 줄(누르면 그 캘린더만, 휴대폰 캘린더 칩은 테두리)
+    (typeof bxCalChipsHtml === 'function' ? bxCalChipsHtml() : pc ? '<span class="bx-cal-lg"><span><i class="bx"></i>박스웍스</span><span><i class="pc"></i>휴대폰 캘린더</span></span>' : '') + '</div>';
 }
 // 월간에서 고른 날이 든 주로, 주간에서는 그 주가 든 달로
 function bxCalGo(to){

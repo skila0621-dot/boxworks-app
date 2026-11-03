@@ -1,6 +1,6 @@
 /* ---------- 휴대폰 캘린더 읽기 (D-05, 1차 #9) ----------
    휴대폰 캘린더(구글 캘린더 등)의 일정을 읽어 박스웍스 일정처럼 오늘·주간·월간·검색에 함께 보여 준다. 읽기만 한다.
-   화면용 id: 'pc_' + 일정 id + '_' + 시작 밀리초(여러 날 종일 일정은 뒤에 '_n').
+   화면용 id: 'pc_' + 일정 id + '_' + 시작 밀리초. 여러 날 일정은 하나(endDate까지, 시험판 39).
    박스웍스에서 정한 알림·이동 시간·준비 루틴·완료는 문서 'px_' + 같은 열쇠(type 'pcx')에 따로 적는다(백업에 들어감).
    설정(켜기, 고른 캘린더, 알람 걸기)과 읽어 온 일정 사본은 이 휴대폰에만 둔다(localStorage). */
 const PC_CFG = 'bx:pcal', PC_CACHE = 'bx:pcache';
@@ -12,7 +12,8 @@ function pcForget(){ PC.events = null; PC.at = 0; try { localStorage.removeItem(
 function pcPlug(){ return (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BxCalendar) || null; }
 function pcCfg(){
   let o = {}; try { o = JSON.parse(lsGet(PC_CFG) || '{}') || {}; } catch (e) { o = {}; }
-  return {on: !!o.on, ids: Array.isArray(o.ids) ? o.ids.map(String) : null, alarm: o.alarm !== false};
+  // homeOff: '홈에 보이기'를 끈 휴대폰 캘린더(시험판 39). 읽기는 그대로 하고 홈 · 위젯 · 아침 요약의 그날 목록에서만 뺀다
+  return {on: !!o.on, ids: Array.isArray(o.ids) ? o.ids.map(String) : null, alarm: o.alarm !== false, homeOff: Array.isArray(o.homeOff) ? o.homeOff.map(String) : []};
 }
 function pcSetCfg(o){ lsSet(PC_CFG, JSON.stringify(Object.assign(pcCfg(), o))); }
 function pcLoadCache(){
@@ -68,20 +69,26 @@ function pcItems(settings){
   const out = [];
   PC.events.forEach(e => {
     const key = pcKey(e), ov = getDoc('px_' + key) || {};
-    let days;
+    // 시험판 39: 여러 날 일정은 날마다 조각내지 않고 하나로(첫날 date ~ 끝나는 날 endDate). 달력에서 이어진 막대로 그린다
+    let date, endDate = null;
     if (e.allDay) {
-      const s = new Date(e.begin).toISOString().slice(0, 10), n = Math.max(1, Math.min(14, Math.round((Math.max(e.end, e.begin + 864e5) - e.begin) / 864e5)));
-      days = Array.from({length: n}, (_, i) => ymd(addDays(parseYmd(s), i)));
-    } else days = [ymd(new Date(e.begin))];
-    days.forEach((date, i) => {
+      const s = new Date(e.begin).toISOString().slice(0, 10), n = Math.max(1, Math.min(93, Math.round((Math.max(e.end, e.begin + 864e5) - e.begin) / 864e5)));
+      date = s; if (n > 1) endDate = ymd(addDays(parseYmd(s), n - 1));
+    } else {
+      date = ymd(new Date(e.begin));
+      const ed = ymd(new Date(Math.max(e.begin, e.end - 1)));
+      if (ed > date) endDate = diffDays(ed, date) > 92 ? ymd(addDays(parseYmd(date), 92)) : ed;
+    }
+    [date].forEach(date => {
       const timed = !e.allDay, b = new Date(e.begin), en = new Date(e.end);
       const start = timed ? hm(b) : null;
-      let end = timed && ymd(en) === date && e.end > e.begin ? hm(en) : null;
-      if (end && start && end <= start) end = null;
+      // 시간 있는 여러 날 일정의 끝 시각은 마지막 날 것(자정에 끝나면 시각 없이 그날 끝까지)
+      let end = timed && e.end > e.begin ? (endDate ? (hm(en) === '00:00' ? null : hm(en)) : ymd(en) === date ? hm(en) : null) : null;
+      if (end && start && !endDate && end <= start) end = null;
       const travel = !timed ? 0 : ov.travel != null ? ov.travel : pcTravel(e) || (tvRecall(e.title, e.location) || {}).min || 0;
       const pf = timed && ov.prep === undefined ? pcPrepFromText(e) : null;
       const cid = 'pcc_' + e.calendarId; if (!PC.colors.has(cid)) PC.colors.set(cid, pcColor(e.color));
-      out.push({id: 'pc_' + key + (i ? '_' + i : ''), type: 'item', pc: true, pcKey: key, pcEv: e, title: e.title || '(제목 없음)', date, start, end,
+      out.push({id: 'pc_' + key, type: 'item', pc: true, pcKey: key, pcEv: e, title: e.title || '(제목 없음)', date, endDate, start, end,
         location: e.location || '', note: e.description || '', categoryId: cid,
         remind: ov.remind != null ? ov.remind : !cfg.alarm ? '' : timed ? remNorm(settings.defaultRemind, true, start) : remNorm(settings.defaultRemindDay, false),
         travel, prep: timed ? (ov.prep !== undefined ? ov.prep : pf && pf.id) || null : null, prepOut: !!(pf && !pf.id), done: !!ov.done, doneAt: ov.doneAt || null, slips: 0, createdAt: '', updatedAt: ''});
@@ -107,7 +114,7 @@ function pcDraw(id){
   const pick = (attr, v, cur, label) => '<button type="button" class="pick" ' + attr + '="' + esc(v) + '" aria-pressed="' + (cur === v) + '">' + label + '</button>';
   let body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcColor(e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
     '<h3 class="pc-title">' + esc(it.title) + '</h3>' +
-    '<p class="pc-when tnum">' + esc(fmtMD(it.date)) + ' · ' + (timed ? esc(it.start) + (it.end ? '–' + esc(it.end) : '') : '종일') + '</p>' +
+    '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(it.start) + ' 시작' + (it.end ? ' · ' + esc(it.end) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(it.start) + (it.end ? '–' + esc(it.end) : '') : '종일')) + '</p>' +
     (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +
     (it.note ? '<p class="pc-note">' + esc(it.note.slice(0, 300)) + (it.note.length > 300 ? '…' : '') + '</p>' : '') +
     '<div class="fg-l tv-h">알림</div><div class="picks">' + remOpts.map(o => pick('data-pcrem', o[0], remCur, o[1])).join('') + '</div>';

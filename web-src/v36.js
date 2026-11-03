@@ -48,7 +48,7 @@ function bxDateNote(p){
   const btn = d => '<button type="button" class="btn sm" data-act="bx-date-alt" data-d="' + esc(d) + '">' + md(d) + '로</button>';
   const a = p && p.alt ? {next: p.date, past: p.alt, day: p.altDay} : null;
   if (a && F.date === a.next) return '<div class="hint bx-dn">' + ICON.cal + '<span>' + a.day + '일은 지나서 ' + (parseYmd(a.next).getMonth() + 1) + '월로 넣었어요</span>' + btn(a.past) + '</div>';
-  if (F.date < today) return '<div class="hint bx-dn warn">' + ICON.alert + '<span>지난 날짜예요</span>' + (a && F.date === a.past ? btn(a.next) : '') + '</div>';
+  if (F.date < today && !(F.multi && F.endDate >= today)) return '<div class="hint bx-dn warn">' + ICON.alert + '<span>지난 날짜예요</span>' + (a && F.date === a.past ? btn(a.next) : '') + '</div>';
   return '';
 }
 document.addEventListener('click', ev => {

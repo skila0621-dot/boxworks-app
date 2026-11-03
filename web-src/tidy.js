@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 38;
+const BX_TRIAL = 39;
 
 /* 설정(앱): 첫 화면은 묶음 목록(화면 · 휴대폰 캘린더 · 알림 · 분류·데이터), 누르면 그 묶음만 보이는 화면.
    뒤로 가기(‹ 또는 휴대폰 뒤로)로 목록에 돌아온다. 휴대폰 설정과 같은 방식(대표 결정 11/3: 한 페이지가 너무 길어 메뉴를 다시 찾기 불편).
@@ -19,7 +19,7 @@ function bxSetGroups(){
   const g = [['view', BX_SET_PHONE, '화면', '다크 모드 ' + (th === 'dark' ? '켬' : th === 'light' ? '끔' : '자동') + ' · ' + (+st.weekStart === 0 ? '일요일' : '월요일') + ' 시작']];
   if (pcPlug()) g.push(['pcal', ICON.cal, '휴대폰 캘린더', pcCfg().on ? '함께 보기' : '꺼짐']);
   g.push(['alarm', ICON.bell, '알림', (rep.on ? '아침 ' + rep.at : '아침 일정 꺼짐') + ' · ' + preT]);
-  g.push(['data', ICON.save, '분류·데이터', '분류 ' + M.cats.length + '개 · 휴지통 ' + M.trash.length + '개']);
+  g.push(['data', ICON.save, '캘린더·데이터', '캘린더 ' + M.cats.length + '개 · 휴지통 ' + M.trash.length + '개']);
   return g;
 }
 function bxSettingsHtml(){
@@ -71,7 +71,7 @@ function bxSetGroupHtml(k){
         bxSetLine('일정 알림 기본값', '시간 있는 일정 ' + preT + ' · 종일 일정 ' + (dayA ? hmText(dayA.t) : '꺼짐'), {go: 'alarm/rem'}) +
         bxSetLine('잠금 화면 표시', lock, {go: 'alarm/lock'}));
   }
-  return box('분류·데이터', bxSetLine('분류 관리', M.cats.length + '개', {act: 'bx-set-cats'}) +
+  return box('캘린더·데이터', bxSetLine('캘린더', M.cats.length + '개 · 이름 · 색 · 홈에 보이기', {act: 'bx-set-cats'}) +
       bxSetLine('백업·복원', '이 휴대폰에만 저장', {act: 'bx-set-data'}) +
       bxSetLine('휴지통', M.trash.length + '개 · 30일 동안 보관', {act: 'bx-set-trash'})) +
     box('데이터 초기화', bxSetLine('<span class="bx-adanger">데이터 초기화</span>', '모든 일정 삭제 · 처음 상태로', {go: 'data/reset'}));
@@ -96,8 +96,8 @@ function bxSetDetail(k, sub){
   if (k === 'data' && sub === 'reset') {
     const nItems = M.items.filter(i => !i.pc).length + M.trash.length;
     return {title: '데이터 초기화', html: '<section class="set-sec danger-zone bx-reset">' +
-      '<div class="reset-row"><div><b>모든 일정 삭제</b><span>일정 ' + nItems + '개(휴지통 포함)를 모두 삭제해요. 분류와 설정은 그대로예요.</span></div><button type="button" class="btn sm danger-line" data-act="reset" data-kind="items">삭제</button></div>' +
-      '<div class="reset-row"><div><b>초기화</b><span>일정 · 분류 · 설정을 모두 삭제하고 처음 상태로 돌아가요.</span></div><button type="button" class="btn sm danger-line" data-act="reset" data-kind="all">초기화</button></div></section>' +
+      '<div class="reset-row"><div><b>모든 일정 삭제</b><span>일정 ' + nItems + '개(휴지통 포함)를 모두 삭제해요. 캘린더와 설정은 그대로예요.</span></div><button type="button" class="btn sm danger-line" data-act="reset" data-kind="items">삭제</button></div>' +
+      '<div class="reset-row"><div><b>초기화</b><span>일정 · 캘린더 · 설정을 모두 삭제하고 처음 상태로 돌아가요.</span></div><button type="button" class="btn sm danger-line" data-act="reset" data-kind="all">초기화</button></div></section>' +
       '<p class="p small bx-setd-note">삭제하면 되돌릴 수 없어요.</p>'};
   }
   return null;

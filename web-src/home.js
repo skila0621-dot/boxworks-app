@@ -127,7 +127,7 @@ function bxHomeSplit(head, body, o){
   const rtN = o.isT && bxModOn('routines') ? M.routines.filter(r => rtActiveOn(r, M.today) || bxHolOff(r, M.today)).length : 0;
   const rt = rtN ? bxHomeStrip(rtHomeHtml().replace('>오늘의 루틴</h2>', '>루틴</h2>')) : '';
   const ttOk = bxModOn('tt'), ttN = ttOk ? ttCountOn(o.vd) : 0, tt = ttOk ? bxHomeStrip(ttTodayHtml(o.vd, true)) : '';
-  const total = rtN + ttN + o.n, late = body.indexOf('id="late-block"') >= 0;
+  const total = rtN + ttN + o.n + (o.ns || 0), late = body.indexOf('id="late-block"') >= 0;
   const name = o.isT ? '오늘 할 일' : o.title.replace(/일정$/, '할 일');
   const items = total || late ? '<div class="bx-sub it-sub">' + secHead('h-today', '일정', '', '') + body + '</div>'
     : o.isT ? '<div class="bx-empty-ex"><p class="empty bx-todo-empty">' + (M.items.length ? '오늘 할 일이 없어요.' : '아직 일정이 없어요.') + ' 이렇게 적어 보세요.</p><div class="bx-ex-chips">' +
@@ -207,7 +207,7 @@ function bxHelpOpen(){
     '<button type="button" class="btn primary grow" data-act="sheet-close">닫기</button>')});
 }
 // ⋯ 메뉴(앱): 아래 메뉴에 없는 기능 + 내가 쓸 기능 · 휴지통 · 다크 모드 · 설정(정리판 15–17, 대표 결정 11/1).
-// 분류 관리·백업은 설정에, 사용법은 화면마다 ⓘ에. '처음 안내 다시 보기'는 '내가 쓸 기능'과 같은 일이라 뺐다
+// 캘린더(분류) 관리·백업은 설정에, 사용법은 화면마다 ⓘ에. '처음 안내 다시 보기'는 '내가 쓸 기능'과 같은 일이라 뺐다
 function bxMoreMenuHtml(){
   const keys = bxDockKeys();
   const goRow = k => '<button type="button" class="menu-row" data-act="bx-go" data-view="' + k + '"><span class="mi">' + BX_DOCK_ALL[k].icon + '</span><span class="ml">' + BX_DOCK_ALL[k].label + '</span><span class="mv">' + ICON.chevR + '</span></button>';
@@ -221,7 +221,7 @@ function bxMoreMenuHtml(){
     menuRow('trash', ICON.trash, '휴지통', M.trash.length + '개') +
     // 다크 모드: 누르면 바로 켜고 끔(대표 지적 11/1 "다크모드 켜고 끄기가 사라졌다"). '휴대폰 따라가기'는 설정 › 화면에
     '<button type="button" class="menu-row bx-dm-row" data-act="theme-toggle" aria-pressed="' + isDark() + '"><span class="mi"><svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></span><span class="ml">다크 모드</span><span class="mv"><span class="tog" aria-hidden="true"><i></i></span></span></button>' +
-    menuRow('prefs', ICON.gear, '설정', '알림·화면·분류·백업') + '</div></div>';
+    menuRow('prefs', ICON.gear, '설정', '알림·화면·캘린더·백업') + '</div></div>';
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
@@ -275,7 +275,7 @@ const BX_DOCK_ALL = {
   med: {label: '명상', sub: '싱잉볼 소리로 시작과 끝을 알려 줘요', icon: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5c1.8 2 2.8 4 2.8 6.3s-1.2 4.2-2.8 5.2c-1.6-1-2.8-2.9-2.8-5.2S10.2 7 12 5z"/><path d="M12 16.5c-3.5 0-6.5-2-7.5-5.5 2.7-.3 5.2.6 7 2.5"/><path d="M12 16.5c3.5 0 6.5-2 7.5-5.5-2.7-.3-5.2.6-7 2.5"/><path d="M5 19.5h14"/></svg>', attr: 'data-act="go" data-view="med"'},
   more: {label: '더보기', sub: '그 밖의 기능 · 설정을 모아 둔 곳', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>', attr: 'data-act="more"'},
   search: {label: '검색', sub: '지난 일정·루틴 찾기', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>', attr: 'data-menu="search"'},
-  prefs: {label: '설정', sub: '알림·화면·분류·백업', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>', attr: 'data-menu="prefs"'}
+  prefs: {label: '설정', sub: '알림·화면·캘린더·백업', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>', attr: 'data-menu="prefs"'}
 };
 const BX_HOME_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 9v10.5h12V9"/><path d="M10 19.5v-5h4v5"/></svg>';
 function bxDockKeys(){
