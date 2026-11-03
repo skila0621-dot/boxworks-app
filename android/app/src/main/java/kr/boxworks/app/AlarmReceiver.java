@@ -25,6 +25,9 @@ public class AlarmReceiver extends BroadcastReceiver {
             return;
         } else if ("report".equals(kind)) {
             AlarmNotify.showReport(context, o.optJSONObject("report"));
+        } else if ("nag".equals(kind)) {
+            // 시험판 37: '알림'으로 울린 일정이 알림창에 그대로 있으면 한 번 더(3분 · 10분 뒤). 없으면 아무것도 하지 않는다
+            AlarmNotify.renotice(context, o);
         } else if ("rcheck".equals(kind)) {
             // 루틴이 끝난 뒤: 남아 있는 단계 알림을 정리하고, 확인하지 않은 단계가 있을 때만 알람을 한 번 띄운다
             JSONArray check = o.optJSONArray("check");

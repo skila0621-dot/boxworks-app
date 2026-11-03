@@ -3,17 +3,18 @@
      맨 위 한 줄은 가운데 정렬 — 말하기(🎤) · ‹ 날짜 › · 새 일정(＋). 날짜를 누르면 오늘로, ‹ ›로 하루씩(10분 지나면 저절로 오늘).
      목록은 그날 일정만, 위아래로 밀어 끝까지(BxWidgetService). 그릴 때 지금 시각 바로 앞 일정부터 보이게 맞춘다.
      줄은 시각 · 색 막대 · 제목만(하는 중이면 파란 띠와 '지금'). 위젯이 작아서 장소 · 출발 · 확인 필요는 앱에서 본다.
-     '루틴 포함 / 일정만'은 위젯 위가 아니라 앱 ⋯ › 위젯 추가 화면의 스위치(자료의 only) -->
+     '루틴 포함 / 일정만'은 위젯 위가 아니라 앱 ⋯ › 위젯 추가 화면의 스위치(자료의 only).
+     시험판 37(대표 지적 11/3 '위젯에서도 좌우 여백이 좁다'): 바깥 여백 8 → 14dp, 줄 높이 32 → 36dp, 글자는 위젯 끝에서 22dp -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/w_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bx_widget_bg"
     android:orientation="vertical"
-    android:paddingLeft="8dp"
-    android:paddingTop="8dp"
-    android:paddingRight="8dp"
-    android:paddingBottom="10dp">
+    android:paddingLeft="14dp"
+    android:paddingTop="10dp"
+    android:paddingRight="14dp"
+    android:paddingBottom="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -89,7 +90,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="6dp"
         android:layout_weight="1">
         <!-- 오른쪽 가는 막대가 늘 보여 '더 있음'을 알린다 -->
         <ListView

@@ -254,12 +254,13 @@ function bxWidgetRowHtml(){
 function bxWidgetOpen(){
   const draw = () => {
     const w = window.BX_WPLACED || {}, can = !!w.canPin;
-    setSheet('<p class="p small" style="margin:0 0 12px">앱을 열지 않아도 홈 화면에서 바로 봐요. 잠금 화면에는 안 보여요.</p>' +
+    // 시험판 37: 위젯 두 가지 · '루틴도 보기' 스위치는 저마다 상자(대표 지적 11/3 '다른 것끼리 너무 붙어 있다')
+    setSheet('<p class="p small">앱을 열지 않아도 홈 화면에서 바로 봐요. 잠금 화면에는 안 보여요.</p><div class="bx-grp">' +
       BX_WIDGETS.map(([k, name, sub]) => '<div class="bx-wg-row"><span class="bxs-t"><b>' + name + '</b><small>' + sub + '</small></span>' +
-        (w[k] ? '<span class="bx-wg-on">' + ICON.check + '추가됨</span>' : can ? '<button type="button" class="btn sm" data-bx-wpin="' + k + '">추가</button>' : '') + '</div>').join('') +
+        (w[k] ? '<span class="bx-wg-on">' + ICON.check + '추가됨</span>' : can ? '<button type="button" class="btn sm" data-bx-wpin="' + k + '">추가</button>' : '') + '</div>').join('') + '</div>' +
       // 시험판 36(대표 결정 11/3 17:01): 위젯은 작게 두고 '루틴 포함 / 일정만'은 여기 스위치 하나(처음엔 루틴도 보임)
-      '<div class="bx-swrow bx-wg-rt"><span><b>오늘 일정 위젯에 루틴도 보기</b><small>끄면 일정 · 시간표만</small></span>' + bxSwitch('data-bxwrt', M.settings.bxWidgetRt !== false, '오늘 일정 위젯에 루틴도 보기') + '</div>' +
-      '<p class="p small" style="margin:12px 0 0">' + (can ? '추가를 누르면 휴대폰이 놓을 자리를 물어요. ' : '') + '홈 화면을 길게 누른 뒤 위젯 › 박스웍스에서도 추가할 수 있어요.</p>', '');
+      '<div class="bx-grp"><div class="bx-swrow bx-wg-rt"><span><b>오늘 일정 위젯에 루틴도 보기</b><small>끄면 일정 · 시간표만</small></span>' + bxSwitch('data-bxwrt', M.settings.bxWidgetRt !== false, '오늘 일정 위젯에 루틴도 보기') + '</div></div>' +
+      '<p class="p small">' + (can ? '추가를 누르면 휴대폰이 놓을 자리를 물어요. ' : '') + '홈 화면을 길게 누른 뒤 위젯 › 박스웍스에서도 추가할 수 있어요.</p>', '');
   };
   openSheet({title: '홈 화면 위젯', draw, refresh: draw});
 }
@@ -323,12 +324,14 @@ function bxFeatDraw(){
       : '<span class="bx-ft-chip off">' + lab(k) + ' · 꺼짐</span>'; };
   const half = Math.ceil(FEAT.dock.length / 2), prev = FEAT.dock.slice(0, half).map(lab).concat(['홈']).concat(FEAT.dock.slice(half).map(lab));
   setSheet(
-    '<h3 class="bx-ft-h">시간 · 행동 관리</h3><p class="p small" style="margin:0 0 4px">이 앱의 주 기능이에요. 끄면 홈·메뉴·알림에서 사라지고, 넣어 둔 내용은 남아요.</p>' +
-    '<div class="bx-ft-row"><span>일정 · 캘린더</span><span class="bx-lv-fix">늘 켜짐</span></div>' + BX_FEAT.filter(f => !BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') +
-    '<h3 class="bx-ft-h">그 밖의 기능</h3><p class="p small" style="margin:0 0 4px">켜면 ⋯ 더보기에 있어요. 아래 메뉴에도 넣을 수 있어요.</p>' + BX_FEAT.filter(f => BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') +
-    '<h3 class="bx-ft-h">아래 메뉴</h3><p class="p small" style="margin:0 0 10px">누른 순서대로 왼쪽부터 놓여요. 홈은 늘 가운데, 4개까지. 처음엔 시간 · 행동 관리와 더보기.</p>' +
-    '<div class="bx-ft-chips">' + Object.keys(BX_DOCK_ALL).map(chip).join('') + '</div>' +
-    '<span class="bx-ft-pv-h">미리 보기</span><div class="bx-ft-pv" aria-hidden="true" style="grid-template-columns:repeat(' + prev.length + ',minmax(0,1fr))">' + prev.map(x => '<span class="' + (x === '홈' ? 'on' : '') + '">' + x + '</span>').join('') + '</div>',
+    // 시험판 37: 묶음 제목과 설명은 상자 밖, 고르는 줄은 묶음마다 반투명 상자 하나(bx-grp)
+    '<div class="bx-ft-hd"><h3 class="bx-ft-h">시간 · 행동 관리</h3><p class="p small">이 앱의 주 기능이에요. 끄면 홈·메뉴·알림에서 사라지고, 넣어 둔 내용은 남아요.</p></div>' +
+    '<div class="bx-grp"><div class="bx-ft-row"><span>일정 · 캘린더</span><span class="bx-lv-fix">늘 켜짐</span></div>' + BX_FEAT.filter(f => !BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') + '</div>' +
+    '<div class="bx-ft-hd"><h3 class="bx-ft-h">그 밖의 기능</h3><p class="p small">켜면 ⋯ 더보기에 있어요. 아래 메뉴에도 넣을 수 있어요.</p></div>' +
+    '<div class="bx-grp">' + BX_FEAT.filter(f => BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') + '</div>' +
+    '<div class="bx-ft-hd"><h3 class="bx-ft-h">아래 메뉴</h3><p class="p small">누른 순서대로 왼쪽부터 놓여요. 홈은 늘 가운데, 4개까지. 처음엔 시간 · 행동 관리와 더보기.</p></div>' +
+    '<div class="bx-grp bx-grp-pad"><div class="bx-ft-chips">' + Object.keys(BX_DOCK_ALL).map(chip).join('') + '</div>' +
+    '<span class="bx-ft-pv-h">미리 보기</span><div class="bx-ft-pv" aria-hidden="true" style="grid-template-columns:repeat(' + prev.length + ',minmax(0,1fr))">' + prev.map(x => '<span class="' + (x === '홈' ? 'on' : '') + '">' + x + '</span>').join('') + '</div></div>',
     '<button type="button" class="btn grow" data-bx-fnav="reset">기본값</button>');
 }
 document.addEventListener('click', ev => {

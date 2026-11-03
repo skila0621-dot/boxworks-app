@@ -53,7 +53,7 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '1시간 전', "칩 하나를 고르면 알림이 그 하나로");
     await p.click('#f-rem [data-bx-remsw]'); await p.waitForTimeout(200);
     const offState = await p.evaluate(() => ({ chip: (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim(), opts: document.querySelectorAll('#f-rem .bx-rem-q').length, sw: (document.querySelector('#f-rem [data-bx-remsw]') || {}).getAttribute('aria-checked') }));
-    c.eq(offState, { chip: '알림 없음', opts: 0, sw: 'false' }, '알림을 끄면 칩은 알림 없음, 아래 선택지는 없음');
+    c.eq(offState, { chip: '알림', opts: 0, sw: 'false' }, '알림을 끄면 칩은 이름만(알림), 아래 선택지는 없음(시험판 37)');
     await p.click('#f-rem [data-bx-remsw]'); await p.waitForTimeout(200);
     c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '1시간 전', '다시 켜면 끄기 전 값(1시간 전)');
     c.eq(app.errors, [], '화면 오류(홈·새 일정)');

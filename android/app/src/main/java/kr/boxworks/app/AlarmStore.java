@@ -264,7 +264,8 @@ public final class AlarmStore {
             long at = o.optLong("at", 0);
             if (at > now) { stored.put(o); continue; }
             String id = o.optString("id");
-            boolean skip = "report".equals(o.optString("kind")) || o.optString("sound").startsWith("bowl") || id.startsWith("med_") || "bx_renew".equals(id);
+            // 다시 알림(nag, 시험판 37)은 처음 알림을 한 번 더 띄우는 것이라 놓친 알람으로 세지 않는다
+            boolean skip = "report".equals(o.optString("kind")) || "nag".equals(o.optString("kind")) || o.optString("sound").startsWith("bowl") || id.startsWith("med_") || "bx_renew".equals(id);
             if (!skip && now - at <= withinMs) {
                 String series = o.optString("series", "");
                 seen.add(series.isEmpty() ? id : series);
@@ -312,7 +313,7 @@ public final class AlarmStore {
         boolean exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms();
         try {
             // 명상 종(med_)은 화면이 꺼져 있어도 30초 간격까지 정확히 울려야 해서 알람(setAlarmClock)으로 건다
-            if ("report".equals(o.optString("kind")) || "bx_renew".equals(id) || (o.optString("sound").startsWith("bowl") && !id.startsWith("med_"))) {
+            if ("report".equals(o.optString("kind")) || "nag".equals(o.optString("kind")) || "bx_renew".equals(id) || (o.optString("sound").startsWith("bowl") && !id.startsWith("med_"))) {
                 // 아침 보고와 '알람이 곧 끝나요'는 알람이 아니라 알림이라 상태 표시줄의 '다음 알람'에 넣지 않는다
                 if (exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);
                 else am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, fire);

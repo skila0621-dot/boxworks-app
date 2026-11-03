@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bx_widget_bg"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/n_label"

@@ -212,15 +212,16 @@ function bxMoreMenuHtml(){
   const keys = bxDockKeys();
   const goRow = k => '<button type="button" class="menu-row" data-act="bx-go" data-view="' + k + '"><span class="mi">' + BX_DOCK_ALL[k].icon + '</span><span class="ml">' + BX_DOCK_ALL[k].label + '</span><span class="mv">' + ICON.chevR + '</span></button>';
   // 묶음(시험판 35, 대표 의견 11/3): 시간 · 행동 관리 → 그 밖의 기능 → 앱. 아래 메뉴에 있는 기능은 여기 다시 두지 않는다
-  const grp = (h, list) => { const rows = list.filter(k => !keys.includes(k) && bxDockOk(k)).map(goRow).join(''); return rows ? '<div class="bx-menu-h">' + h + '</div>' + rows : ''; };
-  return '<div class="menu">' + grp('시간 · 행동 관리', BX_GROUP_TIME) + grp('그 밖의 기능', BX_GROUP_ETC) + '<div class="bx-menu-h">앱</div>' +
+  // 시험판 37(대표 지적 11/3 '성격이 다르면 투명도로 나누기'): 묶음마다 반투명 상자 하나(bx-grp)
+  const grp = (h, list) => { const rows = list.filter(k => !keys.includes(k) && bxDockOk(k)).map(goRow).join(''); return rows ? '<div class="bx-menu-h">' + h + '</div><div class="bx-grp">' + rows + '</div>' : ''; };
+  return '<div class="menu">' + grp('시간 · 행동 관리', BX_GROUP_TIME) + grp('그 밖의 기능', BX_GROUP_ETC) + '<div class="bx-menu-h">앱</div><div class="bx-grp">' +
     '<button type="button" class="menu-row" data-act="bx-feat"><span class="mi">' + BX_HOME_ICON + '</span><span class="ml">기능 · 메뉴 편집</span><span class="mv">' + ICON.chevR + '</span></button>' +
     // 홈 화면 위젯 두기: 설정 › 화면에도 같은 줄(대표 요청 11/3: 더보기에서도 고를 수 있게, 규칙 6 두 곳까지)
-    '<button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">위젯 추가</span><span class="mv">' + ICON.chevR + '</span></button>' +
+    '<button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">위젯 추가</span><span class="mv">' + ICON.chevR + '</span></button></div><div class="bx-grp">' +
     menuRow('trash', ICON.trash, '휴지통', M.trash.length + '개') +
     // 다크 모드: 누르면 바로 켜고 끔(대표 지적 11/1 "다크모드 켜고 끄기가 사라졌다"). '휴대폰 따라가기'는 설정 › 화면에
     '<button type="button" class="menu-row bx-dm-row" data-act="theme-toggle" aria-pressed="' + isDark() + '"><span class="mi"><svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></span><span class="ml">다크 모드</span><span class="mv"><span class="tog" aria-hidden="true"><i></i></span></span></button>' +
-    menuRow('prefs', ICON.gear, '설정', '알림·화면·분류·백업') + '</div>';
+    menuRow('prefs', ICON.gear, '설정', '알림·화면·분류·백업') + '</div></div>';
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;

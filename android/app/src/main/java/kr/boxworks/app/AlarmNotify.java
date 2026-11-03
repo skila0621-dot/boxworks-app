@@ -216,12 +216,64 @@ final class AlarmNotify {
      * 울리는 방식(전체 흐름 와이어프레임 18): alarm = 잠금 화면에 크게·확인할 때까지(아래 show),
      * notice = 위에서 내려오는 알림·소리 한 번, quiet = 알림창에만. 5분 뒤로 미루면 같은 lv로 다시 울린다
      */
-    static final String CHANNEL_NOTICE = "bx_notice_p1";
+    // 시험판 37: 진동을 세 번(길게 · 짧게 · 길게)으로 바꾸려고 새 채널(채널의 진동은 만든 뒤 바꿀 수 없다). 예전 채널은 지운다
+    static final String CHANNEL_NOTICE = "bx_notice_p2";
+    static final String CHANNEL_NOTICE_OLD = "bx_notice_p1";
+    static final long[] NOTICE_VIB = {0, 450, 150, 200, 150, 450};
+
+    /** 위에서 내려오는 '알림' 채널(일정 · 시간표 · 놓친 알람 안내가 함께 쓴다) */
+    static void ensureNoticeChannel(Context c) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        NotificationManager nm = c.getSystemService(NotificationManager.class);
+        if (nm == null) return;
+        if (nm.getNotificationChannel(CHANNEL_NOTICE_OLD) != null) nm.deleteNotificationChannel(CHANNEL_NOTICE_OLD);
+        if (nm.getNotificationChannel(CHANNEL_NOTICE) != null) return;
+        NotificationChannel nc = new NotificationChannel(CHANNEL_NOTICE, "일정 알림", NotificationManager.IMPORTANCE_HIGH);
+        nc.setDescription("위에서 내려오고 소리와 진동(세 번)이 나요. 그대로 두면 3분 · 10분 뒤 한 번씩 더 와요");
+        nc.enableVibration(true);
+        nc.setVibrationPattern(NOTICE_VIB);
+        nc.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        nm.createNotificationChannel(nc);
+    }
+
+    /** 알림창에 아직 그대로 있는지(확인 · 5분 뒤 · 눌러 열기 · 밀어 지우기를 하면 사라진다) */
+    static boolean isActive(Context c, int nid) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false;
+        NotificationManager nm = c.getSystemService(NotificationManager.class);
+        if (nm == null) return false;
+        try {
+            for (android.service.notification.StatusBarNotification sb : nm.getActiveNotifications()) if (sb.getId() == nid) return true;
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    /**
+     * 시험판 37(대표 지적 11/3 "유튜브를 보는 중 알림이 위에서 작게 내려와 진동 한 번 뒤 사라지고 끝. 자각하기엔 너무 단조롭다"):
+     * '알림'으로 울린 일정 · 시간표가 알림창에 그대로 있으면(아무것도 안 함) 3분 뒤, 10분 뒤 한 번씩 다시 내려온다.
+     * 다시 알림(kind nag)은 화면이 짠 알람 목록에 들어 있어, 일정을 완료 · 삭제 · 수정하면 함께 빠진다(BX_alarmPlan)
+     */
+    static void renotice(Context c, JSONObject o) {
+        String of = o.optString("of");
+        if (of.isEmpty() || !isActive(c, notifId(of))) return;
+        try {
+            JSONObject r = new JSONObject(o.toString());
+            r.put("id", of);
+            r.put("kind", "item");
+            r.put("again", o.optInt("nag", 1));
+            r.remove("of");
+            // 같은 자리의 알림을 새로 올려야 다시 위에서 내려오고 소리 · 진동이 난다
+            dismiss(c, of);
+            showNotice(c, r, false);
+        } catch (Exception ignored) {
+        }
+    }
     static final String CHANNEL_QUIET = "bx_quiet_p1";
 
     static void showNotice(Context c, JSONObject o, boolean quiet) {
         String ch = quiet ? CHANNEL_QUIET : CHANNEL_NOTICE;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (!quiet) ensureNoticeChannel(c);
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager nm = c.getSystemService(NotificationManager.class);
             if (nm != null && nm.getNotificationChannel(ch) == null) {
                 NotificationChannel nc = new NotificationChannel(ch, quiet ? "조용한 알림" : "일정 알림",
@@ -257,7 +309,7 @@ final class AlarmNotify {
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
-            .setSubText(o.optString("group", ""))
+            .setSubText(o.optString("group", "") + (o.optInt("again", 0) > 0 ? " · 다시 알림" : ""))
             .setPriority(quiet ? NotificationCompat.PRIORITY_LOW : NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
@@ -418,16 +470,7 @@ final class AlarmNotify {
 
     /** 알림 한 장(놓친 알람, 시간대 바뀜). 위에서 내려오는 일정 알림 채널을 쓴다 */
     static void showInfo(Context c, int notifId, String title, String text) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager nm = c.getSystemService(NotificationManager.class);
-            if (nm != null && nm.getNotificationChannel(CHANNEL_NOTICE) == null) {
-                NotificationChannel nc = new NotificationChannel(CHANNEL_NOTICE, "일정 알림", NotificationManager.IMPORTANCE_HIGH);
-                nc.setDescription("위에서 내려오고 소리가 한 번 나요");
-                nc.enableVibration(true);
-                nc.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-                nm.createNotificationChannel(nc);
-            }
-        }
+        ensureNoticeChannel(c);
         Intent open = new Intent(c, MainActivity.class);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openPi = PendingIntent.getActivity(c, notifId, open,

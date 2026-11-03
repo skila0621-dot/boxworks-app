@@ -52,8 +52,10 @@ export default [
     replace: "bxMic('f-title', '예) 내일 오후 3시 치과', '내일 오후 3시 치과|금요일 저녁 7시 친구 약속')"
   },
   {
-    name: "일정 알림 칩: 꺼져 있으면 사선 그은 종과 '알림 없음'(대표 11/2 밤: 알림 켜기·끄기가 보이게)",
+    // 시험판 37(대표 지적 11/3 18:12 "'알림 없음'을 바로 체크한 것처럼 보인다. 누르면 켜고 끄기 · 시간이 나오게, 기본값을 보여 주자"):
+    // 칩은 다른 칩(분류 · 장소·메모)처럼 정하지 않았으면 이름만('알림'), 정했으면 값('10분 전'). 누르면 켜고 끄기 + 기본값(v30.js bxRemQuick)
+    name: "일정 알림 칩: 정하지 않았으면 '알림', 정했으면 고른 값(대표 11/3)",
     find: "tab('rem', ICON.bell, !rems.length ? '알림 없음' :",
-    replace: "tab('rem', window.BX_APP && !rems.length ? BX_BELL_OFF : ICON.bell, !rems.length ? '알림 없음' :"
+    replace: "tab('rem', ICON.bell, !rems.length ? (window.BX_APP ? '알림' : '알림 없음') :"
   }
 ];

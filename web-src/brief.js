@@ -41,13 +41,12 @@ function bxAddReports(out, days){
   }
   return out;
 }
-// 설정 > 알림의 '아침 보고' 줄
+// 설정 > 알림의 '아침 요약' 줄. 울리는 방식 · 잠금 화면 표시는 시험판 37부터 저마다 상자(tidy.js)
 function bxReportSetHtml(){
   const cfg = bxRepCfg();
   return setRow('아침 요약', bxSwitch('data-bxrep', cfg.on, '아침 요약')) +
     // 스위치를 켠 자리 바로 아래 오른쪽에 시각(대표 지적 11/2, 규칙 12). 누르면 휴대폰 시계 창이 열린다
-    (cfg.on ? '<div class="bx-setsub"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span>' + bxTimeChip('bx-rep-t', cfg.at, '아침에 일정 받는 시각') + '</div>' : '') +
-    bxLevelSetHtml() + bxLockSetHtml();
+    (cfg.on ? '<div class="bx-setsub"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span>' + bxTimeChip('bx-rep-t', cfg.at, '아침에 일정 받는 시각') + '</div>' : '');
 }
 /* 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게) */
 const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목', '“치과 · 14:30 출발”처럼 제목도 보여요'], ['none', '표시 안 함', '알람도 “박스웍스 알람”으로만 보여요']];

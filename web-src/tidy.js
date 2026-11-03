@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 36;
+const BX_TRIAL = 37;
 
 /* 설정(앱): 첫 화면은 묶음 목록(화면 · 휴대폰 캘린더 · 알림 · 분류·데이터), 누르면 그 묶음만 보이는 화면.
    뒤로 가기(‹ 또는 휴대폰 뒤로)로 목록에 돌아온다. 휴대폰 설정과 같은 방식(대표 결정 11/3: 한 페이지가 너무 길어 메뉴를 다시 찾기 불편).
@@ -38,16 +38,19 @@ function bxSetGroupHtml(k){
   const st = M.settings;
   if (k === 'view') return '<section class="set-sec" aria-label="화면">' +
       setRow('다크 모드', segHtml('data-theme-set', [['', '자동'], ['light', '끔'], ['dark', '켬']], lsGet('bx:theme') || '', '다크 모드', 240)) +
-      setRow('주 시작 요일', segHtml('data-wk', [['1', '월요일'], ['0', '일요일']], +st.weekStart === 0 ? '0' : '1', '주 시작 요일')) +
-      bxWidgetRowHtml() + '</section>';
+      setRow('주 시작 요일', segHtml('data-wk', [['1', '월요일'], ['0', '일요일']], +st.weekStart === 0 ? '0' : '1', '주 시작 요일')) + '</section>' +
+      // 시험판 37(대표 지적 11/3 '성격이 다른 것끼리 너무 붙어 있다'): 고르는 값과 다른 화면으로 가는 줄은 상자를 나눈다
+      '<section class="set-sec" aria-label="위젯">' + bxWidgetRowHtml() + '</section>';
   // 휴대폰 캘린더 묶음은 제 칸 제목을 빼고(위 제목과 겹침) 그대로
   if (k === 'pcal') return pcSetHtml().replace(/<h2[^>]*>[\s\S]*?<\/h2>/, '');
   if (k === 'alarm') {
     const pre = st.defaultRemind == null || st.defaultRemind === '' || remAbs(String(st.defaultRemind)) ? null : +st.defaultRemind, nu = minToNU(pre == null ? 10 : pre);
     const dayA = remAbs(remNorm(st.defaultRemindDay, false));
-    return '<section class="set-sec" aria-label="알림">' +
-      '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-alarm-test"><span class="mi">' + ICON.bell + '</span><span class="ml">알람 테스트</span><span class="mv">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' +
-      bxReportSetHtml() +
+    // 시험판 37(대표 지적 11/3): 한 상자에 다 넣지 않고 성격마다 상자 하나 — 알람 테스트 · 아침 요약 · 울리는 방식 · 잠금 화면 표시 · 일정 알림
+    const sec = (label, html) => '<section class="set-sec" aria-label="' + label + '">' + html + '</section>';
+    return sec('알람 테스트', '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-alarm-test"><span class="mi">' + ICON.bell + '</span><span class="ml">알람 테스트</span><span class="mv">10초 뒤 울려요' + ICON.chevR + '</span></button></div>') +
+      sec('아침 요약', bxReportSetHtml()) + sec('울리는 방식', bxLevelSetHtml()) + sec('잠금 화면 표시', bxLockSetHtml()) +
+      '<section class="set-sec" aria-label="일정 알림">' +
       // 켜고 끄기는 스위치(대표 의견 11/2 밤). 켜면 그 바로 아래 오른쪽에 값이 나온다(대표 지적 11/2, 규칙 12)
       setRow('일정 알림(기본)', bxSwitch('data-pre-on', pre != null, '일정 알림')) +
       (pre != null ? '<div class="bx-setsub"><span class="p small">새 일정의 기본값이에요. 0분은 정시</span><span class="bx-setsub-c">' + stepperHtml('set-pre-n', nu[0], 0, 999, 'set-pre-u') + unitSel('set-pre-u', nu[1]) + '</span></div>' : '') +

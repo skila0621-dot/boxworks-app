@@ -276,10 +276,17 @@ const BX_REM_Q = {t: [['0', '정시'], ['10', '10분 전'], ['60', '1시간 전'
 function bxSwitch(attr, on, aria){
   return '<button type="button" class="tog" role="switch" aria-checked="' + !!on + '" aria-label="' + esc(aria) + '" ' + attr + '="' + (on ? '0' : '1') + '"><i></i></button>';
 }
+// 설정의 기본값(설정 › 알림 › 일정 알림). 켜면 이 값이 들어간다
+function bxRemDef(timed){
+  return timed ? (remList(remNorm(M.settings.defaultRemind, true, F && F.start))[0] || '10') : (remList(remNorm(M.settings.defaultRemindDay, false))[0] || 'd0@09:00');
+}
 function bxRemQuick(){
   const cur = remList(fRem()), opts = F.timed ? BX_REM_Q.t : BX_REM_Q.d, on = cur.length > 0 || !!F.remAdv;
   const one = cur.length === 1 ? cur[0] : null, std = !!one && opts.some(o => o[0] === one), cust = F.remAdv || (on && !std);
-  return '<div class="bx-swrow"><span>알림</span><button type="button" class="tog" role="switch" aria-checked="' + on + '" aria-label="알림" data-bx-remsw="1"><i></i></button></div>' +
+  // 시험판 37(대표 지적 11/3 18:12): 꺼져 있어도 켜면 무엇이 들어가는지(기본값) 보여 준다. 시간 없는 일정은 시간을 정하면 들어갈 값도
+  const defNote = on ? '' : '<p class="p small bx-rem-def">켜면 <b>' + esc(remLabel(bxRemDef(F.timed))) + '</b>' +
+    (F.timed ? '' : ' · 시간을 정하면 <b>' + esc(remLabel(bxRemDef(true))) + '</b>') + ' · 기본값은 설정 › 알림에서</p>';
+  return '<div class="bx-swrow"><span>알림</span><button type="button" class="tog" role="switch" aria-checked="' + on + '" aria-label="알림" data-bx-remsw="1"><i></i></button></div>' + defNote +
     (on ? '<div class="picks bx-rem-q" role="group" aria-label="알림">' + opts.map(o => '<button type="button" class="pick" data-bx-rem="' + o[0] + '" aria-pressed="' + (!cust && one === o[0]) + '">' + o[1] + '</button>').join('') +
       '<button type="button" class="pick" data-bx-rem="adv" aria-pressed="' + cust + '">' + (cust && cur.length ? esc(cur.length > 1 ? '알림 ' + cur.length + '개' : remLabel(cur[0])) : '직접 입력') + '</button></div>' : '');
 }

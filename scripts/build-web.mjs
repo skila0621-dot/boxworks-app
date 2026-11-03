@@ -14,6 +14,7 @@ import v31 from './patches-v31.mjs';
 import v32 from './patches-v32.mjs';
 import v36 from './patches-v36.mjs';
 import words from './patches-words.mjs';
+import v37 from './patches-v37.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -92,7 +93,11 @@ const patches = [
 window.BX_alarmPlan = function(days){
   if (!M || !S.firstServer) return null;
   days = days || 7;
-  const now = Date.now(), until = now + days * 864e5, out = [];
+  const now = Date.now(), until = now + days * 864e5, out = [], nags = [];
+  // 시험판 37(대표 지적 11/3 '유튜브를 보다 알림이 진동 한 번 뒤 사라져 놓친다', 대표 결정 '진동 3번 + 놓치면 다시'):
+  // '알림'으로 울리는 일정 · 시간표는 알림창에 그대로 있으면 3분 · 10분 뒤 한 번씩 더(휴대폰 쪽 AlarmNotify.renotice).
+  // 목록에 함께 넣어 두어, 일정을 완료 · 삭제 · 수정하면 다시 알림도 같이 빠진다
+  const nagOf = a => [3, 10].forEach((m, j) => { const t2 = a.at + m * 60000; if (t2 <= until) nags.push(Object.assign({}, a, {id: a.id + '_n' + (j + 1), at: t2, kind: 'nag', of: a.id, nag: j + 1})); });
   // 울리는 방식(종류별 기본값, web-src/flow.js): lv = alarm | notice | quiet. 끈 기능(루틴·시간표)은 알람도 쉰다
   const lvR = bxLevel('routine'), lvI = bxLevel('item'), lvT = bxLevel('tt'), rtOn = bxModOn('routines'), ttOnF = bxModOn('tt');
   M.items.forEach(it => {
@@ -109,9 +114,10 @@ window.BX_alarmPlan = function(days){
     tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
       const when = relDay(it.date, ymd(new Date(t))) + ' ' + timeText(it);
-      out.push({id: 'i_' + it.id + '_' + t, at: t, kind: 'item', group: '일정', title: it.title || '(제목 없음)',
+      const ai = {id: 'i_' + it.id + '_' + t, at: t, kind: 'item', group: '일정', title: it.title || '(제목 없음)',
         sub: when + (it.location ? ' · ' + it.location : ''), body: when + (it.location ? ' · ' + it.location : ''),
-        pt: '일정 알림', ps: bxLeadText(it.start ? at(it.date, it.start).getTime() - t : null, relDay(it.date, ymd(new Date(t)))) + ' · 잠금을 풀면 보여요', pg: '일정', lv: lvI});
+        pt: '일정 알림', ps: bxLeadText(it.start ? at(it.date, it.start).getTime() - t : null, relDay(it.date, ymd(new Date(t)))) + ' · 잠금을 풀면 보여요', pg: '일정', lv: lvI};
+      out.push(ai); if (lvI === 'notice') nagOf(ai);
     });
   });
   const reps = [];
@@ -175,15 +181,16 @@ window.BX_alarmPlan = function(days){
       if (!ttOn(e, ds)) continue;
       const t = addMin(day, toMin(e.start) - before).getTime(); if (t <= now || t > until) continue;
       const lead = before ? before + '분 뒤 시작' : '지금 시작';
-      out.push({id: 'tt_' + e.id + '_' + ds, at: t, kind: 'item', group: '시간표', icon: bxIconFor(e.name) || 'school', title: e.name,
+      const at2 = {id: 'tt_' + e.id + '_' + ds, at: t, kind: 'item', group: '시간표', icon: bxIconFor(e.name) || 'school', title: e.name,
         sub: (e.place ? e.place + ' · ' : '') + lead, body: e.start + (e.end ? '–' + e.end : '') + (e.place ? ' · ' + e.place : '') + ' · ' + lead,
-        pt: '시간표 알림', ps: lead + ' · 잠금을 풀면 보여요', pg: '시간표', lv: lvT});
+        pt: '시간표 알림', ps: lead + ' · 잠금을 풀면 보여요', pg: '시간표', lv: lvT};
+      out.push(at2); if (lvT === 'notice') nagOf(at2);
     }
   });
   // 휴대폰에 거는 알람은 최대 200개(앱 하나가 걸 수 있는 알람은 500개, 명상 종 몫을 남긴다). 고르는 순서(문제점 점검 기술 1):
   // ① 앞으로 48시간의 알람과 다시 알림 ② 그 뒤의 첫 알람(최대 days일) ③ 남는 자리에 앞 7일의 다시 알림
   const CAP = 200, near = now + 2 * 864e5, repEnd = now + 7 * 864e5, byAt = (a, b) => a.at - b.at;
-  out.sort(byAt); reps.sort(byAt);
+  out.sort(byAt); nags.forEach(a => reps.push(a)); reps.sort(byAt);
   const tierA = out.filter(a => a.at <= near).concat(reps.filter(a => a.at <= near)).sort(byAt);
   const tierB = out.filter(a => a.at > near), tierC = reps.filter(a => a.at > near && a.at <= repEnd);
   const pick = tierA.slice(0, CAP), takeB = tierB.slice(0, Math.max(0, CAP - pick.length));
@@ -299,7 +306,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
@@ -378,7 +385,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words);
+patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words, ...v37);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;
