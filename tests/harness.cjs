@@ -52,7 +52,18 @@ async function openApp({ now = NOW, data = null, perms = null, speech = true, so
       // keyboard: 위젯 ✎ 메모로 열 때 키보드 올리기(시험판 41) — 부른 횟수를 window.__kb에
       BxWidget: { update: async x => { window.__wd = x.data; return {}; }, consumeLaunch: async () => ({}), placed: async () => ({ list: 0, now: 0, canPin: true }), pin: async () => ({ asked: true }),
         keyboard: async () => { window.__kb = (window.__kb || 0) + 1; return {}; },
-        addListener: (ev, cb) => { (window.__wl = window.__wl || {})[ev] = cb; return { remove() {} }; } }
+        addListener: (ev, cb) => { (window.__wl = window.__wl || {})[ev] = cb; return { remove() {} }; } },
+      // 일정 첨부(시험판 42): 부른 것은 window.__attCalls, 고른 결과는 window.__attNext(차례로 꺼냄), 앱 폴더 파일 목록은 window.__attFiles
+      BxAttach: {
+        info: async () => ({ base: '/data/user/0/kr.boxworks.app/files', max: 10 }),
+        pickImages: async x => { (window.__attCalls = window.__attCalls || []).push(['pickImages', x]); return (window.__attNext || []).shift() || { files: [] }; },
+        takePhoto: async x => { (window.__attCalls = window.__attCalls || []).push(['takePhoto', x]); return (window.__attNext || []).shift() || { files: [] }; },
+        pickFiles: async x => { (window.__attCalls = window.__attCalls || []).push(['pickFiles', x]); return (window.__attNext || []).shift() || { files: [] }; },
+        open: async x => { (window.__attCalls = window.__attCalls || []).push(['open', x]); return {}; },
+        list: async () => ({ files: window.__attFiles || [] }),
+        remove: async x => { (window.__attCalls = window.__attCalls || []).push(['remove', x]); return { removed: ((x && x.paths) || []).length }; },
+        zip: async x => { (window.__attCalls = window.__attCalls || []).push(['zip', x]); return { uri: 'file:///cache/' + x.name, size: 1000, files: x.files.length }; }
+      }
     };
     // 배경 소리(시험판 33): 부른 것을 window.__bg에 남기고, 휴대폰이 알려 주는 'state'는 window.__bgL로 흉내 낸다
     if (sound) {
@@ -73,7 +84,7 @@ async function openApp({ now = NOW, data = null, perms = null, speech = true, so
         addListener: () => ({ remove() {} })
       };
     }
-    window.Capacitor = { isNativePlatform: () => true, Plugins: plugins };
+    window.Capacitor = { isNativePlatform: () => true, Plugins: plugins, convertFileSrc: f => String(f).replace('file://', 'https://localhost/_capacitor_file_') };
     // 자료는 이 창에서 처음 열 때 한 번만 넣는다(다시 불러와도 앱이 저장한 것을 그대로 쓰게)
     if (data && !sessionStorage.getItem('__seeded')) {
       localStorage.setItem('bx:data', JSON.stringify(data));

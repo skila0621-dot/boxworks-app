@@ -2,4 +2,6 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-path name="my_images" path="." />
     <cache-path name="my_cache_images" path="." />
+    <!-- 일정 첨부(시험판 42): 다른 앱으로 열기 -->
+    <files-path name="bx_attach" path="attach/" />
 </paths>

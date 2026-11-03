@@ -3,6 +3,8 @@
 
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/bx_data_extraction"
+        android:fullBackupContent="@xml/bx_backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"

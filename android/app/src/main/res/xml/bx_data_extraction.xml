@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 안드로이드 12 이상 자동 백업 범위(시험판 42). 첨부 폴더(files/attach)는 구글 클라우드 백업에서 뺀다:
+     앱 하나의 클라우드 백업은 25MB까지이고, 넘으면 일정까지 통째로 백업되지 않는다. 사진 몇 장이면 넘는다.
+     휴대폰끼리 옮기기(기기 간 전송)에는 그대로 들어간다. 첨부까지 옮기려면 앱의 백업 파일(zip)을 쓴다 -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="attach/" />
+    </cloud-backup>
+</data-extraction-rules>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 안드로이드 11 이하 자동 백업 범위(시험판 42). bx_data_extraction.xml과 같은 이유로 첨부 폴더를 뺀다 -->
+<full-backup-content>
+    <exclude domain="file" path="attach/" />
+</full-backup-content>

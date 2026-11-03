@@ -144,7 +144,8 @@ function bxMemoOpen(id){
 // 일정 창에서 '일정으로 만들기'로 만든 일정을 저장하면 메모에 그 일정을 적어 둔다
 const bxSave41 = saveEdit;
 saveEdit = function(){
-  if (window.BX_APP && F && F.mode === 'new' && bxMemoOn()) {
+  // 사진 · 파일을 붙였으면(시험판 42) 메모가 아니라 일정으로 저장한다(메모에는 첨부가 없음)
+  if (window.BX_APP && F && F.mode === 'new' && bxMemoOn() && !(F.att && F.att.length)) {
     // '메모 …'로 시작하면 그날 메모로(새 일정 창 · 위젯 말하기)
     const m = BX_MM_RE.exec(F.title || '');
     if (m) {
@@ -163,7 +164,7 @@ saveEdit = function(){
 const bxHint41 = drawFHint;
 drawFHint = function(){
   const r = bxHint41.apply(this, arguments);
-  if (window.BX_APP && F && F.mode === 'new' && bxMemoOn()) {
+  if (window.BX_APP && F && F.mode === 'new' && bxMemoOn() && !(F.att && F.att.length)) {
     const m = BX_MM_RE.exec(F.title || ''), el = document.getElementById('f-hint');
     if (m && el && F.title.slice(m[0].length).trim()) el.innerHTML = '<div class="hint bx-mm-hint">' + ICON.check + '<span><b>메모로 넣어요</b> · ' + esc(relDay(isDate(F.date) ? F.date : M.today, ymd(new Date()))) + ' · ‘' + esc(F.title.slice(m[0].length).trim()) + '’</span></div>';
   }
