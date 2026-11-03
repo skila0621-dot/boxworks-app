@@ -29,15 +29,17 @@ function bxCalHead(){
   const h1 = ph.querySelector('.ph-t h1'), p = ph.querySelector('.ph-t p'), nav = ph.querySelector('.ph-nav'); if (!h1 || !nav) return;
   const bs = nav.querySelectorAll('button'); if (bs.length < 3) return;
   const prev = bs[0], pill = bs[1], next = bs[bs.length - 1];
-  const top = document.createElement('div'); top.className = 'bx-ch-top';
-  const mode = document.querySelector('.screen .tt-mode'); if (mode) top.appendChild(mode);
-  if (pill.getAttribute('aria-pressed') !== 'true') { pill.classList.add('bx-ch-today'); pill.textContent = '오늘'; top.appendChild(pill); }
+  // 시험판 43(대표 결정 11/4 0:55): 위의 월간|주간 줄을 없애고(왼쪽 아래 일 · 주 · 월) 캘린더를 위로 당긴다.
+  // '오늘'(다른 달 · 주를 볼 때)은 '‹ 11월 ›' 줄 오른쪽 끝에
+  const mode = document.querySelector('.screen .tt-mode');
   prev.setAttribute('aria-label', S.view === 'week' ? '지난주' : '지난달'); next.setAttribute('aria-label', S.view === 'week' ? '다음 주' : '다음 달');
   const mid = document.createElement('div'); mid.className = 'bx-ch-mid'; mid.append(prev, h1, next);
-  ph.textContent = ''; ph.classList.add('bx-ch'); ph.append(top, mid); if (p) ph.append(p);
+  if (pill.getAttribute('aria-pressed') !== 'true') { pill.classList.add('bx-ch-today'); pill.textContent = '오늘'; mid.appendChild(pill); }
+  ph.textContent = ''; ph.classList.add('bx-ch'); ph.append(mid); if (p) ph.append(p);
   // 박스웍스 · 휴대폰 캘린더 표시는 달 넘기기 · 개수 줄 아래(대표 요청 11/3, 시험판 35). 종류가 많아지면 옆으로 밀어 본다
   // 시험판 39: 그 자리에 캘린더 칩 줄([전체] [캘린더…] [＋])
-  const lg = top.querySelector('.bx-cchips, .bx-cal-lg'); if (lg) ph.append(lg);
+  const lg = mode && mode.querySelector('.bx-cchips, .bx-cal-lg'); if (lg) ph.append(lg);
+  if (mode) mode.remove();
 }
 
 /* 받은 글로 새 일정(시험판 35, 공유의 첫걸음 · 결정 기록 D-12). 카톡에서 약속 메시지를 '공유' → '박스웍스 일정으로'.

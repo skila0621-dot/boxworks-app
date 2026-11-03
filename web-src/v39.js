@@ -68,7 +68,7 @@ function bxCalHome(id){
 function bxHomeOk(it){ return !it || bxCalHome(it.categoryId) || isLate(it); }
 function bxHomeItems(list){ return list.filter(bxHomeOk); }
 function bxCalOk(it){ return !bxCalSel || (it.categoryId || '') === bxCalSel; }
-function bxCalFilter(list){ return bxCalSel && (S.view === 'month' || S.view === 'week') ? list.filter(bxCalOk) : list; }
+function bxCalFilter(list){ return bxCalSel && (S.view === 'month' || S.view === 'week' || S.view === 'day') ? list.filter(bxCalOk) : list; }
 // 읽고 있는 휴대폰 캘린더(칩 · 캘린더 목록). 고른 캘린더 목록이 있으면 그것, 없으면 읽은 일정에서
 function bxPcCals(){
   if (typeof pcCfg !== 'function' || !pcCfg().on) return [];
@@ -80,7 +80,7 @@ function bxPcCals(){
 function bxCalName(id){ const c = M.catMap.get(id); if (c) return c.name; const p = bxPcCals().find(x => x.id === id); return p ? p.name : ''; }
 // 새 일정의 캘린더: 캘린더 화면에서 칩을 골라 두었으면 그 캘린더, 아니면 '새 일정의 기본', 그것도 없으면 캘린더 없음(전과 같음)
 function bxDefCal(){
-  if (bxCalSel && M.catMap.has(bxCalSel) && (S.view === 'month' || S.view === 'week')) return bxCalSel;
+  if (bxCalSel && M.catMap.has(bxCalSel) && (S.view === 'month' || S.view === 'week' || S.view === 'day')) return bxCalSel;
   const d = M.settings.defCal; return d && M.catMap.has(d) ? d : null;
 }
 
@@ -96,7 +96,8 @@ function bxBarHtml(g){
   return '<span class="c-bar' + (g.head ? ' h' : '') + (g.tail ? ' t' : '') + (it.pc ? ' pc' : '') + (it.done ? ' done' : '') + '" style="--c:' + (it.done ? 'var(--done)' : bxItemColor(it)) + ';--n:' + n + ';--on:' + (it.done ? '#fff' : bxInkOn(bxItemHex(it))) + '" data-item="' + esc(it.id) + '"><span>' + (g.head ? '' : '↳ ') + (esc(it.title) || '(제목 없음)') + '</span></span>';
 }
 function bxMonthCellsHtml(y, m){
-  const days = monthCells(y, m), cmax = window.innerWidth < 720 ? 2 : 3, out = [];
+  // 시험판 43: 칸 높이에 맞춰 2~4줄(web-src/v43.js bxCalFit이 잰 값). 넓은 화면은 3줄
+  const days = monthCells(y, m), cmax = window.innerWidth < 720 ? (typeof bxCalLanes === 'number' && bxCalLanes >= 2 ? bxCalLanes : 2) : 3, out = [];
   for (let w = 0; w < days.length; w += 7) {
     const wk = days.slice(w, w + 7).map(d => ymd(d)), w0 = wk[0], w6 = wk[6], seen = new Set(), segs = [];
     wk.forEach((ds, col) => bxCalFilter(dayItems(ds)).forEach(it => {

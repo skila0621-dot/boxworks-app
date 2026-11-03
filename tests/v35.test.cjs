@@ -81,7 +81,7 @@ module.exports = async function () {
     c.ok(m && !m.inTop && m.below && m.ox === 'auto', '월간: 캘린더 칩 줄이 달 넘기기 · 개수 줄 아래(시험판 39, 전의 박스웍스 · 휴대폰 캘린더 표시 자리) ' + JSON.stringify(m));
     const sc = await p.evaluate(() => { const lg = document.querySelector('.page-head.bx-ch > .bx-cchips'); for (let i = 0; i < 8; i++) lg.insertAdjacentHTML('beforeend', '<button type="button" class="bx-cchip pc"><span>공유 캘린더 ' + i + '</span></button>'); lg.scrollLeft = 2000; return [lg.scrollWidth > lg.clientWidth + 20, lg.scrollLeft > 0, Math.round(lg.getBoundingClientRect().height)]; });
     c.ok(sc[0] && sc[1] && sc[2] < 50, '종류가 많으면 한 줄로 옆으로 밀어 봄(칩 34px 한 줄) ' + JSON.stringify(sc));
-    await p.click('[data-act="tt-cal"][data-to="week"]'); await p.waitForTimeout(700);
+    await p.click('#bx-vsw [data-bxvsw="week"]'); await p.waitForTimeout(700);
     const w = await where();
     c.ok(w && !w.inTop && w.below, '주간도 같은 자리 ' + JSON.stringify(w));
     c.eq(app.errors, [], '화면 오류(캘린더 표시)');

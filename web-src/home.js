@@ -91,6 +91,7 @@ document.addEventListener('touchstart', ev => {
   if (SH) { if (t.closest('#sheet-root .sheet') && $('#sheet-root [data-act="day-add"]')) kind = 'day'; }
   else if (S.view === 'month' && t.closest('.screen.month')) kind = 'month';
   else if (S.view === 'week' && t.closest('.screen.week')) kind = 'week';
+  else if (S.view === 'day' && t.closest('.screen.day')) kind = 'dayv';
   else if (S.view === 'today' && t.closest('.hcal-sec')) kind = 'hcal';
   if (kind) bxSw = {kind, x: ev.touches[0].clientX, y: ev.touches[0].clientY, t: Date.now()};
 }, {passive: true});
@@ -106,10 +107,10 @@ document.addEventListener('touchend', ev => {
     bxSlide($('#sheet-b'), d);
     return;
   }
-  const sel = {month: '.screen .page-head [data-act="month-nav"][data-d="' + d + '"]', week: '.screen .page-head [data-act="week-nav"][data-d="' + d + '"]', hcal: '.hcal-sec [data-act="hcal-nav"][data-d="' + d + '"]'}[s.kind];
+  const sel = {month: '.screen .page-head [data-act="month-nav"][data-d="' + d + '"]', week: '.screen .page-head [data-act="week-nav"][data-d="' + d + '"]', dayv: '.screen .page-head [data-act="bx-dayv-nav"][data-d="' + d + '"]', hcal: '.hcal-sec [data-act="hcal-nav"][data-d="' + d + '"]'}[s.kind];
   const b = document.querySelector(sel); if (!b) return;
   b.click();
-  bxSlide(document.querySelector(s.kind === 'month' ? '.screen.month .month-wrap' : s.kind === 'week' ? '#screen' : '.hcal-sec .hcal'), d);
+  bxSlide(document.querySelector(s.kind === 'month' ? '.screen.month .month-wrap' : s.kind === 'week' || s.kind === 'dayv' ? '#screen' : '.hcal-sec .hcal'), d);
 }, {passive: true});
 
 /* ---------- 홈 개편(대표 요청 2026-10-31) ----------
@@ -236,9 +237,9 @@ document.addEventListener('click', ev => {
 // 새 일정 + 단추: 일정을 넣는 화면(홈·캘린더)에서만 보인다. 시간표·루틴에는 각자 넣는 칸이 있다
 function bxFabSync(){
   const fab = document.querySelector('.bx-fab'); if (!fab) return;
-  const on = S.view === 'today' || S.view === 'month' || S.view === 'week';
+  const on = S.view === 'today' || S.view === 'month' || S.view === 'week' || S.view === 'day';
   document.documentElement.classList.toggle('bx-fab-on', on);
-  const ds = S.view === 'today' ? (S.homeDay ? homeViewDate() : '') : S.view === 'month' || S.view === 'week' ? (S.selDate || '') : '';
+  const ds = S.view === 'today' ? (S.homeDay ? homeViewDate() : '') : S.view === 'month' || S.view === 'week' || S.view === 'day' ? (S.selDate || '') : '';
   if (ds) fab.dataset.date = ds; else delete fab.dataset.date;
 }
 // + 단추를 꾹 누르면 새 일정 창을 열고 바로 마이크를 켠다(말로 넣기)

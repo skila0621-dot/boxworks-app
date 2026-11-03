@@ -100,9 +100,10 @@ function ttParse(text){
 function bxCalBar(cur){
   // 휴대폰 캘린더를 함께 볼 때: 박스웍스 일정은 색, 휴대폰 캘린더 일정은 회색 테두리(전체 흐름 와이어프레임 14)
   const pc = typeof pcCfg === 'function' && pcCfg().on;
-  return '<div class="tt-mode"><div class="seg" role="group" aria-label="캘린더 보기" style="width:200px">' +
+  // 시험판 43(대표 결정 11/4 0:55 '가'): 앱에서는 위의 월간|주간을 빼고 왼쪽 아래 일 · 주 · 월 단추로(web-src/v43.js)
+  return '<div class="tt-mode">' + (window.BX_APP ? '' : '<div class="seg" role="group" aria-label="캘린더 보기" style="width:200px">' +
     '<button type="button" data-act="tt-cal" data-to="month" aria-pressed="' + (cur === 'month') + '">월간</button>' +
-    '<button type="button" data-act="tt-cal" data-to="week" aria-pressed="' + (cur === 'week') + '">주간</button></div>' +
+    '<button type="button" data-act="tt-cal" data-to="week" aria-pressed="' + (cur === 'week') + '">주간</button></div>') +
     // 시험판 39: 박스웍스 · 휴대폰 캘린더 표시 자리에 캘린더 칩 줄(누르면 그 캘린더만, 휴대폰 캘린더 칩은 테두리)
     (typeof bxCalChipsHtml === 'function' ? bxCalChipsHtml() : pc ? '<span class="bx-cal-lg"><span><i class="bx"></i>' + esc(window.BX_NAME || '박스웍스') + '</span><span><i class="pc"></i>휴대폰 캘린더</span></span>' : '') + '</div>';
 }

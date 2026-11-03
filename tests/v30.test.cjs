@@ -148,11 +148,11 @@ module.exports = async function () {
     await p.waitForTimeout(600);
     const ds = await p.evaluate(() => ({ sheet: (document.querySelector('#sheet-title') || {}).textContent || '', foot: Array.from(document.querySelectorAll('#sheet-root #sheet-f button')).map(b => b.textContent.trim()) }));
     c.ok(/11월 3일/.test(ds.sheet) && ds.foot.length === 1 && /일정 추가/.test(ds.foot[0]), "월간: 날짜를 누르면 그날 창, 아래는 '이날 일정 넣기' 하나 " + JSON.stringify(ds));
-    // 월간|주간 칩은 가운데(대표 의견 11/2)
+    // 시험판 43(대표 결정 11/4 0:55): 월간|주간은 위에서 빠지고 왼쪽 아래 일 · 주 · 월
     await p.evaluate(() => { const c = document.querySelector('#sheet-root [data-act="sheet-close"]'); if (c) c.click(); }); await p.waitForTimeout(300);
-    const sw = await p.evaluate(() => { const r = document.querySelector('.bx-ch-top .seg').getBoundingClientRect(); return Math.round(r.left + r.width / 2 - innerWidth / 2); });
-    c.ok(Math.abs(sw) <= 2, '월간|주간 칩이 가운데 ' + sw);
-    await p.locator('button', { hasText: '주간' }).filter({ visible: true }).first().click(); await p.waitForTimeout(600);
+    const sw = await p.evaluate(() => { const v = document.getElementById('bx-vsw'); const r = v && v.getBoundingClientRect(); return { top: !!document.querySelector('.bx-ch-top'), left: r ? Math.round(r.left) : -1 }; });
+    c.ok(!sw.top && sw.left >= 0 && sw.left < 40, '월간|주간 줄 없음 · 왼쪽 아래 일 · 주 · 월 ' + JSON.stringify(sw));
+    await p.click('#bx-vsw [data-bxvsw="week"]'); await p.waitForTimeout(600);
     const wk = await p.evaluate(() => Array.from(document.querySelectorAll('.day-g')).map(e => [e.id.slice(-2), e.classList.contains('bx-wk-empty'), Math.round(e.getBoundingClientRect().height)]));
     const empty = wk.filter(x => x[1]);
     c.ok(empty.length >= 3 && empty.every(x => x[2] <= 52), '일정 없는 날은 한 줄 ' + JSON.stringify(wk));

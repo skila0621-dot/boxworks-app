@@ -41,6 +41,18 @@ npm run sync
 cd android && ./gradlew assembleDebug
 ```
 
+## 첨부 · 백업 (시험판 42)
+
+- 일정 첨부는 `BxAttachPlugin`(사진 선택기 · 카메라 앱 · 파일 창, 권한 없음)이 `files/attach/`에 복사한다. 사진은 긴 변 2048px JPEG + 작은 그림(`_t.jpg`). 화면 코드는 `web-src/v42.js`
+- 백업 파일은 첨부가 있으면 zip(`boxworks.json` + `attach/…`, 압축 없이), 없으면 json. 불러오기는 둘 다
+- 구글 자동 백업은 `res/xml/bx_data_extraction.xml`(12 이상) · `bx_backup_rules.xml`(11 이하)에서 `attach/`를 뺀다. 앱 하나 25MB를 넘으면 일정까지 백업이 멈추기 때문
+
+## 캘린더 보기 (시험판 43)
+
+- 왼쪽 아래 작은 '일 · 주 · 월'(`#bx-vsw`)이 보기를 바꾼다. 위의 월간 · 주간 줄은 앱에서 뺐다(웹은 그대로). 코드는 `web-src/v43.js`, 화면 길은 `scripts/patches-v43.mjs`
+- `bxCalFit`이 화면 높이에 맞춰 날짜 칸 높이(`--bx-cell-h`)와 칸마다 일정 줄 수(2~4)를 정한다
+- '일'은 캘린더 안 하루 보기(`bxDayViewHtml`, `S.view = 'day'`). 휴대폰 뒤로 단추는 일 → 월
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.
