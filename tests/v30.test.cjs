@@ -95,6 +95,8 @@ module.exports = async function () {
     const p = app.page;
     await p.click('[data-act="more"]'); await p.waitForTimeout(400);
     await p.locator('#sheet-root button', { hasText: '설정' }).first().click(); await p.waitForTimeout(600);
+    // 시험판 32: 설정은 묶음 목록 → 알림 묶음으로 들어간다
+    await p.click('[data-bxset="alarm"]'); await p.waitForTimeout(500);
     await p.evaluate(() => document.querySelector('[data-bxrep="1"]').scrollIntoView({ block: 'center' })); await p.waitForTimeout(200);
     const seg = await rect(p, '[data-bxrep="1"]');
     await p.click('[data-bxrep="1"]'); await p.waitForTimeout(500);

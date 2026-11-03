@@ -627,6 +627,11 @@
       clearTimeout(timer);
       timer = setTimeout(syncAlarms, 700);
     };
+    // 앱 안에서 루틴 단계를 처리하면, 휴대폰을 쓰는 중 울리던 알람 소리도 멈춘다(시험판 32, 휴대폰 쪽 AlarmRingService)
+    document.addEventListener('click', function (ev) {
+      var b = ev.target && ev.target.closest && ev.target.closest('[data-act="rt-ok"],[data-act="rt-done"],[data-act="rt-skip"],[data-act="bx-rt-alldone"]');
+      if (b && alarm.ringOff) alarm.ringOff().catch(function () {});
+    }, true);
     // 휴대폰 알람에서 '확인'한 루틴 단계를 앱에 '했어요'로 옮긴다(켤 때·돌아올 때)
     var pullConfirmed = function () {
       if (!alarm.confirmed) return;

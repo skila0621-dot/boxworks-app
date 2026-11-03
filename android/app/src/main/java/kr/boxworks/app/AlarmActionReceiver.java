@@ -18,6 +18,13 @@ public class AlarmActionReceiver extends BroadcastReceiver {
             if (AlarmStore.unlocked(context)) RoutineOngoing.hide(context);
             return;
         }
+        // 휴대폰을 쓰는 중 울리던 알람: 알림을 밀어 지우면 소리만 멈춘다(확인한 것은 아님)
+        if ("ring-off".equals(act)) {
+            AlarmRingService.stop(context);
+            return;
+        }
+        // '확인'·'5분 뒤'를 누르면 앱이 직접 울리던 소리도 멈춘다
+        AlarmRingService.stop(context);
         JSONObject o = AlarmNotify.fromIntent(intent);
         AlarmStore.confirm(context, o, !"snooze".equals(act));
         if ("snooze".equals(act)) AlarmNotify.snooze(context, o);

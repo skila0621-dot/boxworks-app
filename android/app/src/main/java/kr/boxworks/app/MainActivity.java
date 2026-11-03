@@ -20,4 +20,11 @@ public class MainActivity extends BridgeActivity {
         } catch (Exception ignored) {
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // 휴대폰을 쓰는 중 울리던 알람의 알림을 눌러 앱을 열었으면 소리는 멈춘다(알림은 '확인' 전까지 남는다)
+        AlarmRingService.quietNow(this);
+    }
 }

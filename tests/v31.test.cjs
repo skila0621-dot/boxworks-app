@@ -82,8 +82,15 @@ module.exports = async function () {
     const p = app.page;
     await p.click('[data-act="more"]'); await p.waitForTimeout(400);
     await p.locator('#sheet-root button', { hasText: '설정' }).first().click(); await p.waitForTimeout(600);
-    const segs = await p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .seg')).map(s => Array.from(s.querySelectorAll('button')).map(b => b.textContent.trim()).join('|')).filter(t => t === '끄기|켜기'));
+    // 시험판 32: 설정은 묶음 목록. 묶음마다 들어가 '끄기 | 켜기' 두 칸이 없는지 본다
+    const segs = [];
+    for (const k of await p.evaluate(() => Array.from(document.querySelectorAll('[data-bxset]')).map(b => b.dataset.bxset).filter(Boolean))) {
+      await p.click('[data-bxset="' + k + '"]'); await p.waitForTimeout(300);
+      segs.push(...await p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .seg')).map(s => Array.from(s.querySelectorAll('button')).map(b => b.textContent.trim()).join('|')).filter(t => t === '끄기|켜기')));
+      await p.click('[data-bxset=""]'); await p.waitForTimeout(300);
+    }
     c.eq(segs, [], "설정에 '끄기 | 켜기' 두 칸 단추가 남지 않음");
+    await p.click('[data-bxset="alarm"]'); await p.waitForTimeout(400);
     const sw = await p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .set-row > .tog[role="switch"]')).map(b => b.getAttribute('aria-label')));
     c.ok(['아침에 오늘 일정 받기', '일정 시작 전 알림', '시간 없는 일정 알림 시각'].every(x => sw.includes(x)), '설정의 켜고 끄기는 스위치 ' + JSON.stringify(sw));
     const pre = () => p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].defaultRemind);

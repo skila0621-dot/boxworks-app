@@ -3,20 +3,24 @@
 #  - 네 가지: clear 맑은 볼, deep 깊은 볼, crystal 크리스탈 볼, chime 작은 종
 #  - 울림을 40~60초로 길게(바탕음 t60 36~76초). 높은 배음은 빨리 줄여 맑게, 친 순간 잡음은 줄임
 #  - 한 번 치기(시작·중간 종) + 세 번 치기(끝, 4초 간격)
-# 쓰는 법: python3 make-bowl.py <출력 폴더>  → bx_bowl_<종류>.wav, bx_bowl_<종류>_end.wav
+# 3판(2026-11-03, 대표 지적 "깊은 볼 말고는 너무 높은 음역의 날카로운 소리라 불편하다, 덜 날카롭게"):
+#  - 깊은 볼(146.8Hz)은 그대로. 나머지 셋을 깊은 볼 쪽 음역으로 낮춤: 맑은 볼 330→196Hz, 크리스탈 볼 523→262Hz, 작은 종 880→294Hz
+#  - 높은 배음을 더 줄이고, 치는 순간을 부드럽게(맑은 볼·작은 종 30ms, 크리스탈 볼은 문질러 부풀듯 80ms)
+#  - 높은 소리일수록 같은 세기에도 크게 들리므로, 귀에 들리는 세기(A 가중) 차이를 반쯤 줄여 깊은 볼 쪽으로 맞춘다
+# 쓰는 법: python3 make-bowl.py <출력 폴더> [종류,종류]  → bx_bowl_<종류>.wav, bx_bowl_<종류>_end.wav
 import numpy as np, scipy.io.wavfile as wf, sys, os
 SR = 44100
 
 # 종류마다: 바탕 높이(Hz), 배음(비율, 세기, t60초), 맴돌이(빠르기 Hz, 깊이), 길이(초), 친 소리 세기
 KINDS = {
-    # 맑은 볼: 중간 높이, 배음은 적당히, 맴돌이 부드럽게
-    'clear':   dict(f0=330.0, parts=[(1.0, 1.0, 62.0), (2.76, 0.30, 30.0), (5.40, 0.08, 12.0), (8.93, 0.025, 5.0)], beat=(0.75, 0.16), dur=55.0, click=0.03),
-    # 깊은 볼: 낮고 따뜻하게, 맴돌이가 조금 더 깊다
+    # 맑은 볼(3판): 깊은 볼과 크리스탈 볼 사이 높이(G3). 배음은 둘만 남기고 일찍 줄인다
+    'clear':   dict(f0=196.0, parts=[(1.0, 1.0, 64.0), (2.76, 0.24, 26.0), (5.40, 0.04, 9.0)], beat=(0.62, 0.18), dur=55.0, click=0.015, attack=0.030),
+    # 깊은 볼: 낮고 따뜻하게, 맴돌이가 조금 더 깊다(2판 그대로, 대표가 편하다고 한 소리)
     'deep':    dict(f0=146.8, parts=[(1.0, 1.0, 72.0), (2.71, 0.45, 38.0), (5.18, 0.16, 16.0), (8.43, 0.05, 7.0)], beat=(0.48, 0.26), dur=60.0, click=0.035),
-    # 크리스탈 볼: 거의 순한 음 하나가 아주 길게, 맴돌이는 아주 얕게
-    'crystal': dict(f0=523.3, parts=[(1.0, 1.0, 76.0), (2.0, 0.05, 22.0), (3.0, 0.015, 9.0)], beat=(0.32, 0.07), dur=60.0, click=0.012),
-    # 작은 종: 높고 또렷하게, 조금 짧게
-    'chime':   dict(f0=880.0, parts=[(1.0, 1.0, 36.0), (2.0, 0.20, 16.0), (2.76, 0.14, 9.0), (5.40, 0.04, 3.0)], beat=(1.1, 0.12), dur=40.0, click=0.02),
+    # 크리스탈 볼(3판): 거의 순한 음 하나(C4, 2판보다 한 옥타브 아래)가 아주 길게, 문질러 울리듯 천천히 부푼다
+    'crystal': dict(f0=261.6, parts=[(1.0, 1.0, 76.0), (2.0, 0.03, 20.0), (3.0, 0.008, 8.0)], beat=(0.30, 0.08), dur=60.0, click=0.0, attack=0.080),
+    # 작은 종(3판): 볼보다 조금 높지만(D4) 또렷한 쇳소리는 줄였다. 조금 짧게
+    'chime':   dict(f0=293.7, parts=[(1.0, 1.0, 34.0), (2.0, 0.10, 12.0), (2.76, 0.05, 6.0)], beat=(0.9, 0.12), dur=40.0, click=0.01, attack=0.030),
 }
 
 def strike(k, dur=None, amp=1.0, seed=1):
@@ -37,7 +41,7 @@ def strike(k, dur=None, amp=1.0, seed=1):
     click = rng.standard_normal(n)
     click = np.convolve(click, np.ones(24) / 24, mode='same') * np.exp(-np.arange(n) / (SR * 0.004)) * k['click'] * 6
     y[:n] += click
-    attack = np.minimum(1.0, t / 0.012)
+    attack = np.minimum(1.0, t / k.get('attack', 0.012))
     # 끝 3초는 천천히 닫는다(뚝 끊기지 않게)
     tail = int(SR * 3.0)
     y[-tail:] *= np.linspace(1.0, 0.0, tail) ** 2
@@ -46,20 +50,40 @@ def strike(k, dur=None, amp=1.0, seed=1):
 def norm(y, peak=0.78):
     return y / (np.max(np.abs(y)) + 1e-9) * peak
 
+def a_weight(f):
+    # IEC 61672 A 가중(귀에 들리는 세기). 주파수(Hz) → 배율
+    f2 = np.maximum(f, 1e-3) ** 2
+    ra = (12194.0 ** 2 * f2 ** 2) / ((f2 + 20.6 ** 2) * np.sqrt((f2 + 107.7 ** 2) * (f2 + 737.9 ** 2)) * (f2 + 12194.0 ** 2))
+    return ra / 0.7943  # 1kHz에서 1
+
+def heard(y, sec=5.0):
+    seg = y[:int(SR * sec)]
+    sp = np.abs(np.fft.rfft(seg)) ** 2
+    f = np.fft.rfftfreq(len(seg), 1 / SR)
+    return np.sqrt((sp * a_weight(f) ** 2).sum())
+
 def write(path, y):
     wf.write(path, SR, (np.clip(y, -1, 1) * 32767).astype(np.int16))
 
 out = sys.argv[1] if len(sys.argv) > 1 else '.'
+only = sys.argv[2].split(',') if len(sys.argv) > 2 else None
 os.makedirs(out, exist_ok=True)
+ref = heard(norm(strike(KINDS['deep'], seed=1)))
 for name, k in KINDS.items():
+    if only and name not in only:
+        continue
     one = norm(strike(k, seed=1))
+    # 높은 소리가 더 크게 들리는 만큼을 반쯤 줄인다(A 가중은 작은 소리 기준이라 다 맞추면 알람 크기에서 너무 작게 들림)
+    gain = 1.0 if name == 'deep' else min(1.0, ref / (heard(one) + 1e-9)) ** 0.5
+    one = one * gain
     write(os.path.join(out, 'bx_bowl_%s.wav' % name), one)
     gap = 4.0
     total = k['dur'] + 2 * gap
     three = np.zeros(int(SR * total))
     for i in range(3):
         at = int(SR * gap * i)
-        s = strike(k, dur=total - gap * i, amp=1.0 - 0.1 * i, seed=3 + i)
-        three[at:at + len(s)] += s[:len(three) - at]
-    write(os.path.join(out, 'bx_bowl_%s_end.wav' % name), norm(three))
+        s3 = strike(k, dur=total - gap * i, amp=1.0 - 0.1 * i, seed=3 + i)
+        three[at:at + len(s3)] += s3[:len(three) - at]
+    write(os.path.join(out, 'bx_bowl_%s_end.wav' % name), norm(three) * gain)
+    print(name, 'gain %.2f' % gain)
 print('ok')

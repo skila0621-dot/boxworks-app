@@ -52,7 +52,7 @@ function bxDrawRoutine(){
     '<div class="fgrid"><div class="fg-lr"><span class="fg-l">요일</span><span class="rdays-q"><button type="button" class="sec-link" data-rdays="wd">평일</button><button type="button" class="sec-link" data-rdays="all">매일</button></span></div><div class="rdays">' + days + '</div>' + bxHolRowHtml() + '</div>' +
     '<div class="fgrid"><span class="fg-l">기준</span>' + segHtml('data-rmode', [['arrive', '도착 시각에 맞추기'], ['start', '시작 시각부터']], R.mode, '시간 기준', 320) + '<div id="r-timebox">' + rtTimesHtml() + '</div></div>') +
     '<div class="fgrid"><div id="r-prev" class="rt-prev">' + rtPreviewHtml() + '</div></div>' +
-    '<div class="fgrid"><span class="fg-l">단계 <small>이름 · 걸리는 시간(분) · 할 일/기다리기</small></span><div id="r-steps">' + rtStepsHtml() + '</div><div><button type="button" class="btn sm" data-act="rs-add">' + ICON.plus + '단계 추가</button></div></div>' +
+    '<div class="fgrid"><span class="fg-l">단계 <small>이름 · 걸리는 시간(분) · 알람</small></span><p class="p small bx-rs-note">알람을 끄면 그 단계는 울리지 않고 시간만 지나가요. 세탁기 돌리기처럼 기다리는 단계에 써요.</p><div id="r-steps">' + rtStepsHtml() + '</div><div><button type="button" class="btn sm" data-act="rs-add">' + ICON.plus + '단계 추가</button></div></div>' +
     bxIconPickHtml() + (R.id ? '<div class="bx-rdel"><button type="button" class="bx-del-link" data-act="rt-del">이 루틴 지우기</button></div>' : ''),
     '<button type="button" class="btn grow primary" data-act="rt-save">저장</button>');
 }

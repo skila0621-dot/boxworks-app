@@ -43,6 +43,13 @@ public class BxAlarmPlugin extends Plugin {
         }
     }
 
+    /** 앱 안에서 루틴 단계를 '했어요'로 누르면, 휴대폰을 쓰는 중 울리던 알람 소리를 멈춘다(알림은 남는다) */
+    @PluginMethod
+    public void ringOff(PluginCall call) {
+        AlarmRingService.quietNow(getContext());
+        call.resolve();
+    }
+
     /** 몇 초 뒤 시험 알람을 울린다(설정 > 휴대폰 알람 시험). */
     @PluginMethod
     public void test(PluginCall call) {

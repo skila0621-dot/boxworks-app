@@ -205,9 +205,10 @@ document.addEventListener('click', ev => {
 
 /* 17. 홈 화면 위젯 두기: 홈의 안내 카드 대신 설정 › 화면의 한 줄(정리판 1번, 대표 결정 11/1). 위젯 두 가지를 보여 주고 고른 것을 놓는다 */
 const BX_WIDGETS = [['now', '지금 단계', '2×2 · 루틴 중 지금 할 단계와 출발까지 남은 시간'], ['list', '오늘 일정', '4×2 · 오늘 일정 네 줄과 시각']];
+const BX_WIDGET_ICON = '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.8"/></svg>';
 function bxWidgetRowHtml(){
   const w = window.BX_WPLACED || {}, n = (w.now ? 1 : 0) + (w.list ? 1 : 0);
-  return '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_HOME_ICON + '</span><span class="ml">홈 화면 위젯 두기</span><span class="mv">' + (n ? n + '개 놓음' : '') + ICON.chevR + '</span></button></div>';
+  return '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">홈 화면 위젯 두기</span><span class="mv">' + (n ? n + '개 놓음' : '') + ICON.chevR + '</span></button></div>';
 }
 function bxWidgetOpen(){
   openSheet({title: '홈 화면 위젯', draw: () => {
@@ -258,7 +259,12 @@ function bxFeatOpen(){
 }
 function bxFeatDockOk(k){ return !(k === 'routines' || k === 'tt' || k === 'med') || FEAT.mods[k] !== false; }
 function bxFeatDraw(){
-  const sw = (k, label) => '<div class="bx-ft-row"><span>' + label + '</span><button type="button" class="tog" role="switch" aria-checked="' + (FEAT.mods[k] !== false) + '" aria-label="' + label + ' 쓰기" data-bx-feat="' + k + '"><i></i></button></div>';
+  // 줄마다 무엇을 해 주는지 한 줄(대표 지적 11/3: '아침에 오늘 일정 받기'를 켰는데 어디서 무엇이 오는지 모름)
+  const desc = k => (BX_MODS.find(m => m[0] === k) || [])[2] || '';
+  const sw = (k, label) => '<div class="bx-ft-row"><span class="bx-ft-t"><b>' + label + '</b><small>' + esc(desc(k)) + '</small></span><button type="button" class="tog" role="switch" aria-checked="' + (FEAT.mods[k] !== false) + '" aria-label="' + label + ' 쓰기" data-bx-feat="' + k + '"><i></i></button></div>' +
+    // 아침 일정을 켜 두면: 언제 어디로 오는지, 지금 한 번 받아 보기, 시각 바꾸기
+    (k === 'report' && FEAT.mods.report !== false ? '<div class="bx-ft-more"><p class="p small">매일 아침 <b>' + esc(bxRepCfg().at) + '</b>에 오늘 일정이 휴대폰 알림창으로 와요. 아침 루틴이 있는 날은 첫 알람을 확인한 직후에 와요.</p>' +
+      '<div class="bx-ft-acts"><button type="button" class="btn sm" data-bxset="alarm">시각 바꾸기</button><button type="button" class="btn sm primary" data-act="bx-rep-try">지금 한 번 받아 보기</button></div></div>' : '');
   const lab = k => BX_DOCK_ALL[k].label;
   const chip = k => { const i = FEAT.dock.indexOf(k), ok = bxFeatDockOk(k);
     return ok ? '<button type="button" class="bx-ft-chip' + (i >= 0 ? ' on' : '') + '" aria-pressed="' + (i >= 0) + '" data-bx-fdock="' + k + '">' + (i >= 0 ? ICON.check : '') + lab(k) + '</button>'

@@ -298,7 +298,12 @@ final class AlarmNotify {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         boolean all = showAllOnLock(c);
-        NotificationCompat.Builder b = new NotificationCompat.Builder(c, all ? CHANNEL : CHANNEL_PRIVATE)
+        // 휴대폰을 쓰는 중이면(전체 화면 대신 위에서 내려오는 알림만 뜸) 소리는 AlarmRingService가 1분 동안 직접 울린다.
+        // 그때 알림은 소리 없는 채널로(채널 소리와 겹치지 않게)
+        boolean live = insist(c);
+        if (live) ensureLiveChannels(c);
+        String chId = live ? (all ? CHANNEL_LIVE_PUB : CHANNEL_LIVE) : (all ? CHANNEL : CHANNEL_PRIVATE);
+        NotificationCompat.Builder b = new NotificationCompat.Builder(c, chId)
             .setSmallIcon(R.drawable.ic_stat_bx)
             .setContentTitle(title)
             .setContentText(body)
@@ -313,6 +318,13 @@ final class AlarmNotify {
             .setTimeoutAfter("routine".equals(o.optString("kind")) ? 90 * 60 * 1000L : 3 * 3600 * 1000L)
             .addAction(0, "확인", actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+        if (live) {
+            // 위에서 내려오는 작은 알림이라도 눈에 띄게 파란 바탕(서비스 알림만 색을 입힐 수 있다, 대표 지적 11/3 '알람이 너무 작다').
+            // 알림을 밀어 지우면 소리도 멈춘다
+            b.setColorized(true)
+                .setColor(0xFF3555D8)
+                .setDeleteIntent(actionPi(c, "ring-off", o));
+        }
         if (!all) {
             // 잠금 화면에 대신 보이는 글: 루틴은 '씻기 · 출발까지 30분', 일정은 '일정 알림 · 잠금을 풀면 보여요'
             b.setPublicVersion(new NotificationCompat.Builder(c, CHANNEL_PRIVATE)
@@ -326,12 +338,37 @@ final class AlarmNotify {
         }
         Notification n = b.build();
         // 휴대폰을 쓰는 중이면 전체 화면 대신 위에서 내려오는 알림만 떠서 소리가 한 번으로 끝났다(문제점 점검 기술 3).
-        // 그때와 전체 화면을 쓸 수 없을 때는 확인하거나 알림창을 열 때까지 소리를 되풀이한다. 전체 화면이 뜰 때는 알람 화면이 직접 울린다
-        if (insist(c)) n.flags |= Notification.FLAG_INSISTENT;
+        // 알림 소리 되풀이(FLAG_INSISTENT)도 One UI 9에서는 한 번 짧게 울리고 끝나서(대표 확인 11/3, 수정·보완 목록 2번)
+        // 시계 앱처럼 서비스가 알람 소리를 직접 1분 동안 울린다. 서비스를 못 띄우면 그 안에서 되풀이 알림으로 물러선다.
+        // 전체 화면이 뜰 때는 알람 화면이 직접 울린다
+        if (live) {
+            AlarmRingService.start(c, notifId(id), o.optString("series", ""), n);
+            return;
+        }
         try {
             NotificationManagerCompat.from(c).notify(notifId(id), n);
         } catch (SecurityException ignored) {
             // 알림 권한이 꺼져 있으면 띄우지 못한다. 휴대폰 설정에서 다시 켤 수 있다.
+        }
+    }
+
+    /** 휴대폰을 쓰는 중 울리는 알람의 알림 채널. 소리는 AlarmRingService가 직접 내므로 채널은 소리·진동 없이 위에서 내려오기만 */
+    static final String CHANNEL_LIVE = "bx_alarm_live_p1";
+    static final String CHANNEL_LIVE_PUB = "bx_alarm_live1";
+
+    private static void ensureLiveChannels(Context c) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        NotificationManager nm = c.getSystemService(NotificationManager.class);
+        if (nm == null) return;
+        String[][] chs = {{CHANNEL_LIVE, "일정·루틴 알람 (휴대폰을 쓰는 중)"}, {CHANNEL_LIVE_PUB, "일정·루틴 알람 (휴대폰을 쓰는 중, 잠금 화면에 제목 표시)"}};
+        for (String[] x : chs) {
+            if (nm.getNotificationChannel(x[0]) != null) continue;
+            NotificationChannel ch = new NotificationChannel(x[0], x[1], NotificationManager.IMPORTANCE_HIGH);
+            ch.setDescription("휴대폰을 쓰는 중에 울리는 알람이에요. 소리는 앱이 1분 동안 직접 울려요");
+            ch.setSound(null, null);
+            ch.enableVibration(false);
+            ch.setLockscreenVisibility(CHANNEL_LIVE.equals(x[0]) ? Notification.VISIBILITY_PRIVATE : Notification.VISIBILITY_PUBLIC);
+            nm.createNotificationChannel(ch);
         }
     }
 

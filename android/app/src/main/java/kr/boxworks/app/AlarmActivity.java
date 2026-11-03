@@ -324,6 +324,8 @@ public class AlarmActivity extends Activity {
 
     private void startRinging() {
         stopRinging();
+        // 휴대폰을 쓰는 중 울리던 알람(AlarmRingService)이 있으면 이 화면이 넘겨받는다(소리가 겹치지 않게, 그 알림은 남긴다)
+        AlarmRingService.quietNow(this);
         try {
             Uri uri = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_ALARM);
             if (uri == null) uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
