@@ -50,10 +50,11 @@ module.exports = async function () {
     c.ok(sums.some(s => /^출근 준비평일\(공휴일 빼고\)/.test(s)) && sums.some(s => /^아침 약매일 ·/.test(s)), "루틴 목록: '평일(공휴일 빼고)' " + JSON.stringify(sums));
     // 고치기 창: 요일 바로 아래 스위치(처음엔 꺼짐), 켜면 바로 아래 안내, 저장된다
     await p.locator('.rt-item .rt-open', { hasText: '아침 약' }).first().click(); await p.waitForTimeout(600);
-    const s0 = await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-rhol]'), d = document.querySelector('#sheet-root .rdays'); if (!b || !d) return null; const rb = b.getBoundingClientRect(), rd = d.getBoundingClientRect(); return { on: b.getAttribute('aria-checked'), role: b.getAttribute('role'), gap: Math.round(rb.top - rd.bottom), note: document.querySelector('#sheet-root .bx-hol-note').hidden }; });
-    c.ok(s0 && s0.on === 'false' && s0.role === 'switch' && s0.gap >= 0 && s0.gap < 40 && s0.note, "고치기 창: 요일 바로 아래 '공휴일에는 쉬기' 스위치, 처음엔 꺼짐 " + JSON.stringify(s0));
+    // 시험판 45: 안내 한 줄은 스위치 줄 아래에 늘 보이고(삼성 설정 줄처럼), 켜면 글이 바뀐다(아래 줄이 움직이지 않게)
+    const s0 = await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-rhol]'), d = document.querySelector('#sheet-root .rdays'); if (!b || !d) return null; const rb = b.getBoundingClientRect(), rd = d.getBoundingClientRect(); return { on: b.getAttribute('aria-checked'), role: b.getAttribute('role'), gap: Math.round(rb.top - rd.bottom), note: document.getElementById('bx-rt45-hsum').textContent }; });
+    c.ok(s0 && s0.on === 'false' && s0.role === 'switch' && s0.gap >= 0 && s0.gap < 40 && s0.note === '공휴일에도 울려요', "고치기 창: 요일 바로 아래 '공휴일 제외' 스위치, 처음엔 꺼짐 " + JSON.stringify(s0));
     await p.click('#sheet-root [data-rhol]'); await p.waitForTimeout(300);
-    c.eq(await p.evaluate(() => [document.querySelector('#sheet-root [data-rhol]').getAttribute('aria-checked'), document.querySelector('#sheet-root .bx-hol-note').hidden]), ['true', false], '스위치를 켜면 바로 아래 안내 한 줄');
+    c.eq(await p.evaluate(() => [document.querySelector('#sheet-root [data-rhol]').getAttribute('aria-checked'), document.getElementById('bx-rt45-hsum').textContent]), ['true', '공휴일 · 대체공휴일에는 울리지 않아요'], '스위치를 켜면 줄 아래 안내 한 줄이 바뀜');
     await p.click('#sheet-root [data-act="rt-save"]'); await p.waitForTimeout(500);
     c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'rt_m') || [0, {}])[1].skipHol), true, '저장하면 루틴에 남음');
     // 앞의 알림('오늘은 … 해요')이 사라진 뒤에 나온다

@@ -120,21 +120,27 @@ module.exports = async function () {
     const p = app.page;
     await p.click('.dock [data-view="tt"]'); await p.waitForTimeout(600);
     await p.locator('button', { hasText: '수업 추가' }).filter({ visible: true }).first().click(); await p.waitForTimeout(500);
-    const pills = await p.evaluate(() => Array.from(document.querySelectorAll('.tt-pills > *')).map(e => e.textContent.trim()));
+    // 시험판 45: 알림은 줄을 누르면 페이지(삼성 방식)
+    await p.click('[data-bxtt45="rem"]'); await p.waitForTimeout(300);
+    const pills = await p.evaluate(() => Array.from(document.querySelectorAll('#bx-pg .tt-pills > *')).map(e => e.textContent.trim()));
     c.eq(pills, ['정시', '10분 전', '30분 전', '직접 입력'], '수업 알림: 셋 + 직접 입력');
-    const cb = await rect(p, '[data-act="tt-rem"][data-v="custom"]');
-    await p.click('[data-act="tt-rem"][data-v="custom"]'); await p.waitForTimeout(300);
+    const cb = await rect(p, '#bx-pg [data-act="tt-rem"][data-v="custom"]');
+    await p.click('#bx-pg [data-act="tt-rem"][data-v="custom"]'); await p.waitForTimeout(300);
     const inp = await rect(p, '#tt-rem-c');
     c.ok(inp && Math.abs(inp.y - cb.y) < 12 && inp.x > cb.x - 40, "'직접 입력' 자리에서 입력칸이 열림 " + JSON.stringify({ cb, inp }));
-    await p.fill('#tt-name', '통계학'); await p.fill('#tt-rem-c', '20');
+    await p.fill('#tt-rem-c', '20');
+    await p.click('#bx-pg [data-bxpg="done"]'); await p.waitForTimeout(250);
+    await p.fill('#tt-name', '통계학');
     if (await p.evaluate(() => !document.querySelector('[data-act="tt-day"][aria-pressed="true"]'))) await p.click('[data-act="tt-day"][data-d="2"]');
     await p.click('#sheet-root [data-act="tt-save"]'); await p.waitForTimeout(500);
     const tt = await p.evaluate(() => (window.BX_T.docs().find(([, d]) => d && d.type === 'tt' && d.name === '통계학') || [0, null])[1]);
     c.eq(tt && tt.remind, '20', '직접 입력한 20분 전이 저장됨');
     // 알림 스위치를 끄면 아래 칸이 없어지고, 알림 없이 저장된다
     await p.locator('button', { hasText: '수업 추가' }).filter({ visible: true }).first().click(); await p.waitForTimeout(500);
-    await p.click('[data-act="tt-remsw"]'); await p.waitForTimeout(200);
+    await p.click('[data-bxtt45="rem"]'); await p.waitForTimeout(300);
+    await p.click('#bx-pg [data-act="tt-remsw"]'); await p.waitForTimeout(200);
     c.eq(await p.evaluate(() => document.querySelectorAll('.tt-pills').length), 0, '수업 알림을 끄면 아래 칸이 없음');
+    await p.click('#bx-pg [data-bxpg="done"]'); await p.waitForTimeout(250);
     await p.fill('#tt-name', '선형대수'); await p.click('[data-act="tt-day"][data-d="4"]');
     await p.click('#sheet-root [data-act="tt-save"]'); await p.waitForTimeout(500);
     const tt2 = await p.evaluate(() => (window.BX_T.docs().find(([, d]) => d && d.type === 'tt' && d.name === '선형대수') || [0, null])[1]);

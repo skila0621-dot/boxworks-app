@@ -59,6 +59,13 @@ cd android && ./gradlew assembleDebug
 - 명상 소리 크기: `BxSound.setVolume({bell, bg})` → `SoundPrefs`(기기 보호 저장소). `BowlPlayer` · `BgPlayer`가 소리에 곱한다
 - 앱을 최근 목록에서 지우면 배경 소리와 남은 명상 종을 멈춘다(`BxSoundService.onTaskRemoved`, `MainActivity.onDestroy`). 앱은 `BxSound.status().medCancel`을 보고 '명상 중' 화면을 치운다
 
+## 수업 창 · 휴대폰 캘린더 일정 창 · 루틴 고치기 (시험판 45)
+
+- 같은 삼성 방식을 다른 입력 창에도 쓴다(`web-src/v45.js`). 페이지는 시험판 44의 `bxPgOpen(제목, 칸, 되돌리기)`: 창 안에 숨겨 둔 칸을 페이지로 옮겨 쓰고, 닫으면 제자리로 돌려놓는다
+- 수업 창(`ttDraw`): 저장은 예전처럼 `#tt-name` · `#tt-start` · `#tt-end` · `#tt-place` · `#tt-rem-c` 칸을 읽는다. 장소 · 알림 · 시간표는 숨긴 칸(`.bx-tt45-hold`)에 있다가 페이지로 간다
+- 휴대폰 캘린더 일정 창(`pcDraw`): 고르면 바로 `px_…` 문서에 적히므로, ‹ 는 연 순간의 문서 · 이동 시간 기억(`travelmem`) · 막 만든 '외출 준비'를 되돌린다
+- 루틴 고치기(`bxDrawRoutine`, `rtTimesHtml`): 알림 방식 · 기준은 페이지, 시각 줄은 기준에 따라 시작 시각 하나 또는 도착 시각 · 이동 시간 · 여유
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.

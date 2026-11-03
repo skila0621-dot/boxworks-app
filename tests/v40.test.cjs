@@ -55,7 +55,10 @@ module.exports = async function () {
     c.eq(eng, [['tts_a', '#1baf7a']], '새 수업 → 학원, 색은 학원 색으로 시작');
     // 수업을 다른 시간표로 옮기기
     await p.click('.tt-b[data-id="tt_m"]'); await p.waitForTimeout(400);
-    await p.click('[data-bxttpick="tts_main"]'); await p.waitForTimeout(150);
+    // 시험판 45: 시간표는 줄을 누르면 페이지
+    await p.click('[data-bxtt45="set"]'); await p.waitForTimeout(300);
+    await p.click('#bx-pg [data-bxttpick="tts_main"]'); await p.waitForTimeout(150);
+    await p.click('#bx-pg [data-bxpg="done"]'); await p.waitForTimeout(250);
     await p.click('[data-act="tt-save"]'); await p.waitForTimeout(500);
     c.ok((await doc(p, 'tt_m')).set === null && (await blocks(p)).every(b => b !== '수학 학원'), '수업 창에서 학교로 옮기기(처음 시간표는 비움)');
     // (5) 고른 칩을 한 번 더 → 자세히: 홈에 보이기 · 기간
