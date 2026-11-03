@@ -113,5 +113,42 @@ module.exports = async function () {
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="sheet-close"]').click()); await p.waitForTimeout(300);
     c.eq(app.errors, [], '화면 오류(시험판 44)');
   } finally { await app.close(); }
+
+  // (9) 명상 소리(대표 11/4 2:09): 소리와 호흡은 페이지, 종소리 끄기, 소리마다 크기, 앱을 닫아 멈춘 명상은 치움, 끝 화면 주 단추는 닫기
+  const app2 = await openApp({ data: [['settings', settings()]] });
+  try {
+    const p = app2.page;
+    await p.evaluate(() => { const l = window.Capacitor.Plugins.BxAlarm; window.__local = []; l.local = async x => { window.__local.push(x.alarms); return {}; }; l.cancelLocal = async () => ({}); window.__vol = []; window.Capacitor.Plugins.BxSound.setVolume = async x => { window.__vol.push(x); return {}; }; });
+    await p.click('.dock [data-view="med"]'); await p.waitForTimeout(600);
+    c.ok(await p.evaluate(() => !document.querySelector('.bx-med-more') && !!document.querySelector('.bx-med-row[data-act="bx-med-sound"]')), "'소리와 호흡'은 펼치는 칸이 아니라 줄 하나");
+    const y0 = await p.evaluate(() => Math.round(document.querySelector('[data-act="bx-med-start"]').getBoundingClientRect().top));
+    await p.click('[data-act="bx-med-sound"]'); await p.waitForTimeout(350);
+    c.ok(await p.evaluate(() => document.getElementById('bx-mp-t').textContent === '소리와 호흡' && !!document.querySelector('#bx-mp [data-bxmed-bellon]')), '누르면 소리와 호흡 페이지(종소리 스위치)');
+    c.eq(await p.evaluate(() => Math.round(document.querySelector('[data-act="bx-med-start"]').getBoundingClientRect().top)), y0, '시작 단추 자리는 그대로(펼치지 않음)');
+    // 소리 크기: 종소리 60%, 배경 소리(파도) 40%
+    await p.evaluate(() => { const r = document.querySelector('#bx-mp [data-bxmed-vol="bell"]'); r.value = 60; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); }); await p.waitForTimeout(300);
+    await p.click('#bx-mp [data-bxbg="waves"]'); await p.waitForTimeout(300);
+    await p.evaluate(() => { const r = document.querySelector('#bx-mp [data-bxmed-vol="bg"]'); r.value = 40; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); }); await p.waitForTimeout(300);
+    const vol = await p.evaluate(() => ({ last: window.__vol.slice(-1)[0], med: JSON.parse(localStorage.getItem('bx:med') || '{}'), lb: Array.from(document.querySelectorAll('#bx-mp .bx-mp-vol b')).map(b => b.textContent) }));
+    c.ok(vol.last && Math.abs(vol.last.bell - 0.6) < 1e-6 && Math.abs(vol.last.bg - 0.4) < 1e-6 && vol.med.bellVol === 60 && vol.med.bgVol === 40 && vol.lb.join() === '60%,40%', '소리마다 크기(종소리 60% · 파도 40%)를 휴대폰에 넘기고 남김 ' + JSON.stringify(vol.last));
+    // 종소리 끄기 → 종 없이 명상, 끝은 소리 없는 알림
+    await p.click('#bx-mp [data-bxmed-bellon]'); await p.waitForTimeout(300);
+    c.ok(await p.evaluate(() => !document.querySelector('#bx-mp [data-bxbowl]') && /끝나면 소리 없이 알림만/.test(document.getElementById('bx-mp').innerText)), '종소리를 끄면 종류 · 크기 칸이 빠지고 안내 한 줄');
+    await p.click('#bx-mp [data-bxmp="back"]'); await p.waitForTimeout(300);
+    c.ok(await p.evaluate(() => /종소리 끔/.test(document.querySelector('.bx-med-row small').textContent) && /배경 소리 파도 40%/.test(document.querySelector('.bx-med-row small').textContent)), "줄에 '종소리 끔 · 배경 소리 파도 40%'");
+    await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(500);
+    c.eq(await p.evaluate(() => (window.__local.slice(-1)[0] || []).map(a => [a.id, a.sound])), [['med_end', 'bowl_none']], '종소리 끔: 첫 종 · 중간 종 없이 끝 알림만(소리 없음)');
+    c.ok(await p.evaluate(() => /종소리 없이 진행해요/.test(document.querySelector('.bx-med-run .bx-med-note').textContent)), '진행 중 안내: 종소리 없이');
+    // 앱을 최근 목록에서 지워 휴대폰이 멈춘 명상: 다시 보면 '명상 중' 화면을 치운다
+    await p.evaluate(() => { const b = window.Capacitor.Plugins.BxSound; b.st = { playing: false, sound: '', mode: '', medCancel: Date.now() }; document.dispatchEvent(new Event('visibilitychange')); }); await p.waitForTimeout(400);
+    c.ok(await p.evaluate(() => !JSON.parse(localStorage.getItem('bx:med') || '{}').run && !!document.querySelector('[data-act="bx-med-start"]')), '앱을 닫아 멈춘 명상은 다시 열면 치워짐');
+    // 끝 화면: 주 단추는 '닫기'(오른쪽), '한 번 더'는 옆
+    await p.evaluate(() => { const b = window.Capacitor.Plugins.BxSound; b.st = { playing: false, sound: '', mode: '' }; });
+    await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(400);
+    const run = await p.evaluate(() => JSON.parse(localStorage.getItem('bx:med') || '{}').run);
+    await p.clock.setSystemTime(new Date(run.endAt + 3000)); await p.waitForTimeout(1600);
+    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('.bx-med-acts .btn')).map(b => b.textContent.trim() + (b.classList.contains('primary') ? '*' : ''))), ['한 번 더', '닫기*'], "끝 화면: '닫기'가 주 단추");
+    c.eq(app2.errors, [], '화면 오류(명상 소리)');
+  } finally { await app2.close(); }
   return c.done();
 };

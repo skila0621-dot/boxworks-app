@@ -17,11 +17,11 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.click('.dock [data-view="med"]'); await p.waitForTimeout(600);
-    await p.click('.bx-med-more summary'); await p.waitForTimeout(300);
+    await p.click('[data-act="bx-med-sound"]'); await p.waitForTimeout(300);
     // 1) 칸: 없음 · 파도 · 숲속 새소리 · 바람 · 갈대 · 백색소음, 처음엔 '없음'. 자리는 중간 종 다음, 호흡 안내 앞
     c.eq(await picks(p), ['없음*', '파도', '숲속 새소리', '바람', '갈대', '백색소음'], '배경 소리 칸과 처음 값');
     const order = await p.evaluate(() => {
-      const all = Array.from(document.querySelectorAll('.bx-med-more *'));
+      const all = Array.from(document.querySelectorAll('#bx-mp *'));
       const at = el => all.indexOf(el);
       return [at(document.querySelector('[data-med-bellsw]')), at(document.querySelector('.bx-bg-picks')), at(document.querySelector('[data-med-breath]'))];
     });
@@ -52,7 +52,8 @@ module.exports = async function () {
     c.eq(await last(p), ['play', { sound: 'wind', mode: 'only' }], '틀어 둔 중 바람을 누르면 바로 바뀜');
     c.ok(/^바람 나오는 중/.test(await nowLine(p) || ''), '맨 위 줄도 바람');
 
-    // 5) 다른 탭에 갔다 와도 맨 위 줄이 남아 있다(잊고 켜 두지 않게)
+    // 5) 다른 탭에 갔다 와도 맨 위 줄이 남아 있다(잊고 켜 두지 않게). 소리와 호흡 페이지는 ‹ 로 닫고
+    await p.click('#bx-mp [data-bxmp="back"]'); await p.waitForTimeout(300);
     await p.click('.dock [data-view="routines"]'); await p.waitForTimeout(400);
     await p.click('.dock [data-view="med"]'); await p.waitForTimeout(400);
     c.ok(/^바람 나오는 중/.test(await nowLine(p) || ''), '탭을 오가도 맨 위 줄이 남음');
@@ -80,12 +81,13 @@ module.exports = async function () {
     c.ok(JSON.stringify(await p.evaluate(() => window.__bg.slice(-1)[0])) === '["stop"]', '끝내기를 누르면 배경 소리도 꺼짐');
 
     // 9) '없음'을 고르면 미리 듣기도 멈추고 '소리만 틀기'가 사라진다. 없음으로 명상하면 소리를 틀지 않는다
-    await p.click('.bx-med-more summary').catch(() => {}); await p.waitForTimeout(200);
-    if (!(await p.evaluate(() => document.querySelector('.bx-med-more').open))) { await p.click('.bx-med-more summary'); await p.waitForTimeout(200); }
+    await p.click('[data-act="bx-med-close"]').catch(() => {}); await p.waitForTimeout(300);
+    await p.click('[data-act="bx-med-sound"]'); await p.waitForTimeout(300);
     await p.click('[data-bxbg="none"]'); await p.waitForTimeout(300);
     c.eq(await last(p), ['preview', { sound: '' }], "'없음'은 미리 듣기 멈춤");
     c.eq(await onlyBtn(p), null, "'없음'이면 '소리만 틀기' 없음");
     const n0 = await p.evaluate(() => window.__bg.length);
+    await p.click('#bx-mp [data-bxmp="back"]'); await p.waitForTimeout(300);
     await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(400);
     c.eq(await p.evaluate(n => window.__bg.slice(n).filter(x => x[0] === 'play').length, n0), 0, '배경 소리 없음으로 명상하면 틀지 않음');
     c.ok(await p.evaluate(() => !/함께 꺼져요/.test((document.querySelector('.bx-med-run .bx-med-note') || {}).textContent || '')), '없음이면 진행 중 안내에 배경 소리 줄 없음');

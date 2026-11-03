@@ -14,17 +14,18 @@ module.exports = async function () {
     const p = app.page;
     await p.evaluate(() => { const l = window.Capacitor.Plugins.BxAlarm; window.__local = []; l.local = async x => { window.__local.push(x.alarms); return {}; }; l.cancelLocal = async () => ({}); });
     await p.click('.dock [data-view="med"]'); await p.waitForTimeout(600);
-    await p.click('.bx-med-more summary'); await p.waitForTimeout(300);
+    await p.click('[data-act="bx-med-sound"]'); await p.waitForTimeout(300);
     c.eq(await sw(p), 'true', '시작 종 스위치는 처음엔 켜짐');
-    const order = await p.evaluate(() => { const all = Array.from(document.querySelectorAll('.bx-med-more *')); return [all.indexOf(document.querySelector('.bx-bowl-picks')), all.indexOf(document.querySelector('[data-med-startbell]')), all.indexOf(document.querySelector('[data-med-bellsw]'))]; });
+    const order = await p.evaluate(() => { const all = Array.from(document.querySelectorAll('#bx-mp *')); return [all.indexOf(document.querySelector('.bx-bowl-picks')), all.indexOf(document.querySelector('[data-med-startbell]')), all.indexOf(document.querySelector('[data-med-bellsw]'))]; });
     c.ok(order[0] >= 0 && order[0] < order[1] && order[1] < order[2], '종소리 종류 → 시작 종 → 중간 종 순서 ' + JSON.stringify(order));
-    c.ok(await p.evaluate(() => /끝 종은 늘 세 번 울려요/.test(document.querySelector('.bx-med-more').innerText)), '끝 종은 늘 울린다는 안내');
+    c.ok(await p.evaluate(() => /끝날 때는 세 번 울려요/.test(document.querySelector('#bx-mp').innerText)), '끝 종은 세 번 울린다는 안내(시험판 44: 종소리를 끄면 없음)');
     // 시작 종 끄기: 배경 소리만으로 시작, 끝 종은 그대로
     await p.click('[data-med-startbell]'); await p.waitForTimeout(300);
     c.eq(await sw(p), 'false', '누르면 꺼짐');
-    c.ok(await p.evaluate(() => /첫 종 없이 시작해요/.test(document.querySelector('.bx-med-more').innerText) && /시작 종 없음/.test(document.querySelector('.bx-mm-t small').textContent) && !!document.querySelector('.bx-bowl-picks')), "끈 안내, 접힌 줄 '시작 종 없음', 종류는 그대로(끝 종에 씀)");
+    c.ok(await p.evaluate(() => /첫 종 없이 시작해요/.test(document.querySelector('#bx-mp').innerText) && /시작 종 없음/.test(document.querySelector('.bx-mm-t small').textContent) && !!document.querySelector('.bx-bowl-picks')), "끈 안내, 접힌 줄 '시작 종 없음', 종류는 그대로(끝 종에 씀)");
     c.eq(await p.evaluate(() => JSON.parse(localStorage.getItem('bx:med') || '{}').startBell), false, '이 휴대폰에 남음');
     await p.click('[data-bxbg="waves"]'); await p.waitForTimeout(300);
+    await p.click('#bx-mp [data-bxmp="back"]'); await p.waitForTimeout(300);
     await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(500);
     c.eq(await lastLocal(p), [['med_end', 'bowl3']], '시작 종을 끄면 첫 종만 빠지고 끝 종(세 번)은 남음');
     const run = await p.evaluate(() => JSON.parse(localStorage.getItem('bx:med') || '{}').run);
@@ -39,9 +40,10 @@ module.exports = async function () {
     c.ok(await p.evaluate(n => window.__bg.slice(n).some(x => x[0] === 'stop'), n0), '끝난 명상의 배경 소리가 남아 있으면 앱이 끔');
     await p.click('[data-act="bx-med-close"]'); await p.waitForTimeout(400);
     // 다시 켜면 시작 종도
-    if (!(await p.evaluate(() => document.querySelector('.bx-med-more') && document.querySelector('.bx-med-more').open))) { await p.click('.bx-med-more summary'); await p.waitForTimeout(200); }
+    await p.click('[data-act="bx-med-sound"]'); await p.waitForTimeout(300);
     await p.click('[data-med-startbell]'); await p.waitForTimeout(300);
     c.eq(await sw(p), 'true', '다시 켜짐');
+    await p.click('#bx-mp [data-bxmp="back"]'); await p.waitForTimeout(300);
     await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(500);
     const l2 = await lastLocal(p);
     c.ok(l2.some(a => a[0] === 'med_start' && a[1] === 'bowl') && l2.some(a => a[0] === 'med_end' && a[1] === 'bowl3'), '켜면 시작 종 · 끝 종 ' + JSON.stringify(l2));

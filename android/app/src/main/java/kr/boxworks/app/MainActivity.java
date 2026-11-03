@@ -25,6 +25,29 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    /**
+     * 시험판 44: 명상 소리 멈추기. 배경 소리가 없는 명상(서비스가 없음)도 앱을 닫으면 남은 종을 지운다.
+     * withBells: 남은 명상 종(med_ 알람)도 지우고, 앱이 다시 열릴 때 '명상 중' 화면을 치우게 시각을 남긴다
+     */
+    static void stopMeditation(android.content.Context c, boolean withBells) {
+        BowlPlayer.stopAll();
+        if (!withBells) return;
+        if (AlarmStore.cancelPrefix(c, "med_") > 0) SoundPrefs.medCancel(c, System.currentTimeMillis());
+    }
+
+    @Override
+    public void onDestroy() {
+        // 최근 목록에서 지워 끝날 때만(화면 돌리기 · 뒤로 단추는 앱을 뒤로 보낼 뿐이라 여기 오지 않음)
+        if (isFinishing() && !isChangingConfigurations()) {
+            try {
+                stopMeditation(this, true);
+                BxSoundService.requestStop(this);
+            } catch (Exception ignored) {
+            }
+        }
+        super.onDestroy();
+    }
+
     @Override
     public void onResume() {
         super.onResume();

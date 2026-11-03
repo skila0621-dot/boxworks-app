@@ -183,7 +183,7 @@ module.exports = async function () {
     await p.click('[data-med-custom]'); await p.waitForTimeout(300);
     c.ok(await p.evaluate(() => !!document.querySelector('.bx-med-set .picks #bx-med-cmin')), '직접 입력이 칩 줄 안에서 입력칸으로');
     // 중간 종: 스위치를 켜야 간격 칸이 나온다
-    await p.click('.bx-med-more summary'); await p.waitForTimeout(200);
+    await p.click('[data-act="bx-med-sound"]'); await p.waitForTimeout(300);
     const bell0 = await p.evaluate(() => document.querySelectorAll('[data-med-bell]').length);
     await p.click('[data-med-bellsw]'); await p.waitForTimeout(300);
     const bell1 = await p.evaluate(() => Array.from(document.querySelectorAll('[data-med-bell]')).map(b => b.textContent.trim() + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')));

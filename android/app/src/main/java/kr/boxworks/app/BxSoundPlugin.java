@@ -58,7 +58,21 @@ public class BxSoundPlugin extends Plugin {
 
     @PluginMethod
     public void status(PluginCall call) {
-        call.resolve(state());
+        JSObject o = state();
+        o.put("medCancel", SoundPrefs.medCancel(getContext()));
+        o.put("bell", SoundPrefs.bell(getContext()));
+        o.put("bg", SoundPrefs.bg(getContext()));
+        call.resolve(o);
+    }
+
+    /** 시험판 44: 소리 크기(0~1). bell 종소리 · bg 배경 소리. 틀고 있는 배경 소리는 바로 따른다 */
+    @PluginMethod
+    public void setVolume(PluginCall call) {
+        JSObject d = call.getData();
+        Double bell = d.has("bell") ? d.optDouble("bell", 1) : null;
+        Double bg = d.has("bg") ? d.optDouble("bg", 1) : null;
+        SoundPrefs.set(getContext(), bell, bg);
+        call.resolve();
     }
 
     static synchronized void previewPlay(Context c, String sound) {

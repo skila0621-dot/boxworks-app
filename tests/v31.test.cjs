@@ -110,10 +110,10 @@ module.exports = async function () {
     c.ok(off == null && (await pre()) === 10, '일정 시작 전 알림 스위치: 끄면 없음, 켜면 10분 전 ' + JSON.stringify([off, await pre()]));
     await p.evaluate(() => { const c = document.querySelector('#sheet-root [data-act="sheet-close"]'); if (c) c.click(); }); await p.waitForTimeout(300);
     await p.click('.dock [data-view="med"]'); await p.waitForTimeout(600);
-    await p.click('.bx-med-more summary'); await p.waitForTimeout(200);
-    const br = () => p.evaluate(() => { const b = document.querySelector('.bx-med-set [data-med-breath]'); return b ? b.getAttribute('role') + ':' + b.getAttribute('aria-checked') : null; });
+    await p.click('[data-act="bx-med-sound"]'); await p.waitForTimeout(300);
+    const br = () => p.evaluate(() => { const b = document.querySelector('#bx-mp [data-med-breath]'); return b ? b.getAttribute('role') + ':' + b.getAttribute('aria-checked') : null; });
     const b0 = await br();
-    await p.click('.bx-med-set [data-med-breath]'); await p.waitForTimeout(300);
+    await p.click('#bx-mp [data-med-breath]'); await p.waitForTimeout(300);
     const b1 = await br();
     c.ok(/^switch:/.test(b0 || '') && b0 !== b1, '명상 호흡 안내도 스위치, 누르면 바뀜 ' + JSON.stringify([b0, b1]));
     c.eq(app.errors, [], '화면 오류(스위치)');

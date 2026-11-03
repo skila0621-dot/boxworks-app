@@ -321,6 +321,18 @@ public class BxSoundService extends Service {
         super.onDestroy();
     }
 
+    /**
+     * 시험판 44(대표 지적 11/4 2:09 "앱을 종료했다가 다시 실행해도 소리가 나온다 · 명상이 끝나도 또 나온다"):
+     * 앱을 최근 목록에서 지우면 배경 소리를 멈추고, 명상 중이면 남은 종(med_) 알람도 지운다.
+     */
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        MainActivity.stopMeditation(this, true);
+        if ("med".equals(nowMode)) SoundPrefs.medCancel(this, System.currentTimeMillis());
+        stopPlaying(0.3f);
+        super.onTaskRemoved(rootIntent);
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;

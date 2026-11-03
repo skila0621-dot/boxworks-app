@@ -343,3 +343,179 @@ document.addEventListener('click', ev => {
   ].join('\n');
   (document.head || document.documentElement).appendChild(st);
 })();
+
+/* 5) 명상 소리(대표 11/4 2:09): "종소리도 강제로 선택하고 있어야 한다 · 앱을 종료했다가 다시 실행해도 소리가 나온다 ·
+   명상이 끝나도 또 실행된다 · 원하는 소리만, 소리마다 크기를 조절해 원하는 환경에서 명상"
+   - 종소리 스위치(끄면 첫 종 · 중간 종 없이, 끝은 소리 없는 알림만), 종소리 크기 · 배경 소리 크기(0~100%)
+   - '소리와 호흡'은 그 자리에서 펼치지 않고 페이지(규칙 16, 설정처럼 바로 바뀜)
+   - 앱을 최근 목록에서 지우면 휴대폰 쪽에서 배경 소리와 남은 종을 멈춘다(BxSoundService · MainActivity). 다시 열면 '명상 중' 화면도 치운다
+   - 끝 화면은 '닫기'가 주 단추('한 번 더'를 잘못 눌러 다시 시작되지 않게) */
+function bxMedVol(k){ const v = MED[k === 'bell' ? 'bellVol' : 'bgVol']; return Number.isFinite(+v) && v !== null && v !== '' ? Math.max(0, Math.min(100, Math.round(+v))) : 100; }
+function bxMedBellOn(){ return MED.bellOn !== false; }
+let bxMedVolT = 0;
+function bxMedVolSync(cb){
+  const p = bgPlug();
+  if (!p || !p.setVolume) { if (cb) cb(); return; }
+  p.setVolume({bell: bxMedVol('bell') / 100, bg: bxMedVol('bg') / 100}).catch(() => {}).then(() => { if (cb) cb(); });
+}
+// 앱을 닫아 휴대폰이 멈춘 명상이면 '명상 중' 화면을 치운다(앱을 다시 열 때 · 돌아올 때)
+function bxMedCancelCheck(){
+  const p = bgPlug(); if (!p || !p.status) return;
+  p.status().then(st => {
+    const at = st && +st.medCancel;
+    if (at && MED.run && at >= (MED.run.leadAt || MED.run.startAt || 0) - 1000 && !MED.run.cancelSeen) {
+      MED.run = null; medSave();
+      if (typeof medTimer !== 'undefined' && medTimer) { clearInterval(medTimer); medTimer = null; }
+      if (S.view === 'med' && !SH) render();
+    }
+  }).catch(() => {});
+}
+if (window.BX_APP) {
+  setTimeout(() => { bxMedVolSync(); bxMedCancelCheck(); }, 900);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) bxMedCancelCheck(); });
+}
+// 종소리를 끈 명상: 첫 종 · 중간 종 없이, 끝은 소리 없는 알림 글만(bowl_none)
+const bxMedStart44 = medStart;
+medStart = function(){
+  if (bxMedBellOn()) return bxMedStart44.apply(this, arguments);
+  const now = Date.now(), start = now + MED_LEAD, min = MED.min;
+  const bg = bgPlug() ? bgCur() : '';
+  MED.run = {startAt: start, endAt: start + min * 60000, min, bellS: 0, leadAt: now, bg, startBell: false, silent: true};
+  medSave();
+  if (bg) { bgPlug().play({sound: bg, mode: 'med', startAt: start, until: MED.run.endAt - BG_END_LEAD}).catch(() => {}); BG = {sound: bg, mode: 'med'}; }
+  else if (BG.sound) bgStop();
+  const al = medAlarm();
+  if (al) al.cancelLocal({prefix: 'med_'}).catch(() => {}).then(() => al.local({alarms: [{id: 'med_end', at: MED.run.endAt, kind: 'item', sound: 'bowl_none', bowl: bxBowlType(), group: '명상', title: '명상을 마쳤어요', sub: min + '분 동안 잘했어요'}]})).catch(() => {});
+  render(); medTick();
+};
+function bxMedSumText(){
+  const bowl = (BX_BOWLS.find(b => b[0] === bxBowlType()) || BX_BOWLS[0])[1];
+  const bell = bxMedBellOn() ? bowl + (MED.startBell === false ? '(시작 종 없음)' : '') + (bxMedVol('bell') < 100 ? ' ' + bxMedVol('bell') + '%' : '') : '종소리 끔';
+  const bg = bgPlug() ? ' · 배경 소리 ' + (bgCur() ? bgName(bgCur()) + (bxMedVol('bg') < 100 ? ' ' + bxMedVol('bg') + '%' : '') : '없음') : '';
+  return bell + (bxMedBellOn() && MED.bellS ? ' · 중간 종 ' + medBellText(MED.bellS) + '마다' : '') + bg + ' · 호흡 안내 ' + (MED.breath ? '켬' : '끔');
+}
+const bxMedHtml44 = medHtml;
+medHtml = function(){
+  let h = bxMedHtml44.apply(this, arguments);
+  if (!window.BX_APP) return h;
+  // '소리와 호흡'은 줄 하나 → 누르면 페이지
+  const i = h.indexOf('<details class="bx-med-more"'), j = h.indexOf('</details>', i);
+  if (i >= 0 && j > i) h = h.slice(0, i) + '<button type="button" class="bx-med-row" data-act="bx-med-sound"><span class="bx-mm-t"><b>소리와 호흡</b><small>' + esc(bxMedSumText()) + '</small></span>' + ICON.chevR + '</button>' + h.slice(j + 10);
+  // 끝 화면: 주 단추는 '닫기'(오른쪽), '한 번 더'는 옆에
+  h = h.replace('<div class="bx-med-acts"><button type="button" class="btn grow" data-act="bx-med-close">닫기</button><button type="button" class="btn primary grow" data-act="bx-med-again">한 번 더</button></div>',
+    '<div class="bx-med-acts"><button type="button" class="btn grow" data-act="bx-med-again">한 번 더</button><button type="button" class="btn primary grow" data-act="bx-med-close">닫기</button></div>');
+  // 종소리를 끈 명상의 안내
+  if (MED.run && MED.run.silent) h = h.replace(/<p class="p small bx-med-note">휴대폰을 내려놓아도 [^<]*<\/p>/, '<p class="p small bx-med-note">종소리 없이 진행해요. 끝나면 소리 없이 알림만 와요.' + (MED.run.bg && bgName(MED.run.bg) ? ' ' + esc(bgName(MED.run.bg)) + (bxBatchim(bgName(MED.run.bg)) ? '은' : '는') + ' 끝나기 전에 줄어들어요.' : '') + '</p>');
+  return h;
+};
+// 소리와 호흡 페이지(‹ 만, 바꾸면 바로 저장 · 설정 화면처럼)
+function bxMedSoundHtml(){
+  const on = bxMedBellOn(), bowl = bxBowlType(), startOn = MED.startBell !== false;
+  const radio = (attr, v, cur, label, extra) => '<button type="button" class="bx-mp-r pick" ' + attr + '="' + v + '" aria-pressed="' + (cur === v) + '">' + '<span class="bx-er-t">' + esc(label) + '</span>' + (extra || '') + '</button>';
+  const sw = (label, html, cls) => '<div class="bx-mp-sw' + (cls ? ' ' + cls : '') + '"><span>' + label + '</span>' + html + '</div>';
+  const vol = (k, label) => '<label class="bx-mp-vol"><span>' + label + '</span><input type="range" min="0" max="100" step="5" value="' + bxMedVol(k) + '" data-bxmed-vol="' + k + '" aria-label="' + label + '"><b>' + bxMedVol(k) + '%</b></label>';
+  const bellCust = !!MED.bellS && (MED.bellCust || MED.bellOpen || !MED_BELLS.some(b => b[0] === MED.bellS));
+  let h = '<div class="bx-ep-gl">종소리</div><div class="bx-ep-box">' + sw('종소리', bxSwitch('data-bxmed-bellon', on, '종소리'), on ? 'on' : '');
+  if (on) {
+    h += '<div class="bx-bowl-picks">' + BX_BOWLS.map(b => radio('data-bxbowl', b[0], bowl, b[1])).join('') + '</div>' + vol('bell', '크기') +
+      sw('시작 종', bxSwitch('data-med-startbell', startOn, '시작 종')) +
+      '<div class="bx-mp-sw"><span>중간 종</span><button type="button" class="tog" role="switch" aria-checked="' + !!MED.bellS + '" aria-label="중간 종" data-med-bellsw="1"><i></i></button></div>' +
+      (MED.bellS ? '<div class="bx-mp-grid">' + MED_BELLS.filter(b => b[0] < MED.min * 60).map(b => '<button type="button" class="pick" data-med-bell="' + b[0] + '" aria-pressed="' + (!bellCust && MED.bellS === b[0]) + '">' + b[1] + '마다</button>').join('') +
+        (bellCust ? '<span class="bx-cpick"><input id="bx-med-cbell" type="number" inputmode="numeric" min="1" max="60" value="' + (MED.bellS ? Math.max(1, Math.round(MED.bellS / 60)) : 5) + '" aria-label="중간 종 간격(분)"><span>분마다</span></span>' : '<button type="button" class="pick" data-med-bellc="1" aria-pressed="false">직접 입력</button>') + '</div>' : '');
+  }
+  h += '</div><p class="p small bx-ep-note">' + (on ? '고르면 들려요. 끝날 때는 세 번 울려요.' + (startOn ? '' : ' 첫 종 없이 시작해요.') : '종소리 없이 시작하고, 끝나면 소리 없이 알림만 와요.') + '</p>';
+  if (bgPlug()) {
+    const cur = bgCur();
+    h += '<div class="bx-ep-gl">배경 소리</div><div class="bx-ep-box"><div class="bx-bg-picks">' + BX_BGS.map(b => radio('data-bxbg', b[0] || 'none', cur || 'none', b[1])).join('') + '</div>' + (cur ? vol('bg', '크기') : '') + '</div>' +
+      '<p class="p small bx-ep-note">고르면 잠깐 들려요. 명상하는 동안 이어지다가 끝날 때 함께 꺼져요.</p>' +
+      (cur ? '<div class="bx-ep-box bx-bg-only">' + (BG.sound && BG.mode === 'only' ? '<button type="button" class="bx-ep-row btn" data-act="bx-med-bgstop"><span class="bx-er-ic" aria-hidden="true">' + bxIconSpan('music', '') + '</span><span class="bx-er-t">소리 끄기</span></button>' : '<button type="button" class="bx-ep-row btn" data-act="bx-med-bgonly"><span class="bx-er-ic" aria-hidden="true">' + bxIconSpan('music', '') + '</span><span class="bx-er-t">소리만 틀기</span></button>') + '</div>' +
+        '<p class="p small bx-ep-note">명상 없이 소리만 틀어요(공부할 때). 화면을 꺼도 나오고, 앱을 닫으면 꺼져요.</p>' : '');
+  }
+  h += '<div class="bx-ep-gl">호흡</div><div class="bx-ep-box">' + sw('호흡 안내', bxSwitch('data-med-breath', MED.breath, '호흡 안내')) + '</div>' +
+    '<p class="p small bx-ep-note">켜면 원이 커질 때 들이쉬고(4초), 작아질 때 내쉬어요(6초).</p>' +
+    (bgPlug() ? '<p class="p small bx-ep-note bx-bg-credit">배경 소리 녹음: BigSoundBank · Freesound의 공개 녹음(CC0)</p>' : '');
+  return h;
+}
+function bxMedPage(open){
+  let pg = document.getElementById('bx-mp');
+  if (open === false || (S.view !== 'med' && pg)) { if (pg) pg.remove(); document.documentElement.classList.remove('bx-mp-on'); return; }
+  if (!pg) {
+    if (!open) return;
+    pg = document.createElement('div');
+    pg.id = 'bx-mp'; pg.className = 'bx-ep bx-mp'; pg.setAttribute('role', 'dialog'); pg.setAttribute('aria-modal', 'true'); pg.setAttribute('aria-labelledby', 'bx-mp-t');
+    pg.innerHTML = '<div class="bx-ep-h"><button type="button" class="icon-btn" data-bxmp="back" aria-label="뒤로">' + ICON.chevL + '</button><h2 id="bx-mp-t">소리와 호흡</h2></div><div class="bx-ep-b"></div>';
+    document.body.appendChild(pg);
+  }
+  const b = pg.querySelector('.bx-ep-b'), y = b.scrollTop;
+  // 칸에 적는 중이면(중간 종 직접 입력) 다시 그리지 않는다
+  if (document.activeElement && document.activeElement.id === 'bx-med-cbell' && pg.contains(document.activeElement) && !open) return;
+  b.innerHTML = bxMedSoundHtml(); b.scrollTop = y;
+  document.documentElement.classList.add('bx-mp-on');
+}
+const bxRender44 = render;
+render = function(){
+  const r = bxRender44.apply(this, arguments);
+  if (window.BX_APP && document.getElementById('bx-mp')) bxMedPage();
+  return r;
+};
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !ev.target.closest) return;
+  const t = ev.target.closest('[data-act="bx-med-sound"],[data-bxmp],[data-bxmed-bellon]'); if (!t) return;
+  ev.preventDefault(); ev.stopPropagation();
+  if (t.dataset.act === 'bx-med-sound') { bxMedPage(true); return; }
+  if (t.dataset.bxmp != null) { bxMedPage(false); render(); return; }
+  if (t.dataset.bxmedBellon != null) { MED.bellOn = !bxMedBellOn(); medSave(); render(); }
+}, true);
+// 소리 크기: 끄는 동안 바로 저장, 손을 떼면 그 크기로 한 번 들려 준다(배경 소리는 틀고 있으면 바로 따름)
+document.addEventListener('input', ev => {
+  const t = ev.target; if (!window.BX_APP || !t || !t.dataset || !t.dataset.bxmedVol) return;
+  const k = t.dataset.bxmedVol, v = Math.max(0, Math.min(100, Math.round(+t.value) || 0));
+  MED[k === 'bell' ? 'bellVol' : 'bgVol'] = v; medSave();
+  const lb = t.parentNode && t.parentNode.querySelector('b'); if (lb) lb.textContent = v + '%';
+  clearTimeout(bxMedVolT); bxMedVolT = setTimeout(() => bxMedVolSync(), 120);
+});
+document.addEventListener('change', ev => {
+  const t = ev.target; if (!window.BX_APP || !t || !t.dataset || !t.dataset.bxmedVol) return;
+  const k = t.dataset.bxmedVol;
+  bxMedVolSync(() => {
+    if (k === 'bell') medPlay('bowl', bxBowlType());
+    else { const p = bgPlug(); if (p && !BG.sound && bgCur()) p.preview({sound: bgCur()}).catch(() => {}); }
+  });
+});
+// 휴대폰 뒤로: 소리와 호흡 페이지를 먼저 닫는다
+setTimeout(() => {
+  const back = window.BX_back; if (typeof back !== 'function' || back.bx44m) return;
+  window.BX_back = function(){
+    if (window.BX_APP && document.getElementById('bx-mp')) { bxMedPage(false); render(); return true; }
+    return back.apply(this, arguments);
+  };
+  window.BX_back.bx44m = true;
+}, 0);
+(function bxV44MedStyle(){
+  if (!window.BX_APP) return;
+  const st = document.createElement('style');
+  st.id = 'bx-v44m';
+  st.textContent = [
+    'html.bx-app .bx-med-row{display:flex;align-items:center;gap:12px;width:100%;min-height:62px;margin-top:16px;padding:10px 0;border:0;border-top:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:left}',
+    'html.bx-app .bx-med-row > svg.i{flex:none;width:18px;height:18px;color:var(--ink-3)}',
+    'html.bx-app .bx-mp .bx-mp-sw{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;border-bottom:1px solid var(--line);font-size:16px}',
+    'html.bx-app .bx-mp .bx-mp-sw.on > span{color:var(--accent);font-weight:500}',
+    'html.bx-app .bx-mp .bx-ep-box > :last-child{border-bottom:0}',
+    'html.bx-app .bx-mp .bx-mp-r{display:flex;align-items:center;justify-content:flex-start;gap:14px;width:100%;height:auto;min-height:54px;margin:0;padding:0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent!important;box-shadow:none!important;color:var(--ink)!important;font:inherit;font-size:16px;font-weight:400;text-align:left}',
+    'html.bx-app .bx-mp .bx-bowl-picks,html.bx-app .bx-mp .bx-bg-picks{display:flex;flex-direction:column;gap:0;margin:0}',
+    'html.bx-app .bx-mp .bx-bg-picks .bx-mp-r:last-child{border-bottom:0}',
+    'html.bx-app .bx-mp .bx-bg-only .bx-ep-row.btn{height:auto;min-height:56px;padding:0;justify-content:flex-start;border-radius:0;background:transparent;color:var(--accent);font-weight:600;box-shadow:none}',
+    'html.bx-app .bx-med-row .bx-mm-t b{font-size:16px;font-weight:600;color:var(--ink)}',
+    'html.bx-app .bx-med-row .bx-mm-t small{font-size:13.5px;font-weight:400;color:var(--accent);line-height:1.35}',
+    'html.bx-app .bx-mp .bx-mp-r::before{content:"";flex:none;width:20px;height:20px;box-sizing:border-box;border:2px solid var(--ink-3);border-radius:50%}',
+    'html.bx-app .bx-mp .bx-mp-r[aria-pressed="true"]::before{border:6px solid var(--accent)}',
+    'html.bx-app .bx-mp .bx-mp-vol{display:flex;align-items:center;gap:14px;min-height:58px;border-bottom:1px solid var(--line);font-size:15px;color:var(--ink-2)}',
+    'html.bx-app .bx-mp .bx-mp-vol input{flex:1;min-width:0;accent-color:var(--accent);height:28px}',
+    'html.bx-app .bx-mp .bx-mp-vol b{flex:none;width:44px;text-align:right;font-size:14px;font-weight:700;color:var(--ink)}',
+    'html.bx-app .bx-mp .bx-mp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:6px 0 16px;border-bottom:1px solid var(--line)}',
+    'html.bx-app .bx-mp .bx-mp-grid .pick{width:auto;min-height:44px;margin:0;justify-content:center;white-space:nowrap}',
+    'html.bx-app .bx-mp .bx-mp-grid .bx-cpick{grid-column:span 2}',
+    'html.bx-app .bx-mp .bx-ep-b{display:flex;flex-direction:column;gap:14px}'
+  ].join('\n');
+  (document.head || document.documentElement).appendChild(st);
+})();

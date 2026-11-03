@@ -44,6 +44,17 @@ final class BgPlayer extends Thread {
     private volatile float stopFadeSec = 1.2f;
     private volatile boolean paused = false;
     private volatile float duck = 1f;
+    /** 사용자가 정한 배경 소리 크기(0~1, 시험판 44). 틀고 있는 동안 바꾸면 바로 따른다 */
+    static volatile float vol = -1f;
+
+    private static float vol(Context c) {
+        float v = vol;
+        if (v < 0f) {
+            v = SoundPrefs.bg(c);
+            vol = v;
+        }
+        return v;
+    }
 
     /**
      * startAt: 이때부터 소리를 낸다(명상 첫 종). until: 이때 줄이기 시작해 untilFadeSec 동안 줄이고 끝낸다(0이면 끌 때까지)
@@ -155,7 +166,7 @@ final class BgPlayer extends Thread {
                     target = 0f;
                     step = quick;
                 } else {
-                    target = duck;
+                    target = duck * vol(ctx);
                     step = g < target ? fadeIn : quick;
                 }
                 // 잠깐 멈춤: 다 줄었으면 재생을 멈추고 기다린다

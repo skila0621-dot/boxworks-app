@@ -8,6 +8,8 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -37,6 +39,31 @@ final class BowlPlayer {
 
     /** 미리 듣기(명상 화면·루틴 창의 ▶). 앞의 미리 듣기는 멈추고 새로 튼다 */
     private static MediaPlayer preview;
+    /** 지금 울리고 있는 종(앱을 최근 목록에서 지우면 모두 멈춘다, 시험판 44) */
+    private static final Set<MediaPlayer> live = new HashSet<>();
+
+    static void stopAll() {
+        synchronized (live) {
+            for (MediaPlayer m : live) {
+                try {
+                    m.release();
+                } catch (Exception ignored) {
+                }
+            }
+            live.clear();
+        }
+        stopPreview();
+    }
+
+    private static void drop(MediaPlayer m) {
+        synchronized (live) {
+            live.remove(m);
+        }
+        try {
+            m.release();
+        } catch (Exception ignored) {
+        }
+    }
 
     static synchronized void preview(Context c, String sound, String type) {
         try {
@@ -68,11 +95,15 @@ final class BowlPlayer {
             AssetFileDescriptor afd = c.getResources().openRawResourceFd(rawFor(c, sound, type));
             mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
             afd.close();
-            mp.setOnCompletionListener(m -> { m.release(); if (onEnd != null) onEnd.run(); });
-            mp.setOnErrorListener((m, what, extra) -> { m.release(); if (onEnd != null) onEnd.run(); return true; });
+            mp.setOnCompletionListener(m -> { drop(m); if (onEnd != null) onEnd.run(); });
+            mp.setOnErrorListener((m, what, extra) -> { drop(m); if (onEnd != null) onEnd.run(); return true; });
             mp.prepare();
-            float v = volumeFor(sound);
+            // 시험판 44: 사용자가 정한 종소리 크기를 곱한다(명상 화면의 '종소리 크기')
+            float v = volumeFor(sound) * SoundPrefs.bell(c);
             mp.setVolume(v, v);
+            synchronized (live) {
+                live.add(mp);
+            }
             mp.start();
             return mp;
         } catch (Exception e) {
