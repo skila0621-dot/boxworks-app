@@ -47,16 +47,17 @@ function bxStartDraw(){
   cards.push(card('home', '일정 · 캘린더', '오른쪽 아래 +', '“내일 3시 치과”처럼 말하거나 적으면 날짜·시간이 알아서 들어가요. 삼성 캘린더 같은 휴대폰 캘린더 일정도 함께 볼 수 있어요. 달력은 ' + (pos('month') || '⋯ 메뉴') + '.'));
   if (BXS.sel.report) cards.push(card('sun', '아침에 오늘 일정 받기', '', '매일 아침 알림 하나로 오늘 할 일을 보여 줘요. 처음엔 7:30, 아침 루틴을 만들면 그 시각에 맞춰요.'));
   if (BXS.sel.tt) cards.push(card('school', '시간표', pos('tt'), '“월수 10시 반 경영학원론”처럼 말하면 채워지고, 수업 전에 알려 줘요.'));
-  if (BXS.sel.med) cards.push(card('lotus', '명상', pos('med'), '시간을 고르면 싱잉볼 소리로 시작과 끝을 알려 줘요.'));
+  if (BXS.sel.med) cards.push(card('lotus', '명상', pos('med') || '⋯ 더보기', '시간을 고르면 싱잉볼 소리로 시작과 끝을 알려 줘요. 배경 소리도 고를 수 있어요.'));
   bxStartOverlay(
     '<div class="bxs-top">' + bxDots(2, 2) + '</div>' +
-    '<h1 class="bxs-h">이렇게 도와드려요</h1><p class="bxs-p">고른 기능은 아래 메뉴에 있어요. 설정할 게 있으면 그 기능에 처음 들어갈 때 물어볼게요.</p>' +
+    '<h1 class="bxs-h">이렇게 도와드려요</h1><p class="bxs-p">고른 기능은 아래 메뉴와 ⋯ 더보기에 있어요. 설정할 게 있으면 그 기능에 처음 들어갈 때 물어볼게요.</p>' +
     '<div class="bxs-list">' + cards.join('') + '</div>' +
     '<div class="bxs-note">' + ICON.bell + '<span>알람이 처음 필요할 때 휴대폰 허락을 한 번 물어볼게요.</span></div><div class="bxs-sp"></div>' +
     // 아래 메뉴 미리 보기는 뺐다: 카드마다 '아래 메뉴 N번째'가 있고, 잘려 보여서 끝난 화면처럼 보였음(점검 11/1)
     '<div class="bxs-row"><button type="button" class="btn bxs-back" data-bxs="back">이전</button><button type="button" class="btn primary bxs-go" data-bxs="done">시작하기</button></div>');
 }
-function bxStartDock(){ return ['med', 'routines', 'month', 'tt'].filter(k => k === 'month' || BXS.sel[k]); }
+// 아래 메뉴: 고른 시간 · 행동 관리 기능 + 오른쪽 끝 더보기(시험판 35). 명상 같은 그 밖의 기능은 ⋯ 더보기에
+function bxStartDock(){ return ['routines', 'month', 'tt'].filter(k => k === 'month' || BXS.sel[k]).concat(['more']); }
 // 처음에는 아무것도 골라 두지 않는다. 미리 골라 두면 예시 화면처럼 보이고 고르지 않은 기능까지 켜졌다(대표 확인 11/2, D-10 보완)
 function bxStartOpen(){ BXS = {step: 1, sel: (M.settings && M.settings.bxStart) ? Object.assign({}, bxStartMods()) : {report: false, routines: false, tt: false, med: false}}; bxStartDraw(); }
 
@@ -222,12 +223,12 @@ document.addEventListener('click', ev => {
   if (t.dataset.bxsMod) { BXS.sel[t.dataset.bxsMod] = !BXS.sel[t.dataset.bxsMod]; bxStartDraw(); return; }
   const s = t.dataset.bxs;
   // 건너뛰면 고른 것이 없으니 '일정·캘린더'만. 나머지는 ⋯ 메뉴 › 내가 쓸 기능에서 켠다
-  if (s === 'skip') { saveSettings({bxStart: {at: nowIso(), skipped: true, mods: {report: false, routines: false, tt: false, med: false}}, bxDock: ['month'], bxReport: Object.assign({}, (M.settings && M.settings.bxReport) || {}, {on: false})}); bxStartClose(); return; }
+  if (s === 'skip') { saveSettings({bxStart: {at: nowIso(), skipped: true, mods: {report: false, routines: false, tt: false, med: false}}, bxDock: ['month', 'more'], bxDockMig: 1, bxReport: Object.assign({}, (M.settings && M.settings.bxReport) || {}, {on: false})}); bxStartClose(); return; }
   if (s === 'next') { BXS.step = 2; bxStartDraw(); return; }
   if (s === 'back') { BXS.step = 1; bxStartDraw(); return; }
   if (s === 'done') {
     const sel = BXS.sel, dock = bxStartDock();
-    saveSettings({bxStart: {at: nowIso(), mods: sel}, bxDock: dock, bxReport: Object.assign({}, (M.settings && M.settings.bxReport) || {}, {on: !!sel.report})});
+    saveSettings({bxStart: {at: nowIso(), mods: sel}, bxDock: dock, bxDockMig: 1, bxReport: Object.assign({}, (M.settings && M.settings.bxReport) || {}, {on: !!sel.report})});
     bxStartClose(); return;
   }
   // 루틴 도우미

@@ -255,6 +255,8 @@ document.addEventListener('click', ev => {
 /* 19. 내가 쓸 기능 · 아래 메뉴: 기능을 끄면 홈·메뉴·알림에서 사라진다(넣어 둔 내용은 남음). 아래 메뉴는 누른 순서대로, 홈은 가운데 */
 let FEAT = null;
 const BX_FEAT = [['routines', '루틴'], ['report', '아침에 오늘 일정 받기'], ['tt', '시간표'], ['med', '명상']];
+// 묶음(시험판 35): 시간 · 행동 관리가 주 목적, 명상 같은 그 밖의 기능은 켜도 아래 메뉴가 아니라 ⋯ 더보기에(원하면 아래 메뉴에 넣음)
+const BX_FEAT_ETC = ['med'];
 function bxFeatOpen(){
   FEAT = {mods: Object.assign({}, bxStartMods()), dock: bxDockKeys().slice()};
   openSheet({title: '내가 쓸 기능', draw: bxFeatDraw, refresh: bxFeatDraw, onClose: () => { FEAT = null; }});
@@ -273,9 +275,10 @@ function bxFeatDraw(){
       : '<span class="bx-ft-chip off">' + lab(k) + ' · 꺼짐</span>'; };
   const half = Math.ceil(FEAT.dock.length / 2), prev = FEAT.dock.slice(0, half).map(lab).concat(['홈']).concat(FEAT.dock.slice(half).map(lab));
   setSheet(
-    '<h3 class="bx-ft-h">기능</h3><p class="p small" style="margin:0 0 4px">끄면 홈·메뉴·알림에서 사라져요. 넣어 둔 내용은 남아요.</p>' +
-    '<div class="bx-ft-row"><span>일정 · 캘린더</span><span class="bx-lv-fix">늘 켜짐</span></div>' + BX_FEAT.map(f => sw(f[0], f[1])).join('') +
-    '<h3 class="bx-ft-h">아래 메뉴</h3><p class="p small" style="margin:0 0 10px">누른 순서대로 왼쪽부터 놓여요. 홈은 늘 가운데, 4개까지.</p>' +
+    '<h3 class="bx-ft-h">시간 · 행동 관리</h3><p class="p small" style="margin:0 0 4px">이 앱의 주 기능이에요. 끄면 홈·메뉴·알림에서 사라지고, 넣어 둔 내용은 남아요.</p>' +
+    '<div class="bx-ft-row"><span>일정 · 캘린더</span><span class="bx-lv-fix">늘 켜짐</span></div>' + BX_FEAT.filter(f => !BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') +
+    '<h3 class="bx-ft-h">그 밖의 기능</h3><p class="p small" style="margin:0 0 4px">켜면 ⋯ 더보기에 있어요. 아래 메뉴에도 넣을 수 있어요.</p>' + BX_FEAT.filter(f => BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') +
+    '<h3 class="bx-ft-h">아래 메뉴</h3><p class="p small" style="margin:0 0 10px">누른 순서대로 왼쪽부터 놓여요. 홈은 늘 가운데, 4개까지. 처음엔 시간 · 행동 관리와 더보기.</p>' +
     '<div class="bx-ft-chips">' + Object.keys(BX_DOCK_ALL).map(chip).join('') + '</div>' +
     '<span class="bx-ft-pv-h">미리 보기</span><div class="bx-ft-pv" aria-hidden="true" style="grid-template-columns:repeat(' + prev.length + ',minmax(0,1fr))">' + prev.map(x => '<span class="' + (x === '홈' ? 'on' : '') + '">' + x + '</span>').join('') + '</div>',
     '<button type="button" class="btn grow" data-bx-fnav="reset">처음대로</button>');
@@ -290,7 +293,8 @@ document.addEventListener('click', ev => {
   if (k) {
     const on = FEAT.mods[k] === false; FEAT.mods[k] = on;
     if (!on) FEAT.dock = FEAT.dock.filter(x => x !== k);
-    else if ((k === 'routines' || k === 'tt' || k === 'med') && FEAT.dock.length < 4 && !FEAT.dock.includes(k)) FEAT.dock.push(k);
+    // 시간 · 행동 관리 기능은 켜면 아래 메뉴에(자리가 있으면 '더보기' 앞에). 그 밖의 기능은 ⋯ 더보기에
+    else if ((k === 'routines' || k === 'tt') && FEAT.dock.length < 4 && !FEAT.dock.includes(k)) { const at = FEAT.dock.indexOf('more'); if (at >= 0) FEAT.dock.splice(at, 0, k); else FEAT.dock.push(k); }
     bxFeatApply(); bxFeatDraw(); return;
   }
   if (d) {
@@ -306,7 +310,7 @@ function bxFeatApply(){
   if (!FEAT) return;
   const st = Object.assign({at: nowIso()}, (M.settings && M.settings.bxStart) || {}, {mods: Object.assign({}, FEAT.mods)});
   const rep = Object.assign({}, bxRepCfg(), {on: FEAT.mods.report !== false});
-  saveSettings({bxStart: st, bxDock: FEAT.dock.slice(), bxReport: rep});
+  saveSettings({bxStart: st, bxDock: FEAT.dock.slice(), bxDockMig: 1, bxReport: rep});
 }
 window.BX_rerender = function(){ if (S.view === 'today' && !SH && !document.getElementById('bx-start')) render(); };
 

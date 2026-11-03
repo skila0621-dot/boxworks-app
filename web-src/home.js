@@ -205,7 +205,9 @@ function bxHelpOpen(){
 function bxMoreMenuHtml(){
   const keys = bxDockKeys();
   const goRow = k => '<button type="button" class="menu-row" data-act="bx-go" data-view="' + k + '"><span class="mi">' + BX_DOCK_ALL[k].icon + '</span><span class="ml">' + BX_DOCK_ALL[k].label + '</span><span class="mv">' + ICON.chevR + '</span></button>';
-  return '<div class="menu">' + ['month', 'tt', 'routines', 'med'].filter(k => !keys.includes(k) && bxDockOk(k)).map(goRow).join('') +
+  // 묶음(시험판 35, 대표 의견 11/3): 시간 · 행동 관리 → 그 밖의 기능 → 앱. 아래 메뉴에 있는 기능은 여기 다시 두지 않는다
+  const grp = (h, list) => { const rows = list.filter(k => !keys.includes(k) && bxDockOk(k)).map(goRow).join(''); return rows ? '<div class="bx-menu-h">' + h + '</div>' + rows : ''; };
+  return '<div class="menu">' + grp('시간 · 행동 관리', BX_GROUP_TIME) + grp('그 밖의 기능', BX_GROUP_ETC) + '<div class="bx-menu-h">앱</div>' +
     '<button type="button" class="menu-row" data-act="bx-feat"><span class="mi">' + BX_HOME_ICON + '</span><span class="ml">내가 쓸 기능 · 아래 메뉴</span><span class="mv">' + ICON.chevR + '</span></button>' +
     // 홈 화면 위젯 두기: 설정 › 화면에도 같은 줄(대표 요청 11/3: 더보기에서도 고를 수 있게, 규칙 6 두 곳까지)
     '<button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">홈 화면 위젯 두기</span><span class="mv">' + ICON.chevR + '</span></button>' +
@@ -250,18 +252,29 @@ document.addEventListener('contextmenu', ev => { if (ev.target.closest && ev.tar
 
 /* ---------- 아래 메뉴 고르기(대표 요청 2026-10-31: 쓰고 싶은 기능만 툴바에) ----------
    홈은 늘 가운데. 나머지 자리(최대 4개)는 사용자가 고른다. 빠진 기능은 오른쪽 위 ⋯ 메뉴에서 연다. 설정 문서 bxDock에 저장(백업에 들어감) */
-// 기본 순서는 오른손 엄지 기준(대표 결정 2026-10-31): 덜 쓰는 명상이 왼쪽 끝, 자주 여는 캘린더·시간표가 오른쪽
-const BX_DOCK_DEF = ['med', 'routines', 'month', 'tt'];
+// 기본 순서는 오른손 엄지 기준(대표 결정 2026-10-31): 자주 여는 캘린더·시간표가 오른쪽.
+// 시험판 35(대표 의견 11/3): 아래 메뉴 기본값은 이 앱의 주 목적인 '시간 · 행동 관리'만. 명상 같은 그 밖의 기능은 ⋯ 더보기에 묶고,
+// 원하면 '내가 쓸 기능 · 아래 메뉴'에서 넣는다. 오른쪽 끝 '더보기'(위 ⋯와 같은 창)로 홈이 가운데에 온다
+const BX_DOCK_DEF = ['routines', 'month', 'tt', 'more'];
+// 예전 기본값(명상 · 루틴 · 캘린더 · 시간표)을 그대로 쓰던 휴대폰은 새 기본값으로 바꿔 보인다. 한 번이라도 고치면(bxDockMig) 그대로 둔다
+const BX_DOCK_OLD = 'med,routines,month,tt';
+// 기능 묶음: 시간 · 행동 관리(주 목적) / 그 밖의 기능(명상 등, 앞으로 늘어날 것)
+const BX_GROUP_TIME = ['month', 'routines', 'tt'], BX_GROUP_ETC = ['med'];
 const BX_DOCK_ALL = {
   month: {label: '캘린더', sub: '달력·주간 일정', icon: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.4h.01M12 17.4h.01" stroke-width="2.6"/></svg>', attr: 'data-act="go" data-view="month"'},
   tt: {label: '시간표', sub: '매주 반복되는 수업·학원·알바', icon: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16.5" rx="3"/><path d="M3.5 9.5h17M9.5 9.5v11M15 9.5v11"/></svg>', attr: 'data-act="go" data-view="tt"'},
   routines: {label: '루틴', sub: '아침 준비·약 먹기 같은 반복 습관', icon: '<svg class="i" viewBox="0 0 24 24"><path d="M4.5 11a7.5 7.5 0 0 1 13-4.6L19.5 8.5"/><path d="M19.5 4v4.5H15"/><path d="M19.5 13a7.5 7.5 0 0 1-13 4.6L4.5 15.5"/><path d="M4.5 20v-4.5H9"/></svg>', attr: 'data-act="go" data-view="routines"'},
   med: {label: '명상', sub: '싱잉볼 소리로 시작과 끝을 알려 줘요', icon: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5c1.8 2 2.8 4 2.8 6.3s-1.2 4.2-2.8 5.2c-1.6-1-2.8-2.9-2.8-5.2S10.2 7 12 5z"/><path d="M12 16.5c-3.5 0-6.5-2-7.5-5.5 2.7-.3 5.2.6 7 2.5"/><path d="M12 16.5c3.5 0 6.5-2 7.5-5.5-2.7-.3-5.2.6-7 2.5"/><path d="M5 19.5h14"/></svg>', attr: 'data-act="go" data-view="med"'},
+  more: {label: '더보기', sub: '그 밖의 기능 · 설정을 모아 둔 곳', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>', attr: 'data-act="more"'},
   search: {label: '검색', sub: '지난 일정·루틴 찾기', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>', attr: 'data-menu="search"'},
   prefs: {label: '설정', sub: '알림·화면·분류·백업', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>', attr: 'data-menu="prefs"'}
 };
 const BX_HOME_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 9v10.5h12V9"/><path d="M10 19.5v-5h4v5"/></svg>';
-function bxDockKeys(){ const v = M && M.settings && M.settings.bxDock; return (Array.isArray(v) ? v.filter(k => BX_DOCK_ALL[k]) : BX_DOCK_DEF).filter(bxDockOk).slice(0, 4); }
+function bxDockKeys(){
+  const st = M && M.settings, v = st && st.bxDock;
+  const keys = Array.isArray(v) && !(!st.bxDockMig && v.join(',') === BX_DOCK_OLD) ? v.filter(k => BX_DOCK_ALL[k]) : BX_DOCK_DEF;
+  return keys.filter(bxDockOk).slice(0, 4);
+}
 // 끈 기능(루틴·시간표·명상)은 아래 메뉴·⋯ 메뉴에서도 뺀다
 function bxDockOk(k){ return !(k === 'routines' || k === 'tt' || k === 'med') || bxModOn(k); }
 let bxDockSig = '';

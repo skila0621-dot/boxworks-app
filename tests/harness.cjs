@@ -22,7 +22,9 @@ const hmOf = ms => new Date(ms + 9 * 3600e3).toISOString().slice(11, 16);
 function settings(extra = {}) {
   const old = '2026-10-29T00:00:00.000Z';
   return Object.assign({ type: 'settings', weekStart: 1, onboarded: true, welcomed: true,
-    bxStart: { at: old, mods: { report: false, routines: true, tt: true, med: true } }, bxRtHelp: { at: old }, bxTtHelp: { at: old } }, extra);
+    bxStart: { at: old, mods: { report: false, routines: true, tt: true, med: true } }, bxRtHelp: { at: old }, bxTtHelp: { at: old },
+    // 시험들은 명상을 아래 메뉴에서 연다(사용자가 아래 메뉴를 고친 휴대폰). 새 기본값(시간 · 행동 관리 + 더보기)은 v35에서 본다
+    bxDock: ['med', 'routines', 'month', 'tt'], bxDockMig: 1 }, extra);
 }
 
 /**

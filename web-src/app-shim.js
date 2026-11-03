@@ -262,6 +262,8 @@
     // 창을 열면 머리 줄(로고·⋯)이 내린 만큼 위로 밀려 사라지던 문제(대표 지적 11/3): body까지 overflow:hidden이면 body가 스크롤 상자가 되어
     // 머리 줄의 sticky가 풀린다. 앱은 html만 잠근다(뒤 화면은 그대로 안 움직임)
     'html.bx-app.locked body{overflow:visible}',
+    // ⋯ 더보기 묶음 이름(시험판 35): 시간 · 행동 관리 / 그 밖의 기능 / 앱
+    '.bx-app .bx-menu-h{padding:16px 2px 4px;font-size:12.5px;font-weight:700;color:var(--ink-3);letter-spacing:.01em}.bx-app .menu>.bx-menu-h:first-child{padding-top:2px}',
     '#bx-permbar{display:flex;align-items:center;gap:10px;margin:10px 16px 0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--danger) 12%,var(--bg));color:var(--danger);font-size:14px;font-weight:600;line-height:1.45}#bx-permbar span{flex:1}#bx-permbar .btn{flex:none}',
     '#bx-start .bxs-skip{min-height:44px;padding:0 6px;color:var(--ink-2);font-size:14px;background:transparent}',
     '#bx-start .bxs-back-i{width:44px;height:44px;margin-left:-12px;display:flex;align-items:center;justify-content:center;color:var(--ink)}#bx-start .bxs-back-i .i{width:22px;height:22px}',

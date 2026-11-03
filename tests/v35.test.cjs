@@ -7,7 +7,7 @@ const sw = p => p.evaluate(() => { const b = document.querySelector('[data-med-s
 const lastLocal = p => p.evaluate(() => (window.__local.slice(-1)[0] || []).map(a => [a.id, a.sound]));
 
 module.exports = async function () {
-  const c = checker('시험판 35 · 시작 종 · 끝 소리 · 머리 줄 · 캘린더 표시');
+  const c = checker('시험판 35 · 시작 종 · 끝 소리 · 머리 줄 · 캘린더 표시 · 기능 묶음');
 
   let app = await openApp({ data: [['settings', settings()]] });
   try {
@@ -86,5 +86,34 @@ module.exports = async function () {
     c.ok(w && !w.inTop && w.below, '주간도 같은 자리 ' + JSON.stringify(w));
     c.eq(app.errors, [], '화면 오류(캘린더 표시)');
   } finally { await app.close(); }
+  // (4) 기능 묶음(대표 의견 11/3): 아래 메뉴 기본값은 시간 · 행동 관리 + 더보기, 명상 같은 그 밖의 기능은 ⋯ 더보기에
+  const dockLabels = p => p.evaluate(() => Array.from(document.querySelectorAll('.dock-in .dock-btn')).map(b => Array.from(b.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim()));
+  const menuHeads = p => p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .bx-menu-h')).map(h => h.textContent.trim()));
+  app = await openApp({ data: [['settings', settings({ bxDock: undefined, bxDockMig: undefined })]] });
+  try {
+    const p = app.page;
+    c.eq(await dockLabels(p), ['루틴', '캘린더', '홈', '시간표', '더보기'], '새로 설치한 휴대폰의 아래 메뉴: 시간 · 행동 관리 + 더보기, 홈은 가운데');
+    await p.click('.dock-in [data-act="more"]'); await p.waitForTimeout(500);
+    c.eq(await menuHeads(p), ['그 밖의 기능', '앱'], '더보기: 그 밖의 기능 → 앱 묶음(아래 메뉴에 있는 시간 · 행동 관리는 다시 두지 않음)');
+    c.ok(await p.evaluate(() => { const h = Array.from(document.querySelectorAll('#sheet-root .bx-menu-h')).find(x => x.textContent.trim() === '그 밖의 기능'); return !!(h && h.nextElementSibling && /명상/.test(h.nextElementSibling.textContent)); }), "'그 밖의 기능' 아래에 명상");
+    await p.click('#sheet-root [data-view="med"]'); await p.waitForTimeout(600);
+    c.ok(await p.evaluate(() => !!document.querySelector('.bx-med-set')), '더보기 › 명상으로 들어감');
+    // 내가 쓸 기능: 묶음, 명상을 껐다 켜도 아래 메뉴에는 들어가지 않음
+    await p.click('[data-act="more"]'); await p.waitForTimeout(400);
+    await p.click('#sheet-root [data-act="bx-feat"]'); await p.waitForTimeout(500);
+    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .bx-ft-h')).map(h => h.textContent.trim())), ['시간 · 행동 관리', '그 밖의 기능', '아래 메뉴'], '내가 쓸 기능 묶음');
+    await p.click('#sheet-root [data-bx-feat="med"]'); await p.waitForTimeout(300);
+    await p.click('#sheet-root [data-bx-feat="med"]'); await p.waitForTimeout(300);
+    c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxDock), ['routines', 'month', 'tt', 'more'], '명상을 다시 켜도 아래 메뉴는 그대로(⋯ 더보기에)');
+    await p.click('#sheet-root [data-bx-feat="tt"]'); await p.waitForTimeout(300);
+    await p.click('#sheet-root [data-bx-feat="tt"]'); await p.waitForTimeout(300);
+    c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxDock), ['routines', 'month', 'tt', 'more'], "시간표를 껐다 켜면 '더보기' 앞 제자리로");
+    c.eq(app.errors, [], '화면 오류(기능 묶음)');
+  } finally { await app.close(); }
+  // 예전 기본값을 그대로 쓰던 휴대폰은 새 기본값으로, 직접 고친 아래 메뉴는 그대로
+  app = await openApp({ data: [['settings', settings({ bxDock: ['med', 'routines', 'month', 'tt'], bxDockMig: undefined })]] });
+  try { c.eq(await dockLabels(app.page), ['루틴', '캘린더', '홈', '시간표', '더보기'], '예전 기본값(명상 · 루틴 · 캘린더 · 시간표) → 새 기본값'); } finally { await app.close(); }
+  app = await openApp({ data: [['settings', settings({ bxDock: ['med', 'month'], bxDockMig: undefined })]] });
+  try { c.eq(await dockLabels(app.page), ['명상', '홈', '캘린더'], '직접 고친 아래 메뉴는 그대로'); } finally { await app.close(); }
   return c.done();
 };
