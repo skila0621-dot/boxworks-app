@@ -73,9 +73,9 @@ module.exports = async function () {
     await p.evaluate(() => { const l = window.Capacitor.Plugins.BxAlarm; l.local = async () => ({}); l.cancelLocal = async () => ({}); });
     await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(400);
     const pl = await last(p), run = await p.evaluate(() => JSON.parse(localStorage.getItem('bx:med') || '{}').run);
-    c.ok(pl && pl[0] === 'play' && pl[1].sound === 'wind' && pl[1].mode === 'med' && run && pl[1].startAt === run.startAt && pl[1].until === run.endAt && run.endAt - run.startAt === 10 * 60000,
-      '명상 시작: 바람이 첫 종부터 끝 종까지 ' + JSON.stringify([pl, run && [run.startAt, run.endAt]]));
-    c.ok(await p.evaluate(() => /바람도 그때 함께 꺼져요\./.test((document.querySelector('.bx-med-run .bx-med-note') || {}).textContent || '')), '진행 중 안내: 바람도 함께 꺼짐');
+    c.ok(pl && pl[0] === 'play' && pl[1].sound === 'wind' && pl[1].mode === 'med' && run && pl[1].startAt === run.startAt && pl[1].until === run.endAt - 2000 && run.endAt - run.startAt === 10 * 60000,
+      '명상 시작: 바람이 첫 종부터 끝 종 2초 전까지(시험판 35) ' + JSON.stringify([pl, run && [run.startAt, run.endAt]]));
+    c.ok(await p.evaluate(() => /바람은 끝 종 앞에서 줄어들어요\./.test((document.querySelector('.bx-med-run .bx-med-note') || {}).textContent || '')), '진행 중 안내: 바람은 끝 종 앞에서 줄어듦');
     await p.click('[data-act="bx-med-stop"]'); await p.waitForTimeout(300);
     c.ok(JSON.stringify(await p.evaluate(() => window.__bg.slice(-1)[0])) === '["stop"]', '끝내기를 누르면 배경 소리도 꺼짐');
 
