@@ -39,6 +39,30 @@ function bxCalHead(){
   const lg = top.querySelector('.bx-cal-lg'); if (lg) ph.append(lg);
 }
 
+/* 받은 글로 새 일정(시험판 35, 공유의 첫걸음 · 결정 기록 D-12). 카톡에서 약속 메시지를 '공유' → '박스웍스 일정으로'.
+   날짜·시각이 있는 줄을 제목 칸에 넣어 말로 넣기와 같은 해석을 쓰고, 여러 줄이면 받은 글 전체를 메모에 남긴다. 서버 없음 */
+function bxSharedLines(text){
+  return String(text || '').replace(/\r/g, '').split('\n')
+    .map(l => l.replace(/^\s*\[[^\]]{1,20}\]\s*\[(오전|오후)\s*\d{1,2}:\d{2}\]\s*/, '').trim())
+    .filter(l => l && !/^https?:\/\/\S+$/.test(l));
+}
+window.BX_openShared = function(text){
+  if (!window.BX_APP || !M) return;
+  const lines = bxSharedLines(text); if (!lines.length) return;
+  if (document.getElementById('bx-start')) { toast('처음 안내를 마친 뒤 다시 공유해 주세요'); return; }
+  const now = new Date(), when = l => { try { const r = parseQuick(l, now); return !!(r && (r.date || r.start)); } catch (e) { return false; } };
+  const first = (lines.find(when) || lines[0]).slice(0, 120), whole = lines.join('\n');
+  closeSheet();
+  if (S.view !== 'today') go('today');
+  setTimeout(() => {
+    openEdit(null, {});
+    const t = document.getElementById('f-title'); if (!t) return;
+    t.value = first; t.dispatchEvent(new Event('input', {bubbles: true}));
+    if (whole !== first) { F.note = whole.slice(0, 2000); F.extra = true; drawEdit(); }
+    toast('받은 글로 새 일정을 열었어요. 날짜·시각을 보고 저장하세요');
+  }, 250);
+};
+
 /* 7. 새 일정 창: 자주 넣은 말(최근 넉 달 두 번 이상 넣은 제목, 자주 쓴 시각 함께). 쓸수록 덜 입력한다 */
 function bxSayTime(hmS){
   if (!isHM(hmS)) return '';

@@ -721,6 +721,14 @@
     if (widgetPl.consumeLaunch) widgetPl.consumeLaunch().then(function (r) { if (r && r.speak) setTimeout(speakNow, 700); }).catch(function () {});
   }
 
+  // 다른 앱에서 '공유' → 박스웍스 일정으로(시험판 35): 받은 글로 새 일정 창(web-src/flow.js BX_openShared)
+  var shareIn = plugin('BxShareIn');
+  if (shareIn) {
+    var openShared = function (r) { var t = r && r.text ? String(r.text) : ''; if (t && typeof window.BX_openShared === 'function') setTimeout(function () { window.BX_openShared(t); }, 300); };
+    if (shareIn.addListener) shareIn.addListener('shared', openShared);
+    if (shareIn.consume) setTimeout(function () { shareIn.consume().then(openShared).catch(function () {}); }, 900);
+  }
+
   // 말로 넣기(3단계). 휴대폰 기본 음성 인식으로 받은 글자를 칸에 넣고,
   // 박스웍스가 글자를 칠 때와 똑같이 해석하게 한다(날짜·시각 자동 인식).
   var speech = plugin('BxSpeech');

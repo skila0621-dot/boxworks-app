@@ -7,7 +7,7 @@ const sw = p => p.evaluate(() => { const b = document.querySelector('[data-med-s
 const lastLocal = p => p.evaluate(() => (window.__local.slice(-1)[0] || []).map(a => [a.id, a.sound]));
 
 module.exports = async function () {
-  const c = checker('시험판 35 · 명상 소리 · 화면 · 머리 줄 · 캘린더 표시 · 기능 묶음');
+  const c = checker('시험판 35 · 명상 소리 · 화면 · 머리 줄 · 캘린더 표시 · 기능 묶음 · 공유 받기');
 
   let app = await openApp({ data: [['settings', settings()]] });
   try {
@@ -131,6 +131,22 @@ module.exports = async function () {
     const end = await p.evaluate(() => ({ left: (document.getElementById('bx-med-left') || {}).textContent, h: (document.querySelector('.bx-med-end-h') || {}).textContent, s: (document.querySelector('.bx-med-end-s') || {}).textContent, ic: !!document.querySelector('.bx-med-done-ic') }));
     c.eq(end, { left: '5분', h: '명상을 마쳤어요', s: '오늘 5분', ic: true }, '끝 화면: 확인 표시 · 분 · 오늘 합계');
     c.eq(app.errors, [], '화면 오류(명상 화면)');
+  } finally { await app.close(); }
+  // (6) 카톡 약속 공유 받기(공유의 첫걸음): 받은 글로 새 일정 창, 날짜·시각은 말로 넣기와 같은 해석, 여러 줄이면 전체는 메모에
+  app = await openApp({ data: [['settings', settings()]] });
+  try {
+    const p = app.page;
+    await p.evaluate(t => window.BX_openShared(t), '[홍길동] [오후 3:12] 11월 7일 토요일 저녁 7시 강남역에서 만나\nhttps://example.com/x\n늦으면 연락해'); await p.waitForTimeout(800);
+    c.eq(await p.evaluate(() => (document.getElementById('f-title') || {}).value), '11월 7일 토요일 저녁 7시 강남역에서 만나', '받은 글의 날짜·시각 줄이 제목 칸에(보낸 사람·시각 표시는 뺌)');
+    c.ok(/받은 글로 새 일정을 열었어요/.test(await p.evaluate(() => Array.from(document.querySelectorAll('.toast')).map(t => t.textContent).join(' '))), '안내 한 줄');
+    await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-act="save"]'); if (b) b.click(); }); await p.waitForTimeout(500);
+    const it = await p.evaluate(() => (window.BX_T.docs().find(([id, d]) => d.type === 'item') || [0, null])[1]);
+    c.ok(it && it.title === '강남역에서 만나' && it.date === '2026-11-07' && it.start === '19:00' && it.note === '11월 7일 토요일 저녁 7시 강남역에서 만나\n늦으면 연락해', '저장하면 날짜·시각이 든 일정, 받은 글은 메모에(링크 줄은 뺌) ' + JSON.stringify(it && { t: it.title, d: it.date, s: it.start, n: it.note }));
+    await p.evaluate(t => window.BX_openShared(t), '내일 점심 12시 반 회사 앞 김밥집'); await p.waitForTimeout(800);
+    await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-act="save"]'); if (b) b.click(); }); await p.waitForTimeout(500);
+    const it2 = await p.evaluate(() => (window.BX_T.docs().filter(([id, d]) => d.type === 'item').map(x => x[1]).find(d => /김밥집/.test(d.title)) || null));
+    c.ok(it2 && it2.date === '2026-11-03' && it2.start === '12:30' && !it2.note, '한 줄이면 메모 없이 ' + JSON.stringify(it2 && { t: it2.title, d: it2.date, s: it2.start, n: it2.note }));
+    c.eq(app.errors, [], '화면 오류(공유 받기)');
   } finally { await app.close(); }
   // 예전 기본값을 그대로 쓰던 휴대폰은 새 기본값으로, 직접 고친 아래 메뉴는 그대로
   app = await openApp({ data: [['settings', settings({ bxDock: ['med', 'routines', 'month', 'tt'], bxDockMig: undefined })]] });
