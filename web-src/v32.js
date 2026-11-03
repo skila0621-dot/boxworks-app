@@ -3,7 +3,7 @@
    '내가 쓸 기능' 설명은 flow.js, 휴대폰을 쓰는 중 알람은 휴대폰 쪽(AlarmRingService) */
 
 /* 루틴 단계: '할 일 / 기다리기' 칸 대신 단계마다 '알람' 스위치(대표 결정 11/3).
-   켜면 그 단계 시각에 알람이 울리고 '했어요'를 누를 때까지 다시 울린다(할 일). 끄면 울리지 않고 시간만 지나간다(기다리기: 세탁기 돌리기처럼) */
+   켜면 그 단계 시각에 알람이 울리고 '확인'을 누를 때까지 다시 울린다(할 일). 끄면 울리지 않고 시간만 지나간다(기다리기: 세탁기 돌리기처럼) */
 function bxRsAlarmHtml(s, i){
   const on = s.kind !== 'wait';
   return '<span class="bx-rs-al"><span class="bx-rs-al-l" aria-hidden="true">알람</span><button type="button" class="tog" role="switch" aria-checked="' + on + '" aria-label="' + (i + 1) + '번째 단계 알람" data-rs-alarm="' + i + '"><i></i></button></span>';
