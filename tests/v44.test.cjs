@@ -150,5 +150,29 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('.bx-med-acts .btn')).map(b => b.textContent.trim() + (b.classList.contains('primary') ? '*' : ''))), ['한 번 더', '닫기*'], "끝 화면: '닫기'가 주 단추");
     c.eq(app2.errors, [], '화면 오류(명상 소리)');
   } finally { await app2.close(); }
+
+  // (10) 다른 곳도 같은 기준: 루틴 '아이콘 변경'은 페이지, 아래 메뉴 칩은 4칸 맞춤
+  const old3 = '2026-10-29T00:00:00.000Z';
+  const app3 = await openApp({ data: [['settings', settings()], ['rt_1', { type: 'routine', name: '아침 준비', mode: 'start', start: '07:00', days: [1, 2, 3, 4, 5], on: true, steps: [{ name: '세수', min: 10 }], createdAt: old3, updatedAt: old3 }]] });
+  try {
+    const p = app3.page;
+    await p.click('.dock [data-view="routines"]'); await p.waitForTimeout(600);
+    await p.evaluate(() => document.querySelector('[data-act="rt-edit"]').click()); await p.waitForTimeout(600);
+    const sum0 = await p.evaluate(() => document.getElementById('bx-icsum').textContent);
+    await p.evaluate(() => document.getElementById('bx-icsum').click()); await p.waitForTimeout(300);
+    c.ok(await p.evaluate(() => document.getElementById('bx-pg-t').textContent === '아이콘' && !document.getElementById('bx-icdet').open && !!document.querySelector('#bx-pg #bx-icpick')), "아이콘 변경: 펼치지 않고 '아이콘' 페이지");
+    await p.evaluate(() => document.querySelector('#bx-pg [data-ricon="book"]').click()); await p.waitForTimeout(200);
+    await p.evaluate(() => window.BX_back()); await p.waitForTimeout(200);
+    c.ok(await p.evaluate(s0 => !document.getElementById('bx-pg') && document.getElementById('bx-icsum').textContent === s0 && !!document.querySelector('#bx-icdet #bx-icpick'), sum0), '뒤로: 고른 것을 되돌리고 루틴 창으로');
+    await p.evaluate(() => document.getElementById('bx-icsum').click()); await p.waitForTimeout(300);
+    await p.evaluate(() => document.querySelector('#bx-pg [data-ricon="book"]').click()); await p.waitForTimeout(200);
+    await p.click('#bx-pg [data-bxpg="done"]'); await p.waitForTimeout(200);
+    c.ok(await p.evaluate(() => /책/.test(document.getElementById('bx-icsum').textContent)), "완료: 아이콘 '책'");
+    await p.evaluate(() => document.querySelector('#sheet-root [data-act="sheet-close"]').click()); await p.waitForTimeout(300);
+    await p.click('.ab-menu'); await p.waitForTimeout(400);
+    await p.evaluate(() => document.querySelector('#sheet-root [data-act="bx-feat"]').click()); await p.waitForTimeout(500);
+    c.eq(await p.evaluate(() => getComputedStyle(document.querySelector('.bx-ft-chips')).gridTemplateColumns.split(' ').length), 4, '아래 메뉴 고르기: 4칸 맞춤(흐르는 칩 줄 아님)');
+    c.eq(app3.errors, [], '화면 오류(다른 곳)');
+  } finally { await app3.close(); }
   return c.done();
 };

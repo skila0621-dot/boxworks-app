@@ -280,6 +280,8 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-ep-ok{flex:none;height:44px;padding:0 16px;border:0;border-radius:22px;background:transparent;color:var(--accent);font:inherit;font-size:16px;font-weight:700}',
     'html.bx-app .bx-ep-ok:active{background:var(--accent-soft)}',
     'html.bx-app .bx-ep-b{flex:1;overflow-y:auto;padding:4px 12px 32px;-webkit-overflow-scrolling:touch;--sunk:var(--bx-card-in,var(--sunk))}',
+    // 넓은 화면(가로로 편 폴드 · 태블릿): 페이지 내용은 일정 창 너비(560)만큼 가운데에
+    '@media (min-width:600px){html.bx-app .bx-ep-h,html.bx-app .bx-ep-b > *{width:100%;max-width:560px;margin-left:auto;margin-right:auto}html.bx-app .bx-ep-b{padding-left:20px;padding-right:20px}}',
     'html.bx-app .bx-ep #f-panel{display:block;margin:0;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}',
     'html.bx-app .bx-ep #f-panel > div{display:flex;flex-direction:column;gap:14px}',
     'html.bx-app .bx-ep .bx-ep-gl,html.bx-app .bx-ep .fg-l{margin:6px 20px -6px;padding:0;font-size:13px;font-weight:500;color:var(--ink-2)}',
@@ -516,6 +518,68 @@ setTimeout(() => {
     'html.bx-app .bx-mp .bx-mp-grid .pick{width:auto;min-height:44px;margin:0;justify-content:center;white-space:nowrap}',
     'html.bx-app .bx-mp .bx-mp-grid .bx-cpick{grid-column:span 2}',
     'html.bx-app .bx-mp .bx-ep-b{display:flex;flex-direction:column;gap:14px}'
+  ].join('\n');
+  (document.head || document.documentElement).appendChild(st);
+})();
+
+/* 6) 앱의 다른 곳도 같은 기준(대표 11/4 1:24 · 1:51 · 1:34)
+   - 루틴 고치기 창의 '아이콘 변경'은 그 자리에서 펼치지 않고 '아이콘' 페이지(고르면 바로, ‹ 는 되돌림)
+   - 기능 · 메뉴 편집의 '아래 메뉴' 칩은 흐르는 줄 대신 4칸 맞춤(규칙 15)
+   - 홈 요약 상자 안 20 · 주간 '오늘' 상자 모서리 24(삼성 잰 값) */
+let bxPg = null;
+function bxPgClose(undo){
+  if (!bxPg) return;
+  const o = bxPg; bxPg = null;
+  if (undo && o.onUndo) o.onUndo();
+  if (o.ph && o.ph.parentNode) { o.ph.parentNode.insertBefore(o.node, o.ph); o.ph.remove(); }
+  const pg = document.getElementById('bx-pg'); if (pg) pg.remove();
+}
+function bxPgOpen(title, node, onUndo){
+  if (!node || !node.parentNode) return;
+  bxPgClose(false);
+  const root = document.getElementById('sheet-root') || document.body;
+  const ph = document.createComment('bx-pg');
+  node.parentNode.insertBefore(ph, node);
+  const pg = document.createElement('div');
+  pg.id = 'bx-pg'; pg.className = 'bx-ep'; pg.setAttribute('role', 'dialog'); pg.setAttribute('aria-modal', 'true'); pg.setAttribute('aria-labelledby', 'bx-pg-t');
+  pg.innerHTML = '<div class="bx-ep-h"><button type="button" class="icon-btn" data-bxpg="back" aria-label="취소하고 돌아가기">' + ICON.chevL + '</button><h2 id="bx-pg-t">' + esc(title) + '</h2><button type="button" class="bx-ep-ok" data-bxpg="done">완료</button></div><div class="bx-ep-b"></div>';
+  pg.querySelector('.bx-ep-b').appendChild(node);
+  root.appendChild(pg);
+  bxPg = {node, ph, onUndo};
+}
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !ev.target.closest) return;
+  const sm = ev.target.closest('#bx-icsum');
+  if (sm && typeof R !== 'undefined' && R) {
+    ev.preventDefault(); ev.stopPropagation();
+    const snap = R.icon || null;
+    bxPgOpen('아이콘', document.getElementById('bx-icpick'), () => { if (R) { R.icon = snap; bxIconPickRefresh(); } });
+    return;
+  }
+  const b = ev.target.closest('[data-bxpg]');
+  if (b) { ev.preventDefault(); ev.stopPropagation(); bxPgClose(b.dataset.bxpg === 'back'); }
+}, true);
+setTimeout(() => {
+  const back = window.BX_back; if (typeof back !== 'function' || back.bx44p) return;
+  window.BX_back = function(){
+    if (window.BX_APP && document.getElementById('bx-pg')) { bxPgClose(true); return true; }
+    return back.apply(this, arguments);
+  };
+  window.BX_back.bx44p = true;
+}, 0);
+(function bxV44AllStyle(){
+  if (!window.BX_APP) return;
+  const st = document.createElement('style');
+  st.id = 'bx-v44a';
+  st.textContent = [
+    'html.bx-app .bx-ft-chips{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}',
+    'html.bx-app .bx-ft-chip{justify-content:center;min-width:0;min-height:44px;padding:0 6px;border-radius:14px;white-space:nowrap}',
+    'html.bx-app .bx-ft-chip.off{grid-column:span 2}',
+    'html.bx-app .bx-sumcard{padding:8px 20px 16px}',
+    'html.bx-app .day-g.is-today{border-radius:24px}',
+    // 아이콘 페이지: 아이콘 칸을 상자 안에 고르게
+    'html.bx-app #bx-pg #bx-icpick{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;justify-items:center;padding:20px 16px;border-radius:26px;background:var(--card-bg)}',
+    'html.bx-app #bx-pg #bx-icpick .bx-icb{width:52px;height:52px}'
   ].join('\n');
   (document.head || document.documentElement).appendChild(st);
 })();
