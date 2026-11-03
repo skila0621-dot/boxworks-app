@@ -145,7 +145,7 @@ module.exports = async function () {
     await p.evaluate(() => Array.from(document.querySelectorAll('.cal [data-date="2026-11-03"]')).find(e => e.getBoundingClientRect().width > 20).click());
     await p.waitForTimeout(600);
     const ds = await p.evaluate(() => ({ sheet: (document.querySelector('#sheet-title') || {}).textContent || '', foot: Array.from(document.querySelectorAll('#sheet-root #sheet-f button')).map(b => b.textContent.trim()) }));
-    c.ok(/11월 3일/.test(ds.sheet) && ds.foot.length === 1 && /이날 일정 넣기/.test(ds.foot[0]), "월간: 날짜를 누르면 그날 창, 아래는 '이날 일정 넣기' 하나 " + JSON.stringify(ds));
+    c.ok(/11월 3일/.test(ds.sheet) && ds.foot.length === 1 && /일정 추가/.test(ds.foot[0]), "월간: 날짜를 누르면 그날 창, 아래는 '이날 일정 넣기' 하나 " + JSON.stringify(ds));
     // 월간|주간 칩은 가운데(대표 의견 11/2)
     await p.evaluate(() => { const c = document.querySelector('#sheet-root [data-act="sheet-close"]'); if (c) c.click(); }); await p.waitForTimeout(300);
     const sw = await p.evaluate(() => { const r = document.querySelector('.bx-ch-top .seg').getBoundingClientRect(); return Math.round(r.left + r.width / 2 - innerWidth / 2); });
@@ -163,7 +163,7 @@ module.exports = async function () {
     const p = app.page;
     await p.evaluate(() => window.BX_T.day('2026-11-03')); await p.waitForTimeout(600);
     const f = await p.evaluate(() => { const ft = document.querySelector('#sheet-root #sheet-f'); const bs = ft ? Array.from(ft.querySelectorAll('button,input')).filter(e => e.getBoundingClientRect().width > 0) : []; const r = bs[0] ? bs[0].getBoundingClientRect() : null; return { n: bs.length, t: bs.map(b => b.textContent.trim()), w: r ? Math.round(r.width) : 0, W: innerWidth }; });
-    c.ok(f.n === 1 && /이날 일정 넣기/.test(f.t[0]) && f.w > f.W * 0.8, '날짜 창 아래: 이날 일정 넣기 하나, 가득 ' + JSON.stringify(f));
+    c.ok(f.n === 1 && /일정 추가/.test(f.t[0]) && f.w > f.W * 0.8, '날짜 창 아래: 이날 일정 넣기 하나, 가득 ' + JSON.stringify(f));
     await p.click('#sheet-root #sheet-f [data-act="new"]'); await p.waitForTimeout(500);
     c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="date"]') || {}).textContent.trim()), '내일', '같은 새 일정 창이 그 날짜(내일)로 열림');
   } finally { await app.close(); }

@@ -31,7 +31,7 @@ function bxCalHead(){
   const prev = bs[0], pill = bs[1], next = bs[bs.length - 1];
   const top = document.createElement('div'); top.className = 'bx-ch-top';
   const mode = document.querySelector('.screen .tt-mode'); if (mode) top.appendChild(mode);
-  if (pill.getAttribute('aria-pressed') !== 'true') { pill.classList.add('bx-ch-today'); pill.textContent = S.view === 'week' ? '이번 주로' : '이번 달로'; top.appendChild(pill); }
+  if (pill.getAttribute('aria-pressed') !== 'true') { pill.classList.add('bx-ch-today'); pill.textContent = '오늘'; top.appendChild(pill); }
   prev.setAttribute('aria-label', S.view === 'week' ? '지난주' : '지난달'); next.setAttribute('aria-label', S.view === 'week' ? '다음 주' : '다음 달');
   const mid = document.createElement('div'); mid.className = 'bx-ch-mid'; mid.append(prev, h1, next);
   ph.textContent = ''; ph.classList.add('bx-ch'); ph.append(top, mid); if (p) ph.append(p);
@@ -117,30 +117,47 @@ document.addEventListener('click', ev => {
   if (!it) return;
   if (op === 'done') { toggleDone(id); setTimeout(() => { if (SH && SH.refresh) SH.refresh(); }, 50); return; }
   if (op === 'pick') { bxLatePickDate(id); return; }
-  if (op === 'keep') { bxLatePatch(id, {lateKeep: +dueAt(it)}, '그대로 뒀어요. 확인 필요에서 빠져요'); return; }
+  if (op === 'keep') { bxLatePatch(id, {lateKeep: +dueAt(it)}, '확인 필요에서 뺐어요'); return; }
   const base = {slips: (it.slips || 0) + 1, ackAt: null, snoozeUntil: null, lateKeep: null};
   if (!it.origDate) { base.origDate = it.date; base.origStart = it.start || null; }
-  if (op === 'move') { const d = ($('#bx-lc-date') || {}).value; if (isDate(d)) { BXL_PICK = null; bxLateMove(id, d, base); } return; }
-  if (op === 'today') {
-    // 오늘 그 시각이 이미 지났으면 지금부터 한 시간 뒤로(옮기자마자 다시 '지난 일'이 되지 않게)
-    const n = new Date(), nowM = n.getHours() * 60 + n.getMinutes();
-    if (it.start && toMin(it.start) <= nowM) {
-      const s = Math.min(23 * 60, Math.ceil((nowM + 60) / 10) * 10), dur = it.end ? toMin(it.end) - toMin(it.start) : null;
-      bxLatePatch(id, Object.assign(base, {date: M.today, start: fromMin(s), end: dur != null ? fromMin(Math.min(1439, s + dur)) : null}), '오늘 ' + fromMin(s) + '로 옮겼어요');
-    } else bxLatePatch(id, Object.assign(base, {date: M.today}), '오늘로 옮겼어요');
+  if (op === 'move') {
+    const d = ($('#bx-lc-date') || {}).value, t = ($('#bx-lc-time') || {}).value;
+    if (!isDate(d)) return;
+    BXL_PICK = null;
+    if (isHM(t)) { const dur = it.start && it.end ? toMin(it.end) - toMin(it.start) : null;
+      bxLatePatch(id, Object.assign(base, {date: d, start: t, end: dur != null ? fromMin(Math.min(1439, toMin(t) + dur)) : null}), bxMD(d) + ' ' + t + bxRo(t) + ' 옮겼어요'); }
+    else bxLateMove(id, d, base);
     return;
   }
-  if (op === 'later') {
-    const n = new Date(), s = Math.min(23 * 60, Math.ceil((n.getHours() * 60 + n.getMinutes() + 60) / 10) * 10);
-    const dur = it.start && it.end ? toMin(it.end) - toMin(it.start) : null;
-    bxLatePatch(id, Object.assign(base, {date: M.today, start: fromMin(s), end: dur != null ? fromMin(Math.min(1439, s + dur)) : null}), fromMin(s) + '로 미뤘어요');
+  if (op === 'today' || op === 'later') {
+    const tg = bxLateTarget(it), dur = it.start && it.end ? toMin(it.end) - toMin(it.start) : null;
+    const patch = tg.start ? {date: tg.date, start: tg.start, end: dur != null ? fromMin(Math.min(1439, toMin(tg.start) + dur)) : null} : {date: tg.date};
+    bxLatePatch(id, Object.assign(base, patch), bxLateLabel(it, tg) + ' 미뤘어요');
   }
 }, true);
+// 확인 필요 카드의 '미루기' 시각(시험판 36). 오늘 일정: 지금부터 한 시간 뒤(10분 단위로 올림).
+// 지난 날 일정: 오늘 같은 시각(그 시각이 이미 지났으면 지금부터 한 시간 뒤). 시각 없는 일정: 오늘로.
+// 밤 11시가 넘어 오늘 안에 미룰 수 없으면 내일 같은 시각
+function bxLateTarget(it){
+  const n = new Date(), nowM = n.getHours() * 60 + n.getMinutes(), soon = Math.ceil((nowM + 60) / 10) * 10;
+  if (!it.start) return {date: M.today, start: null};
+  if (it.date < M.today && toMin(it.start) > nowM) return {date: M.today, start: it.start};
+  if (soon > 23 * 60 + 50) return {date: ymd(addDays(parseYmd(M.today), 1)), start: it.start};
+  return {date: M.today, start: fromMin(soon)};
+}
+// 시각 뒤 조사: 00분이면 '시'로 끝나 '로'(18:00로), 아니면 '분'으로 끝나 '으로'(17:40으로)
+function bxRo(t){ return /:00$/.test(t) ? '로' : '으로'; }
+function bxMD(d){ const x = parseYmd(d); return (x.getMonth() + 1) + '월 ' + x.getDate() + '일'; }
+function bxLateLabel(it, tg){
+  if (!tg.start) return '오늘로';
+  const pre = tg.date === M.today ? (it.date < M.today ? '오늘 ' : '') : '내일 ';
+  return pre + tg.start + bxRo(tg.start);
+}
 // 날짜 고르기: 휴대폰 달력 창을 바로 연다(내일이 골라져 있음). 창을 못 여는 휴대폰이면 카드 안에 날짜 칸
 function bxLateMove(id, d, base){
   const it = getDoc(id); if (!it) return;
   if (!base) { base = {slips: (it.slips || 0) + 1, ackAt: null, snoozeUntil: null, lateKeep: null}; if (!it.origDate) { base.origDate = it.date; base.origStart = it.start || null; } }
-  bxLatePatch(id, Object.assign(base, {date: d}), fmtMD(d) + '로 옮겼어요');
+  bxLatePatch(id, Object.assign(base, {date: d}), bxMD(d) + '로 옮겼어요');
 }
 // 시험판 36(대표 지적 11/3 "확인 필요에서 다 했어요 · 그대로 두기 말고는 안 된다"): 숨긴 날짜 칸에 showPicker()를 부르던 방식은
 // 휴대폰(웹뷰)에서 달력 창이 열리지 않는 것으로 보였다(시험 브라우저에서는 오류 없이 지나가 알 수 없었음). 늘 카드 안에 날짜 칸(내일이 골라져 있음)과
@@ -182,7 +199,7 @@ function bxTtHelpDraw(){
     bxStartOverlay(top +
       '<h1 class="bxs-h big">매주 있는 수업이나 일을<br>말해 주세요</h1><p class="bxs-p">한 줄에 하나씩, 여러 개를 한 번에 넣어도 돼요.</p>' +
       '<div class="bxt-in"><label class="sr" for="bxt-in">수업 적기</label><textarea id="bxt-in" rows="3" maxlength="600" placeholder="월수 10시 반부터 12시 경영학원론 301호&#10;화목 2시 영어회화">' + esc(BXT.text) + '</textarea>' +
-      (window.BX_HAS_MIC ? '<button type="button" class="icon-btn bx-mic" data-act="bx-mic" data-for="bxt-in" data-prompt="예) 월수 10시 반 경영학원론" aria-label="말로 넣기">' + BXT_MIC + '</button>' : '') + '</div>' +
+      (window.BX_HAS_MIC ? '<button type="button" class="icon-btn bx-mic" data-act="bx-mic" data-for="bxt-in" data-prompt="예) 월수 10시 반 경영학원론" aria-label="말하기">' + BXT_MIC + '</button>' : '') + '</div>' +
       '<div id="bxt-prev" class="bxt-prev">' + bxTtPrevHtml() + '</div>' +
       '<div class="bxs-links"><button type="button" data-bxt-nav="manual">요일·시간 직접 고르기</button><button type="button" data-bxt-nav="skip">나중에 할게요</button></div>' +
       '<div class="bxs-sp"></div><button type="button" class="btn primary bxs-go" data-bxt-nav="next"' + (n ? '' : ' disabled') + '>다음</button>');
@@ -228,21 +245,30 @@ document.addEventListener('click', ev => {
 }, true);
 
 /* 17. 홈 화면 위젯 두기: 홈의 안내 카드 대신 설정 › 화면의 한 줄(정리판 1번, 대표 결정 11/1). 위젯 두 가지를 보여 주고 고른 것을 놓는다 */
-const BX_WIDGETS = [['now', '지금 단계', '2×2 · 루틴 중 지금 할 단계와 출발까지 남은 시간'], ['list', '오늘 일정', '4×2 · 오늘 일정 네 줄과 시각']];
+const BX_WIDGETS = [['now', '지금 단계', '2×2 · 루틴 중 지금 할 단계와 출발까지 남은 시간'], ['list', '오늘 일정', '4×2 · 하루 일정 · ‹ ›로 날짜 넘기기']];
 const BX_WIDGET_ICON = '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.8"/></svg>';
 function bxWidgetRowHtml(){
   const w = window.BX_WPLACED || {}, n = (w.now ? 1 : 0) + (w.list ? 1 : 0);
-  return '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">홈 화면 위젯 두기</span><span class="mv">' + (n ? n + '개 놓음' : '') + ICON.chevR + '</span></button></div>';
+  return '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">위젯 추가</span><span class="mv">' + (n ? n + '개 놓음' : '') + ICON.chevR + '</span></button></div>';
 }
 function bxWidgetOpen(){
-  openSheet({title: '홈 화면 위젯', draw: () => {
+  const draw = () => {
     const w = window.BX_WPLACED || {}, can = !!w.canPin;
     setSheet('<p class="p small" style="margin:0 0 12px">앱을 열지 않아도 홈 화면에서 바로 봐요. 잠금 화면에는 안 보여요.</p>' +
       BX_WIDGETS.map(([k, name, sub]) => '<div class="bx-wg-row"><span class="bxs-t"><b>' + name + '</b><small>' + sub + '</small></span>' +
-        (w[k] ? '<span class="bx-wg-on">' + ICON.check + '놓았어요</span>' : can ? '<button type="button" class="btn sm" data-bx-wpin="' + k + '">두기</button>' : '') + '</div>').join('') +
-      '<p class="p small" style="margin:12px 0 0">' + (can ? '두기를 누르면 휴대폰이 놓을 자리를 물어요. ' : '') + '홈 화면을 꾹 누른 뒤 위젯 › 박스웍스에서도 놓을 수 있어요.</p>', '');
-  }});
+        (w[k] ? '<span class="bx-wg-on">' + ICON.check + '추가됨</span>' : can ? '<button type="button" class="btn sm" data-bx-wpin="' + k + '">추가</button>' : '') + '</div>').join('') +
+      // 시험판 36(대표 결정 11/3 17:01): 위젯은 작게 두고 '루틴 포함 / 일정만'은 여기 스위치 하나(처음엔 루틴도 보임)
+      '<div class="bx-swrow bx-wg-rt"><span><b>오늘 일정 위젯에 루틴도 보기</b><small>끄면 일정 · 시간표만</small></span>' + bxSwitch('data-bxwrt', M.settings.bxWidgetRt !== false, '오늘 일정 위젯에 루틴도 보기') + '</div>' +
+      '<p class="p small" style="margin:12px 0 0">' + (can ? '추가를 누르면 휴대폰이 놓을 자리를 물어요. ' : '') + '홈 화면을 길게 누른 뒤 위젯 › 박스웍스에서도 추가할 수 있어요.</p>', '');
+  };
+  openSheet({title: '홈 화면 위젯', draw, refresh: draw});
 }
+document.addEventListener('click', ev => {
+  const t = window.BX_APP && ev.target.closest && ev.target.closest('[data-bxwrt]'); if (!t) return;
+  ev.preventDefault(); ev.stopPropagation();
+  saveSettings({bxWidgetRt: t.getAttribute('data-bxwrt') === '1'});
+  setTimeout(() => { if (SH && SH.refresh) { SH.refresh(); } }, 60);
+}, true);
 document.addEventListener('click', async ev => {
   const b = window.BX_APP && ev.target.closest && ev.target.closest('[data-act="bx-widget-open"],[data-bx-wpin]'); if (!b) return;
   ev.preventDefault(); ev.stopPropagation();
@@ -251,7 +277,7 @@ document.addEventListener('click', async ev => {
     if (window.BX_widgetPin) await window.BX_widgetPin(b.dataset.bxWpin);
     toast('휴대폰 화면에서 위젯 놓을 자리를 골라 주세요');
   } catch (e) {
-    toast('홈 화면을 꾹 누른 뒤 위젯 › 박스웍스에서 놓을 수 있어요');
+    toast('홈 화면을 길게 누른 뒤 위젯 › 박스웍스에서 추가할 수 있어요');
   }
 }, true);
 
@@ -276,21 +302,21 @@ document.addEventListener('click', ev => {
 
 /* 19. 내가 쓸 기능 · 아래 메뉴: 기능을 끄면 홈·메뉴·알림에서 사라진다(넣어 둔 내용은 남음). 아래 메뉴는 누른 순서대로, 홈은 가운데 */
 let FEAT = null;
-const BX_FEAT = [['routines', '루틴'], ['report', '아침에 오늘 일정 받기'], ['tt', '시간표'], ['med', '명상']];
+const BX_FEAT = [['routines', '루틴'], ['report', '아침 요약'], ['tt', '시간표'], ['med', '명상']];
 // 묶음(시험판 35): 시간 · 행동 관리가 주 목적, 명상 같은 그 밖의 기능은 켜도 아래 메뉴가 아니라 ⋯ 더보기에(원하면 아래 메뉴에 넣음)
 const BX_FEAT_ETC = ['med'];
 function bxFeatOpen(){
   FEAT = {mods: Object.assign({}, bxStartMods()), dock: bxDockKeys().slice()};
-  openSheet({title: '내가 쓸 기능', draw: bxFeatDraw, refresh: bxFeatDraw, onClose: () => { FEAT = null; }});
+  openSheet({title: '기능 · 메뉴 편집', draw: bxFeatDraw, refresh: bxFeatDraw, onClose: () => { FEAT = null; }});
 }
 function bxFeatDockOk(k){ return !(k === 'routines' || k === 'tt' || k === 'med') || FEAT.mods[k] !== false; }
 function bxFeatDraw(){
   // 줄마다 무엇을 해 주는지 한 줄(대표 지적 11/3: '아침에 오늘 일정 받기'를 켰는데 어디서 무엇이 오는지 모름)
   const desc = k => (BX_MODS.find(m => m[0] === k) || [])[2] || '';
-  const sw = (k, label) => '<div class="bx-ft-row"><span class="bx-ft-t"><b>' + label + '</b><small>' + esc(desc(k)) + '</small></span><button type="button" class="tog" role="switch" aria-checked="' + (FEAT.mods[k] !== false) + '" aria-label="' + label + ' 쓰기" data-bx-feat="' + k + '"><i></i></button></div>' +
+  const sw = (k, label) => '<div class="bx-ft-row"><span class="bx-ft-t"><b>' + label + '</b><small>' + esc(desc(k)) + '</small></span><button type="button" class="tog" role="switch" aria-checked="' + (FEAT.mods[k] !== false) + '" aria-label="' + label + ' 사용" data-bx-feat="' + k + '"><i></i></button></div>' +
     // 아침 일정을 켜 두면: 언제 어디로 오는지, 지금 한 번 받아 보기, 시각 바꾸기
     (k === 'report' && FEAT.mods.report !== false ? '<div class="bx-ft-more"><p class="p small">매일 아침 <b>' + esc(bxRepCfg().at) + '</b>에 오늘 일정이 휴대폰 알림창으로 와요. 아침 루틴이 있는 날은 첫 알람을 확인한 직후에 와요.</p>' +
-      '<div class="bx-ft-acts"><button type="button" class="btn sm" data-bxset="alarm">시각 바꾸기</button><button type="button" class="btn sm primary" data-act="bx-rep-try">지금 한 번 받아 보기</button></div></div>' : '');
+      '<div class="bx-ft-acts"><button type="button" class="btn sm" data-bxset="alarm">시각 변경</button><button type="button" class="btn sm primary" data-act="bx-rep-try">미리 보기</button></div></div>' : '');
   const lab = k => BX_DOCK_ALL[k].label;
   const chip = k => { const i = FEAT.dock.indexOf(k), ok = bxFeatDockOk(k);
     return ok ? '<button type="button" class="bx-ft-chip' + (i >= 0 ? ' on' : '') + '" aria-pressed="' + (i >= 0) + '" data-bx-fdock="' + k + '">' + (i >= 0 ? ICON.check : '') + lab(k) + '</button>'
@@ -303,7 +329,7 @@ function bxFeatDraw(){
     '<h3 class="bx-ft-h">아래 메뉴</h3><p class="p small" style="margin:0 0 10px">누른 순서대로 왼쪽부터 놓여요. 홈은 늘 가운데, 4개까지. 처음엔 시간 · 행동 관리와 더보기.</p>' +
     '<div class="bx-ft-chips">' + Object.keys(BX_DOCK_ALL).map(chip).join('') + '</div>' +
     '<span class="bx-ft-pv-h">미리 보기</span><div class="bx-ft-pv" aria-hidden="true" style="grid-template-columns:repeat(' + prev.length + ',minmax(0,1fr))">' + prev.map(x => '<span class="' + (x === '홈' ? 'on' : '') + '">' + x + '</span>').join('') + '</div>',
-    '<button type="button" class="btn grow" data-bx-fnav="reset">처음대로</button>');
+    '<button type="button" class="btn grow" data-bx-fnav="reset">기본값</button>');
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
@@ -346,10 +372,10 @@ function bxItemMenu(id, el){
   const when = (isDate(it.date) ? relDay(it.date, M.today) + ' ' : '') + timeText(it);
   openSheet({title: it.title || '(제목 없음)', draw: () => setSheet(
     '<p class="p small" style="margin:-6px 0 10px">' + esc(when) + (it.location ? ' · ' + esc(it.location) : '') + '</p><div class="menu">' +
-    row('edit', ICON.edit, pc ? '알림·이동 시간 고치기' : '고치기', '') +
-    (pc ? '' : row('done', ICON.check, it.done ? '완료 취소' : '다 했어요', '') +
+    row('edit', ICON.edit, pc ? '알림 · 이동 시간 수정' : '수정', '') +
+    (pc ? '' : row('done', ICON.check, it.done ? '완료 취소' : '완료', '') +
       row('tmr', ICON.clock, '내일로 미루기', fmtMD(ymd(addDays(parseYmd(M.today), 1))) + (it.start ? ' ' + it.start : '')) +
-      row('del', ICON.trash, '지우기', '휴지통에 30일', true)) +
+      row('del', ICON.trash, '삭제', '휴지통에 30일 보관', true)) +
     '</div>' + (pc ? '<p class="p small" style="margin:10px 0 0">휴대폰 캘린더에서 읽어 온 일정은 그 캘린더 앱에서 지우거나 옮겨요.</p>' : ''), '')});
   SH.bxIm = {id, el};
 }

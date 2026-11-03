@@ -78,8 +78,8 @@ module.exports = async function () {
     const p = app.page;
     await p.click('[data-act="more"]'); await p.waitForTimeout(400);
     const more = await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .menu-row .ml')).map(e => e.textContent.trim()));
-    c.ok(more.includes('홈 화면 위젯 두기'), '⋯ 메뉴에 홈 화면 위젯 두기 ' + JSON.stringify(more));
-    await p.locator('#sheet-root .menu-row', { hasText: '홈 화면 위젯 두기' }).first().click(); await p.waitForTimeout(500);
+    c.ok(more.includes('위젯 추가'), '⋯ 메뉴에 홈 화면 위젯 두기 ' + JSON.stringify(more));
+    await p.locator('#sheet-root .menu-row', { hasText: '위젯 추가' }).first().click(); await p.waitForTimeout(500);
     c.eq(await p.evaluate(() => (document.querySelector('#sheet-title') || {}).textContent), '홈 화면 위젯', '누르면 위젯 창');
     await p.evaluate(() => { const c = document.querySelector('#sheet-root [data-act="sheet-close"]'); if (c) c.click(); }); await p.waitForTimeout(300);
     await p.click('[data-act="more"]'); await p.waitForTimeout(400);
@@ -89,7 +89,7 @@ module.exports = async function () {
       more: (document.querySelector('#sheet-root .bx-ft-more') || {}).textContent || ''
     }));
     c.ok(ft.desc.length >= 4 && ft.desc.every(Boolean), '기능마다 한 줄 설명 ' + JSON.stringify(ft.desc));
-    c.ok(/07:30/.test(ft.more) && /알림창/.test(ft.more) && /지금 한 번 받아 보기/.test(ft.more), '아침 일정: 언제 어디로 오는지와 받아 보기 ' + JSON.stringify(ft.more));
+    c.ok(/07:30/.test(ft.more) && /알림창/.test(ft.more) && /미리 보기/.test(ft.more), '아침 일정: 언제 어디로 오는지와 받아 보기 ' + JSON.stringify(ft.more));
     await p.evaluate(() => { const l = window.Capacitor.Plugins.BxAlarm; l.local = async x => { window.__local = x; return {}; }; });
     await p.click('#sheet-root [data-act="bx-rep-try"]'); await p.waitForTimeout(300);
     const loc = await p.evaluate(() => window.__local && Object.assign({ now: Date.now() }, window.__local.alarms[0]));

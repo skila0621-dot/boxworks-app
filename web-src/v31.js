@@ -15,7 +15,7 @@ function bxHolNote(ds){ const h = HOLIDAYS[ds] || '공휴일'; return '오늘은
 
 // 루틴 고치기 창: 요일 바로 아래에 '공휴일에는 쉬기' 스위치(켜고 끄는 칸은 스위치 하나). 켜면 바로 아래에 한 줄 안내
 function bxHolRowHtml(){
-  return '<div class="bx-swrow bx-holrow"><span>공휴일에는 쉬기</span>' + bxSwitch('data-rhol', !!R.skipHol, '공휴일에는 쉬기') + '</div>' +
+  return '<div class="bx-swrow bx-holrow"><span>공휴일 제외</span>' + bxSwitch('data-rhol', !!R.skipHol, '공휴일 제외') + '</div>' +
     '<p class="p small bx-hol-note"' + (R.skipHol ? '' : ' hidden') + '>설날·추석 같은 공휴일과 대체공휴일에는 이 루틴 알람이 울리지 않아요. 그날만 하려면 홈에서 ‘오늘은 하기’를 눌러요.</p>';
 }
 document.addEventListener('click', ev => {

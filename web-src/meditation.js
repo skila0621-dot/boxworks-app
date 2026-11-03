@@ -110,7 +110,7 @@ function medHtml(){
         '<span class="bx-med-cue" id="bx-med-cue">' + (done ? '마쳤어요' : lead ? '휴대폰을 내려놓고 편히 앉으세요' : MED.breath ? '들이쉬고' : '') + '</span></div></div>' +
       (done ? '<h2 class="bx-med-end-h">명상을 마쳤어요</h2><p class="p small bx-med-end-s">' + [today ? '오늘 ' + today + '분' : '', week > today ? '이번 주 ' + week + '분' : ''].filter(Boolean).join(' · ') + '</p>' +
           '<div class="bx-med-acts"><button type="button" class="btn grow" data-act="bx-med-close">닫기</button><button type="button" class="btn primary grow" data-act="bx-med-again">한 번 더</button></div>'
-        : '<p class="p small bx-med-note">휴대폰을 내려놓아도 ' + (run.bellS ? medBellText(run.bellS) + '마다 종이, 끝나면 ' : '끝나면 ') + '세 번 울려요.' + (run.bg && bgName(run.bg) ? ' ' + bgName(run.bg) + (bxBatchim(bgName(run.bg)) ? '은' : '는') + ' 끝 종 앞에서 줄어들어요.' : '') + '</p><button type="button" class="btn bx-med-stop" data-act="bx-med-stop">끝내기</button>') +
+        : '<p class="p small bx-med-note">휴대폰을 내려놓아도 ' + (run.bellS ? medBellText(run.bellS) + '마다 종이, 끝나면 ' : '끝나면 ') + '세 번 울려요.' + (run.bg && bgName(run.bg) ? ' ' + bgName(run.bg) + (bxBatchim(bgName(run.bg)) ? '은' : '는') + ' 끝 종 앞에서 줄어들어요.' : '') + '</p><button type="button" class="btn bx-med-stop" data-act="bx-med-stop">종료</button>') +
       '</section>';
   }
   const pick = (attr, v, cur, label) => '<button type="button" class="pick" ' + attr + '="' + v + '" aria-pressed="' + (cur === v) + '">' + label + '</button>';
@@ -135,12 +135,12 @@ function medHtml(){
     // 종소리·중간 종·호흡 안내는 한 줄로 접는다(정리판 14번, 대표 결정 11/1). 접힌 줄에 지금 고른 값이 보인다
     '<details class="bx-med-more"' + (MED.moreOpen ? ' open' : '') + '><summary><span class="bx-mm-t"><b>소리와 호흡</b><small>' + esc(medMoreText()) + '</small></span>' + ICON.chevR + '</summary>' +
     '<div class="fg-l tv-h">종소리</div><div class="picks bx-bowl-picks">' + BX_BOWLS.map(b => '<button type="button" class="pick" data-bxbowl="' + b[0] + '" aria-pressed="' + (bxBowlType() === b[0]) + '">' + b[1] + '</button>').join('') + '</div>' +
-    '<p class="p small bx-med-note">누르면 바로 들어 볼 수 있어요. 끝날 때는 늘 세 번 울려요(눈을 감고 있어도 끝을 알게).</p>' +
+    '<p class="p small bx-med-note">누르면 들려요. 끝 종은 늘 세 번 울려요.</p>' +
     // 시작 종 스위치(대표 요청 11/3 오후: 배경 소리만 듣고 싶을 수도, 종소리와 섞고 싶을 수도). 끝 종은 끄지 않는다(대표 지적 11/3: 끝을 소리로 알아야 함)
     '<div class="bx-swrow tv-h"><span>시작 종</span>' + bxSwitch('data-med-startbell', startOn, '시작 종') + '</div>' +
     (startOn ? '' : '<p class="p small bx-med-note">첫 종 없이 시작해요. 배경 소리를 고르면 그 소리로 시작해요.</p>') +
     // 중간 종: 켜기·끄기 스위치, 켰을 때만 간격(대표 결정 11/2 밤, 일정 알림과 같은 모양)
-    '<div class="bx-swrow tv-h"><span>중간 종 · 다시 치는 간격</span><button type="button" class="tog" role="switch" aria-checked="' + !!MED.bellS + '" aria-label="중간 종" data-med-bellsw="1"><i></i></button></div>' +
+    '<div class="bx-swrow tv-h"><span>중간 종 간격</span><button type="button" class="tog" role="switch" aria-checked="' + !!MED.bellS + '" aria-label="중간 종" data-med-bellsw="1"><i></i></button></div>' +
     (MED.bellS ? '<div class="picks">' +
       MED_BELLS.filter(b => b[0] < MED.min * 60).map(b => pick('data-med-bell', b[0], bellCust ? -1 : MED.bellS, b[1] + '마다')).join('') +
       (bellCust ? '<span class="bx-cpick"><input id="bx-med-cbell" type="number" inputmode="numeric" min="1" max="60" value="' + (MED.bellS ? Math.max(1, Math.round(MED.bellS / 60)) : 5) + '" aria-label="중간 종 간격(분)"><span>분마다</span></span>'

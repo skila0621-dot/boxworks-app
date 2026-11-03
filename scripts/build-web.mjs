@@ -13,6 +13,7 @@ import v30 from './patches-v30.mjs';
 import v31 from './patches-v31.mjs';
 import v32 from './patches-v32.mjs';
 import v36 from './patches-v36.mjs';
+import words from './patches-words.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -288,7 +289,7 @@ boot();
   {
     name: '└ 마이크 버튼 만드는 함수와 규칙 해석 시험용 연결',
     find: '\nwindow.BX_toast = function(msg){ toast(msg); };',
-    replace: "\nfunction bxMic(id, prompt){ return window.BX_HAS_MIC ? '<button type=\"button\" class=\"bx-mic\" data-act=\"bx-mic\" data-for=\"' + id + '\" data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말로 넣기\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"12\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0\"/><path d=\"M12 18v3\"/></svg></button>' : ''; }\nwindow.BX_parse = function(text){ return parseQuick(text, new Date()); };\nwindow.BX_parseAt = function(text, now){ return parseQuick(text, now); };\nwindow.BX_toast = function(msg){ toast(msg); };"
+    replace: "\nfunction bxMic(id, prompt){ return window.BX_HAS_MIC ? '<button type=\"button\" class=\"bx-mic\" data-act=\"bx-mic\" data-for=\"' + id + '\" data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말하기\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"12\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0\"/><path d=\"M12 18v3\"/></svg></button>' : ''; }\nwindow.BX_parse = function(text){ return parseQuick(text, new Date()); };\nwindow.BX_parseAt = function(text, now){ return parseQuick(text, now); };\nwindow.BX_toast = function(msg){ toast(msg); };"
   },
   {
     name: '사용 설명서에서 앱에 없는 장(Claude 연동·AI 정리·아침 보고·링크 공유·바로가기 설치) 빼기',
@@ -377,10 +378,16 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36);
+patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;
+  // all: true는 같은 글자가 여러 곳이면 모두 바꾼다(단어 점검, patches-words.mjs). 한 곳도 없으면 멈춘다
+  if (p.all && count >= 1) {
+    html = html.split(p.find).join(p.replace);
+    console.log(`적용: ${p.name} (${count}곳)`);
+    continue;
+  }
   if (count !== 1) {
     console.error(`바꿀 곳을 찾지 못했습니다 (${count}곳): ${p.name}`);
     process.exit(1);

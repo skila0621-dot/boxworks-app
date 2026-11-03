@@ -44,7 +44,8 @@ function bxFoldDecorate(){
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'bx-rt-tog'; b.dataset.rtog = rid;
     b.setAttribute('aria-expanded', String(open));
-    b.innerHTML = '단계 ' + n + '개 보기' + ICON_FOLD;
+    b.innerHTML = '<span class="bx-rt-tog-t">' + (open ? '접기' : '자세히') + '</span>' + ICON_FOLD;
+    b.setAttribute('aria-label', '단계 ' + n + '개 ' + (open ? '접기' : '펼치기'));
     hd.appendChild(b);
   });
   // 시험판 30: 한 목록, 시각 순서로(web-src/v30.js). 루틴 카드를 다 꾸민 뒤에 옮긴다
@@ -65,6 +66,8 @@ document.addEventListener('click', ev => {
     ev.preventDefault(); ev.stopPropagation();
     const rid = rb.dataset.rtog, c = rb.closest('.rt-card'), open = !c.classList.contains('bx-open');
     c.classList.toggle('bx-open', open); rb.setAttribute('aria-expanded', String(open));
+    const rtt = rb.querySelector('.bx-rt-tog-t'); if (rtt) rtt.textContent = open ? '접기' : '자세히';
+    rb.setAttribute('aria-label', (rb.getAttribute('aria-label') || '').replace(/(접기|펼치기)$/, open ? '접기' : '펼치기'));
     if (open) bxRtOpen[rid] = true; else delete bxRtOpen[rid];
     bxSaveJson(BX_RTOPEN_KEY, bxRtOpen);
   }
@@ -135,7 +138,7 @@ function bxHomeSplit(head, body, o){
   BX_NEXT = o.isT && o.next ? {id: o.next.id, txt: '다음 · ' + untilText(at(M.today, o.next.start) - M.now)} : null;
   const rel = o.isT ? '<span class="bx-sum-rel">오늘</span>' : '<button type="button" class="bx-sum-back" data-act="home-day" data-d="0">' + ICON.undo + '오늘로</button><span class="bx-sum-rel2">' + esc(dayGap(o.vd, M.today)) + '</span>';
   const nav = d => '<button type="button" class="bx-sum-nav" data-act="home-day" data-d="' + d + '" aria-label="' + (d < 0 ? '전날' : '다음 날') + '">' + (d < 0 ? ICON.chevL : ICON.chevR) + '</button>';
-  const tile = (act, kind, label, val, cls) => '<button type="button" class="bx-st' + cls + '" data-act="' + act + '"' + (kind ? ' data-kind="' + kind + '"' : '') + ' aria-label="' + label + ' 목록 보기"><span>' + label + '</span><b class="tnum">' + val + '</b></button>';
+  const tile = (act, kind, label, val, cls) => '<button type="button" class="bx-st' + cls + '" data-act="' + act + '"' + (kind ? ' data-kind="' + kind + '"' : '') + ' aria-label="' + label + ' 목록"><span>' + label + '</span><b class="tnum">' + val + '</b></button>';
   const sum = '<div class="bx-sum-date">' + nav(-1) + '<div class="bx-sum-mid"><div class="bx-sum-top">' + rel + (o.hol ? '<span class="bx-sum-hol">' + esc(o.hol) + '</span>' : '') + '</div>' +
       '<h1 class="bx-sum-d">' + (vD.getMonth() + 1) + '월 ' + vD.getDate() + '일 ' + WD[vD.getDay()] + '요일</h1></div>' + nav(1) + '</div>' +
     '<div class="bx-sum-tiles" role="group" aria-label="요약">' +
@@ -168,37 +171,40 @@ function bxLateOpen(only){
     const miss = only ? [] : bxRtMissed(), byRt = [];
     miss.forEach(m => { let g = byRt.find(x => x.rt.id === m.rt.id); if (!g) byRt.push(g = {rt: m.rt, rows: []}); g.rows.push(m.r); });
     const tmr = ymd(addDays(parseYmd(M.today), 1));
-    const card = i => '<div class="bx-lc"><div class="bx-lc-t"><b>' + (esc(i.title) || '(제목 없음)') + '</b><small>' + esc(relDay(i.date, M.today) + ' ' + timeText(i)) + '</small></div><div class="bx-lc-a">' +
-      '<button type="button" class="btn sm primary" data-bx-late="done" data-id="' + esc(i.id) + '">다 했어요</button>' +
-      (i.date < M.today ? '<button type="button" class="btn sm" data-bx-late="today" data-id="' + esc(i.id) + '">오늘로 옮기기</button>' : '<button type="button" class="btn sm" data-bx-late="later" data-id="' + esc(i.id) + '">1시간 뒤로</button>') +
-      '<button type="button" class="btn sm" data-bx-late="pick" data-id="' + esc(i.id) + '" aria-expanded="' + (BXL_PICK === i.id) + '">날짜 고르기</button>' +
-      '<button type="button" class="btn sm" data-bx-late="keep" data-id="' + esc(i.id) + '">그대로 두기</button></div>' +
-      // 휴대폰 달력 창이 안 열리는 경우에만: 그 자리에 날짜 칸(내일이 골라져 있음)
-      (BXL_PICK === i.id ? '<div class="bx-lc-pick"><input type="date" class="inp" id="bx-lc-date" value="' + tmr + '" min="' + esc(M.today) + '" aria-label="옮길 날짜"><button type="button" class="btn sm primary" data-bx-late="move" data-id="' + esc(i.id) + '">이 날로 옮기기</button></div>' : '') + '</div>';
+    // 시험판 36(대표 지적 11/3: 지난 일정을 미루려니 안 됐다 · '1시간 뒤로'가 원래 시각 + 1시간인지 헷갈림): 미루는 단추에 옮길 시각을 그대로 쓴다.
+    // 완료 · 17:40으로(오늘 일정) / 오늘 15:00으로(지난 날) · 날짜 변경(날짜 · 시각 칸) · 그대로
+    const card = i => { const tg = bxLateTarget(i);
+      return '<div class="bx-lc"><div class="bx-lc-t"><b>' + (esc(i.title) || '(제목 없음)') + '</b><small>' + esc(relDay(i.date, M.today) + ' ' + timeText(i)) + '</small></div><div class="bx-lc-a">' +
+      '<button type="button" class="btn sm primary" data-bx-late="done" data-id="' + esc(i.id) + '">' + ICON.check + '완료</button>' +
+      '<button type="button" class="btn sm" data-bx-late="' + (i.date < M.today ? 'today' : 'later') + '" data-id="' + esc(i.id) + '">' + ICON.clock + esc(bxLateLabel(i, tg)) + '</button>' +
+      '<button type="button" class="btn sm" data-bx-late="pick" data-id="' + esc(i.id) + '" aria-expanded="' + (BXL_PICK === i.id) + '">' + ICON.cal + '날짜 변경</button>' +
+      '<button type="button" class="btn sm" data-bx-late="keep" data-id="' + esc(i.id) + '">그대로</button></div>' +
+      (BXL_PICK === i.id ? '<div class="bx-lc-pick"><input type="date" class="inp" id="bx-lc-date" value="' + tmr + '" min="' + esc(M.today) + '" aria-label="옮길 날짜">' +
+        '<input type="time" class="inp" id="bx-lc-time" value="' + esc(i.start || '') + '" aria-label="옮길 시각"><button type="button" class="btn sm primary" data-bx-late="move" data-id="' + esc(i.id) + '">변경</button></div>' : '') + '</div>'; };
     if (only) { setSheet(card(its[0]), ''); return; }
-    let html = '<p class="p small bx-late-p">시간이 지난 일정과 확인 안 한 루틴 단계예요. 그대로 둬도 괜찮아요.</p>';
-    html += '<h3 class="bx-late-h">일정 · ' + its.length + '</h3>' + (its.length ? its.map(card).join('') : '<p class="bx-late-ok">' + ICON.check + '지난 일정은 다 정리했어요</p>');
+    let html = '<p class="p small bx-late-p">지난 일정과 놓친 루틴 단계예요. 그대로 둬도 괜찮아요.</p>';
+    html += '<h3 class="bx-late-h">일정 · ' + its.length + '</h3>' + (its.length ? its.map(card).join('') : '<p class="bx-late-ok">' + ICON.check + '지난 일정 없음</p>');
     const rtToday = bxModOn('routines') && M.routines.some(r => rtActiveOn(r, M.today));
-    if (byRt.length || rtToday) html += '<h3 class="bx-late-h">루틴 단계 · ' + miss.length + '</h3>' + (byRt.length ? byRt.map(g => '<div class="bx-late-rt"><div><b>' + esc(g.rt.name) + '</b><span>' + esc(g.rows.map(r => r.leave ? '출발' : r.name).join(', ')) + '</span></div><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(g.rt.id) + '">모두 했어요</button></div>').join('') : '<p class="bx-late-ok">' + ICON.check + '오늘 루틴 단계는 다 확인했어요</p>');
-    setSheet(html, its.length > 1 ? '<button type="button" class="btn grow" data-bx-late="keepall">지난 일 모두 그대로 두기</button>' : '');
+    if (byRt.length || rtToday) html += '<h3 class="bx-late-h">루틴 단계 · ' + miss.length + '</h3>' + (byRt.length ? byRt.map(g => '<div class="bx-late-rt"><div><b>' + esc(g.rt.name) + '</b><span>' + esc(g.rows.map(r => r.leave ? '출발' : r.name).join(', ')) + '</span></div><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(g.rt.id) + '">모두 완료</button></div>').join('') : '<p class="bx-late-ok">' + ICON.check + '놓친 루틴 단계 없음</p>');
+    setSheet(html, its.length > 1 ? '<button type="button" class="btn grow" data-bx-late="keepall">모두 그대로</button>' : '');
   };
   BXL_PICK = null;
-  openSheet({title: only ? '시간이 지난 일정' : '확인이 필요한 일', draw, refresh: draw});
+  openSheet({title: only ? '지난 일정' : '확인 필요', draw, refresh: draw});
 }
 // ⓘ: 지금 화면 사용법(꾹 누르기·밀기처럼 눌러 보기 전엔 모르는 것들)
 const BX_HELP = {
-  today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 안 한 루틴 단계가 모여요.', '네모 칸을 누르면 완료. 일정을 꾹 누르면 고치기·다 했어요·내일로 미루기·지우기가 바로 나와요.', '오른쪽 아래 +로 새 일정. 꾹 누르면 바로 말로 넣어요.'],
-  month: ['날짜를 누르면 그날 일정이 열리고, 거기서 바로 넣을 수 있어요. 일정을 꾹 누르면 고치기·지우기가 바로 나와요.', '옆으로 밀면 이전·다음 달로 넘어가요.', '위의 ‘주간’을 누르면 한 주를 요일별로 봐요.', '오른쪽 아래 +는 고른 날짜에 일정을 넣어요.'],
-  week: ['옆으로 밀면 이전·다음 주로 넘어가요.', '요일 옆 ‘+ 추가’로 그날 일정을 넣어요.', '‘월간’을 누르면 달력으로 돌아가요.'],
-  tt: ['아래 ‘말로 넣기’에 말하거나 적으면 시간표가 채워져요. 예) “월수 10시 반 경영학원론 301호”', '블록을 꾹 누르면 들어 올려져요. 끌어서 시간·요일을 옮기고, 위·아래 끝을 끌어 길이를 바꿔요.', '꾹 누른 뒤 나오는 줄에서 같은 수업 묶기, 휴강(그날만 쉬기), 복제, 지우기를 해요.', '아래 ‘보기 설정’에서 보이는 시간과 주말을 바꿔요.'],
-  routines: ['루틴은 단계마다 알람이 울리고, ‘했어요’를 누를 때까지 다시 알려요.', '템플릿을 누르거나 말로 만들 수 있어요.', '스위치를 끄면 그 루틴 알람이 쉬어요.', '홈의 ‘오늘 할 일’에서 오늘 루틴을 확인해요.'],
+  today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 안 한 루틴 단계가 모여요.', '네모 칸을 누르면 완료. 일정을 길게 누르면 수정 · 완료 · 내일로 미루기 · 삭제가 바로 나와요.', '오른쪽 아래 +로 새 일정. 길게 누르면 바로 말하기.'],
+  month: ['날짜를 누르면 그날 일정이 열리고, 거기서 바로 추가할 수 있어요. 일정을 길게 누르면 수정 · 삭제가 바로 나와요.', '옆으로 밀면 이전·다음 달로 넘어가요.', '위의 ‘주간’을 누르면 한 주를 요일별로 봐요.', '오른쪽 아래 +는 고른 날짜에 일정을 추가해요.'],
+  week: ['옆으로 밀면 이전·다음 주로 넘어가요.', '요일 옆 ‘+ 추가’로 그날 일정을 추가해요.', '‘월간’을 누르면 달력으로 돌아가요.'],
+  tt: ['아래 ‘빠른 추가’에 말하거나 적으면 시간표가 채워져요. 예) “월수 10시 반 경영학원론 301호”', '블록을 길게 누르면 들어 올려져요. 끌어서 시간·요일을 옮기고, 위·아래 끝을 끌어 길이를 바꿔요.', '길게 누른 뒤 나오는 줄에서 수업 묶기 · 휴강(그날만) · 복제 · 삭제.', '아래 ‘보기 설정’에서 표시 시간과 주말을 바꿔요.'],
+  routines: ['루틴은 단계마다 알람이 울리고, 확인을 누를 때까지 다시 알려요.', '템플릿을 고르거나 빠른 추가로 만들 수 있어요.', '스위치를 끄면 그 루틴 알람이 쉬어요.', '홈의 ‘오늘 할 일’에서 오늘 루틴을 확인해요.'],
   med: ['시간을 고르고 시작하면 싱잉볼 소리로 시작을 알려요.', '휴대폰을 내려놓아도 중간 종과 끝 종이 울려요.', '‘소리와 호흡’에서 종소리·중간 종·호흡 안내를 바꿔요. 호흡 안내를 켜면 원이 커질 때 들이쉬고 작아질 때 내쉬어요.']
 };
 function bxHelpOpen(){
   const tips = BX_HELP[S.view] || BX_HELP.today;
   // 사용법은 화면마다 여기 한 곳(정리판 17: 웹 시절 사용 설명서는 앱에서 뺐다)
-  openSheet({title: '이 화면 사용법', draw: () => setSheet('<ol class="bx-help">' + tips.map(t => '<li>' + esc(t) + '</li>').join('') + '</ol>',
-    '<button type="button" class="btn primary grow" data-act="sheet-close">알겠어요</button>')});
+  openSheet({title: '도움말', draw: () => setSheet('<ol class="bx-help">' + tips.map(t => '<li>' + esc(t) + '</li>').join('') + '</ol>',
+    '<button type="button" class="btn primary grow" data-act="sheet-close">닫기</button>')});
 }
 // ⋯ 메뉴(앱): 아래 메뉴에 없는 기능 + 내가 쓸 기능 · 휴지통 · 다크 모드 · 설정(정리판 15–17, 대표 결정 11/1).
 // 분류 관리·백업은 설정에, 사용법은 화면마다 ⓘ에. '처음 안내 다시 보기'는 '내가 쓸 기능'과 같은 일이라 뺐다
@@ -208,9 +214,9 @@ function bxMoreMenuHtml(){
   // 묶음(시험판 35, 대표 의견 11/3): 시간 · 행동 관리 → 그 밖의 기능 → 앱. 아래 메뉴에 있는 기능은 여기 다시 두지 않는다
   const grp = (h, list) => { const rows = list.filter(k => !keys.includes(k) && bxDockOk(k)).map(goRow).join(''); return rows ? '<div class="bx-menu-h">' + h + '</div>' + rows : ''; };
   return '<div class="menu">' + grp('시간 · 행동 관리', BX_GROUP_TIME) + grp('그 밖의 기능', BX_GROUP_ETC) + '<div class="bx-menu-h">앱</div>' +
-    '<button type="button" class="menu-row" data-act="bx-feat"><span class="mi">' + BX_HOME_ICON + '</span><span class="ml">내가 쓸 기능 · 아래 메뉴</span><span class="mv">' + ICON.chevR + '</span></button>' +
+    '<button type="button" class="menu-row" data-act="bx-feat"><span class="mi">' + BX_HOME_ICON + '</span><span class="ml">기능 · 메뉴 편집</span><span class="mv">' + ICON.chevR + '</span></button>' +
     // 홈 화면 위젯 두기: 설정 › 화면에도 같은 줄(대표 요청 11/3: 더보기에서도 고를 수 있게, 규칙 6 두 곳까지)
-    '<button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">홈 화면 위젯 두기</span><span class="mv">' + ICON.chevR + '</span></button>' +
+    '<button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">위젯 추가</span><span class="mv">' + ICON.chevR + '</span></button>' +
     menuRow('trash', ICON.trash, '휴지통', M.trash.length + '개') +
     // 다크 모드: 누르면 바로 켜고 끔(대표 지적 11/1 "다크모드 켜고 끄기가 사라졌다"). '휴대폰 따라가기'는 설정 › 화면에
     '<button type="button" class="menu-row bx-dm-row" data-act="theme-toggle" aria-pressed="' + isDark() + '"><span class="mi"><svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></span><span class="ml">다크 모드</span><span class="mv"><span class="tog" aria-hidden="true"><i></i></span></span></button>' +
@@ -293,7 +299,7 @@ function bxDockBuild(){
 function bxMoreRows(){
   const keys = bxDockKeys();
   const rows = ['month', 'tt'].filter(k => !keys.includes(k) && bxDockOk(k)).map(k => '<button type="button" class="menu-row" data-act="bx-go" data-view="' + k + '"><span class="mi">' + BX_DOCK_ALL[k].icon + '</span><span class="ml">' + BX_DOCK_ALL[k].label + '</span><span class="mv">' + ICON.chevR + '</span></button>').join('');
-  return rows + '<button type="button" class="menu-row" data-act="bx-feat"><span class="mi">' + BX_HOME_ICON + '</span><span class="ml">내가 쓸 기능 · 아래 메뉴</span><span class="mv">' + ICON.chevR + '</span></button>';
+  return rows + '<button type="button" class="menu-row" data-act="bx-feat"><span class="mi">' + BX_HOME_ICON + '</span><span class="ml">기능 · 메뉴 편집</span><span class="mv">' + ICON.chevR + '</span></button>';
 }
 let bxDockSel = null;
 function bxDockEdit(){
@@ -304,9 +310,9 @@ function bxDockEdit(){
       return '<button type="button" class="ch chk-box bx-dk' + (off ? ' off' : '') + '" role="checkbox" data-bx-dock="' + k + '" aria-checked="' + on + '"' + (off ? ' aria-disabled="true"' : '') + '><i class="cb">' + ICON.check + '</i><span class="bx-dk-ic">' + o.icon + '</span><span><b>' + o.label + '</b><small>' + o.sub + '</small></span>' + (on ? '<em class="bx-dk-n">' + (bxDockSel.indexOf(k) + 1) + '</em>' : '') + '</button>'; };
     setSheet('<p class="p small" style="margin:0 0 12px">자주 쓰는 기능만 아래 메뉴에 두세요. <b>홈</b>은 늘 가운데에 있고, 빼낸 기능은 오른쪽 위 <b>⋯</b> 메뉴에서 열 수 있어요. 고른 순서대로 놓여요(최대 4개).</p>' +
       '<div class="chk-list">' + Object.keys(BX_DOCK_ALL).map(row).join('') + '</div>',
-      '<button type="button" class="btn" data-act="bx-dock-reset">처음대로</button><button type="button" class="btn primary grow" data-act="bx-dock-save">저장</button>');
+      '<button type="button" class="btn" data-act="bx-dock-reset">기본값</button><button type="button" class="btn primary grow" data-act="bx-dock-save">저장</button>');
   };
-  openSheet({title: '아래 메뉴 고르기', draw, refresh: draw});
+  openSheet({title: '아래 메뉴 편집', draw, refresh: draw});
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
@@ -329,7 +335,7 @@ document.addEventListener('click', ev => {
    명상 칸(아래 메뉴에 명상이 있음)은 뺐다. 파란 단추는 '새 루틴' 하나 */
 function bxRoutinesPage(cards){
   const list = cards
-    .replace(/(<button type="button" class="tog" role="switch"[^>]*aria-label=")([^"]*) 켜기("[^>]*><i><\/i><\/button>)/g, '<span class="bx-togw">$1$2 알람 켜기$3<small>알람</small></span>')
+    .replace(/(<button type="button" class="tog" role="switch"[^>]*aria-label=")([^"]*) 켜기("[^>]*><i><\/i><\/button>)/g, '<span class="bx-togw">$1$2 알람$3<small>알람</small></span>')
     .replace(/<\/section>$/, '<button type="button" class="bx-rt-new" data-act="bx-rt-new">' + ICON.plus + '새 루틴</button></section>');
   return '<div class="page-head"><div class="ph-t"><h1>루틴</h1></div></div>' + list;
 }
@@ -376,12 +382,12 @@ function bxRtParse(text){
 }
 function bxRtNewOpen(){
   const tpls = RT_TEMPLATES.map(t => '<button type="button" class="bx-tpl" data-act="rt-tpl" data-key="' + t.key + '"><span class="bx-tpl-i">' + bxIconSpan(bxRtIconKey(t), '') + '</span><b>' + esc(t.name) + '</b><small>' + esc((t.mode === 'arrive' ? t.target + ' 도착' : t.target + ' 시작') + ' · ' + t.steps.length + '단계') + '</small></button>').join('');
-  openSheet({title: '새 루틴 만들기', draw: () => setSheet(
-    '<h3 class="bx-late-h">템플릿에서 고르기 <small>누르면 바로 열려요. 시각만 고치고 저장하세요</small></h3><div class="bx-tpls">' + tpls + '</div>' +
-    '<h3 class="bx-late-h" style="margin-top:18px">말로 만들기</h3>' +
+  openSheet({title: '새 루틴', draw: () => setSheet(
+    '<h3 class="bx-late-h">템플릿 <small>누르면 열려요. 시각만 바꾸고 저장하세요</small></h3><div class="bx-tpls">' + tpls + '</div>' +
+    '<h3 class="bx-late-h" style="margin-top:18px">빠른 추가</h3>' +
     '<label class="sr" for="bx-rt-say">어떤 루틴인지 한 문장으로</label><div class="bx-inrow"><textarea id="bx-rt-say" class="inp" rows="2" maxlength="300" placeholder="예: 평일 7시에 일어나서 씻고 약 먹고 8시에 나가기"></textarea>' + bxMic('bx-rt-say', '어떤 루틴인지 말해 보세요') + '</div>' +
-    '<div class="rt-make-a"><span class="sp"></span><button type="button" class="btn" data-act="bx-rt-say-go">' + ICON.spark + '이대로 만들기</button></div>' +
-    '<button type="button" class="bx-rt-blank" data-act="bx-rt-blank">' + ICON.edit + '<span><b>빈 루틴에서 시작</b><small>이름·시각·단계를 직접 적어요</small></span>' + ICON.chevR + '</button>', '')});
+    '<div class="rt-make-a"><span class="sp"></span><button type="button" class="btn" data-act="bx-rt-say-go">' + ICON.spark + '만들기</button></div>' +
+    '<button type="button" class="bx-rt-blank" data-act="bx-rt-blank">' + ICON.edit + '<span><b>빈 루틴</b><small>이름 · 시각 · 단계 직접 입력</small></span>' + ICON.chevR + '</button>', '')});
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;

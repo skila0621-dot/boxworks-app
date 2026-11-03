@@ -114,7 +114,7 @@ function pcDraw(id){
   if (timed) {
     const tvv = +it.travel || 0, tvs = [0].concat(TV_PICKS.includes(tvv) || !tvv ? [] : [tvv]).concat(TV_PICKS);
     const curPrep = it.prep || (it.prepOut ? 'new' : '');
-    body += '<div class="fg-l tv-h">가는 데 걸리는 시간</div><div class="picks">' + tvs.map(v => pick('data-pctv', String(v), String(tvv), v ? tvMinText(v) : '없음')).join('') + '</div>' +
+    body += '<div class="fg-l tv-h">이동 시간</div><div class="picks">' + tvs.map(v => pick('data-pctv', String(v), String(tvv), v ? tvMinText(v) : '없음')).join('') + '</div>' +
       '<div class="fg-l tv-h">준비 루틴 <small>출발 시각에 끝나게 거꾸로 놓여요</small></div><div class="picks">' + pick('data-pcprep', '', curPrep, '없음') +
       tvPrepNames().map(r => pick('data-pcprep', r.id || 'new', curPrep, esc(r.name) + (r.id ? '' : ' <small>새로</small>'))).join('') + '</div>';
     const p = tvPlan(it);
@@ -130,7 +130,7 @@ function pcSetHtml(){
   if (!pcPlug()) return '';
   const cfg = pcCfg();
   let h = '<section class="set-sec" aria-labelledby="s-pcal"><h2 id="s-pcal">휴대폰 캘린더</h2>' +
-    setRow('휴대폰 캘린더 일정 함께 보기', bxSwitch('data-pc-on', cfg.on, '휴대폰 캘린더 일정 함께 보기')) +
+    setRow('휴대폰 캘린더 함께 보기', bxSwitch('data-pc-on', cfg.on, '휴대폰 캘린더 함께 보기')) +
     '<p class="p small pc-set-note">구글 캘린더 같은 휴대폰 캘린더의 일정을 오늘·주간·월간에 함께 보여 줘요. 박스웍스는 읽기만 하고 고치지 않아요. Claude나 Gemini에게 말해서 넣은 일정도 이 길로 들어와요.</p>';
   if (cfg.on) {
     if (PC.granted === false) {

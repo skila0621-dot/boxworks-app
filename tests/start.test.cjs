@@ -18,7 +18,7 @@ module.exports = async function () {
     }));
     c.eq(s1.checked, ['false', 'false', 'false', 'false'], '쓸 기능 네 개는 비어 있음');
     c.ok(/추천 기본 기능/.test(s1.fixed), "'일정·캘린더'에 '추천 기본 기능' 표시");
-    c.eq(s1.go.replace(/\s+/g, ' ').trim(), '다음 · 1개 고름', '다음 단추');
+    c.eq(s1.go.replace(/\s+/g, ' ').trim(), '다음 · 1개 선택', '다음 단추');
     // 루틴만 고르고 시작하면 루틴만 켜진다
     await p.click('#bx-start [data-bxs-mod="routines"]');
     await p.click('#bx-start [data-bxs="next"]');

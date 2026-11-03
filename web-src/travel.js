@@ -154,7 +154,7 @@ function tvDrawPanel(){
   drawFChips();
   const el = $('#f-go'); if (!el || !F) return;
   if (!F.timed || !isHM(F.start)) {
-    el.innerHTML = '<p class="p">시간을 정하면 출발 시각을 거꾸로 계산해 알람을 걸어요.</p><button type="button" class="btn" data-fpanel="time">' + ICON.clock + '시간 정하기</button>';
+    el.innerHTML = '<p class="p">시간을 정하면 출발 시각을 거꾸로 계산해 알람을 걸어요.</p><button type="button" class="btn" data-fpanel="time">' + ICON.clock + '시간 지정</button>';
     return;
   }
   const tvs = [0].concat(TV_PICKS.includes(+F.travel || 0) || !F.travel ? [] : [+F.travel]).concat(TV_PICKS);
@@ -163,7 +163,7 @@ function tvDrawPanel(){
   const p = tvFormPlan();
   const line = p ? tvLineHtml(p, F.start, (F.parsed && F.parsed.title) || F.title) : '';
   el.innerHTML =
-    '<div class="fg-l">가는 데 걸리는 시간</div><div class="picks">' + tvs.map(v => '<button type="button" class="pick" data-ftv="' + v + '" aria-pressed="' + ((+F.travel || 0) === v) + '">' + (v ? tvMinText(v) : '없음') + '</button>').join('') + '</div>' +
+    '<div class="fg-l">이동 시간</div><div class="picks">' + tvs.map(v => '<button type="button" class="pick" data-ftv="' + v + '" aria-pressed="' + ((+F.travel || 0) === v) + '">' + (v ? tvMinText(v) : '없음') + '</button>').join('') + '</div>' +
     '<div class="tv-cus"><span class="p small">직접</span>' + stepperHtml('f-travel', +F.travel || 0, 0, 300, null, 5) + '<span class="p small">분</span></div>' +
     (F.tvSrc === 'mem' && F.tvKey ? '<p class="p small tv-mem">‘' + esc(F.tvKey) + '’까지 지난번에 ' + tvMinText(F.travel) + '이 걸렸어요</p>' : '') +
     '<div class="fg-l tv-h">준비 루틴 <small>출발 시각에 끝나게 거꾸로 놓여요</small></div><div class="picks">' +

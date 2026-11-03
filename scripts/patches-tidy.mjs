@@ -33,12 +33,12 @@ export default [
   {
     name: '정리판 · 일정 고치기 창: \'완료\'는 빼고(다 했어요는 동그라미·꾹 메뉴), 휴지통 그림 대신 \'지우기\' 글자',
     find: ": '<button type=\"button\" class=\"btn sq danger\" data-act=\"delete\" aria-label=\"삭제\">' + ICON.trash + '</button><button type=\"button\" class=\"btn grow\" data-act=\"edit-done\">' + (F.done ? '완료 취소' : ICON.check + '완료') + '</button><button type=\"button\" class=\"btn primary grow\" data-act=\"save\">저장</button>');",
-    replace: ": window.BX_APP ? '<button type=\"button\" class=\"btn bx-del-btn\" data-act=\"delete\">' + ICON.trash + '지우기</button><button type=\"button\" class=\"btn primary grow\" data-act=\"save\">저장</button>'\n      : '<button type=\"button\" class=\"btn sq danger\" data-act=\"delete\" aria-label=\"삭제\">' + ICON.trash + '</button><button type=\"button\" class=\"btn grow\" data-act=\"edit-done\">' + (F.done ? '완료 취소' : ICON.check + '완료') + '</button><button type=\"button\" class=\"btn primary grow\" data-act=\"save\">저장</button>');"
+    replace: ": window.BX_APP ? '<button type=\"button\" class=\"btn bx-del-btn\" data-act=\"delete\">' + ICON.trash + '삭제</button><button type=\"button\" class=\"btn primary grow\" data-act=\"save\">저장</button>'\n      : '<button type=\"button\" class=\"btn sq danger\" data-act=\"delete\" aria-label=\"삭제\">' + ICON.trash + '</button><button type=\"button\" class=\"btn grow\" data-act=\"edit-done\">' + (F.done ? '완료 취소' : ICON.check + '완료') + '</button><button type=\"button\" class=\"btn primary grow\" data-act=\"save\">저장</button>');"
   },
   {
     name: '└ 창 이름 \'일정 수정\' → 앱에서는 \'일정 고치기\'(꾹 메뉴의 \'고치기\'와 같은 말)',
     find: "openSheet({title: F.mode === 'new' ? '새 일정' : '일정 수정', draw: drawEdit, refresh: null});",
-    replace: "openSheet({title: F.mode === 'new' ? '새 일정' : (window.BX_APP ? '일정 고치기' : '일정 수정'), draw: drawEdit, refresh: null});"
+    replace: "openSheet({title: F.mode === 'new' ? '새 일정' : '일정 수정', draw: drawEdit, refresh: null});"
   },
   {
     name: '└ 새 일정 예시를 생활 예시로(업무 앱 흔적 \'거래처 미팅\')',
@@ -48,7 +48,7 @@ export default [
   {
     name: '정리판 · 남은 일정 목록: \'예약\' → \'남은\'(홈 숫자 칸과 같은 말)',
     find: "name = {remain: '예약된 일정', done: '완료한 일정', late: '확인이 필요한 일정'}[kind];",
-    replace: "name = {remain: window.BX_APP ? '남은 일정' : '예약된 일정', done: '완료한 일정', late: '확인이 필요한 일정'}[kind];"
+    replace: "name = {remain: window.BX_APP ? '남은 일정' : '예약된 일정', done: window.BX_APP ? '완료' : '완료한 일정', late: window.BX_APP ? '확인 필요' : '확인이 필요한 일정'}[kind];"
   },
   {
     name: '└ (빈 목록 글)',
@@ -63,7 +63,7 @@ export default [
   {
     name: '정리판 · 지운 뒤 알림 \'삭제했어요\' → \'지웠어요\'(꾹 메뉴·고치기 창의 \'지우기\'와 같은 말)',
     find: "toast('삭제했어요. 휴지통에 30일 동안 남아요.', [['되돌리기', doUndo]]);",
-    replace: "toast(window.BX_APP ? '지웠어요. 휴지통에 30일 동안 남아요.' : '삭제했어요. 휴지통에 30일 동안 남아요.', [['되돌리기', doUndo]]);"
+    replace: "toast(window.BX_APP ? '삭제했어요. 휴지통에 30일 동안 남아요.' : '삭제했어요. 휴지통에 30일 동안 남아요.', [['되돌리기', doUndo]]);"
   },
   {
     name: '정리판 · 찾기 결과 없음: 조사(‘아침’과 / ‘치과’와)',
@@ -73,7 +73,7 @@ export default [
   {
     name: '정리판 · 휴지통: 복원 → 되살리기, 영구 삭제 → 완전히 지우기',
     find: "data-restore=\"' + esc(x.id) + '\">복원</button><button type=\"button\" class=\"btn sm danger\" data-purge=\"' + esc(x.id) + '\">영구 삭제</button></div>').join('') : '<p class=\"p small\">비어 있어요. 삭제한 일정은 30일 동안 여기에 남아요.</p>'),",
-    replace: "data-restore=\"' + esc(x.id) + '\">' + (window.BX_APP ? '되살리기' : '복원') + '</button><button type=\"button\" class=\"btn sm danger\" data-purge=\"' + esc(x.id) + '\">' + (window.BX_APP ? '완전히 지우기' : '영구 삭제') + '</button></div>').join('') : '<p class=\"p small\">' + (window.BX_APP ? '비어 있어요. 지운 일정은 30일 동안 여기에 남아요.' : '비어 있어요. 삭제한 일정은 30일 동안 여기에 남아요.') + '</p>'),"
+    replace: "data-restore=\"' + esc(x.id) + '\">' + '복원' + '</button><button type=\"button\" class=\"btn sm danger\" data-purge=\"' + esc(x.id) + '\">' + (window.BX_APP ? '완전히 삭제' : '영구 삭제') + '</button></div>').join('') : '<p class=\"p small\">' + (window.BX_APP ? '비어 있어요. 지운 일정은 30일 동안 여기에 남아요.' : '비어 있어요. 삭제한 일정은 30일 동안 여기에 남아요.') + '</p>'),"
   },
   {
     name: '정리판 · 백업: 단추 이름을 하는 일로, 파일 고르기는 한국어 단추(브라우저 기본 칸 \'Choose File\' 대신)',

@@ -569,7 +569,7 @@
       var widget = plugin('BxWidget');
       if (widget && typeof window.BX_widgetData === 'function') {
         var wd = window.BX_widgetData(list.filter(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; }));
-        var wsig = wd ? JSON.stringify({ i: wd.items, r: wd.routines, l: wd.late, li: wd.lateI }) : null;
+        var wsig = wd ? JSON.stringify({ i: wd.items, r: wd.routines, l: wd.late, li: wd.lateI, o: wd.only }) : null;
         if (wd && wsig !== lastWidget) { lastWidget = wsig; widget.update({ data: wd }).catch(function () { lastWidget = null; }); }
       }
       // 잠금 화면에 보여 줄 것(설정): alarm(기본) | title | none
@@ -709,7 +709,9 @@
     var app3 = plugin('App');
     if (app3 && app3.addListener) app3.addListener('resume', placedRefresh);
     window.BX_widgetPin = function (which) { return widgetPl.pin({ which: which || 'now' }); };
-    var speakNow = function () {
+    var speakNow = function (r) {
+      // 위젯이 다른 날을 보고 있었으면 그 날짜로(시험판 36, ‹ ›)
+      if (r && r.ds && typeof window.BX_newOn === 'function') { setTimeout(function () { window.BX_newOn(r.ds, true); }, 300); return; }
       setTimeout(function () {
         var add = document.querySelector('.bx-fab');
         if (!add) return;
@@ -718,7 +720,8 @@
       }, 300);
     };
     // 위젯 '일정 추가'(시험판 36, 대표 요청 11/3: 일정 추가와 마이크를 따로): 새 일정 창만 연다(글자로 넣기)
-    var addNow = function () {
+    var addNow = function (r) {
+      if (r && r.ds && typeof window.BX_newOn === 'function') { setTimeout(function () { window.BX_newOn(r.ds, false); }, 300); return; }
       setTimeout(function () { var add = document.querySelector('.bx-fab'); if (add) add.click(); }, 300);
     };
     // 위젯의 줄을 누르면: 일정은 고치기 창, 루틴 · 시간표는 그 화면(web-src/v36.js BX_openFromWidget)
@@ -732,8 +735,8 @@
     }
     if (widgetPl.consumeLaunch) widgetPl.consumeLaunch().then(function (r) {
       if (!r) return;
-      if (r.speak) setTimeout(speakNow, 700);
-      else if (r.add) setTimeout(addNow, 700);
+      if (r.speak) setTimeout(function () { speakNow(r); }, 700);
+      else if (r.add) setTimeout(function () { addNow(r); }, 700);
       else if (r.open) setTimeout(function () { openRow(r.open); }, 700);
     }).catch(function () {});
   }

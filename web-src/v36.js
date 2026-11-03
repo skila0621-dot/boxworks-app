@@ -88,7 +88,10 @@ window.BX_openFromWidget = function(o){
     '.bx-app .bx-tl-rt .bx-tl-t .bx-tl-s,.bx-app .bx-tl-rt .rt-h b{line-height:22px}',
     '.bx-app .bx-tl-rt .bx-tl-t{gap:1px}',
     '.bx-app .bx-tl-rt .rt-h .bx-rt-tog{margin-top:-4px}',
-    '.bx-app .bx-tl-rt .rt-h [data-act="rt-skip"]{margin-top:-7px}'
+    '.bx-app .bx-tl-rt .rt-h [data-act="rt-skip"]{margin-top:-7px}',
+    // 위젯 창의 '루틴도 보기' 스위치 줄, 확인 필요 카드 단추의 아이콘(시험판 36)
+    '.bx-app .bx-wg-rt{margin-top:14px;gap:12px}.bx-app .bx-wg-rt > span{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.bx-app .bx-wg-rt small{font-size:13px;color:var(--ink-3)}',
+    '.bx-app .bx-lc-a .btn .i{width:16px;height:16px;flex:none}.bx-app .bx-lc-a .btn{gap:5px}'
   ].join('');
   (document.head || document.documentElement).appendChild(st);
 })();
@@ -136,3 +139,10 @@ function bxPlaceOnParse(p){
   else if (F.bxPlaceAuto && loc === F.bxPlaceAuto) { F.location = ''; F.bxPlaceAuto = null; }
 }
 function bxPlaceHint(){ return F && F.bxPlaceAuto && (F.location || '').trim() === F.bxPlaceAuto ? ' · 장소 ' + esc(F.bxPlaceAuto) : ''; }
+// 위젯의 새 일정(＋) · 말하기(🎤): 위젯이 보고 있던 날짜로 새 일정 창(시험판 36, 대표 결정 11/3 17:01). 오늘이면 + 단추와 같음
+window.BX_newOn = function(ds, mic){
+  if (!M) return;
+  if (SH) closeSheet();
+  openEdit(null, isDate(ds) ? {date: ds} : {});
+  if (mic) setTimeout(() => { const m = document.querySelector('[data-act="bx-mic"][data-for="f-title"]'); if (m) m.click(); }, 350);
+};

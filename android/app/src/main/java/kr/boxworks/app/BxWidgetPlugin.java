@@ -17,6 +17,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 public class BxWidgetPlugin extends Plugin {
     private boolean pendingSpeak = false;
     private boolean pendingAdd = false;
+    private String pendingDs = null;
     private JSObject pendingOpen = null;
 
     @Override
@@ -34,12 +35,18 @@ public class BxWidgetPlugin extends Plugin {
     private void take(Intent i, boolean live) {
         if (i == null || i.getAction() == null) return;
         String a = i.getAction();
+        // 새 일정 · 말하기는 위젯이 보고 있던 날짜(ds)로 연다(시험판 36, ‹ ›로 넘긴 날)
+        String ds = i.getStringExtra("ds");
         if (BxWidgetProvider.ACTION_SPEAK.equals(a)) {
-            if (live) notifyListeners("speak", new JSObject(), true);
-            else pendingSpeak = true;
+            JSObject o = new JSObject();
+            if (ds != null) o.put("ds", ds);
+            if (live) notifyListeners("speak", o, true);
+            else { pendingSpeak = true; pendingDs = ds; }
         } else if (BxWidgetProvider.ACTION_ADD.equals(a)) {
-            if (live) notifyListeners("add", new JSObject(), true);
-            else pendingAdd = true;
+            JSObject o = new JSObject();
+            if (ds != null) o.put("ds", ds);
+            if (live) notifyListeners("add", o, true);
+            else { pendingAdd = true; pendingDs = ds; }
         } else if (BxWidgetProvider.ACTION_OPEN.equals(a)) {
             JSObject o = new JSObject();
             o.put("k", i.getStringExtra("k"));
@@ -58,9 +65,11 @@ public class BxWidgetPlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("speak", pendingSpeak);
         r.put("add", pendingAdd);
+        if (pendingDs != null) r.put("ds", pendingDs);
         if (pendingOpen != null) r.put("open", pendingOpen);
         pendingSpeak = false;
         pendingAdd = false;
+        pendingDs = null;
         pendingOpen = null;
         call.resolve(r);
     }

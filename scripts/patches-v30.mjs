@@ -9,17 +9,17 @@ export default [
   {
     name: "└ 빈 날 머리 줄에 '일정 없음'을 붙이고, 넣기 단추는 + 하나",
     find: "(hol ? '<span class=\"hol\">' + esc(hol) + '</span>' : '') + '<span class=\"sp\"></span>' + addBtn(ds, fmtMD(ds) + '에 일정 추가') + '</div>' +",
-    replace: "(hol ? '<span class=\"hol\">' + esc(hol) + '</span>' : '') + (window.BX_APP && !its.length ? '<span class=\"bx-wk-none\">일정 없음</span>' : '') + '<span class=\"sp\"></span>' + addBtn(ds, fmtMD(ds) + '에 일정 넣기') + '</div>' +"
+    replace: "(hol ? '<span class=\"hol\">' + esc(hol) + '</span>' : '') + (window.BX_APP && !its.length ? '<span class=\"bx-wk-none\">일정 없음</span>' : '') + '<span class=\"sp\"></span>' + addBtn(ds, fmtMD(ds) + ' 일정 추가') + '</div>' +"
   },
   {
     name: "└ '+ 추가'는 앱에서 + 하나(새 일정 +와 같은 그림, 규칙 1)",
     find: "const addBtn = (date, label) => '<button type=\"button\" class=\"sec-link add\" data-act=\"new\" data-date=\"' + date + '\"' + (label ? ' aria-label=\"' + esc(label) + '\"' : '') + '>' + ICON.plus + '추가</button>';",
-    replace: "const addBtn = (date, label) => '<button type=\"button\" class=\"sec-link add\" data-act=\"new\" data-date=\"' + date + '\"' + (label ? ' aria-label=\"' + esc(label) + '\"' : window.BX_APP ? ' aria-label=\"이날 일정 넣기\"' : '') + '>' + ICON.plus + (window.BX_APP ? '' : '추가') + '</button>';"
+    replace: "const addBtn = (date, label) => '<button type=\"button\" class=\"sec-link add\" data-act=\"new\" data-date=\"' + date + '\"' + (label ? ' aria-label=\"' + esc(label) + '\"' : window.BX_APP ? ' aria-label=\"일정 추가\"' : '') + '>' + ICON.plus + (window.BX_APP ? '' : '추가') + '</button>';"
   },
   {
     name: "날짜 창의 넣기 칸은 '이날 일정 넣기' 한 줄로, 같은 새 일정 창이 그 날짜로 열린다(입구 하나로, 규칙 8)",
     find: "setSheet('<div id=\"day-list\">' + list + '</div>',\n    '<label class=\"sr\" for=\"day-in\">할 일 추가</label>",
-    replace: "setSheet('<div id=\"day-list\">' + list + '</div>', window.BX_APP ? '<button type=\"button\" class=\"btn primary grow\" data-act=\"new\" data-date=\"' + ds + '\">' + ICON.plus + '이날 일정 넣기</button>' :\n    '<label class=\"sr\" for=\"day-in\">할 일 추가</label>"
+    replace: "setSheet('<div id=\"day-list\">' + list + '</div>', window.BX_APP ? '<button type=\"button\" class=\"btn primary grow\" data-act=\"new\" data-date=\"' + ds + '\">' + ICON.plus + '일정 추가</button>' :\n    '<label class=\"sr\" for=\"day-in\">할 일 추가</label>"
   },
   {
     name: "마이크 단추에 '말하기' 글자(규칙 1: 표준 아이콘 말고는 그림만 있는 단추를 두지 않는다)",
@@ -28,13 +28,13 @@ export default [
   },
   {
     name: '└ 마이크 단추 이름도 보이는 글자와 같게',
-    find: "data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말로 넣기\"><svg",
+    find: "data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말하기\"><svg",
     replace: "data-prompt=\"' + esc(prompt || '') + '\"' + (ex ? ' data-ex=\"' + esc(ex) + '\"' : '') + '><svg"
   },
   {
     name: '새 일정·일정 고치기 창에 이름표(여백 줄이기·칸이 열릴 때 부드럽게 커지기, web-src/v30.js). 창은 작게 시작(대표 결정 11/2 밤)',
-    find: "openSheet({title: F.mode === 'new' ? '새 일정' : (window.BX_APP ? '일정 고치기' : '일정 수정'), draw: drawEdit, refresh: null});",
-    replace: "openSheet({title: F.mode === 'new' ? '새 일정' : (window.BX_APP ? '일정 고치기' : '일정 수정'), draw: drawEdit, refresh: null});\n  if (window.BX_APP) { const sh = $('#sheet-root .sheet'); if (sh) sh.classList.add('bx-esheet'); }"
+    find: "openSheet({title: F.mode === 'new' ? '새 일정' : '일정 수정', draw: drawEdit, refresh: null});",
+    replace: "openSheet({title: F.mode === 'new' ? '새 일정' : '일정 수정', draw: drawEdit, refresh: null});\n  if (window.BX_APP) { const sh = $('#sheet-root .sheet'); if (sh) sh.classList.add('bx-esheet'); }"
   },
   {
     name: "일정 알림: 고르는 칸 규칙(규칙 11, D-10) — 정시·10분 전·1시간 전(시간 없는 일정은 당일 오전 9시·전날 오후 9시) + 직접 입력, '알림 없이'는 아래 글자 단추",

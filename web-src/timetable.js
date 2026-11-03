@@ -149,24 +149,24 @@ function ttHtml(){
     return '<div class="tt-col' + (d === todayDow ? ' today' : '') + '" data-d="' + d + '">' + blocks + now + '</div>';
   }).join('');
   const add = '<div class="tt-add"><label class="sr" for="tt-in">시간표에 넣기</label><div class="bx-inrow"><input id="tt-in" class="inp" type="text" autocomplete="off" enterkeyhint="done" maxlength="120" placeholder="예) 월수 10시 반부터 12시까지 경영학원론 301호">' +
-    bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">넣기</button></div></div>';
+    bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">추가</button></div></div>';
   // 앱: 시간표 칸이 바로 보이게 머리는 제목만, 넣기·보기 설정·수업 추가는 아래 메뉴 위 툴바로(대표 요청 10/31)
   if (window.BX_APP) {
     const rangeTxt = String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : cols.length === 5 ? '월–금' : '월–금·' + cols.slice(5).map(d => WD[d]).join('·'));
-    const emptyA = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 아래 ‘말로 넣기’로 넣어 보세요. 시작 10분 전에 알람이 울려요.</p>';
+    const emptyA = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 아래 ‘빠른 추가’로 넣어 보세요. 시작 10분 전에 알람이 울려요.</p>';
     return '<div class="page-head bx-tt-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복 · ' + rangeTxt + '</span></p></div></div>' + emptyA +
       (TTSEL ? '<p class="p small tt-tip">' + TT_TIP1 + '</p>' : '') +
       '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
       '<div class="tt-body' + (TTSEL ? ' editing' : '') + '" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + (TTSEL ? ttBarHtml() : '') + '</div></div>' +
       '<nav class="bx-ttbar" aria-label="시간표 도구">' +
-        '<button type="button" class="bx-ttb main" data-act="bx-tt-say">' + TT_MIC_I + '<span>말로 넣기</span></button>' +
-        '<button type="button" class="bx-ttb" data-act="tt-range" aria-label="보기 설정 바꾸기 · ' + rangeTxt + '">' + ICON.clock + '<span>보기 설정</span></button>' +
+        '<button type="button" class="bx-ttb main" data-act="bx-tt-say">' + TT_MIC_I + '<span>빠른 추가</span></button>' +
+        '<button type="button" class="bx-ttb" data-act="tt-range" aria-label="보기 설정 · ' + rangeTxt + '">' + ICON.clock + '<span>보기 설정</span></button>' +
         '<button type="button" class="bx-ttb" data-act="tt-new">' + ICON.plus + '<span>수업 추가</span></button></nav>';
   }
   const empty = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 위 칸에 말하거나 적어 보세요. 시작 10분 전에 알람이 울려요.</p>';
   return '<div class="page-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복</span></p></div></div>' + add +
-    '<div class="tt-sub"><button type="button" class="tt-opt" data-act="tt-range" aria-label="시간표 보기 설정 바꾸기">' + ICON.clock + '<span><b>보기 설정</b><small>' + String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : cols.length === 5 ? '월–금' : '월–금·' + cols.slice(5).map(d => WD[d]).join('·')) + '</small></span>' + ICON.chevR + '</button>' +
-      '<button type="button" class="tt-opt" data-act="tt-new">' + ICON.plus + '<span><b>수업 추가</b><small>요일·시간 골라 넣기</small></span></button></div>' + empty +
+    '<div class="tt-sub"><button type="button" class="tt-opt" data-act="tt-range" aria-label="시간표 보기 설정">' + ICON.clock + '<span><b>보기 설정</b><small>' + String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : cols.length === 5 ? '월–금' : '월–금·' + cols.slice(5).map(d => WD[d]).join('·')) + '</small></span>' + ICON.chevR + '</button>' +
+      '<button type="button" class="tt-opt" data-act="tt-new">' + ICON.plus + '<span><b>수업 추가</b><small>요일 · 시간 직접 입력</small></span></button></div>' + empty +
     (list.length ? '<p class="p small tt-tip">' + (TTSEL ? TT_TIP1 : TT_TIP0) + '</p>' : '') +
     '<div class="tt-wrap"><div class="tt-grid" style="--n:' + cols.length + '">' + head + '</div>' +
     '<div class="tt-body' + (TTSEL ? ' editing' : '') + '" style="--n:' + cols.length + ';height:' + H + 'px"><div class="tt-lines">' + lines + '</div><div class="tt-tc"></div>' + colsHtml + (TTSEL ? ttBarHtml() : '') + '</div></div>';
@@ -206,7 +206,7 @@ function ttOpen(id, pre){
   TT = cur ? Object.assign({}, cur) : Object.assign({id: null, name: '', days: [], start: '09:00', end: '10:00', place: '', remind: '10', color: TT_COLORS[n % TT_COLORS.length]}, pre || {});
   if (!TT.start) TT.start = '09:00';
   if (!TT.end || toMin(TT.end) <= toMin(TT.start)) TT.end = fromMin(Math.min(toMin(TT.start) + 60, 1439));
-  openSheet({title: cur ? (window.BX_APP ? '수업 고치기' : '시간표 고치기') : (window.BX_APP ? '수업 추가' : '시간표에 넣기'), draw: ttDraw, onClose: () => { TT = null; }});
+  openSheet({title: cur ? (window.BX_APP ? '수업 수정' : '시간표 고치기') : (window.BX_APP ? '수업 추가' : '시간표에 넣기'), draw: ttDraw, onClose: () => { TT = null; }});
 }
 // 수업 알림 칸(대표 결정 11/2 밤: 켜기·끄기 스위치, 켰을 때만 아래에 셋 + 직접 입력). 정해진 칸에 맞는 게 없으면
 // '직접 입력'(대표 결정 10/31)이 그 칩 자리에서 입력칸이 된다(규칙 9·12)
@@ -232,7 +232,7 @@ function ttDraw(){
       rems +
       '<span class="tt-l">색</span><div class="tt-sws">' + colors + '</div>' +
     '</div>',
-    (TT.id ? '<button type="button" class="btn" data-act="tt-del">' + ICON.trash + '지우기</button>' : '') + '<button type="button" class="btn primary grow" data-act="tt-save">저장</button>'
+    (TT.id ? '<button type="button" class="btn" data-act="tt-del">' + ICON.trash + '삭제</button>' : '') + '<button type="button" class="btn primary grow" data-act="tt-save">저장</button>'
   );
 }
 function ttSave(o){
@@ -253,10 +253,10 @@ function ttCheck(o){
 const TT_MIC_I = '<svg class="i" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>';
 // 앱 툴바의 '말로 넣기': 넣는 칸을 창으로 연다
 function ttSayOpen(){
-  openSheet({title: '말로 넣기', draw: () => setSheet(
+  openSheet({title: '빠른 추가', draw: () => setSheet(
     '<p class="p small" style="margin:0 0 10px">한 문장으로 말하거나 적어요. 요일·시각·이름·장소를 알아서 나눠 넣어요.</p>' +
     '<div class="tt-add"><label class="sr" for="tt-in">시간표에 넣기</label><div class="bx-inrow"><input id="tt-in" class="inp" type="text" autocomplete="off" enterkeyhint="done" maxlength="120" placeholder="예) 월수 10시 반부터 12시까지 경영학원론 301호">' +
-    bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">넣기</button></div></div>' +
+    bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">추가</button></div></div>' +
     '<p class="p small" style="margin:10px 0 0">예) 화목 2시 영어회화 · 금 7시부터 10시까지 편의점 알바</p>', '')});
   setTimeout(() => { const i = $('#tt-in'); if (i) i.focus(); }, 60);
 }
@@ -320,7 +320,7 @@ document.addEventListener('click', ev => {
     return;
   }
   if (act === 'tt-color') { TT.color = el.dataset.c; $$('[data-act="tt-color"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === TT.color)); return; }
-  if (act === 'tt-del') { const id = TT.id, keep = getDoc(id); closeSheet(); removeDoc(id); toast('시간표에서 지웠어요', [['되돌리기', () => writeDoc(id, keep)]]); return; }
+  if (act === 'tt-del') { const id = TT.id, keep = getDoc(id); closeSheet(); removeDoc(id); toast('시간표에서 삭제했어요', [['되돌리기', () => writeDoc(id, keep)]]); return; }
   if (act === 'tt-save') {
     TT.name = ($('#tt-name') || {}).value || TT.name; TT.place = ($('#tt-place') || {}).value || '';
     const st = ($('#tt-start') || {}).value, en = ($('#tt-end') || {}).value;
@@ -343,9 +343,9 @@ if (lsGet('bx:weekMode') === 'tt') { lsSet('bx:weekMode', ''); }
 function ttRangeOpen(){
   const rg = ttRange(), opt = (a, b, cur) => Array.from({length: b - a + 1}, (_, i) => a + i).map(h => '<option value="' + h + '"' + (h === cur ? ' selected' : '') + '>' + h + '시</option>').join('');
   openSheet({title: '시간표 보기 설정', draw: () => setSheet(
-    '<span class="tt-l" style="display:block">보이는 시간</span><p class="p small" style="margin:4px 0 0">이른 아침·늦은 밤 수업이 있으면 넓혀 주세요. 범위 밖에 넣은 수업은 저절로 넓혀서 보여요.</p>' +
+    '<span class="tt-l" style="display:block">표시 시간</span><p class="p small" style="margin:4px 0 0">이른 아침·늦은 밤 수업이 있으면 넓혀 주세요. 범위 밖에 넣은 수업은 저절로 넓혀서 보여요.</p>' +
     '<div class="tt-times" style="margin-top:10px"><select id="tt-rg-f" class="inp" aria-label="시작">' + opt(0, 12, rg.from) + '</select><span>–</span><select id="tt-rg-t" class="inp" aria-label="끝">' + opt(12, 24, rg.to) + '</select></div>' +
-    '<span class="tt-l" style="margin-top:16px;display:block">보이는 요일</span><div class="tt-pills" role="group" aria-label="보이는 요일">' + [['wd', '월–금'], ['all', '월–일']].map(o => '<button type="button" class="tt-pill" data-act="tt-wk" data-v="' + o[0] + '" aria-pressed="' + ((((M.settings && M.settings.ttWeek) === 'all') ? 'all' : 'wd') === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
+    '<span class="tt-l" style="margin-top:16px;display:block">표시 요일</span><div class="tt-pills" role="group" aria-label="표시 요일">' + [['wd', '월–금'], ['all', '월–일']].map(o => '<button type="button" class="tt-pill" data-act="tt-wk" data-v="' + o[0] + '" aria-pressed="' + ((((M.settings && M.settings.ttWeek) === 'all') ? 'all' : 'wd') === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
     '<p class="p small" style="margin:6px 0 0">월–금으로 두어도 토·일 수업을 넣으면 그 요일은 저절로 보여요.</p>',
     '<button type="button" class="btn primary grow" data-act="tt-rg-save">저장</button>')});
 }
@@ -360,7 +360,7 @@ function ttNameKey(n){ return String(n || '').replace(/\s+/g, '').toLowerCase();
 function ttGroupOf(e, list){ list = list || ttList(); return e.link ? list.filter(x => x.link === e.link) : [e]; }
 function ttLinked(e, list){ return e.days.length > 1 || (!!e.link && ttGroupOf(e, list).length > 1); }
 function ttFmtRange(a, b){ return fromMin(a) + '–' + fromMin(b); }
-const TT_TIP0 = '블록을 꾹 누르면 옮기기·길이 바꾸기를 할 수 있어요. 클립으로 같은 수업을 연결하면 함께 움직여요.';
+const TT_TIP0 = '블록을 길게 누르면 옮기거나 길이를 바꿀 수 있어요. 클립으로 연결한 수업은 함께 움직여요.';
 const TT_TIP1 = '블록을 끌어 시간·요일을 옮기고, 위·아래 끝을 끌어 길이를 바꿔요. 다 됐으면 완료를 누르세요.';
 // 화면을 다시 그리지 않고 편집을 마친다(입력 칸에 적던 글·포커스를 지키려고)
 function ttUnselect(){
@@ -386,7 +386,7 @@ function ttBarHtml(){
   const b = (act, icon, label, on) => '<button type="button" class="tt-xb' + (on ? ' on' : '') + '" data-act="' + act + '" aria-label="' + label + '">' + icon + '<small>' + label + '</small></button>';
   const nd = ttNextDate(TTSEL.d), off = ttSkipped(e, nd);
   return '<div class="tt-bar" id="tt-bar" role="toolbar" aria-label="' + esc(e.name) + ' 편집">' +
-    b('tt-x-clip', TT_CLIP, lk ? '연결 풀기' : '수업 묶기', lk) + b('tt-x-off', TT_OFF, off ? '휴강 취소' : ttMD(nd) + ' 휴강', off) + b('tt-x-dup', ICON.plus, '복제') + b('tt-x-edit', ICON.edit, '고치기') + b('tt-x-del', ICON.trash, '지우기') + b('tt-x-done', ICON.check, '닫기') + '</div>';
+    b('tt-x-clip', TT_CLIP, lk ? '연결 풀기' : '수업 묶기', lk) + b('tt-x-off', TT_OFF, off ? '휴강 취소' : ttMD(nd) + ' 휴강', off) + b('tt-x-dup', ICON.plus, '복제') + b('tt-x-edit', ICON.edit, '수정') + b('tt-x-del', ICON.trash, '삭제') + b('tt-x-done', ICON.check, '닫기') + '</div>';
 }
 // 도구 줄을 고른 블록 바로 위에 두고, 화면 밖으로 나가지 않게
 function ttPlaceBar(){
@@ -455,10 +455,10 @@ function ttClip(e, d){
 }
 function ttDelOpen(e, d){
   const multi = ttLinked(e);
-  if (!multi) { const keep = getDoc(e.id); removeDoc(e.id); TTSEL = null; toast('시간표에서 지웠어요', [['되돌리기', () => writeDoc(e.id, keep)]]); return; }
-  openSheet({title: e.name + ' 지우기', draw: () => setSheet('<div class="menu tt-menu">' +
-    '<button type="button" class="menu-row" data-act="tt-x-del1" data-id="' + esc(e.id) + '" data-d="' + d + '"><span class="mi">' + ICON.close + '</span><span class="ml">' + WD[d] + '요일만 지우기</span></button>' +
-    '<button type="button" class="menu-row danger" data-act="tt-x-delall" data-id="' + esc(e.id) + '"><span class="mi">' + ICON.trash + '</span><span class="ml">연결된 수업 모두 지우기</span></button></div>', '')});
+  if (!multi) { const keep = getDoc(e.id); removeDoc(e.id); TTSEL = null; toast('시간표에서 삭제했어요', [['되돌리기', () => writeDoc(e.id, keep)]]); return; }
+  openSheet({title: e.name + ' 삭제', draw: () => setSheet('<div class="menu tt-menu">' +
+    '<button type="button" class="menu-row" data-act="tt-x-del1" data-id="' + esc(e.id) + '" data-d="' + d + '"><span class="mi">' + ICON.close + '</span><span class="ml">' + WD[d] + '요일만 삭제</span></button>' +
+    '<button type="button" class="menu-row danger" data-act="tt-x-delall" data-id="' + esc(e.id) + '"><span class="mi">' + ICON.trash + '</span><span class="ml">연결된 수업 모두 삭제</span></button></div>', '')});
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;

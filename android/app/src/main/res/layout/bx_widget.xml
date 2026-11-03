@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 4×2 '오늘 일정' 위젯. 시험판 36(대표 요청 11/3): 위아래로 밀어 끝까지 보는 목록(ListView, BxWidgetService),
-     머리 줄 오른쪽 '루틴 포함 | 일정만'(위젯마다 기억), 아래 '일정 추가'(글자) · '말하기'(바로 듣기) 단추 둘.
-     모양은 위젯 시안 A(목록 + 아래 두 단추). 줄은 bx_widget_row · 날짜 구분선은 bx_widget_div.
-     하는 중인 줄은 연한 파란 띠라서 목록은 좌우 8dp 안쪽에서 시작하고, 머리 줄 · 단추 줄은 8dp 더 들어가 글자 왼쪽 끝을 맞춘다 -->
+<!-- 4×2 '오늘 일정' 위젯. 시험판 36(대표 결정 11/3 17:01, 위젯 디자인 · 동작 검토):
+     맨 위 한 줄은 가운데 정렬 — 말하기(🎤) · ‹ 날짜 › · 새 일정(＋). 날짜를 누르면 오늘로, ‹ ›로 하루씩(10분 지나면 저절로 오늘).
+     목록은 그날 일정만, 위아래로 밀어 끝까지(BxWidgetService). 그릴 때 지금 시각 바로 앞 일정부터 보이게 맞춘다.
+     줄은 시각 · 색 막대 · 제목만(하는 중이면 파란 띠와 '지금'). 위젯이 작아서 장소 · 출발 · 확인 필요는 앱에서 본다.
+     '루틴 포함 / 일정만'은 위젯 위가 아니라 앱 ⋯ › 위젯 추가 화면의 스위치(자료의 only) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/w_root"
     android:layout_width="match_parent"
@@ -10,86 +11,87 @@
     android:background="@drawable/bx_widget_bg"
     android:orientation="vertical"
     android:paddingLeft="8dp"
-    android:paddingTop="12dp"
+    android:paddingTop="8dp"
     android:paddingRight="8dp"
-    android:paddingBottom="12dp">
+    android:paddingBottom="10dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="6dp"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
+        <FrameLayout
+            android:id="@+id/w_mic"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="말하기 · 바로 말로 일정 추가">
+            <ImageView
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bx_widget_round2"
+                android:importantForAccessibility="no"
+                android:padding="8dp"
+                android:src="@drawable/ic_widget_mic_a" />
+        </FrameLayout>
+        <FrameLayout
+            android:id="@+id/w_prev"
+            android:layout_width="36dp"
+            android:layout_height="40dp"
+            android:contentDescription="전날">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_prev" />
+        </FrameLayout>
         <TextView
             android:id="@+id/w_head"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
             android:ellipsize="end"
+            android:gravity="center"
             android:maxLines="1"
             android:text="오늘"
             android:textColor="@color/bx_w_ink"
             android:textSize="15sp"
             android:textStyle="bold" />
-        <TextView
-            android:id="@+id/w_late"
-            android:layout_width="wrap_content"
-            android:layout_height="22dp"
-            android:layout_marginLeft="8dp"
-            android:background="@drawable/bx_widget_late"
-            android:gravity="center"
-            android:maxLines="1"
-            android:paddingLeft="7dp"
-            android:paddingRight="7dp"
-            android:textColor="@color/bx_w_warn"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
         <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="28dp"
-            android:background="@drawable/bx_widget_seg"
-            android:orientation="horizontal"
-            android:padding="2dp">
-            <TextView
-                android:id="@+id/w_f_all"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:contentDescription="루틴 포함해서 보기"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:text="루틴 포함"
-                android:textColor="@color/bx_w_ink2"
-                android:textSize="12.5sp"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/w_f_only"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:contentDescription="일정만 보기"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:text="일정만"
-                android:textColor="@color/bx_w_ink2"
-                android:textSize="12.5sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+            android:id="@+id/w_next"
+            android:layout_width="36dp"
+            android:layout_height="40dp"
+            android:contentDescription="다음 날">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_next" />
+        </FrameLayout>
+        <FrameLayout
+            android:id="@+id/w_add"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="새 일정">
+            <ImageView
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bx_widget_round"
+                android:importantForAccessibility="no"
+                android:padding="8dp"
+                android:src="@drawable/ic_widget_plus" />
+        </FrameLayout>
     </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="4dp"
         android:layout_weight="1">
-        <!-- 오른쪽 가는 막대가 늘 보여 '더 있음'을 알린다(밀 때만 보이면 모름) -->
+        <!-- 오른쪽 가는 막대가 늘 보여 '더 있음'을 알린다 -->
         <ListView
             android:id="@+id/w_list"
             android:layout_width="match_parent"
@@ -105,73 +107,11 @@
         <TextView
             android:id="@+id/w_empty"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="6dp"
-            android:text="다가오는 일정이 없어요 · 아래에서 넣어 보세요"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="일정 없음"
             android:textColor="@color/bx_w_ink2"
             android:textSize="14sp"
             android:visibility="gone" />
     </FrameLayout>
-
-    <LinearLayout
-        android:id="@+id/w_foot"
-        android:layout_width="match_parent"
-        android:layout_height="38dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="6dp"
-        android:orientation="horizontal">
-        <LinearLayout
-            android:id="@+id/w_add"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bx_widget_btn"
-            android:contentDescription="일정 추가 · 글자로 넣어요"
-            android:gravity="center"
-            android:orientation="horizontal">
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/ic_widget_plus" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:importantForAccessibility="no"
-                android:text="일정 추가"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-        <FrameLayout
-            android:layout_width="8dp"
-            android:layout_height="1dp" />
-        <LinearLayout
-            android:id="@+id/w_mic"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bx_widget_btn2"
-            android:contentDescription="말하기 · 바로 말로 넣어요"
-            android:gravity="center"
-            android:orientation="horizontal">
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/ic_widget_mic_a" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:importantForAccessibility="no"
-                android:text="말하기"
-                android:textColor="@color/bx_w_accent"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </LinearLayout>
 </LinearLayout>

@@ -37,7 +37,7 @@ function bxSettingsHtml(){
 function bxSetGroupHtml(k){
   const st = M.settings;
   if (k === 'view') return '<section class="set-sec" aria-label="화면">' +
-      setRow('다크 모드', segHtml('data-theme-set', [['', '자동'], ['light', '끄기'], ['dark', '켜기']], lsGet('bx:theme') || '', '다크 모드', 240)) +
+      setRow('다크 모드', segHtml('data-theme-set', [['', '자동'], ['light', '끔'], ['dark', '켬']], lsGet('bx:theme') || '', '다크 모드', 240)) +
       setRow('주 시작 요일', segHtml('data-wk', [['1', '월요일'], ['0', '일요일']], +st.weekStart === 0 ? '0' : '1', '주 시작 요일')) +
       bxWidgetRowHtml() + '</section>';
   // 휴대폰 캘린더 묶음은 제 칸 제목을 빼고(위 제목과 겹침) 그대로
@@ -46,13 +46,13 @@ function bxSetGroupHtml(k){
     const pre = st.defaultRemind == null || st.defaultRemind === '' || remAbs(String(st.defaultRemind)) ? null : +st.defaultRemind, nu = minToNU(pre == null ? 10 : pre);
     const dayA = remAbs(remNorm(st.defaultRemindDay, false));
     return '<section class="set-sec" aria-label="알림">' +
-      '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-alarm-test"><span class="mi">' + ICON.bell + '</span><span class="ml">휴대폰 알람 시험</span><span class="mv">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' +
+      '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-alarm-test"><span class="mi">' + ICON.bell + '</span><span class="ml">알람 테스트</span><span class="mv">10초 뒤 울려요' + ICON.chevR + '</span></button></div>' +
       bxReportSetHtml() +
       // 켜고 끄기는 스위치(대표 의견 11/2 밤). 켜면 그 바로 아래 오른쪽에 값이 나온다(대표 지적 11/2, 규칙 12)
-      setRow('일정 시작 전 알림(기본)', bxSwitch('data-pre-on', pre != null, '일정 시작 전 알림')) +
-      (pre != null ? '<div class="bx-setsub"><span class="p small">새 일정에 처음 들어가는 값이에요. 0분은 정시</span><span class="bx-setsub-c">' + stepperHtml('set-pre-n', nu[0], 0, 999, 'set-pre-u') + unitSel('set-pre-u', nu[1]) + '</span></div>' : '') +
-      setRow('시간 없는 일정 알림 시각', bxSwitch('data-day-on', !!dayA, '시간 없는 일정 알림 시각')) +
-      (dayA ? '<div class="bx-setsub"><span class="p small">시간 없는 일정은 그날 이 시각에 알려요</span>' + bxTimeChip('set-day-t', dayA.t, '시간 없는 일정 알림 시각') + '</div>' : '') +
+      setRow('일정 알림(기본)', bxSwitch('data-pre-on', pre != null, '일정 알림')) +
+      (pre != null ? '<div class="bx-setsub"><span class="p small">새 일정의 기본값이에요. 0분은 정시</span><span class="bx-setsub-c">' + stepperHtml('set-pre-n', nu[0], 0, 999, 'set-pre-u') + unitSel('set-pre-u', nu[1]) + '</span></div>' : '') +
+      setRow('종일 일정 알림 시각', bxSwitch('data-day-on', !!dayA, '종일 일정 알림 시각')) +
+      (dayA ? '<div class="bx-setsub"><span class="p small">종일 일정은 그날 이 시각에 알려요</span>' + bxTimeChip('set-day-t', dayA.t, '종일 일정 알림 시각') + '</div>' : '') +
       '</section>';
   }
   const nItems = M.items.filter(i => !i.pc).length + M.trash.length;
@@ -60,10 +60,10 @@ function bxSetGroupHtml(k){
       menuRow('cats', ICON.tag, '분류 관리', M.cats.length + '개') +
       menuRow('data', ICON.save, '백업·복원', '이 휴대폰에만 저장') +
       menuRow('trash', ICON.trash, '휴지통', M.trash.length + '개') + '</div></section>' +
-    '<details class="set-sec danger-zone bx-reset"><summary id="s-reset">데이터 초기화<small>모든 일정 지우기 · 처음 상태로</small></summary>' +
-      '<div class="reset-row"><div><b>모든 일정 지우기</b><span>일정 ' + nItems + '개(휴지통 포함)를 모두 지워요. 분류와 설정은 그대로예요.</span></div><button type="button" class="btn sm danger-line" data-act="reset" data-kind="items">일정 지우기</button></div>' +
-      '<div class="reset-row"><div><b>처음 상태로 되돌리기</b><span>일정·분류·설정을 모두 지우고 처음 쓰는 상태로 돌아가요.</span></div><button type="button" class="btn sm danger-line" data-act="reset" data-kind="all">전체 초기화</button></div>' +
-      '<p class="p small">지운 내용은 되돌릴 수 없어요.</p></details>';
+    '<details class="set-sec danger-zone bx-reset"><summary id="s-reset">데이터 초기화<small>모든 일정 삭제 · 초기화</small></summary>' +
+      '<div class="reset-row"><div><b>모든 일정 삭제</b><span>일정 ' + nItems + '개(휴지통 포함)를 모두 삭제해요. 분류와 설정은 그대로예요.</span></div><button type="button" class="btn sm danger-line" data-act="reset" data-kind="items">삭제</button></div>' +
+      '<div class="reset-row"><div><b>초기화</b><span>일정 · 분류 · 설정을 모두 삭제하고 처음 상태로 돌아가요.</span></div><button type="button" class="btn sm danger-line" data-act="reset" data-kind="all">초기화</button></div>' +
+      '<p class="p small">삭제하면 되돌릴 수 없어요.</p></details>';
 }
 // 묶음 들어가기·나오기. 들어가면 맨 위부터 보인다
 function bxSetOpen(k){ BX_SET = k || null; if (S.view !== 'settings') go('settings'); else render(); try { window.scrollTo(0, 0); } catch (e) { /* 그대로 */ } }

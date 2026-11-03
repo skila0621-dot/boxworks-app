@@ -82,12 +82,27 @@ module.exports = async function () {
     const wd = await p.evaluate(() => window.__wd || null);
     c.ok(wd && wd.lateI === 1 && wd.late >= 1, '위젯 자료: 지난 일정 수(일정만일 때) ' + JSON.stringify(wd && [wd.late, wd.lateI]));
     c.ok(wd && wd.items.some(i => i.k === 'item' && i.id === 'it_d' && i.title === '치과 예약'), '위젯 자료: 일정마다 id(줄을 누르면 그 일정)');
+    c.ok(wd && wd.back === 7 && wd.ahead === 14 && wd.items.some(i => i.id === 'it_a'), '위젯 자료: 지난 7일 ~ 앞으로 14일(‹ ›로 넘겨 봄), 어제 일정도');
+    c.eq(wd && wd.only, false, '처음엔 루틴도 보임(only 꺼짐)');
     c.ok(await p.evaluate(() => ['speak', 'add', 'open'].every(k => typeof (window.__wl || {})[k] === 'function')), '위젯 알림 세 가지를 듣는다');
     await p.evaluate(() => window.__wl.add({})); await p.waitForTimeout(900);
     c.ok(await p.evaluate(() => !!document.querySelector('#f-title') && !document.querySelector('.bx-listen')), "'일정 추가': 새 일정 창, 마이크는 켜지 않음");
     await p.evaluate(() => { const x = document.querySelector('[data-act="sheet-close"]'); if (x) x.click(); }); await p.waitForTimeout(400);
     await p.evaluate(() => window.__wl.open({ k: 'item', id: 'it_d', ds: '2026-11-02' })); await p.waitForTimeout(900);
     c.eq(await p.evaluate(() => { const t = document.querySelector('#f-title'); return t ? t.value : null; }), '치과 예약', '줄을 누르면 그 일정의 고치기 창');
+    await p.evaluate(() => { const x = document.querySelector('[data-act="sheet-close"]'); if (x) x.click(); }); await p.waitForTimeout(400);
+    // 위젯이 다른 날(11/5)을 보고 있을 때 ＋: 그 날짜로 새 일정
+    await p.evaluate(() => window.__wl.add({ ds: '2026-11-05' })); await p.waitForTimeout(900);
+    c.ok(await p.evaluate(() => !!document.querySelector('#f-title') && /11\.5|11월 5일/.test((document.querySelector('[data-fpanel="date"]') || {}).textContent || '')), '위젯이 보던 날짜로 새 일정 ' + await p.evaluate(() => (document.querySelector('[data-fpanel="date"]') || {}).textContent));
+    await p.evaluate(() => { const x = document.querySelector('[data-act="sheet-close"]'); if (x) x.click(); }); await p.waitForTimeout(400);
+    // 위젯 창의 '루틴도 보기' 스위치: 끄면 only
+    await p.evaluate(() => window.BX_rerender && 0);
+    await p.click('.dock [data-act="more"], [data-act="more"]'); await p.waitForTimeout(500);
+    await p.click('#sheet-root [data-act="bx-widget-open"]'); await p.waitForTimeout(500);
+    c.eq(await p.getAttribute('[data-bxwrt]', 'aria-checked'), 'true', '위젯 창: 루틴도 보기 스위치(처음엔 켜짐)');
+    await p.click('[data-bxwrt]'); await p.waitForTimeout(900);
+    c.eq(await p.getAttribute('[data-bxwrt]', 'aria-checked'), 'false', '누르면 꺼짐');
+    c.eq(await p.evaluate(() => (window.__wd || {}).only), true, '위젯 자료 only: 루틴 빼고');
     await p.evaluate(() => { const x = document.querySelector('[data-act="sheet-close"]'); if (x) x.click(); }); await p.waitForTimeout(400);
     await p.evaluate(() => window.__wl.open({ k: 'routine', id: '', ds: '2026-11-02' })); await p.waitForTimeout(700);
     c.ok(await p.evaluate(() => !!document.querySelector('.dock [data-view="routines"][aria-current="page"]')), '루틴 줄을 누르면 루틴 화면');

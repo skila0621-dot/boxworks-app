@@ -44,18 +44,18 @@ function bxAddReports(out, days){
 // 설정 > 알림의 '아침 보고' 줄
 function bxReportSetHtml(){
   const cfg = bxRepCfg();
-  return setRow('아침에 오늘 일정 받기', bxSwitch('data-bxrep', cfg.on, '아침에 오늘 일정 받기')) +
+  return setRow('아침 요약', bxSwitch('data-bxrep', cfg.on, '아침 요약')) +
     // 스위치를 켠 자리 바로 아래 오른쪽에 시각(대표 지적 11/2, 규칙 12). 누르면 휴대폰 시계 창이 열린다
     (cfg.on ? '<div class="bx-setsub"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span>' + bxTimeChip('bx-rep-t', cfg.at, '아침에 일정 받는 시각') + '</div>' : '') +
     bxLevelSetHtml() + bxLockSetHtml();
 }
 /* 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게) */
-const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목까지', '“치과 · 14:30 출발”처럼 제목도 보여요'], ['none', '아무것도', '알람도 “박스웍스 알람”으로만 보여요']];
+const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목', '“치과 · 14:30 출발”처럼 제목도 보여요'], ['none', '표시 안 함', '알람도 “박스웍스 알람”으로만 보여요']];
 function bxLockMode(){ const m = M && M.settings && M.settings.bxLock; return m === 'title' || m === 'none' ? m : 'alarm'; }
 window.BX_lockMode = bxLockMode;
 function bxLockSetHtml(){
   const cur = bxLockMode();
-  return '<div class="bx-lockset" role="radiogroup" aria-label="잠금 화면에 보여 줄 것"><b class="bx-lock-h">잠금 화면에 보여 줄 것</b>' +
+  return '<div class="bx-lockset" role="radiogroup" aria-label="잠금 화면 표시"><b class="bx-lock-h">잠금 화면 표시</b>' +
     BX_LOCK.map(o => '<button type="button" class="bx-lock-o" role="radio" aria-checked="' + (o[0] === cur) + '" data-bxlock="' + o[0] + '"><i aria-hidden="true"></i><span><b>' + o[1] + (o[0] === 'alarm' ? ' <small>기본</small>' : '') + '</b><small>' + o[2] + '</small></span></button>').join('') +
     '<p class="p small">아침에 오늘 일정 알림과 루틴 진행 알림은 늘 잠금을 풀어야 보여요.</p></div>';
 }
@@ -81,17 +81,27 @@ document.addEventListener('change', ev => {
 function bxHex(c){ return /^#[0-9a-f]{6}$/i.test(String(c || '')) ? c : ''; }
 window.BX_widgetData = function(plan){
   if (!M || !S.firstServer) return null;
-  const now = Date.now(), t0 = sod(new Date(now)).getTime(), until = now + 3 * 864e5, list = [];
+  // 시험판 36(대표 결정 11/3 17:01): 위젯은 하루씩 보고 ‹ ›로 넘긴다 → 지난 7일 ~ 앞으로 14일. 종일 일정도(시각 칸에 '종일')
+  const BACK = 7, AHEAD = 14;
+  const now = Date.now(), t0 = addDays(sod(new Date(now)), -BACK).getTime(), until = addDays(sod(new Date(now)), AHEAD + 1).getTime(), list = [];
   M.items.forEach(i => {
-    if (!i.start || !isDate(i.date) || i.deletedAt) return;
+    if (!isDate(i.date) || i.deletedAt) return;
+    if (!i.start) {
+      const d0 = parseYmd(i.date).getTime();
+      if (d0 < t0 || d0 >= until) return;
+      const cat = M.catMap.get(i.categoryId);
+      list.push({at: d0, end: d0 + 864e5 - 1, allDay: true, title: i.title || '(제목 없음)', place: i.location || '', go: 0,
+        c: M.settings.catColors !== false && cat ? bxHex(cat.color) : '', k: 'item', id: i.id, done: !!i.done});
+      return;
+    }
     const s = at(i.date, i.start).getTime(), e = i.end ? at(i.date, i.end).getTime() : s + 3600e3;
-    if (e < t0 || s > until || (i.done && s < t0)) return;
+    if (e < t0 || s >= until) return;
     const p = tvPlan(i), cat = M.catMap.get(i.categoryId);
     list.push({at: s, end: e, title: i.title || '(제목 없음)', place: i.location || '', go: p && p.travel ? p.leave.getTime() : 0,
       c: M.settings.catColors !== false && cat ? bxHex(cat.color) : '', k: 'item', id: i.id, done: !!i.done});
   });
   const routines = [];
-  for (let k = 0; k <= 3; k++) {
+  for (let k = -BACK; k <= AHEAD; k++) {
     const day = addDays(sod(new Date(now)), k), ds = ymd(day);
     if (bxModOn('tt')) ttList().forEach(e => {
       if (!ttOn(e, ds) || !isHM(e.start)) return;
@@ -107,14 +117,15 @@ window.BX_widgetData = function(plan){
       const last = rows[rows.length - 1], end = leave || addMin(day, last.at + (last.min || 5)).getTime();
       const allDone = rows.every(r => done[r.id]);
       list.push({at: from, end, title: rt.name || '루틴', place: '', go: 0, c: '#3555D8', k: 'routine', done: allDone});
-      if (rows.length >= 2) routines.push({rid: rt.id, ds, name: rt.name || '루틴', from, leave,
+      if (rows.length >= 2 && k >= 0 && k <= 3) routines.push({rid: rt.id, ds, name: rt.name || '루틴', from, leave,
         steps: rows.map(r => ({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!done[r.id]}))});
     });
   }
   list.sort((a, b) => a.at - b.at);
   // lateI: 지난 일정만(위젯 '일정만'일 때 확인 필요 숫자, 시험판 36). 위젯 목록은 밀어 보므로 40개까지
   const lateI = M.items.filter(isLate).length, late = lateI + bxRtMissed().length;
-  return {items: list.slice(0, 40), routines, late, lateI, made: now};
+  // only: 위젯에서 루틴을 뺄지(앱 ⋯ › 위젯 추가의 '루틴도 보기' 스위치)
+  return {items: list.slice(0, 300), routines, late, lateI, made: now, back: BACK, ahead: AHEAD, only: M.settings.bxWidgetRt === false};
 };
 
 /* ---------- 루틴 단계를 확인하지 않았을 때(대표 요청) ----------
@@ -156,7 +167,7 @@ function bxRtMissDecorate(){
     c.classList.add('bx-miss');
     const line = document.createElement('div');
     line.className = 'bx-miss-line';
-    line.innerHTML = ICON.alert + '<span>확인하지 않은 단계 ' + miss.length + '개 · ' + esc(miss.map(r => r.leave ? '출발' : r.name).join(', ')) + '</span><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(rt.id) + '">모두 했어요</button>';
+    line.innerHTML = ICON.alert + '<span>놓친 단계 ' + miss.length + '개 · ' + esc(miss.map(r => r.leave ? '출발' : r.name).join(', ')) + '</span><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(rt.id) + '">모두 완료</button>';
     const hd = c.querySelector('.rt-h'); if (hd) hd.after(line); else c.prepend(line);
   });
   // 루틴 머리의 '확인 N' 칩은 뺐다(홈 요약 '확인 필요' 숫자 하나로 통일, 10/31)

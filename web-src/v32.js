@@ -25,7 +25,7 @@ function bxRtMenu(rid){
   const p = rtPlan(rt);
   const row = (act, icon, label, sub, warn) => '<button type="button" class="menu-row' + (warn ? ' bx-im-del' : '') + '" data-bx-rm="' + act + '"><span class="mi">' + icon + '</span><span class="ml">' + label + '</span>' + (sub ? '<span class="mv">' + esc(sub) + '</span>' : '') + '</button>';
   openSheet({title: rt.name || '루틴', draw: () => setSheet('<p class="p small" style="margin:-6px 0 10px">' + esc(rtWhenText(rt) + (p.bad ? '' : ' · ' + mm(p.start) + ' 시작')) + '</p><div class="menu">' +
-    row('edit', ICON.edit, '고치기', '') + row('del', ICON.trash, '지우기', '지운 뒤 되돌릴 수 있어요', true) + '</div>', '')});
+    row('edit', ICON.edit, '수정', '') + row('del', ICON.trash, '삭제', '삭제해도 되돌릴 수 있어요', true) + '</div>', '')});
   SH.bxRm = rid;
 }
 document.addEventListener('pointerdown', ev => {
@@ -51,7 +51,7 @@ document.addEventListener('click', ev => {
   if (op === 'edit') { openRoutine(rid); return; }
   if (op === 'del') {
     record([rid]); removeDoc(rid); M = buildModel();
-    toast(rt.name + bxJosaUl(rt.name) + ' 지웠어요.', [['되돌리기', doUndo]]);
+    toast(rt.name + bxJosaUl(rt.name) + ' 삭제했어요.', [['되돌리기', doUndo]]);
   }
 }, true);
 

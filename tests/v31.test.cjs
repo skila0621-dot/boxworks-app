@@ -72,7 +72,7 @@ module.exports = async function () {
     const rows = await tl(p);
     const order = rows.map(r => r.t);
     const mi = order.findIndex(t => t.indexOf('아침 약') >= 0), di = order.findIndex(t => t.indexOf('치과') >= 0);
-    c.ok(mi >= 0 && di > mi && rows[mi].off && !rows[mi].next && rows[mi].note === '오늘은 쉬어요.', "'오늘 쉬기'한 루틴: 08:00 자리에 흐리게, '다음' 없음 " + JSON.stringify(rows));
+    c.ok(mi >= 0 && di > mi && rows[mi].off && !rows[mi].next && rows[mi].note === '오늘은 건너뛰어요.', "'오늘 쉬기'한 루틴: 08:00 자리에 흐리게, '다음' 없음 " + JSON.stringify(rows));
     c.eq(app.errors, [], '화면 오류(쉬는 루틴)');
   } finally { await app.close(); }
 
@@ -92,11 +92,11 @@ module.exports = async function () {
     c.eq(segs, [], "설정에 '끄기 | 켜기' 두 칸 단추가 남지 않음");
     await p.click('[data-bxset="alarm"]'); await p.waitForTimeout(400);
     const sw = await p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .set-row > .tog[role="switch"]')).map(b => b.getAttribute('aria-label')));
-    c.ok(['아침에 오늘 일정 받기', '일정 시작 전 알림', '시간 없는 일정 알림 시각'].every(x => sw.includes(x)), '설정의 켜고 끄기는 스위치 ' + JSON.stringify(sw));
+    c.ok(['아침 요약', '일정 알림', '종일 일정 알림 시각'].every(x => sw.includes(x)), '설정의 켜고 끄기는 스위치 ' + JSON.stringify(sw));
     const pre = () => p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].defaultRemind);
-    await p.click('.set-row > .tog[aria-label="일정 시작 전 알림"]'); await p.waitForTimeout(400);
+    await p.click('.set-row > .tog[aria-label="일정 알림"]'); await p.waitForTimeout(400);
     const off = await pre();
-    await p.click('.set-row > .tog[aria-label="일정 시작 전 알림"]'); await p.waitForTimeout(400);
+    await p.click('.set-row > .tog[aria-label="일정 알림"]'); await p.waitForTimeout(400);
     c.ok(off == null && (await pre()) === 10, '일정 시작 전 알림 스위치: 끄면 없음, 켜면 10분 전 ' + JSON.stringify([off, await pre()]));
     await p.evaluate(() => { const c = document.querySelector('#sheet-root [data-act="sheet-close"]'); if (c) c.click(); }); await p.waitForTimeout(300);
     await p.click('.dock [data-view="med"]'); await p.waitForTimeout(600);

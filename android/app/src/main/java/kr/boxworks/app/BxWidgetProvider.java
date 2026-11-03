@@ -25,12 +25,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * 홈 화면 4×2 위젯 '오늘 일정'. 박스웍스 화면이 앞으로 사흘의 일정과 알람 시각을 넘겨 두면(BxWidgetPlugin), 위젯은 지금 시각에 맞춰 고른다.
- * 앱을 열지 않아도 다음 일정 시각·끝 시각·15분마다 스스로 다시 그린다.
- * 시험판 36(대표 요청 11/3, 위젯 시안 A):
- * - 목록은 위아래로 밀어 끝까지 본다(ListView + BxWidgetService). 전에는 네 줄까지만 보였다
- * - 머리 줄 '루틴 포함 | 일정만'을 누르면 바뀌고, 위젯마다 따로 기억한다(시간표는 일정과 함께 보임)
- * - '일정 추가'는 새 일정 창(글자로), '말하기'는 새 일정 창 + 바로 듣기. 전에는 '일정 추가'가 바로 마이크였다
+ * 홈 화면 4×2 위젯 '오늘 일정'. 박스웍스 화면이 앞뒤 며칠의 일정을 넘겨 두면(BxWidgetPlugin), 위젯은 지금 시각에 맞춰 그린다.
+ * 앱을 열지 않아도 다음 일정 시각 · 끝 시각 · 15분마다 스스로 다시 그린다.
+ * 시험판 36(대표 결정 11/3 17:01):
+ * - 그날 일정만. ‹ ›로 하루씩, 날짜를 누르면 오늘. 넘겨 둔 지 10분이 지나면 저절로 오늘
+ * - 목록은 위아래로 밀어 끝까지(ListView + BxWidgetService). 그릴 때 지금 시각 바로 앞 일정부터 보이게
+ * - 맨 위 한 줄 가운데 정렬: 말하기 · ‹ 날짜 › · 새 일정. 새 일정 · 말하기는 보고 있는 날짜로
+ * - 줄은 시각 · 색 막대 · 제목(하는 중이면 '지금'). '루틴 포함 / 일정만'은 앱 설정(자료의 only)
  * - 줄을 누르면 앱에서 그 일정(루틴은 루틴, 시간표는 시간표 화면)
  */
 public class BxWidgetProvider extends AppWidgetProvider {
@@ -40,7 +41,9 @@ public class BxWidgetProvider extends AppWidgetProvider {
     static final String ACTION_ADD = "kr.boxworks.app.ADD";
     static final String ACTION_OPEN = "kr.boxworks.app.OPEN_ROW";
     static final String ACTION_TICK = "kr.boxworks.app.WIDGET_TICK";
-    static final String ACTION_FILTER = "kr.boxworks.app.WIDGET_FILTER";
+    static final String ACTION_DAY = "kr.boxworks.app.WIDGET_DAY";
+    private static final long DAY_MS = 24 * 3600 * 1000L;
+    private static final long BACK_MS = 10 * 60 * 1000L;
     private static final long TICK_MS = 15 * 60 * 1000L;
 
     @Override
@@ -53,10 +56,18 @@ public class BxWidgetProvider extends AppWidgetProvider {
         super.onReceive(c, intent);
         if (intent == null) return;
         if (ACTION_TICK.equals(intent.getAction())) refreshAll(c);
-        if (ACTION_FILTER.equals(intent.getAction())) {
+        if (ACTION_DAY.equals(intent.getAction())) {
             int id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
             if (id == AppWidgetManager.INVALID_APPWIDGET_ID) return;
-            c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("only_" + id, intent.getBooleanExtra("only", false)).apply();
+            int step = intent.getIntExtra("step", 0);
+            long now = System.currentTimeMillis(), today = dayStart(now);
+            long cur = step == 0 ? today : dayOf(c, id, now);
+            long day = step == 0 ? today : dayStart(cur + step * DAY_MS + 3 * 3600 * 1000L);
+            JSONObject d = load(c);
+            long lo = today - d.optInt("back", 7) * DAY_MS, hi = today + d.optInt("ahead", 14) * DAY_MS;
+            if (day < lo) day = lo;
+            if (day > hi) day = hi;
+            c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong("day_" + id, day).putLong("dayAt_" + id, now).apply();
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             if (m != null) render(c, m, new int[] {id});
         }
@@ -65,7 +76,7 @@ public class BxWidgetProvider extends AppWidgetProvider {
     @Override
     public void onDeleted(Context c, int[] ids) {
         android.content.SharedPreferences.Editor e = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit();
-        for (int id : ids) e.remove("only_" + id);
+        for (int id : ids) { e.remove("day_" + id); e.remove("dayAt_" + id); }
         e.apply();
     }
 
@@ -100,9 +111,17 @@ public class BxWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    /** 이 위젯이 '일정만'(루틴 빼고)인지 */
-    static boolean onlyItems(Context c, int id) {
-        return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("only_" + id, false);
+    /** 일정만(루틴 빼고) 볼지: 앱 ⋯ › 위젯 추가 화면의 스위치(자료의 only) */
+    static boolean onlyItems(JSONObject d) {
+        return d.optBoolean("only", false);
+    }
+
+    /** 이 위젯이 보는 날(그날 0시). ‹ ›로 넘긴 지 10분이 지났거나 날이 바뀌어 범위를 벗어나면 오늘 */
+    static long dayOf(Context c, int id, long now) {
+        android.content.SharedPreferences sp = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        long day = sp.getLong("day_" + id, 0), at = sp.getLong("dayAt_" + id, 0), today = dayStart(now);
+        if (day == 0 || now - at > BACK_MS || Math.abs(day - today) > 31 * DAY_MS) return today;
+        return day;
     }
 
     static String hm(long ms) {
@@ -127,80 +146,62 @@ public class BxWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private static String dayLabel(long at, long today) {
-        long dd = (dayStart(at) - today) / (24 * 3600 * 1000L);
-        String date = new SimpleDateFormat("M/d (E)", Locale.KOREAN).format(new Date(at));
-        return dd == 1 ? "내일 · " + date : dd == 2 ? "모레 · " + date : date;
-    }
-
     /**
-     * 목록에 넣을 줄(시각 순). 오늘 지난 일 하나는 다가오는 일이 적을 때(넷 미만) 흐리게 맨 위에 남겨 지금 위치를 알 수 있게 한다.
-     * 내일 · 모레 일정 앞에는 '내일 · 11/4 (수)' 구분선({div: 글자}). only면 루틴을 뺀다.
+     * 그날 목록(시각 순, 종일 일정이 맨 위). only면 루틴을 뺀다.
      */
-    static List<JSONObject> rows(JSONObject d, boolean only, long now) {
-        long today = dayStart(now);
-        List<JSONObject> past = new ArrayList<>(), up = new ArrayList<>();
+    static List<JSONObject> rows(JSONObject d, boolean only, long day) {
+        List<JSONObject> list = new ArrayList<>();
         JSONArray items = d.optJSONArray("items");
         if (items != null) {
             for (int i = 0; i < items.length(); i++) {
                 JSONObject o = items.optJSONObject(i);
                 if (o == null) continue;
                 if (only && "routine".equals(o.optString("k"))) continue;
-                long at = o.optLong("at", 0), end = o.optLong("end", at + 3600000L);
-                boolean gone = o.optBoolean("done", false) || end <= now;
-                if (gone) {
-                    if (at >= today) past.add(o);
-                } else {
-                    up.add(o);
-                }
+                long at = o.optLong("at", 0);
+                if (at < day || at >= day + DAY_MS) continue;
+                list.add(o);
             }
         }
-        java.util.Comparator<JSONObject> byAt = (a, b) -> Long.compare(a.optLong("at"), b.optLong("at"));
-        java.util.Collections.sort(up, byAt);
-        java.util.Collections.sort(past, byAt);
-        List<JSONObject> list = new ArrayList<>();
-        if (!past.isEmpty() && up.size() < 4) list.add(past.get(past.size() - 1));
-        list.addAll(up);
-        List<JSONObject> out = new ArrayList<>();
-        long prevDay = today;
-        for (JSONObject o : list) {
-            long at = o.optLong("at", 0), day = dayStart(at);
-            if (day != today && day != prevDay) {
-                JSONObject dv = new JSONObject();
-                try {
-                    dv.put("div", dayLabel(at, today));
-                } catch (Exception ignored) {
-                }
-                out.add(dv);
-            }
-            prevDay = day;
-            out.add(o);
+        java.util.Collections.sort(list, (a, b) -> {
+            boolean x = a.optBoolean("allDay", false), y = b.optBoolean("allDay", false);
+            if (x != y) return x ? -1 : 1;
+            return Long.compare(a.optLong("at"), b.optLong("at"));
+        });
+        return list;
+    }
+
+    /** 오늘이면 지금 시각 바로 앞 일정부터 보이게: 아직 안 끝난 첫 줄의 하나 위(종일 일정은 건너뜀) */
+    static int scrollTo(List<JSONObject> rows, long day, long now) {
+        if (day != dayStart(now)) return 0;
+        for (int i = 0; i < rows.size(); i++) {
+            JSONObject o = rows.get(i);
+            if (o.optBoolean("allDay", false)) continue;
+            long at = o.optLong("at", 0), end = o.optLong("end", at + 3600000L);
+            if (end > now && !o.optBoolean("done", false)) return Math.max(0, i - 1);
         }
-        return out;
+        return Math.max(0, rows.size() - 3);
     }
 
     /** 목록의 한 줄: 시각 | 색 막대 | 제목 | 오른쪽(지금 · 끝 시각 / 출발 시각 / 장소 / 완료) */
     static RemoteViews row(Context c, JSONObject r, long now) {
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.bx_widget_row);
-        long at = r.optLong("at", 0), end = r.optLong("end", at + 3600000L), go = r.optLong("go", 0);
+        long at = r.optLong("at", 0), end = r.optLong("end", at + 3600000L);
         boolean done = r.optBoolean("done", false), gone = done || end <= now, live = !gone && at <= now;
         int ink = c.getResources().getColor(R.color.bx_w_ink, null);
         int ink2 = c.getResources().getColor(R.color.bx_w_ink2, null);
         int dim = c.getResources().getColor(R.color.bx_w_dim, null);
         int accent = c.getResources().getColor(R.color.bx_w_accent, null);
-        String right;
-        if (done) right = "완료";
-        else if (gone) right = "지남";
-        else if (live) right = "지금 · " + hm(end) + "까지";
-        else if (go > now) right = hm(go) + " 출발";
-        else right = r.optString("place", "");
+        boolean allDay = r.optBoolean("allDay", false);
+        if (allDay) { gone = done; live = false; }
+        // 위젯은 작아서 짧게(대표 11/3): 하는 중이면 '지금', 끝낸 일은 '완료'. 장소 · 출발 시각은 앱에서
+        String right = done ? "완료" : live ? "지금" : "";
         CharSequence rightCs = right;
         if (live) {
             SpannableString sp = new SpannableString(right);
             sp.setSpan(new StyleSpan(Typeface.BOLD), 0, sp.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             rightCs = sp;
         }
-        v.setTextViewText(R.id.wr_t, hm(at));
+        v.setTextViewText(R.id.wr_t, allDay ? "종일" : hm(at));
         v.setTextViewText(R.id.wr_n, r.optString("title", ""));
         v.setTextViewText(R.id.wr_m, rightCs);
         v.setTextColor(R.id.wr_t, gone ? dim : live ? accent : ink);
@@ -254,6 +255,12 @@ public class BxWidgetProvider extends AppWidgetProvider {
         }
         long midnight = today + 24 * 3600 * 1000L;
         if (midnight < next) next = midnight;
+        // ‹ ›로 다른 날을 보고 있는 위젯은 10분 뒤 오늘로 돌아가게 그때 한 번 더
+        android.content.SharedPreferences sp = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        for (int wid : ids) {
+            long back = sp.getLong("dayAt_" + wid, 0) + BACK_MS + 1000;
+            if (sp.getLong("day_" + wid, today) != today && back > now && back < next) next = back;
+        }
         AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
         if (am != null) am.set(AlarmManager.RTC, next + 1000, tickIntent(c));
     }
@@ -264,52 +271,62 @@ public class BxWidgetProvider extends AppWidgetProvider {
         render(c, m, new int[] {id});
     }
 
-    /** '루틴 포함 | 일정만' 한 칸: 골라진 쪽은 파란 바탕 흰 글자 */
-    private static void seg(Context c, RemoteViews v, int id, boolean on) {
-        v.setInt(id, "setBackgroundResource", on ? R.drawable.bx_widget_seg_on : 0);
-        v.setTextColor(id, on ? 0xFFFFFFFF : c.getResources().getColor(R.color.bx_w_ink2, null));
-    }
-
-    private static PendingIntent filterPi(Context c, int wid, boolean only) {
+    /** ‹ › · 날짜 누르기: step -1 · +1, 0이면 오늘 */
+    private static PendingIntent dayPi(Context c, int wid, int step) {
         Intent t = new Intent(c, BxWidgetProvider.class);
-        t.setAction(ACTION_FILTER);
-        // 위젯마다 · 칸마다 다른 PendingIntent(값만 다른 인텐트는 같은 것으로 쳐서 덮어써짐)
-        t.setData(Uri.parse("bxw://filter/" + wid + "/" + (only ? "only" : "all")));
+        t.setAction(ACTION_DAY);
+        // 위젯마다 · 단추마다 다른 PendingIntent(값만 다른 인텐트는 같은 것으로 쳐서 덮어써짐)
+        t.setData(Uri.parse("bxw://day/" + wid + "/" + step));
         t.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, wid);
-        t.putExtra("only", only);
+        t.putExtra("step", step);
         return PendingIntent.getBroadcast(c, 0x0B15, t, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
-    private static PendingIntent activityPi(Context c, int code, String action) {
+    private static PendingIntent activityPi(Context c, int code, String action, String ds) {
         Intent i = new Intent(c, MainActivity.class);
         if (action != null) i.setAction(action);
+        if (ds != null) {
+            i.putExtra("ds", ds);
+            i.setData(Uri.parse("bxw://open/" + code + "/" + ds));
+        }
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         return PendingIntent.getActivity(c, code, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
-    private static RemoteViews build(Context c, JSONObject d, int wid, long now) {
-        boolean only = onlyItems(c, wid);
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.bx_widget);
-        v.setTextViewText(R.id.w_head, new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN).format(new Date(now)));
-        // 확인 필요: '일정만'이면 지난 일정만 센다(루틴 단계는 뺌)
-        int late = only ? d.optInt("lateI", d.optInt("late", 0)) : d.optInt("late", 0);
-        if (late > 0) {
-            v.setTextViewText(R.id.w_late, "확인 필요 " + late);
-            v.setViewVisibility(R.id.w_late, View.VISIBLE);
-        } else {
-            v.setViewVisibility(R.id.w_late, View.GONE);
-        }
-        seg(c, v, R.id.w_f_all, !only);
-        seg(c, v, R.id.w_f_only, only);
-        v.setOnClickPendingIntent(R.id.w_f_all, filterPi(c, wid, false));
-        v.setOnClickPendingIntent(R.id.w_f_only, filterPi(c, wid, true));
+    /** 머리 줄 날짜: '오늘 · 11월 3일 (화)', '내일 · …', '어제 · …', 그 밖은 날짜만. 앞말은 파란 글자 */
+    private static CharSequence dayTitle(Context c, long day, long today) {
+        long dd = Math.round((day - today) / (double) DAY_MS);
+        String pre = dd == 0 ? "오늘" : dd == 1 ? "내일" : dd == -1 ? "어제" : "";
+        String date = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN).format(new Date(day + 3600000L));
+        if (pre.isEmpty()) return date;
+        SpannableString sp = new SpannableString(pre + " · " + date);
+        sp.setSpan(new android.text.style.ForegroundColorSpan(c.getResources().getColor(R.color.bx_w_accent, null)), 0, pre.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return sp;
+    }
 
-        // 목록: 위젯마다 다른 인텐트(데이터 주소에 위젯 번호)여야 휴대폰이 목록을 따로 만든다
+    private static RemoteViews build(Context c, JSONObject d, int wid, long now) {
+        long today = dayStart(now), day = dayOf(c, wid, now);
+        String ds = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).format(new Date(day + 3600000L));
+        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.bx_widget);
+        v.setTextViewText(R.id.w_head, dayTitle(c, day, today));
+        // ‹ ›: 앱이 넘겨 준 범위(지난 7일 ~ 앞으로 14일) 끝에서는 숨김(자리는 남겨 날짜가 가운데에 머묾)
+        v.setViewVisibility(R.id.w_prev, day <= today - d.optInt("back", 7) * DAY_MS ? View.INVISIBLE : View.VISIBLE);
+        v.setViewVisibility(R.id.w_next, day >= today + d.optInt("ahead", 14) * DAY_MS ? View.INVISIBLE : View.VISIBLE);
+        v.setOnClickPendingIntent(R.id.w_prev, dayPi(c, wid, -1));
+        v.setOnClickPendingIntent(R.id.w_next, dayPi(c, wid, 1));
+        v.setOnClickPendingIntent(R.id.w_head, day == today ? activityPi(c, 0x0B10, null, null) : dayPi(c, wid, 0));
+
+        // 목록: 위젯마다 · 날마다 다른 인텐트여야 휴대폰이 목록을 따로 만든다
         Intent svc = new Intent(c, BxWidgetService.class);
         svc.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, wid);
         svc.setData(Uri.parse(svc.toUri(Intent.URI_INTENT_SCHEME)));
         v.setRemoteAdapter(R.id.w_list, svc);
         v.setEmptyView(R.id.w_list, R.id.w_empty);
+        // 지금 시각 바로 앞 일정부터 보이게(오늘). 다른 날은 맨 위부터
+        try {
+            v.setScrollPosition(R.id.w_list, scrollTo(rows(d, onlyItems(d), day), day, now));
+        } catch (Exception ignored) {
+        }
         Intent open = new Intent(c, MainActivity.class);
         open.setAction(ACTION_OPEN);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -317,11 +334,10 @@ public class BxWidgetProvider extends AppWidgetProvider {
         int mut = Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0;
         v.setPendingIntentTemplate(R.id.w_list, PendingIntent.getActivity(c, 0x0B14, open, PendingIntent.FLAG_UPDATE_CURRENT | mut));
 
-        v.setOnClickPendingIntent(R.id.w_root, activityPi(c, 0x0B10, null));
-        v.setOnClickPendingIntent(R.id.w_head, activityPi(c, 0x0B10, null));
-        // '일정 추가' = 새 일정 창(글자로), '말하기' = 새 일정 창 + 바로 듣기(대표 요청 11/3: 따로)
-        v.setOnClickPendingIntent(R.id.w_add, activityPi(c, 0x0B13, ACTION_ADD));
-        v.setOnClickPendingIntent(R.id.w_mic, activityPi(c, 0x0B11, ACTION_SPEAK));
+        v.setOnClickPendingIntent(R.id.w_root, activityPi(c, 0x0B10, null, null));
+        // 새 일정(＋) = 새 일정 창(글자로), 말하기(🎤) = 새 일정 창 + 바로 듣기. 보고 있는 날짜로(대표 요청 11/3: 따로)
+        v.setOnClickPendingIntent(R.id.w_add, activityPi(c, 0x0B13, ACTION_ADD, ds));
+        v.setOnClickPendingIntent(R.id.w_mic, activityPi(c, 0x0B11, ACTION_SPEAK, ds));
         return v;
     }
 

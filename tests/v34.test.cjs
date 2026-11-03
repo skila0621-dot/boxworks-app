@@ -18,9 +18,9 @@ module.exports = async function () {
     await p.waitForTimeout(2200);
     await spy(p);
     c.ok(await p.evaluate(() => !!document.querySelector('#bx-start .bxp-list')), '삼성: 다른 허락이 다 있어도 절전에서 빼기 때문에 허락 화면이 뜸');
-    const row = await rowOf(p, '절전에서 빼기');
+    const row = await rowOf(p, '절전 예외');
     c.ok(row && /깊은 절전/.test(row) && !/권장/.test(row) && /설정 열기/.test(row), "절전에서 빼기: '권장'이 아니라 꼭 할 일, 깊은 절전 설명 " + JSON.stringify(row));
-    c.eq(await p.evaluate(() => (document.querySelector('#bx-start .bxs-go') || {}).textContent), '절전에서 빼기', "파란 단추도 '절전에서 빼기'");
+    c.eq(await p.evaluate(() => (document.querySelector('#bx-start .bxs-go') || {}).textContent), '절전 예외', "파란 단추도 '절전 예외'");
     c.ok(await p.evaluate(() => /앱 정보가 열리면 ‘배터리’를 눌러 ‘제한 없음’/.test(document.getElementById('bx-start').innerText)), '앱 정보 › 배터리 › 제한 없음 안내');
     await p.click('#bx-start .bxs-go'); await p.waitForTimeout(200);
     c.eq(await p.evaluate(() => window.__open), ['battery'], '누르면 앱 정보(배터리)를 연다');
@@ -53,7 +53,7 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.waitForTimeout(2200);
-    const row = await rowOf(p, '절전에서 빼기');
+    const row = await rowOf(p, '절전 예외');
     c.ok(row && /권장/.test(row) && !/깊은 절전/.test(row), "삼성이 아니면 '권장' " + JSON.stringify(row));
     c.eq(app.errors, [], '화면 오류(삼성 아님)');
   } finally { await app.close(); }

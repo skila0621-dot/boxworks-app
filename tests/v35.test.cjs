@@ -18,7 +18,7 @@ module.exports = async function () {
     c.eq(await sw(p), 'true', '시작 종 스위치는 처음엔 켜짐');
     const order = await p.evaluate(() => { const all = Array.from(document.querySelectorAll('.bx-med-more *')); return [all.indexOf(document.querySelector('.bx-bowl-picks')), all.indexOf(document.querySelector('[data-med-startbell]')), all.indexOf(document.querySelector('[data-med-bellsw]'))]; });
     c.ok(order[0] >= 0 && order[0] < order[1] && order[1] < order[2], '종소리 종류 → 시작 종 → 중간 종 순서 ' + JSON.stringify(order));
-    c.ok(await p.evaluate(() => /끝날 때는 늘 세 번 울려요/.test(document.querySelector('.bx-med-more').innerText)), '끝 종은 늘 울린다는 안내');
+    c.ok(await p.evaluate(() => /끝 종은 늘 세 번 울려요/.test(document.querySelector('.bx-med-more').innerText)), '끝 종은 늘 울린다는 안내');
     // 시작 종 끄기: 배경 소리만으로 시작, 끝 종은 그대로
     await p.click('[data-med-startbell]'); await p.waitForTimeout(300);
     c.eq(await sw(p), 'false', '누르면 꺼짐');

@@ -21,7 +21,7 @@ function bxIconGridHtml(){
 }
 function bxIconSumHtml(){
   const k = R.icon && BX_ICONS[R.icon] ? R.icon : bxRtIconKey(Object.assign({}, R, {icon: null}));
-  return '<span class="bx-icsum-i">' + BX_ICONS[k] + '</span><span class="bx-icsum-t">아이콘 <small>' + (R.icon && BX_ICONS[R.icon] ? esc(BX_ICON_LABELS[k] || '') : '이름을 보고 자동으로 골랐어요') + '</small></span><span class="bx-icsum-c">바꾸기</span>';
+  return '<span class="bx-icsum-i">' + BX_ICONS[k] + '</span><span class="bx-icsum-t">아이콘 <small>' + (R.icon && BX_ICONS[R.icon] ? esc(BX_ICON_LABELS[k] || '') : '이름으로 자동 선택') + '</small></span><span class="bx-icsum-c">변경</span>';
 }
 function bxIconPickHtml(){
   return '<details class="fgrid bx-icdet" id="bx-icdet"><summary class="bx-icsum" id="bx-icsum">' + bxIconSumHtml() + '</summary><div class="bx-icpick" id="bx-icpick" role="group" aria-label="아이콘">' + bxIconGridHtml() + '</div></details>';
@@ -31,15 +31,15 @@ function bxIconPickHtml(){
 function bxNotifyHtml(){
   const bowl = R.sound === 'bowl', bt = R.bowl || bxBowlType();
   const opt = (v, b, sm) => '<button type="button" class="bx-lock-o" role="radio" aria-checked="' + ((v === 'bowl') === bowl) + '" data-rsound="' + v + '"><i aria-hidden="true"></i><span><b>' + b + '</b><small>' + sm + '</small></span></button>';
-  return '<div class="fgrid bx-notify"><span class="fg-l">알려 주는 방식</span>' +
-    '<div class="bx-lockset bx-ntf" role="radiogroup" aria-label="알려 주는 방식">' + opt('', '알람', '확인할 때까지 다시 울려요') + opt('bowl', '싱잉볼', '단계마다 종이 한 번, 끝날 때 세 번 울려요') + '</div>' +
+  return '<div class="fgrid bx-notify"><span class="fg-l">알림 방식</span>' +
+    '<div class="bx-lockset bx-ntf" role="radiogroup" aria-label="알림 방식">' + opt('', '알람', '확인할 때까지 다시 울려요') + opt('bowl', '싱잉볼', '단계마다 종이 한 번, 끝날 때 세 번 울려요') + '</div>' +
     '<div id="bx-rrep"' + (bowl ? ' hidden' : '') + '>' +
       '<div class="bx-rrow"><span class="bx-rl">간격</span>' + stepperHtml('r-every', R.every, 1, 60, null, 1) + '<span class="bx-ru">분마다</span></div>' +
       '<div class="bx-rrow"><span class="bx-rl">횟수</span>' + stepperHtml('r-times', R.times, 0, 12, null, 1) + '<span class="bx-ru">번 더</span></div>' +
       '<p class="p small bx-rnote">확인을 누르지 않으면 다시 울려요. 0번이면 한 번만 울려요.</p></div>' +
     '<div id="bx-rbowl"' + (bowl ? '' : ' hidden') + '><div class="bx-sndrow"><div class="picks bx-bowl-picks" id="bx-bowlpick">' +
       BX_BOWLS.map(b => '<button type="button" class="pick" data-rbowl="' + b[0] + '" aria-pressed="' + (bt === b[0]) + '">' + b[1] + '</button>').join('') + '</div></div>' +
-      '<p class="p small">누르면 바로 들어 볼 수 있어요. 명상 화면의 종소리와는 따로예요.</p></div></div>';
+      '<p class="p small">누르면 들려요. 명상의 종소리와는 따로예요.</p></div></div>';
 }
 // 루틴 고치기 창(앱): 이름 → 알려 주는 방식 → 언제(요일·기준·시각) → 시작·끝 한 줄 → 단계 → 아이콘 → 지우기
 function bxDrawRoutine(){
@@ -50,10 +50,10 @@ function bxDrawRoutine(){
     bxNotifyHtml() +
     (R.once ? '<div class="fgrid"><span class="fg-l">언제</span><p class="rt-sum">' + esc(rtWhenText(R)) + ' · 끝나면 목록에서 사라져요</p><div id="r-timebox">' + rtTimesHtml() + '</div></div>' :
     '<div class="fgrid"><div class="fg-lr"><span class="fg-l">요일</span><span class="rdays-q"><button type="button" class="sec-link" data-rdays="wd">평일</button><button type="button" class="sec-link" data-rdays="all">매일</button></span></div><div class="rdays">' + days + '</div>' + bxHolRowHtml() + '</div>' +
-    '<div class="fgrid"><span class="fg-l">기준</span>' + segHtml('data-rmode', [['arrive', '도착 시각에 맞추기'], ['start', '시작 시각부터']], R.mode, '시간 기준', 320) + '<div id="r-timebox">' + rtTimesHtml() + '</div></div>') +
+    '<div class="fgrid"><span class="fg-l">기준</span>' + segHtml('data-rmode', [['arrive', '도착 시각'], ['start', '시작 시각']], R.mode, '시간 기준', 320) + '<div id="r-timebox">' + rtTimesHtml() + '</div></div>') +
     '<div class="fgrid"><div id="r-prev" class="rt-prev">' + rtPreviewHtml() + '</div></div>' +
-    '<div class="fgrid"><span class="fg-l">단계 <small>이름 · 걸리는 시간(분) · 알람</small></span><p class="p small bx-rs-note">알람을 끄면 그 단계는 울리지 않고 시간만 지나가요. 세탁기 돌리기처럼 기다리는 단계에 써요.</p><div id="r-steps">' + rtStepsHtml() + '</div><div><button type="button" class="btn sm" data-act="rs-add">' + ICON.plus + '단계 추가</button></div></div>' +
-    bxIconPickHtml() + (R.id ? '<div class="bx-rdel"><button type="button" class="bx-del-link" data-act="rt-del">이 루틴 지우기</button></div>' : ''),
+    '<div class="fgrid"><span class="fg-l">단계 <small>이름 · 시간(분) · 알람</small></span><p class="p small bx-rs-note">알람을 끄면 그 단계는 울리지 않고 시간만 지나가요. 세탁기 돌리기처럼 기다리는 단계에 써요.</p><div id="r-steps">' + rtStepsHtml() + '</div><div><button type="button" class="btn sm" data-act="rs-add">' + ICON.plus + '단계 추가</button></div></div>' +
+    bxIconPickHtml() + (R.id ? '<div class="bx-rdel"><button type="button" class="bx-del-link" data-act="rt-del">루틴 삭제</button></div>' : ''),
     '<button type="button" class="btn grow primary" data-act="rt-save">저장</button>');
 }
 function bxIconPickRefresh(){

@@ -23,7 +23,7 @@ const NEW_DOCK = [
   '    <button type="button" class="dock-btn" data-act="go" data-view="month">' + I_CAL + '캘린더</button>',
   '    <button type="button" class="dock-btn" data-act="go" data-view="tt">' + I_TT + '시간표</button>',
   '  </div>\n</nav>',
-  '<button type="button" class="bx-fab" data-act="new" aria-label="새 일정 넣기 (꾹 누르면 말로 넣기)"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>'
+  '<button type="button" class="bx-fab" data-act="new" aria-label="새 일정 (길게 누르면 말하기)"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>'
 ].join('\n');
 export default [
   {
@@ -55,7 +55,7 @@ export default [
     // 정리판(11/1): 앱에서는 '확인 필요'와 같은 카드(다 했어요·옮기기·날짜 고르기·그대로 두기)가 열리므로 이름도 '확인'
     name: '└ 늦은 일정 단추: 앱에서는 확인 카드를 연다(이름 \'확인\')',
     find: `aria-label="시간이 지났어요. 지연·연기·완료 고르기"><i></i>확인</button>'`,
-    replace: `aria-label="' + (window.BX_APP ? '시간이 지났어요. 다 했어요·옮기기·그대로 두기 고르기' : '시간이 지났어요. 지연·연기·완료 고르기') + '"><i></i>확인</button>'`
+    replace: `aria-label="' + (window.BX_APP ? '지난 일정 · 완료 · 미루기 · 그대로' : '시간이 지났어요. 지연·연기·완료 고르기') + '"><i></i>확인</button>'`
   },
   {
     name: '└ 고치기 창의 지난 일정 단추 \'지연·연기\' → 앱에서는 \'확인\'(같은 카드)',
@@ -65,7 +65,7 @@ export default [
   {
     name: '위쪽 막대: 사용 설명서(◫처럼 보이던 아이콘) 대신 ⓘ \'이 화면 사용법\', 순서는 찾기 · ⓘ · ⋯',
     find: '<button type="button" class="icon-btn ab-guide" data-act="go" data-view="guide" aria-label="사용 설명서"><svg class="i" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5Z"/></svg></button>\n        <button type="button" class="icon-btn" data-menu="search" aria-label="검색"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button>',
-    replace: '<button type="button" class="icon-btn" data-menu="search" aria-label="찾기"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button>\n        <button type="button" class="icon-btn ab-guide" data-act="bx-help" aria-label="이 화면 사용법"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg></button>'
+    replace: '<button type="button" class="icon-btn" data-menu="search" aria-label="검색"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button>\n        <button type="button" class="icon-btn ab-guide" data-act="bx-help" aria-label="도움말"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg></button>'
   },
   {
     name: '└ ⋯ 메뉴(앱): 다른 곳에 있는 줄(루틴·명상·검색·다크 모드·위젯 모드)은 빼고 짧게',
