@@ -360,6 +360,8 @@
     // 캘린더: 휴대폰 캘린더 일정은 회색 테두리
     '.bx-app .c-chip[data-item^="pc_"]{background:transparent;border:1px solid var(--ink-3);border-left-width:1px}',
     '.bx-app .bx-cal-lg{display:flex;gap:10px;margin-left:auto;font-size:12.5px;color:var(--ink-2)}.bx-app .bx-cal-lg span{display:flex;align-items:center;gap:5px}.bx-app .bx-cal-lg i{width:10px;height:10px;border-radius:3px;box-sizing:border-box}.bx-app .bx-cal-lg i.bx{background:var(--accent)}.bx-app .bx-cal-lg i.pc{border:1.5px solid var(--ink-3)}',
+    // 시험판 35: 캘린더 머리의 개수 줄 아래 한 줄. 넘치면 옆으로 밀고(스크롤 막대 없이), 남으면 가운데
+    '.bx-app .page-head.bx-ch>.bx-cal-lg{margin:8px 0 0;padding:2px 0;gap:14px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}.bx-app .page-head.bx-ch>.bx-cal-lg::-webkit-scrollbar{display:none}.bx-app .page-head.bx-ch>.bx-cal-lg>span{flex:none}.bx-app .page-head.bx-ch>.bx-cal-lg>span:first-child{margin-left:auto}.bx-app .page-head.bx-ch>.bx-cal-lg>span:last-child{margin-right:auto}',
     '.bx-app .tt-mode{display:flex;align-items:center;gap:10px}',
     // 내가 쓸 기능
     '.bx-app .bx-ft-h{margin:6px 0 2px;font-size:15px;font-weight:700}.bx-app .bx-ft-h+p+.bx-ft-row,.bx-app .bx-ft-row{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line);font-size:15px}.bx-app .bx-ft-row>span:first-child{flex:1}',

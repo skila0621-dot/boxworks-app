@@ -7,7 +7,7 @@ const sw = p => p.evaluate(() => { const b = document.querySelector('[data-med-s
 const lastLocal = p => p.evaluate(() => (window.__local.slice(-1)[0] || []).map(a => [a.id, a.sound]));
 
 module.exports = async function () {
-  const c = checker('시험판 35 · 시작 종 · 끝 소리 · 머리 줄');
+  const c = checker('시험판 35 · 시작 종 · 끝 소리 · 머리 줄 · 캘린더 표시');
 
   let app = await openApp({ data: [['settings', settings()]] });
   try {
@@ -65,6 +65,26 @@ module.exports = async function () {
     await p.evaluate(() => { const x = document.querySelector('#sheet-root [data-act="sheet-close"]'); if (x) x.click(); }); await p.waitForTimeout(400);
     c.eq(await top(), [0, 400], '닫으면 그대로');
     c.eq(app.errors, [], '화면 오류(머리 줄)');
+  } finally { await app.close(); }
+  // (3) 캘린더: 박스웍스 · 휴대폰 캘린더 표시는 달 넘기기 · 개수 줄 아래, 종류가 많으면 옆으로 밀기(대표 요청 11/3)
+  app = await openApp({ data: [['settings', settings()]] });
+  try {
+    const p = app.page;
+    await p.evaluate(() => localStorage.setItem('bx:pcal', JSON.stringify({ on: true })));
+    const where = () => p.evaluate(() => {
+      const ph = document.querySelector('.page-head.bx-ch'); if (!ph) return null;
+      const lg = ph.querySelector(':scope > .bx-cal-lg'), pp = ph.querySelector(':scope > p'), mid = ph.querySelector('.bx-ch-mid');
+      return { inTop: !!ph.querySelector('.bx-ch-top .bx-cal-lg'), below: !!(lg && pp && mid && lg.getBoundingClientRect().top >= pp.getBoundingClientRect().bottom - 1 && pp.getBoundingClientRect().top >= mid.getBoundingClientRect().bottom - 1), ox: lg ? getComputedStyle(lg).overflowX : null };
+    });
+    await p.click('.dock [data-view="month"]'); await p.waitForTimeout(700);
+    const m = await where();
+    c.ok(m && !m.inTop && m.below && m.ox === 'auto', '월간: 표시가 달 넘기기 · 개수 줄 아래 ' + JSON.stringify(m));
+    const sc = await p.evaluate(() => { const lg = document.querySelector('.page-head.bx-ch > .bx-cal-lg'); for (let i = 0; i < 8; i++) lg.insertAdjacentHTML('beforeend', '<span><i class="pc"></i>공유 캘린더 ' + i + '</span>'); lg.scrollLeft = 2000; return [lg.scrollWidth > lg.clientWidth + 20, lg.scrollLeft > 0, Math.round(lg.getBoundingClientRect().height)]; });
+    c.ok(sc[0] && sc[1] && sc[2] < 40, '종류가 많으면 한 줄로 옆으로 밀어 봄 ' + JSON.stringify(sc));
+    await p.click('[data-act="tt-cal"][data-to="week"]'); await p.waitForTimeout(700);
+    const w = await where();
+    c.ok(w && !w.inTop && w.below, '주간도 같은 자리 ' + JSON.stringify(w));
+    c.eq(app.errors, [], '화면 오류(캘린더 표시)');
   } finally { await app.close(); }
   return c.done();
 };

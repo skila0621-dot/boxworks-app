@@ -35,6 +35,8 @@ function bxCalHead(){
   prev.setAttribute('aria-label', S.view === 'week' ? '지난주' : '지난달'); next.setAttribute('aria-label', S.view === 'week' ? '다음 주' : '다음 달');
   const mid = document.createElement('div'); mid.className = 'bx-ch-mid'; mid.append(prev, h1, next);
   ph.textContent = ''; ph.classList.add('bx-ch'); ph.append(top, mid); if (p) ph.append(p);
+  // 박스웍스 · 휴대폰 캘린더 표시는 달 넘기기 · 개수 줄 아래(대표 요청 11/3, 시험판 35). 종류가 많아지면 옆으로 밀어 본다
+  const lg = top.querySelector('.bx-cal-lg'); if (lg) ph.append(lg);
 }
 
 /* 7. 새 일정 창: 자주 넣은 말(최근 넉 달 두 번 이상 넣은 제목, 자주 쓴 시각 함께). 쓸수록 덜 입력한다 */
