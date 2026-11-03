@@ -96,10 +96,20 @@ function medHtml(){
   const head = '<div class="page-head"><div class="ph-t"><h1>명상</h1><p>' + (medLog()[M.today] ? '오늘 ' + medLog()[M.today] + '분' + (medWeek() > medLog()[M.today] ? ' · 이번 주 ' + medWeek() + '분' : '') : '편하게 앉아 숨에 집중해 보세요') + '</p></div></div>';
   if (live || done) {
     const left = live ? (run.endAt - now) / 1000 : 0, lead = live && now < run.startAt;
+    // 화면 다듬기(대표 지적 11/3: 고르는 화면과 시작 · 끝 디자인). 원 둘레에 지나간 시간이 차오르는 고리, 위에 무엇을 하는 중인지 한 줄,
+    // 끝나면 원 안에 확인 표시와 분, 아래에 오늘 · 이번 주 합계
+    const total = run.min * 60, gone = done ? total : lead ? 0 : Math.min(total, (now - run.startAt) / 1000);
+    const ring = '<svg class="bx-med-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="rb" cx="50" cy="50" r="47"/><circle class="rf' + (gone > 0 ? '' : ' empty') + '" id="bx-med-ring" cx="50" cy="50" r="47" pathLength="100" stroke-dasharray="100" stroke-dashoffset="' + (100 - 100 * gone / total).toFixed(2) + '"/></svg>';
+    const tag = done ? '' : '<div class="bx-med-tag"><b id="bx-med-tag-t">' + (lead ? '곧 시작해요' : '명상 중 · ' + run.min + '분') + '</b>' + (run.bg && bgName(run.bg) ? '<span>' + bxIconSpan('music', '') + esc(bgName(run.bg)) + '</span>' : '') + '</div>';
+    const today = medLog()[M.today] || 0, week = medWeek();
     // 시작 전 5초(lead): 원은 멈춰 있고 가운데에 남은 초, 아래에 '휴대폰을 내려놓고 편히 앉으세요'. 첫 종과 함께 호흡 안내가 시작된다
-    return head + '<section class="bx-med-run' + (lead ? ' lead' : MED.breath && live ? ' breath' : '') + (done ? ' done' : '') + '" aria-live="polite">' +
-      '<div class="bx-med-circle"' + (live && MED.breath && !lead ? ' style="animation-delay:-' + ((now - run.startAt) % 10000) + 'ms"' : '') + '><span class="bx-med-left tnum" id="bx-med-left">' + (done ? '끝' : lead ? String(Math.ceil((run.startAt - now) / 1000)) : medMinText(left)) + '</span><span class="bx-med-cue" id="bx-med-cue">' + (done ? run.min + '분 명상을 마쳤어요' : lead ? '휴대폰을 내려놓고 편히 앉으세요' : MED.breath ? '들이쉬고' : '') + '</span></div>' +
-      (done ? '<div class="bx-med-acts"><button type="button" class="btn grow" data-act="bx-med-close">닫기</button><button type="button" class="btn primary grow" data-act="bx-med-again">한 번 더</button></div>'
+    return head + '<section class="bx-med-run' + (lead ? ' lead' : MED.breath && live ? ' breath' : '') + (done ? ' done' : '') + '" aria-live="polite">' + tag +
+      '<div class="bx-med-dial">' + ring + '<div class="bx-med-circle"' + (live && MED.breath && !lead ? ' style="animation-delay:-' + ((now - run.startAt) % 10000) + 'ms"' : '') + '>' +
+        (done ? '<span class="bx-med-done-ic">' + ICON.check + '</span>' : '') +
+        '<span class="bx-med-left tnum" id="bx-med-left">' + (done ? run.min + '분' : lead ? String(Math.ceil((run.startAt - now) / 1000)) : medMinText(left)) + '</span>' +
+        '<span class="bx-med-cue" id="bx-med-cue">' + (done ? '마쳤어요' : lead ? '휴대폰을 내려놓고 편히 앉으세요' : MED.breath ? '들이쉬고' : '') + '</span></div></div>' +
+      (done ? '<h2 class="bx-med-end-h">명상을 마쳤어요</h2><p class="p small bx-med-end-s">' + [today ? '오늘 ' + today + '분' : '', week > today ? '이번 주 ' + week + '분' : ''].filter(Boolean).join(' · ') + '</p>' +
+          '<div class="bx-med-acts"><button type="button" class="btn grow" data-act="bx-med-close">닫기</button><button type="button" class="btn primary grow" data-act="bx-med-again">한 번 더</button></div>'
         : '<p class="p small bx-med-note">휴대폰을 내려놓아도 ' + (run.bellS ? medBellText(run.bellS) + '마다 종이, 끝나면 ' : '끝나면 ') + '세 번 울려요.' + (run.bg && bgName(run.bg) ? ' ' + bgName(run.bg) + (bxBatchim(bgName(run.bg)) ? '은' : '는') + ' 끝 종 앞에서 줄어들어요.' : '') + '</p><button type="button" class="btn bx-med-stop" data-act="bx-med-stop">끝내기</button>') +
       '</section>';
   }
@@ -114,11 +124,14 @@ function medHtml(){
     '<p class="p small bx-med-note">누르면 잠깐 들려요. 명상하는 동안 이어지다가 끝날 때 함께 꺼져요. 소리 크기는 휴대폰 음량 단추로 맞춰요.</p>' +
     (bgCur() ? '<div class="bx-bg-only">' + (BG.sound && BG.mode === 'only' ? '<button type="button" class="btn" data-act="bx-med-bgstop">' + bxIconSpan('music', '') + '소리 끄기</button>' : '<button type="button" class="btn" data-act="bx-med-bgonly">' + bxIconSpan('music', '') + '소리만 틀기</button>') +
       '<span class="p small">명상 없이 소리만 틀어요(공부할 때). 화면을 꺼도 계속 나와요.</span></div>' : '');
+  // 고르는 화면(시험판 35 다듬기): 위에 큰 원으로 고른 시간(시작하면 같은 원이 시계가 된다), 그 아래 시간 칩, 맨 아래 시작 단추 하나.
+  // '종소리 듣기' 단추는 뺐다(소리와 호흡의 종소리 칩을 누르면 바로 들림)
   return head + '<section class="set-sec bx-med-set">' + bgNow +
+    '<div class="bx-med-hero"><div class="bx-med-dial idle" aria-hidden="true"><div class="bx-med-circle"><span class="bx-med-big tnum">' + MED.min + '</span><span class="bx-med-unit">분</span></div></div>' +
     // '직접 입력'은 그 칩 자리에서 입력칸이 된다(규칙 9·12)
-    '<div class="fg-l">시간</div><div class="picks">' + MED_MINS.map(m => pick('data-med-min', m, MED.cust ? -1 : MED.min, m + '분')).join('') +
+    '<div class="picks bx-med-mins" role="group" aria-label="명상 시간">' + MED_MINS.map(m => pick('data-med-min', m, MED.cust ? -1 : MED.min, m + '분')).join('') +
       (MED_MINS.includes(MED.min) && !MED.cust ? '<button type="button" class="pick" data-med-custom="1" aria-pressed="false">직접 입력</button>'
-        : '<span class="bx-cpick"><input id="bx-med-cmin" type="number" inputmode="numeric" min="1" max="120" value="' + MED.min + '" aria-label="명상 시간(분)"><span>분</span></span>') + '</div>' +
+        : '<span class="bx-cpick"><input id="bx-med-cmin" type="number" inputmode="numeric" min="1" max="120" value="' + MED.min + '" aria-label="명상 시간(분)"><span>분</span></span>') + '</div></div>' +
     // 종소리·중간 종·호흡 안내는 한 줄로 접는다(정리판 14번, 대표 결정 11/1). 접힌 줄에 지금 고른 값이 보인다
     '<details class="bx-med-more"' + (MED.moreOpen ? ' open' : '') + '><summary><span class="bx-mm-t"><b>소리와 호흡</b><small>' + esc(medMoreText()) + '</small></span>' + ICON.chevR + '</summary>' +
     '<div class="fg-l tv-h">종소리</div><div class="picks bx-bowl-picks">' + BX_BOWLS.map(b => '<button type="button" class="pick" data-bxbowl="' + b[0] + '" aria-pressed="' + (bxBowlType() === b[0]) + '">' + b[1] + '</button>').join('') + '</div>' +
@@ -137,7 +150,7 @@ function medHtml(){
     '<div class="bx-swrow tv-h"><span>호흡 안내</span>' + bxSwitch('data-med-breath', MED.breath, '호흡 안내') + '</div>' +
     '<p class="p small bx-med-note">호흡 안내를 켜면 원이 커질 때 들이쉬고(4초), 작아질 때 내쉬어요(6초).</p>' +
     (bgPlug() ? '<p class="p small bx-bg-credit">배경 소리 녹음: BigSoundBank · Freesound의 공개 녹음(CC0)</p>' : '') + '</details>' +
-    '<div class="bx-med-acts"><button type="button" class="btn" data-act="bx-med-hear">' + bxIconSpan('music', '') + '종소리 듣기</button><button type="button" class="btn primary grow" data-act="bx-med-start">' + MED.min + '분 시작</button></div>' +
+    '<button type="button" class="btn primary bx-med-go" data-act="bx-med-start">' + MED.min + '분 시작</button>' +
     '</section>';
 }
 // 시작을 누르면 5초를 센 뒤 첫 종(대표 요청 11/3: 휴대폰을 내려놓고 자세와 자리를 잡을 시간). 첫 종도 휴대폰 알람으로 걸어 화면을 꺼도 울린다
@@ -195,6 +208,9 @@ function medTick(){
     }
     const sec = document.querySelector('.bx-med-run.lead'); if (sec) { sec.classList.remove('lead'); if (MED.breath) sec.classList.add('breath'); }
     if (el) el.textContent = medMinText(Math.min(left, MED.run.min * 60));
+    const ring = document.getElementById('bx-med-ring'), total = MED.run.min * 60;
+    if (ring) { ring.setAttribute('stroke-dashoffset', (100 - 100 * Math.min(total, (now - MED.run.startAt) / 1000) / total).toFixed(2)); ring.classList.remove('empty'); }
+    const tg = document.getElementById('bx-med-tag-t'); if (tg && tg.textContent !== '명상 중 · ' + MED.run.min + '분') tg.textContent = '명상 중 · ' + MED.run.min + '분';
     if (cue) cue.textContent = MED.breath ? (((now - MED.run.startAt) / 1000) % 10 < 4 ? '들이쉬고' : '내쉬고') : '';
   }, 1000);
 }

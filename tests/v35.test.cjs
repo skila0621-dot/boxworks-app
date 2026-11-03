@@ -7,7 +7,7 @@ const sw = p => p.evaluate(() => { const b = document.querySelector('[data-med-s
 const lastLocal = p => p.evaluate(() => (window.__local.slice(-1)[0] || []).map(a => [a.id, a.sound]));
 
 module.exports = async function () {
-  const c = checker('시험판 35 · 시작 종 · 끝 소리 · 머리 줄 · 캘린더 표시 · 기능 묶음');
+  const c = checker('시험판 35 · 명상 소리 · 화면 · 머리 줄 · 캘린더 표시 · 기능 묶음');
 
   let app = await openApp({ data: [['settings', settings()]] });
   try {
@@ -109,6 +109,28 @@ module.exports = async function () {
     await p.click('#sheet-root [data-bx-feat="tt"]'); await p.waitForTimeout(300);
     c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxDock), ['routines', 'month', 'tt', 'more'], "시간표를 껐다 켜면 '더보기' 앞 제자리로");
     c.eq(app.errors, [], '화면 오류(기능 묶음)');
+  } finally { await app.close(); }
+  // (5) 명상 화면 다듬기(대표 지적 11/3): 고르는 화면의 큰 원 · 시작 단추 하나, 진행 중 위 한 줄 · 고리, 끝 화면 합계
+  app = await openApp({ data: [['settings', settings()]] });
+  try {
+    const p = app.page;
+    await p.evaluate(() => { const l = window.Capacitor.Plugins.BxAlarm; l.local = async () => ({}); l.cancelLocal = async () => ({}); });
+    await p.click('.dock [data-view="med"]'); await p.waitForTimeout(600);
+    const pick = await p.evaluate(() => ({ big: (document.querySelector('.bx-med-hero .bx-med-big') || {}).textContent, hear: !!document.querySelector('[data-act="bx-med-hear"]'), go: (document.querySelector('.bx-med-go') || {}).textContent }));
+    c.eq(pick, { big: '10', hear: false, go: '10분 시작' }, '고르는 화면: 큰 원에 고른 분, 시작 단추 하나');
+    await p.click('[data-med-min="20"]'); await p.waitForTimeout(300);
+    c.eq(await p.evaluate(() => (document.querySelector('.bx-med-hero .bx-med-big') || {}).textContent), '20', '시간을 고르면 원의 숫자도 바뀜');
+    await p.click('[data-med-min="5"]'); await p.waitForTimeout(300);
+    await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(500);
+    c.ok(await p.evaluate(() => /곧 시작해요/.test(document.getElementById('bx-med-tag-t').textContent) && document.getElementById('bx-med-ring').classList.contains('empty')), '시작 전 5초: 위 한 줄 · 고리는 비어 있음');
+    const t = await p.evaluate(() => Date.now());
+    await p.clock.setSystemTime(new Date(t + 5000 + 150000)); await p.waitForTimeout(1500);
+    const mid = await p.evaluate(() => ({ tag: document.getElementById('bx-med-tag-t').textContent, off: +document.getElementById('bx-med-ring').getAttribute('stroke-dashoffset') }));
+    c.ok(mid.tag === '명상 중 · 5분' && mid.off > 45 && mid.off < 52, '진행 중: 위 한 줄 · 고리가 반쯤 ' + JSON.stringify(mid));
+    await p.clock.setSystemTime(new Date(t + 5000 + 300000 + 2000)); await p.waitForTimeout(1800);
+    const end = await p.evaluate(() => ({ left: (document.getElementById('bx-med-left') || {}).textContent, h: (document.querySelector('.bx-med-end-h') || {}).textContent, s: (document.querySelector('.bx-med-end-s') || {}).textContent, ic: !!document.querySelector('.bx-med-done-ic') }));
+    c.eq(end, { left: '5분', h: '명상을 마쳤어요', s: '오늘 5분', ic: true }, '끝 화면: 확인 표시 · 분 · 오늘 합계');
+    c.eq(app.errors, [], '화면 오류(명상 화면)');
   } finally { await app.close(); }
   // 예전 기본값을 그대로 쓰던 휴대폰은 새 기본값으로, 직접 고친 아래 메뉴는 그대로
   app = await openApp({ data: [['settings', settings({ bxDock: ['med', 'routines', 'month', 'tt'], bxDockMig: undefined })]] });
