@@ -56,14 +56,14 @@ module.exports = async function () {
     await p.click('[data-act="bx-late-open"]'); await p.waitForTimeout(500);
     await p.click('[data-bx-late="pick"][data-id="it_c"]'); await p.waitForTimeout(400);
     c.ok(!(await p.$('.bx-hid-date')), '숨긴 날짜 칸(휴대폰에서 안 열리던 방식)을 쓰지 않음');
-    c.eq(await p.evaluate(() => { const f = document.querySelector('#bx-lc-date'); return f ? [f.value, f.min, f.closest('.bx-lc').textContent.includes('택배 맡기기')] : null; }), ['2026-11-03', '2026-11-02', true], '그 카드 안에 날짜 칸(내일이 골라져 있음)');
-    c.eq(await p.getAttribute('[data-bx-late="pick"][data-id="it_c"]', 'aria-expanded'), 'true', '날짜 고르기 단추는 열림 표시');
-    await p.click('[data-bx-late="pick"][data-id="it_c"]'); await p.waitForTimeout(300);
-    c.ok(!(await p.$('#bx-lc-date')), '다시 누르면 닫힘');
+    // 시험판 46: 카드 아래로 펼치지 않고 '날짜 변경' 페이지(대표 11/4 1:34 "메뉴 위치가 변동되는 방식 지양")
+    c.eq(await p.evaluate(() => { const f = document.querySelector('#bx-pg #bx-lc-date'); return f ? [f.value, f.min, document.getElementById('bx-pg-t').textContent, !document.querySelector('#sheet-b .bx-lc #bx-lc-date')] : null; }), ['2026-11-03', '2026-11-02', '날짜 변경', true], '날짜 변경 페이지의 날짜 칸(내일이 골라져 있음), 카드 안에는 펼치지 않음');
+    await p.click('#bx-pg [data-bxpg="back"]'); await p.waitForTimeout(300);
+    c.ok(!(await p.$('#bx-lc-date')), '‹ 로 닫힘');
     await p.click('[data-bx-late="pick"][data-id="it_c"]'); await p.waitForTimeout(300);
     await p.fill('#bx-lc-date', '2026-11-05');
-    await p.click('[data-bx-late="move"][data-id="it_c"]'); await p.waitForTimeout(400);
-    c.eq((await items(p)).find(i => i.id === 'it_c').date, '2026-11-05', '이 날로 옮기기 → 11월 5일');
+    await p.click('#bx-pg [data-bxpg="done"]'); await p.waitForTimeout(400);
+    c.eq((await items(p)).find(i => i.id === 'it_c').date, '2026-11-05', '완료 → 11월 5일');
     await p.click('[data-bx-late="today"][data-id="it_a"]'); await p.waitForTimeout(400);
     const a = (await items(p)).find(i => i.id === 'it_a');
     c.eq([a.date, a.start], ['2026-11-02', '15:20'], '오늘로 옮기기(시각이 지났으면 한 시간 뒤)');

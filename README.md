@@ -66,6 +66,10 @@ cd android && ./gradlew assembleDebug
 - 휴대폰 캘린더 일정 창(`pcDraw`): 고르면 바로 `px_…` 문서에 적히므로, ‹ 는 연 순간의 문서 · 이동 시간 기억(`travelmem`) · 막 만든 '외출 준비'를 되돌린다
 - 루틴 고치기(`bxDrawRoutine`, `rtTimesHtml`): 알림 방식 · 기준은 페이지, 시각 줄은 기준에 따라 시작 시각 하나 또는 도착 시각 · 이동 시간 · 여유
 
+## 확인 필요 날짜 변경 (시험판 46)
+
+- '날짜 변경'(`bxLatePickDate`)은 카드 안에 칸을 펼치지 않고 페이지를 연다(`web-src/v46.js`). 페이지 안의 `#bx-lc-date` · `#bx-lc-time`과 숨은 `data-bx-late="move"` 단추를 쓰므로, 옮기는 일은 예전 '변경' 단추 처리(`flow.js`)가 그대로 한다. '완료'를 누르면 그 단추를 누른 것과 같다
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.
