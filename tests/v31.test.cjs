@@ -84,14 +84,24 @@ module.exports = async function () {
     await p.locator('#sheet-root button', { hasText: '설정' }).first().click(); await p.waitForTimeout(600);
     // 시험판 32: 설정은 묶음 목록. 묶음마다 들어가 '끄기 | 켜기' 두 칸이 없는지 본다
     const segs = [];
+    // 시험판 38: 묶음 화면 → 자세한 화면까지 모두 들어가 본다
+    const offOn = () => p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .seg')).map(s => Array.from(s.querySelectorAll('button')).map(b => b.textContent.trim()).join('|')).filter(t => t === '끄기|켜기'));
     for (const k of await p.evaluate(() => Array.from(document.querySelectorAll('[data-bxset]')).map(b => b.dataset.bxset).filter(Boolean))) {
       await p.click('[data-bxset="' + k + '"]'); await p.waitForTimeout(300);
-      segs.push(...await p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .seg')).map(s => Array.from(s.querySelectorAll('button')).map(b => b.textContent.trim()).join('|')).filter(t => t === '끄기|켜기')));
+      segs.push(...await offOn());
+      for (const d of await p.evaluate(() => Array.from(document.querySelectorAll('[data-bxset*="/"]')).map(b => b.dataset.bxset))) {
+        await p.click('[data-bxset="' + d + '"]'); await p.waitForTimeout(250);
+        segs.push(...await offOn());
+        await p.click('.bx-set-back'); await p.waitForTimeout(250);
+      }
       await p.click('[data-bxset=""]'); await p.waitForTimeout(300);
     }
     c.eq(segs, [], "설정에 '끄기 | 켜기' 두 칸 단추가 남지 않음");
     await p.click('[data-bxset="alarm"]'); await p.waitForTimeout(400);
-    const sw = await p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .set-row > .tog[role="switch"]')).map(b => b.getAttribute('aria-label')));
+    // 아침 요약은 묶음 화면 줄에서 바로, 일정 알림 · 종일 일정은 자세한 화면에서(시험판 38)
+    const sw0 = await p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .tog[role="switch"]')).map(b => b.getAttribute('aria-label')));
+    await p.click('[data-bxset="alarm/rem"]'); await p.waitForTimeout(400);
+    const sw = sw0.concat(await p.evaluate(() => Array.from(document.querySelectorAll('.set-sec .set-row > .tog[role="switch"]')).map(b => b.getAttribute('aria-label'))));
     c.ok(['아침 요약', '일정 알림', '종일 일정 알림 시각'].every(x => sw.includes(x)), '설정의 켜고 끄기는 스위치 ' + JSON.stringify(sw));
     const pre = () => p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].defaultRemind);
     await p.click('.set-row > .tog[aria-label="일정 알림"]'); await p.waitForTimeout(400);

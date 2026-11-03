@@ -262,7 +262,8 @@ document.addEventListener('contextmenu', ev => { if (ev.target.closest && ev.tar
 // 기본 순서는 오른손 엄지 기준(대표 결정 2026-10-31): 자주 여는 캘린더·시간표가 오른쪽.
 // 시험판 35(대표 의견 11/3): 아래 메뉴 기본값은 이 앱의 주 목적인 '시간 · 행동 관리'만. 명상 같은 그 밖의 기능은 ⋯ 더보기에 묶고,
 // 원하면 '내가 쓸 기능 · 아래 메뉴'에서 넣는다. 오른쪽 끝 '더보기'(위 ⋯와 같은 창)로 홈이 가운데에 온다
-const BX_DOCK_DEF = ['routines', 'month', 'tt', 'more'];
+// 시험판 38(대표 결정 11/3 18:58): '더보기'는 왼쪽 위 메뉴 단추로 옮겨 아래 메뉴에서 뺀다. 아래 메뉴는 기능만(루틴 · 캘린더 · 홈 · 시간표)
+const BX_DOCK_DEF = ['routines', 'month', 'tt'];
 // 예전 기본값(명상 · 루틴 · 캘린더 · 시간표)을 그대로 쓰던 휴대폰은 새 기본값으로 바꿔 보인다. 한 번이라도 고치면(bxDockMig) 그대로 둔다
 const BX_DOCK_OLD = 'med,routines,month,tt';
 // 기능 묶음: 시간 · 행동 관리(주 목적) / 그 밖의 기능(명상 등, 앞으로 늘어날 것)
@@ -279,7 +280,7 @@ const BX_DOCK_ALL = {
 const BX_HOME_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 9v10.5h12V9"/><path d="M10 19.5v-5h4v5"/></svg>';
 function bxDockKeys(){
   const st = M && M.settings, v = st && st.bxDock;
-  const keys = Array.isArray(v) && !(!st.bxDockMig && v.join(',') === BX_DOCK_OLD) ? v.filter(k => BX_DOCK_ALL[k]) : BX_DOCK_DEF;
+  const keys = Array.isArray(v) && !(!st.bxDockMig && v.join(',') === BX_DOCK_OLD) ? v.filter(k => BX_DOCK_ALL[k] && k !== 'more') : BX_DOCK_DEF;
   return keys.filter(bxDockOk).slice(0, 4);
 }
 // 끈 기능(루틴·시간표·명상)은 아래 메뉴·⋯ 메뉴에서도 뺀다
@@ -310,7 +311,7 @@ function bxDockEdit(){
     const row = k => { const on = bxDockSel.includes(k), off = !on && full, o = BX_DOCK_ALL[k];
       return '<button type="button" class="ch chk-box bx-dk' + (off ? ' off' : '') + '" role="checkbox" data-bx-dock="' + k + '" aria-checked="' + on + '"' + (off ? ' aria-disabled="true"' : '') + '><i class="cb">' + ICON.check + '</i><span class="bx-dk-ic">' + o.icon + '</span><span><b>' + o.label + '</b><small>' + o.sub + '</small></span>' + (on ? '<em class="bx-dk-n">' + (bxDockSel.indexOf(k) + 1) + '</em>' : '') + '</button>'; };
     setSheet('<p class="p small" style="margin:0 0 12px">자주 쓰는 기능만 아래 메뉴에 두세요. <b>홈</b>은 늘 가운데에 있고, 빼낸 기능은 오른쪽 위 <b>⋯</b> 메뉴에서 열 수 있어요. 고른 순서대로 놓여요(최대 4개).</p>' +
-      '<div class="chk-list">' + Object.keys(BX_DOCK_ALL).map(row).join('') + '</div>',
+      '<div class="chk-list">' + Object.keys(BX_DOCK_ALL).filter(k => k !== 'more').map(row).join('') + '</div>',
       '<button type="button" class="btn" data-act="bx-dock-reset">기본값</button><button type="button" class="btn primary grow" data-act="bx-dock-save">저장</button>');
   };
   openSheet({title: '아래 메뉴 편집', draw, refresh: draw});

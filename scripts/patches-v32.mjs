@@ -6,8 +6,8 @@ export default [
     replace: "    (window.BX_APP ? bxRsAlarmHtml(s, i) : '<select class=\"inp rs-kind\" data-rs-kind=\"' + i + '\" aria-label=\"' + (i + 1) + '번째 단계 방식\"><option value=\"do\"' + (s.kind === 'do' ? ' selected' : '') + '>할 일</option><option value=\"wait\"' + (s.kind === 'wait' ? ' selected' : '') + '>기다리기</option></select>') +"
   },
   {
-    name: '휴대폰 뒤로 버튼: 설정 묶음 화면이면 설정 목록으로(대표 결정 11/3)',
+    name: '휴대폰 뒤로 버튼: 설정 안이면 한 단계 위로(자세한 화면 → 묶음 → 목록, 대표 결정 11/3)',
     find: "  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }",
-    replace: "  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (window.BX_APP && S.view === 'settings' && BX_SET && !document.getElementById('bx-start')) { bxSetOpen(null); return true; }"
+    replace: "  if (S.view === 'guide' && S.gsec) { guideOpen(null); return true; }\n  if (window.BX_APP && S.view === 'settings' && BX_SET && !document.getElementById('bx-start')) { bxSetBack(); return true; }"
   }
 ];

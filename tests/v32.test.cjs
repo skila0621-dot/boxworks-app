@@ -40,7 +40,7 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => window.BX_back()), true, '휴대폰 뒤로 버튼은 설정 목록으로');
     c.ok(await p.evaluate(() => !!document.querySelector('.bx-set-home')), '뒤로 가면 묶음 목록');
     await p.click('[data-bxset="data"]'); await p.waitForTimeout(400);
-    c.ok(await p.evaluate(() => !!document.querySelector('[data-menu="data"]') && !!document.querySelector('.bx-reset')), '분류·데이터 묶음에 백업·복원과 데이터 초기화');
+    c.ok(await p.evaluate(() => !!document.querySelector('[data-act="bx-set-data"]') && !!document.querySelector('[data-bxset="data/reset"]')), '분류·데이터 묶음에 백업·복원과 데이터 초기화(시험판 38: 줄 → 자세한 화면)');
     await p.click('.bx-set-back'); await p.waitForTimeout(300);
     c.ok(await p.evaluate(() => !!document.querySelector('.bx-set-home')), '‹ 단추로도 목록');
     c.eq(app.errors, [], '화면 오류(설정)');

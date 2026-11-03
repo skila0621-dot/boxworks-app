@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 시험판 38(대표 결정 11/3 19:06 '나-1'): 일정이 많으면 목록 아래가 흐려져 더 있음을 알리고, 그 위에 단추 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient android:angle="90" android:startColor="@color/bx_w_bg" android:endColor="@color/bx_w_bg0" />
+</shape>

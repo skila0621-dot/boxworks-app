@@ -329,8 +329,8 @@ function bxFeatDraw(){
     '<div class="bx-grp"><div class="bx-ft-row"><span>일정 · 캘린더</span><span class="bx-lv-fix">늘 켜짐</span></div>' + BX_FEAT.filter(f => !BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') + '</div>' +
     '<div class="bx-ft-hd"><h3 class="bx-ft-h">그 밖의 기능</h3><p class="p small">켜면 ⋯ 더보기에 있어요. 아래 메뉴에도 넣을 수 있어요.</p></div>' +
     '<div class="bx-grp">' + BX_FEAT.filter(f => BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') + '</div>' +
-    '<div class="bx-ft-hd"><h3 class="bx-ft-h">아래 메뉴</h3><p class="p small">누른 순서대로 왼쪽부터 놓여요. 홈은 늘 가운데, 4개까지. 처음엔 시간 · 행동 관리와 더보기.</p></div>' +
-    '<div class="bx-grp bx-grp-pad"><div class="bx-ft-chips">' + Object.keys(BX_DOCK_ALL).map(chip).join('') + '</div>' +
+    '<div class="bx-ft-hd"><h3 class="bx-ft-h">아래 메뉴</h3><p class="p small">누른 순서대로 왼쪽부터 놓여요. 홈은 가운데, 4개까지. 처음엔 시간 · 행동 관리(루틴 · 캘린더 · 시간표). 더보기는 왼쪽 위 메뉴 단추에 있어요.</p></div>' +
+    '<div class="bx-grp bx-grp-pad"><div class="bx-ft-chips">' + Object.keys(BX_DOCK_ALL).filter(k => k !== 'more').map(chip).join('') + '</div>' +
     '<span class="bx-ft-pv-h">미리 보기</span><div class="bx-ft-pv" aria-hidden="true" style="grid-template-columns:repeat(' + prev.length + ',minmax(0,1fr))">' + prev.map(x => '<span class="' + (x === '홈' ? 'on' : '') + '">' + x + '</span>').join('') + '</div></div>',
     '<button type="button" class="btn grow" data-bx-fnav="reset">기본값</button>');
 }

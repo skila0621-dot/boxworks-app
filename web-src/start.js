@@ -57,7 +57,8 @@ function bxStartDraw(){
     '<div class="bxs-row"><button type="button" class="btn bxs-back" data-bxs="back">이전</button><button type="button" class="btn primary bxs-go" data-bxs="done">시작</button></div>');
 }
 // 아래 메뉴: 고른 시간 · 행동 관리 기능 + 오른쪽 끝 더보기(시험판 35). 명상 같은 그 밖의 기능은 ⋯ 더보기에
-function bxStartDock(){ return ['routines', 'month', 'tt'].filter(k => k === 'month' || BXS.sel[k]).concat(['more']); }
+// 시험판 38: 아래 메뉴에 '더보기'를 두지 않는다(왼쪽 위 메뉴 단추)
+function bxStartDock(){ return ['routines', 'month', 'tt'].filter(k => k === 'month' || BXS.sel[k]); }
 // 처음에는 아무것도 골라 두지 않는다. 미리 골라 두면 예시 화면처럼 보이고 고르지 않은 기능까지 켜졌다(대표 확인 11/2, D-10 보완)
 function bxStartOpen(){ BXS = {step: 1, sel: (M.settings && M.settings.bxStart) ? Object.assign({}, bxStartMods()) : {report: false, routines: false, tt: false, med: false}}; bxStartDraw(); }
 
@@ -223,7 +224,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.bxsMod) { BXS.sel[t.dataset.bxsMod] = !BXS.sel[t.dataset.bxsMod]; bxStartDraw(); return; }
   const s = t.dataset.bxs;
   // 건너뛰면 고른 것이 없으니 '일정·캘린더'만. 나머지는 ⋯ 메뉴 › 내가 쓸 기능에서 켠다
-  if (s === 'skip') { saveSettings({bxStart: {at: nowIso(), skipped: true, mods: {report: false, routines: false, tt: false, med: false}}, bxDock: ['month', 'more'], bxDockMig: 1, bxReport: Object.assign({}, (M.settings && M.settings.bxReport) || {}, {on: false})}); bxStartClose(); return; }
+  if (s === 'skip') { saveSettings({bxStart: {at: nowIso(), skipped: true, mods: {report: false, routines: false, tt: false, med: false}}, bxDock: ['month'], bxDockMig: 1, bxReport: Object.assign({}, (M.settings && M.settings.bxReport) || {}, {on: false})}); bxStartClose(); return; }
   if (s === 'next') { BXS.step = 2; bxStartDraw(); return; }
   if (s === 'back') { BXS.step = 1; bxStartDraw(); return; }
   if (s === 'done') {

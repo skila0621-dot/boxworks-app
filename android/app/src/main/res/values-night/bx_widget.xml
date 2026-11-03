@@ -13,4 +13,6 @@
     <color name="bx_w_live">#283152</color>
     <color name="bx_w_btn2">#2A3150</color>
     <color name="bx_w_thumb">#4A505C</color>
+    <!-- 시험판 38: 목록 아래가 흐려지는 그러데이션의 끝(위젯 바탕색과 같은 색, 투명) -->
+    <color name="bx_w_bg0">#001F232B</color>
 </resources>

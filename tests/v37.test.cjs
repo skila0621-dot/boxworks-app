@@ -35,11 +35,11 @@ module.exports = async function () {
     await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .menu-row')).find(b => /설정/.test(b.textContent)).click()); await p.waitForTimeout(600);
     await p.click('[data-bxset="alarm"]'); await p.waitForTimeout(600);
     const secs = await p.evaluate(() => Array.from(document.querySelectorAll('.screen.settings .set-sec')).map(s => s.getAttribute('aria-label')));
-    c.eq(secs, ['알람 테스트', '아침 요약', '울리는 방식', '잠금 화면 표시', '일정 알림'], '알림 설정 상자 다섯');
+    c.eq(secs, ['알람 테스트', '알림'], '알림 묶음: 알람 테스트 · 알림 두 상자(시험판 38: 줄 → 자세한 화면)');
     const s0 = await rect(p, '.screen.settings .set-sec'), h1 = await rect(p, '.screen.settings .page-head h1');
     c.eq(s0 && [s0.l, s0.r], [12, 12], '설정 상자 바깥 여백 12');
     c.ok(h1 && h1.l >= 32, '제목 줄 ' + (h1 && h1.l));
-    const lbl = await p.evaluate(() => { const b = Array.from(document.querySelectorAll('.screen.settings .set-row')).find(r => /아침 요약/.test(r.textContent)); const r = b && b.getBoundingClientRect(); return r ? Math.round(r.left) : null; });
+    const lbl = await p.evaluate(() => { const b = Array.from(document.querySelectorAll('.screen.settings .bx-arow')).find(r => /아침 요약/.test(r.textContent)); const r = b && b.getBoundingClientRect(); return r ? Math.round(r.left) : null; });
     c.eq(lbl, 32, '상자 안 글자는 32(상자 안 여백 20)');
     const bg = await p.evaluate(() => { const s = getComputedStyle(document.querySelector('.screen.settings .set-sec')); return [s.backgroundColor, s.boxShadow]; });
     c.ok(/rgba\(17, 20, 24, 0\.04/.test(bg[0]) && bg[1] === 'none', '반투명 상자 · 그림자 없음 ' + bg.join(' / '));
