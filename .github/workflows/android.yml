@@ -49,6 +49,13 @@ jobs:
           set -o pipefail
           node tests/layout/run.cjs --shots 0 2>&1 | tee "$GITHUB_WORKSPACE/layout.log"
 
+      # 기준 사진(대표 11/5 01:30, D-28): 단추 견본을 대표가 고른 모습(tests/layout/base/)과 비교한다.
+      # 기준 사진은 개발 쪽 크로미움에서 찍어 이 컴퓨터와 글자 그리는 방식이 조금 다를 수 있어, 여기서는 기록만 하고 막지 않는다.
+      # 시험판을 내기 전 개발 쪽에서 같은 환경으로 비교해 통과해야 낸다
+      - name: 기준 사진 비교(기록)
+        continue-on-error: true
+        run: node tests/layout/base.cjs 2>&1 | tee "$GITHUB_WORKSPACE/base.log"
+
       - name: 설치 파일(APK) 만들기
         working-directory: android
         env:

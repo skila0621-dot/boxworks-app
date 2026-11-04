@@ -1,0 +1,71 @@
+// 시험판 55(대표 11/5 01:30 · 03:41 · 03:48, 결정 기록 D-28): 공통 부품 · 대표가 고른 값 · 단추 견본 · 홈 상자 제목
+// (1) 단추 · 칩 · 나눔 단추 · 글자 단추 · 아이콘 단추 · 체크는 app.css 맨 앞 '공통 부품' 한 곳. 값은 선택실에서 고른 것
+// (2) 웹 원본의 같은 규칙은 빌드 때 지움(scripts/ui-owned.mjs) · 화면 규칙이 모양을 다시 정하면 정렬 점검(comp)이 걸림
+// (3) 아이콘이 앞에 붙은 단추는 아이콘 쪽 안쪽 여백을 줄임 · 처리 중 · 못 누름에서도 크기 그대로
+// (4) 출발 아이콘은 '집에서 나가기' · 홈 '오늘 할 일' · '오늘의 메모' 제목은 상자 밖 위 · 날짜 이동 줄 글자 20 · '완료' 오른쪽 끝 32
+const fs = require('fs');
+const path = require('path');
+const { openApp, settings, checker, ROOT } = require('./harness.cjs');
+const old = '2026-10-29T00:00:00.000Z';
+
+module.exports = async function () {
+  const c = checker('시험판 55 · 공통 부품 · 고른 값 · 단추 견본 · 홈 상자 제목');
+  const css = fs.readFileSync(path.join(ROOT, 'web-src', 'app.css'), 'utf8');
+  const html = fs.readFileSync(path.join(ROOT, 'www', 'index.html'), 'utf8');
+  // (2) 원본 규칙: 공통 부품이 가져간 것은 www에 없음
+  const base = html.replace(/<style id="bx-app-css">[\s\S]*?<\/style>/, '');
+  c.ok(!/(^|[}\s])\.btn\{height:50px/.test(base) && !/(^|[}\s])\.seg button\{height:40px/.test(base) && !/(^|[}\s])\.icon-btn\{width:40px/.test(base), '웹 원본의 단추 · 나눔 단추 · 아이콘 단추 규칙은 빌드에서 지움');
+  c.ok(/svg\.i\{[^}]*stroke-width:var\(--ic-sw,1\.8\)/.test(base), '아이콘 선 굵기는 공통 값(--ic-sw) 하나');
+  const sec = css.slice(css.indexOf('/* ━━ 공통 부품'), css.indexOf('/* 단추 견본(시험용 화면'));
+  c.ok(sec.length > 2000 && !/html\.bx-app :is\(/.test(sec), '공통 부품은 :where로(화면의 숨김 규칙이 늘 이김)');
+  c.ok(!/::after\{content:"";position:absolute;left:(0|-4px|50%)/.test(sec), '누르는 범위를 몰래 넓히는 칸(::after) 없음(체크 칸만 예외)');
+
+  const app = await openApp({ width: 384, height: 832, data: [['settings', settings()],
+    ['it_2', { type: 'item', title: '노동부 방문', date: '2026-11-02', start: '11:00', end: '11:30', travel: 30, createdAt: old, updatedAt: old }],
+    ['mm_1', { type: 'memo', date: '2026-11-02', text: '은행 서류', at: '06:20', createdAt: old, updatedAt: old }]] });
+  const p = app.page;
+  try {
+    await p.waitForTimeout(700);
+    // (1) 고른 값: 주 C · 보조 B · 칩 D · 나눔 D · 글자 C · 아이콘 A · 체크 A · 사이 C · 선 B · 글자 역할 B
+    const tok = await p.evaluate(() => { const R = getComputedStyle(document.documentElement); return ['--b-h', '--b-r', '--bs-h', '--bs-r', '--c-h', '--c-r', '--sg-h', '--tb-fs', '--tb-fw', '--icb', '--ck', '--b-gap', '--ic-sw', '--lh-body', '--ls-body', '--ls-title'].map(k => R.getPropertyValue(k).trim()); });
+    c.eq(tok, ['48px', '12px', '36px', '10px', '36px', '10px', '40px', '14px', '600', '44px', '24px', '8px', '1.8', '23.2px', '-.16px', '0px'], '고른 값(주 C · 보조 B · 칩 D · 나눔 D · 글자 C · 아이콘 A · 체크 A · 사이 C · 선 B · 글자 역할 B)');
+    // (3) 단추 견본: 상태마다 같은 크기, 아이콘이 앞에 붙으면 왼쪽 여백 18 - 4
+    const sp = await p.evaluate(() => {
+      window.BX_specimen();
+      const b = Array.from(document.querySelectorAll('#bx-spec .btn.primary:not(.sm):not(.block)'));
+      const r = e => { const q = e.getBoundingClientRect(); return [Math.round(q.width), Math.round(q.height)]; };
+      const plain = b.find(e => !e.querySelector('svg') && !e.disabled && !e.classList.contains('is-busy'));
+      const dis = b.find(e => e.disabled), busy = b.find(e => e.classList.contains('is-busy')), ic = b.find(e => e.querySelector('svg.i'));
+      const sec2 = document.querySelector('#bx-spec .btn:not(.primary):not(.sm):not(.block)');
+      const chip = document.querySelector('#bx-spec .bx-cchip[aria-pressed="true"]'), chip0 = document.querySelector('#bx-spec .bx-cchip[aria-pressed="false"]');
+      const long = document.querySelectorAll('#bx-spec .btn.block > span')[1];
+      return { plain: r(plain), dis: r(dis), busy: r(busy), padIc: getComputedStyle(ic).paddingLeft, padIcR: getComputedStyle(ic).paddingRight, secBg: getComputedStyle(sec2).backgroundColor,
+        chipFw: [getComputedStyle(chip).fontWeight, getComputedStyle(chip0).fontWeight], chipH: [r(chip)[1], r(chip0)[1]], ell: getComputedStyle(long).textOverflow, cut: long.scrollWidth > long.clientWidth };
+    });
+    c.eq([sp.plain, sp.dis, sp.busy], [sp.plain, sp.plain, sp.plain], "'저장' · 못 누름 · 처리 중이 같은 크기 " + JSON.stringify(sp.plain));
+    c.eq([sp.padIc, sp.padIcR], ['14px', '18px'], '아이콘이 앞에 붙은 단추: 아이콘 쪽 안쪽 여백만 4 줄임');
+    c.ok(sp.secBg !== 'rgba(0, 0, 0, 0)', '보조 단추 B: 회색 채움 ' + sp.secBg);
+    c.ok(sp.chipFw[0] === sp.chipFw[1] && sp.chipH[0] === sp.chipH[1] && sp.chipH[0] === 36, '칩: 고르기 전 · 고른 것이 같은 굵기 · 높이(36) ' + JSON.stringify(sp));
+    c.ok(sp.ell === 'ellipsis' && sp.cut, '긴 글 단추는 줄을 바꾸지 않고 …');
+    await p.evaluate(() => document.getElementById('bx-spec').remove());
+    // (4) 홈 상자 제목은 상자 밖 위: 제목 아래 끝보다 상자(::before) 위 끝이 아래
+    const home = await p.evaluate(() => {
+      const card = document.querySelector('#tcard2'), h = document.querySelector('#h-todo'), cs = getComputedStyle(card), bf = getComputedStyle(card, '::before');
+      const mm = document.querySelector('.screen.today .bx-mm-card'), mh = document.querySelector('#h-memo');
+      return { bg: cs.backgroundColor, boxTop: card.getBoundingClientRect().top + parseFloat(bf.top), hBottom: h.getBoundingClientRect().bottom, hLeft: Math.round(h.getBoundingClientRect().left),
+        mmBoxTop: mm ? mm.getBoundingClientRect().top + parseFloat(getComputedStyle(mm, '::before').top) : 0, mhBottom: mh ? mh.getBoundingClientRect().bottom : 1 };
+    });
+    c.ok(home.bg === 'rgba(0, 0, 0, 0)' && home.boxTop >= home.hBottom && home.hLeft === 32, "홈 '오늘 할 일' 제목은 상자 밖 위, 글자 줄 32에서 시작 " + JSON.stringify(home));
+    c.ok(home.mmBoxTop >= home.mhBottom, "홈 '오늘의 메모' 제목도 상자 밖 위");
+    // 출발 아이콘: 집에서 나가기(일정 창 출발·준비 줄)
+    await p.click('#tcard2 .row-main[data-id="it_2"]'); await p.waitForTimeout(600);
+    const go = await p.evaluate(() => { const r = document.querySelector('#sheet-root .bx-er[data-fpanel="go"] svg'); return r ? r.innerHTML : ''; });
+    c.ok(/M3 11 9\.5 5\.5 16 11/.test(go) && !/circle cx="14" cy="4"/.test(go), "출발·준비 줄 아이콘은 '집에서 나가기'(걷는 사람 아님)");
+    // '완료' 오른쪽 끝 32 · 날짜 이동 줄 글자 20
+    await p.click('#sheet-root [data-fpanel="date"]').catch(() => {}); await p.waitForTimeout(800);
+    const pg = await p.evaluate(() => { const ok = document.querySelector('#bx-ep .bx-ep-ok'), d = document.querySelector('#bx-ep .bx-dcal-h b'); if (!ok) return null; const rg = document.createRange(); rg.selectNodeContents(ok); return { right: Math.round(innerWidth - rg.getBoundingClientRect().right), dfs: d ? getComputedStyle(d).fontSize : '' }; });
+    c.ok(pg && pg.right === 32, "페이지 머리 '완료' 글자 끝이 화면 끝에서 32 " + JSON.stringify(pg));
+    c.ok(pg && pg.dfs === '20px', '날짜 페이지 달력 머리 글자 20');
+  } finally { await app.close(); }
+  return c.done();
+};

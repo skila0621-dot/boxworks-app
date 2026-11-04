@@ -222,7 +222,7 @@ pcDraw = function(id){
     (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +
     (it.note ? '<p class="pc-note">' + esc(it.note.slice(0, 300)) + (it.note.length > 300 ? '…' : '') + '</p>' : '') +
     '<div class="bx-ed bx-pc45" role="group" aria-label="' + esc(window.BX_NAME) + '에서 정하는 것">' + row('rem', ICON.bell, rem || '알림', !!rem, '알림') +
-      (timed ? row('go', ICON.walk, go || '출발·준비', !!go, '출발·준비') : '') + '</div>' +
+      (timed ? row('go', ICON.depart, go || '출발·준비', !!go, '출발·준비') : '') + '</div>' +
     '<p class="p small pc-ro">제목·날짜·시간은 휴대폰 캘린더 앱에서 고쳐요. ' + esc(window.BX_NAME) + '에서는 읽기만 해요.</p>';
   setSheet(body, '<button type="button" class="btn grow" data-act="pc-open-app" data-id="' + esc(id) + '">' + ICON.cal + '캘린더 앱에서 열기</button>' +
     '<button type="button" class="btn grow' + (it.done ? '' : ' primary') + '" data-act="pc-done" data-id="' + esc(id) + '">' + (it.done ? '완료 취소' : ICON.check + '완료') + '</button>');
@@ -285,7 +285,7 @@ rtTimesHtml = function(){
   if (!window.BX_APP || !R) return bxRtTimes45.apply(this, arguments);
   const tm = (label, icon) => '<div class="bx-er bx-rt45-v"><span class="bx-er-ic" aria-hidden="true">' + icon + '</span><label class="bx-er-t" for="r-target">' + label + '</label><input type="time" id="r-target" class="bx-rt45-time" value="' + esc(R.target) + '"></div>';
   const st = (id, label, icon, v, max) => '<div class="bx-er bx-rt45-v"><span class="bx-er-ic" aria-hidden="true">' + icon + '</span><span class="bx-er-t">' + label + '</span>' + stepperHtml(id, v, 0, max, null, 5) + '<span class="bx-rt45-u">분</span></div>';
-  if (R.mode === 'arrive') return tm('도착 시각', ICON.flag || ICON.clock) + st('r-travel', '이동 시간', ICON.walk, R.travel, 300) + st('r-buffer', '여유', BX_SAND_I, R.buffer, 120);
+  if (R.mode === 'arrive') return tm('도착 시각', ICON.flag || ICON.clock) + st('r-travel', '이동 시간', ICON.depart, R.travel, 300) + st('r-buffer', '여유', BX_SAND_I, R.buffer, 120);
   return tm('시작 시각', ICON.clock);
 };
 const bxDrawRoutine45 = bxDrawRoutine;

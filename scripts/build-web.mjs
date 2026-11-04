@@ -23,6 +23,7 @@ import v42 from './patches-v42.mjs';
 import v43 from './patches-v43.mjs';
 import v51 from './patches-v51.mjs';
 import v52 from './patches-v52.mjs';
+import uiOwned from './ui-owned.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -367,7 +368,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'setall.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v38.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v39.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v40.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v41.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v42.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v43.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v44.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v45.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v46.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v48.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v49.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v51.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v52.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v53.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'setall.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v38.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v39.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v40.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v41.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v42.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v43.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v44.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v45.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v46.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v48.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v49.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v51.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v52.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v53.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v55.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
@@ -464,6 +465,25 @@ for (const p of patches) {
   console.log(`적용: ${p.name}`);
 }
 
+// 시험판 55(대표 11/5 01:30, 결정 기록 D-28): 단추 · 칩 · 나눔 단추 · 글자 단추 · 아이콘 단추 · 체크 · 스위치는 app.css 맨 앞 '공통 부품' 한 곳.
+// 공통 부품이 가져간 웹 원본 규칙(scripts/ui-owned.mjs)을 원본 <style>에서 지운다. 못 찾거나 수가 다르면 멈춘다
+{
+  const want = uiOwned.map(o => Object.assign({ hit: 0 }, o));
+  const norm = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
+  html = html.replace(/(<style[^>]*>)([\s\S]*?)(<\/style>)/g, (m, a, css, b) => a + css.replace(/([^{}]*)\{([^{}]*)\}/g, (r, sel, body) => {
+    const o = want.find(w => w.sel === norm(sel));
+    if (!o) return r;
+    o.hit++;
+    const lead = /^(?:\s|\/\*[\s\S]*?\*\/)*/.exec(sel)[0], s = sel.slice(lead.length);
+    if (o.set) { let bd = body; for (const [k, v] of Object.entries(o.set)) bd = bd.replace(new RegExp('(^|;)(\\s*)' + k + '\\s*:[^;]*'), '$1$2' + k + ':' + v); return lead + s + '{' + bd + '}'; }
+    if (o.drop) { const keep = body.split(';').filter(d => d.trim() && !o.drop.includes(d.split(':')[0].trim().toLowerCase())); return lead + (keep.length ? s + '{' + keep.join(';') + '}' : ''); }
+    return lead;
+  }) + b);
+  const bad = want.filter(w => w.hit !== (w.n || 1));
+  if (bad.length) { bad.forEach(w => console.error(`공통 부품이 가져갈 원본 규칙 수가 다릅니다: ${w.sel} (${w.hit}곳, 바라는 수 ${w.n || 1})`)); process.exit(1); }
+  console.log('공통 부품이 가져간 원본 규칙 ' + want.reduce((n, w) => n + w.hit, 0) + '개(scripts/ui-owned.mjs)');
+}
+
 // 시험판 51(대표 11/4 디자인 가이드 '6단계로 줄이기'): 글자 크기는 28 · 20 · 16 · 14 · 13 · 11.5만 쓴다.
 // 원본 · 패치 · 모듈 어디에서 온 font-size든 가장 가까운 단계로 맞춘다. 명상 타이머 숫자만 따로(50 · 38). 0(글자 숨김)은 그대로
 {
@@ -474,8 +494,23 @@ for (const p of patches) {
 }
 // 시험판 54(대표 상시 규칙 11/4 22:59, 결정 기록 D-27): 앱 모양 규칙은 web-src/app.css 한 곳.
 // 웹 원본 머리 규칙(<head>의 작은 <style>) 바로 뒤, 원본 화면 규칙(<body>의 <style>) 앞에 넣는다. 모듈은 <style>을 붙이지 않는다
+// 시험판 55(대표 11/5 01:30 '글꼴 · 크기 · 굵기 · 자간 · 행간을 역할별로', 결정 기록 D-28): 글자 크기 단계마다 줄 높이 · 자간은 하나.
+// 글자 크기를 정한 규칙에는 그 단계의 공통 값(app.css 공통 부품 --lh-* · --ls-*)을 넣고, 그 규칙의 다른 줄 높이 · 자간은 지운다.
+// 크기를 물려받는 글자는 그 값도 함께 물려받는다. 명상 타이머 숫자(50 · 38)와 0(숨김)은 그대로
+const ROLE = { 28: 'title', 20: 'heading', 16: 'body', 14: 'sub', 13: 'note', 11.5: 'cap' };
+let roleN = 0;
+const roleType = css => css.replace(/([^{}]*)\{([^{}]*)\}/g, (r, sel, body) => {
+  const m = /(?:^|;)\s*font-size\s*:\s*(\d+(?:\.\d+)?)px/.exec(body);
+  if (!m || !ROLE[+m[1]] || sel.trim().startsWith('@')) return r;
+  roleN++;
+  const role = ROLE[+m[1]];
+  const keep = body.split(';').filter(d => d.trim() && !/^\s*(line-height|letter-spacing)\s*:/i.test(d));
+  return sel + '{' + keep.join(';') + ';line-height:var(--lh-' + role + ');letter-spacing:var(--ls-' + role + ')}';
+});
+html = html.replace(/(<style[^>]*>)([\s\S]*?)(<\/style>)/g, (m, a, css, b) => a + roleType(css) + b);
 {
-  const css = readFileSync(join(root, 'web-src', 'app.css'), 'utf8');
+  const css = roleType(readFileSync(join(root, 'web-src', 'app.css'), 'utf8'));
+  console.log('글자 역할(줄 높이 · 자간): 글자 크기를 정한 규칙 ' + roleN + '곳에 단계 값');
   if (html.split('</head>').length !== 2) { console.error('</head>를 한 곳에서 찾지 못했습니다'); process.exit(1); }
   if (/<\/style/i.test(css)) { console.error('app.css 안에 </style 글자가 있습니다'); process.exit(1); }
   html = html.replace('</head>', () => '<style id="bx-app-css">\n' + css + '</style></head>');

@@ -48,7 +48,7 @@ function bxEdList(){
     // 비어 있으면 회색으로 이름만(삼성 '장소' · '메모'처럼). '알림 없음'은 이미 고른 것처럼 보인다(대표 11/3 18:12)
     bxEdRow('cat', '<span class="bx-er-cal">' + ICON.cal + catDot + '</span>', cat ? cat.name : '캘린더', !!cat, '캘린더') +
     bxEdRow('rem', ico('rem') || ICON.bell, set('rem') ? txt('rem') : '알림', set('rem'), '알림') +
-    (hasGo ? bxEdRow('go', ICON.walk, set('go') ? txt('go') : '출발·준비', set('go'), '출발·준비') : '') +
+    (hasGo ? bxEdRow('go', ICON.depart, set('go') ? txt('go') : '출발·준비', set('go'), '출발·준비') : '') +
     bxEdRow('more', BX_MEMO_ICON, note || '메모', !!note, '메모', 'note') +
     (hasAtt ? bxEdRow('att', BX_CLIP_ICON, n ? '사진·파일 ' + n + '개' : '사진·파일', n > 0, '사진·파일') : '');
 }

@@ -82,6 +82,8 @@ document.addEventListener('click', ev => {
 // 시험판 54(대표 11/4 22:59 '출발·준비 아이콘만 다른 세트'): 화면 줄의 아이콘은 앱 아이콘 한 세트(ICON).
 // 걷기는 루틴 아이콘(BX_ICONS.walk)이 다른 아이콘보다 작고 가늘어 앱 아이콘 크기로 새로 그림. 따로 그린 아이콘(메모 · 첨부 · 모래시계 · 휴대폰 · 위젯)도 ICON에 모음
 ICON.walk = '<svg class="i" viewBox="0 0 24 24"><circle cx="14" cy="4" r="2.2"/><path d="M8 21.5l3.3-6.8 3.7 3.1v3.7"/><path d="M11.3 14.7l1.7-8"/><path d="M5.5 11.5l3.3-4.6h4.2l2.6 4.3 3.9 1.6"/></svg>';
+// 시험판 55(대표 11/5 03:16 '졸라맨 같은 출발 아이콘 다른 걸로', 선택실 B '집에서 나가기'): 출발·준비 · 루틴 이동 시간은 집에서 나가는 화살표. 걷기(ICON.walk)는 걷는 활동에만
+ICON.depart = '<svg class="i" viewBox="0 0 24 24"><path d="M3 11 9.5 5.5 16 11"/><path d="M5 9.5v10h5.5"/><path d="M14 9.5V12"/><path d="M11 16.5h10"/><path d="m18 13.5 3 3-3 3"/></svg>';
 ICON.memo = BX_MEMO_ICON;
 ICON.home = BX_HOME_ICON;
 ICON.checkC = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.3 2.5 2.5 4.6-5"/></svg>';

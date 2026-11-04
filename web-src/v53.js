@@ -32,4 +32,6 @@
   const ask = () => { if (!q) q = requestAnimationFrame(fit); };
   new MutationObserver(ask).observe(document.documentElement, { childList: true, subtree: true });
   addEventListener('resize', ask);
+  // 시험판 55(대표 11/5 '글꼴 로딩 후에도 배치 유지'): 글꼴(BX Pretendard)을 다 불러온 뒤 한 번 더 잰다. 그 전에는 다른 글꼴 너비로 재서 짧은 글을 잘못 고를 수 있다
+  if (document.fonts) { document.fonts.ready.then(ask); document.fonts.addEventListener && document.fonts.addEventListener('loadingdone', ask); }
 })();

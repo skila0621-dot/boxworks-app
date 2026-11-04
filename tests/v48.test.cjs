@@ -127,9 +127,9 @@ module.exports = async function () {
     await p.evaluate(pc => { localStorage.setItem('bx:pcal', JSON.stringify({ on: true })); localStorage.setItem('bx:pcache', JSON.stringify(pc)); }, pcache);
     await p.reload(); await p.waitForFunction(() => window.BX_T && document.querySelector('.dock')); await p.waitForTimeout(700);
     await p.click('.dock [data-view="month"]'); await p.waitForTimeout(600);
-    const pc = await p.evaluate(() => { const ch = getComputedStyle(document.querySelector('.cell .c-chip[data-item^="pc_"]')), bar = getComputedStyle(document.querySelector('.cell .c-bar.pc')), cc = getComputedStyle(document.querySelector('.bx-cchip.pc'));
-      return { bg: ch.backgroundColor, bl: ch.borderLeftWidth, bt: ch.borderTopWidth, bar: bar.backgroundColor, barB: bar.borderTopWidth, chip: cc.boxShadow }; });
-    c.ok(pc.bg !== 'rgba(0, 0, 0, 0)' && pc.bl === '2px' && pc.bt === '0px' && pc.bar === 'rgb(76, 175, 80)' && pc.barB === '0px' && pc.chip === 'none', '휴대폰 캘린더 일정 · 칩: 테두리 칸이 아니라 그 캘린더 색 ' + JSON.stringify(pc));
+    const pc = await p.evaluate(() => { const ch = getComputedStyle(document.querySelector('.cell .c-chip[data-item^="pc_"]')), bar = getComputedStyle(document.querySelector('.cell .c-bar.pc')), cc = getComputedStyle(document.querySelector('.bx-cchip.pc')), cn = getComputedStyle(document.querySelector('.bx-cchip:not(.pc):not(.bx-cchip-add)[aria-pressed="false"]') || document.querySelector('.bx-cchip.pc'));
+      return { bg: ch.backgroundColor, bl: ch.borderLeftWidth, bt: ch.borderTopWidth, bar: bar.backgroundColor, barB: bar.borderTopWidth, chip: cc.boxShadow, chipN: cn.boxShadow, chipBg: cc.backgroundColor, chipNBg: cn.backgroundColor }; });
+    c.ok(pc.bg !== 'rgba(0, 0, 0, 0)' && pc.bl === '2px' && pc.bt === '0px' && pc.bar === 'rgb(76, 175, 80)' && pc.barB === '0px' && pc.chip === pc.chipN && pc.chipBg === pc.chipNBg, '휴대폰 캘린더 일정은 테두리 칸이 아니라 그 캘린더 색 · 휴대폰 캘린더 칩은 다른 칩과 같은 모양(시험판 55 공통 부품) ' + JSON.stringify(pc));
     const h0 = await p.evaluate(() => document.querySelector('.screen.month h1').textContent);
     await swipe(p, '.screen .bx-cchips', -140); await p.waitForTimeout(500);
     c.eq(await p.evaluate(() => document.querySelector('.screen.month h1').textContent), h0, '칩 줄을 옆으로 밀면 달은 그대로');

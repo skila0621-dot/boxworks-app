@@ -13,3 +13,5 @@ __pycache__/
 
 # 정렬 점검 결과 사진 · 보고(tests/layout/run.cjs가 만든다)
 tests/layout/out/
+tests/layout/out-inv/
+tests/layout/out-base/

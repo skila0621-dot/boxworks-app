@@ -60,6 +60,8 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
 
   await open({ now: '2026-11-02T07:40:00+09:00', data: data() });
   await tryDo('홈', async () => { await snap('홈'); });
+  // 단추 견본(시험판 55, 결정 기록 D-28): 공통 부품을 상태마다 한 화면에 — 기준 사진(tests/layout/base.cjs)과 같은 화면
+  await tryDo('단추 견본', async () => { await p.evaluate(() => window.BX_specimen()); await snap('단추 견본'); await p.evaluate(() => { const e = document.getElementById('bx-spec'); if (e) e.remove(); }); });
   await tryDo('홈 루틴 자세히', async () => { await p.click('.rt-card[data-rid="rt_w"] .bx-rt-tog'); await snap('홈 루틴 자세히'); await p.click('.rt-card[data-rid="rt_w"] .bx-rt-tog'); });
   await tryDo('홈 지난 일', async () => { const b = await p.$('[data-act="bx-past"]'); if (b) { await b.click(); await snap('홈 지난 일 펼침'); await b.click(); } });
   await tryDo('홈 다음 날', async () => { await p.click('.bx-sum-nav[data-d="1"]'); await snap('홈 다음 날'); await p.click('[data-act="home-day"][data-d="0"]').catch(() => {}); });

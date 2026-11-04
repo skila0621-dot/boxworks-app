@@ -7,7 +7,7 @@ function seed() {
     ['c_w', { type: 'category', name: '일·공부', color: '#2a78d6', order: 0, createdAt: old }],
     ['c_p', { type: 'category', name: '개인', color: '#1baf7a', order: 1, createdAt: old }],
     ['c_m', { type: 'category', name: '회사 · 마케팅팀 공유 캘린더', color: '#6250d6', order: 2, createdAt: old }],
-    ['it_1', { type: 'item', title: '치과 정기 검진', date: '2026-11-02', start: '15:00', end: '16:00', remind: 10, location: '서울대학교치과병원 본관 3층 보존과 앞 회의실', note: '신분증 챙기기\n둘째 줄', categoryId: 'c_m', createdAt: old, updatedAt: '2026-10-30T00:00:00.000Z' }],
+    ['it_1', { type: 'item', title: '치과 정기 검진', date: '2026-11-02', start: '15:00', end: '16:00', remind: 10, location: '서울대학교치과병원 본관 3층 보존과 앞 회의실 옆 보호자 대기실', note: '신분증 챙기기\n둘째 줄', categoryId: 'c_m', createdAt: old, updatedAt: '2026-10-30T00:00:00.000Z' }],
     ['it_2', { type: 'item', title: '점심', date: '2026-11-01', start: '12:00', end: '', location: '강남역 2번 출구', categoryId: 'c_p', createdAt: old, updatedAt: '2026-10-31T00:00:00.000Z' }],
     ['it_3', { type: 'item', title: '회의', date: '2026-10-30', start: '10:00', end: '', location: '회사', categoryId: 'c_w', createdAt: old, updatedAt: '2026-10-29T00:00:00.000Z' }]];
 }
@@ -35,11 +35,13 @@ module.exports = async function () {
     const glow = +(((cal.sh.match(/\/ ([\d.]+)\) 0px 8px 22px/) || [])[1]) || 0);
     c.ok(/0px 8px 22px/.test(cal.sh) && glow > 0.25 && glow < 0.31, '+ 단추 둘레 빛 70%(28%) ' + cal.sh);
     c.ok(cal.vh === 31 && cal.bw === 28 && cal.hitTop === '-10px' && Math.abs(cal.dy) <= 2, '일 · 주 · 월 70%(높이 31 · 단추 28, 누르는 범위 44), + 단추와 같은 높이 ' + JSON.stringify(cal));
-    c.eq(cal.ch, 28, '캘린더 칩 높이 28');
+    // 시험판 55: 칩 높이는 공통 부품 값(--c-h, 대표가 선택실에서 고른 값)
+    const chH = await p.evaluate(() => Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--c-h'))));
+    c.eq(cal.ch, chH, '캘린더 칩 높이 = 공통 부품 칩 높이(' + chH + ')');
     // (2) 일정 창: 삼성 순서의 줄 목록, 길면 …, 비어 있으면 회색 이름
     await p.click('.dock [data-view="today"]'); await p.waitForTimeout(500);
     await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500);
-    c.eq(await rows(p), ['하루 종일', 'DT', '서울대학교치과병원 본관 3층 보존과 앞 회의실', '회사 · 마케팅팀 공유 캘린더', '10분 전', '출발·준비', '신분증 챙기기', '사진·파일'],
+    c.eq(await rows(p), ['하루 종일', 'DT', '서울대학교치과병원 본관 3층 보존과 앞 회의실 옆 보호자 대기실', '회사 · 마케팅팀 공유 캘린더', '10분 전', '출발·준비', '신분증 챙기기', '사진·파일'],
       '줄 순서: 하루 종일 · 시작 → 끝 · 장소 · 캘린더 · 알림 · 출발·준비 · 메모(첫 줄) · 사진·파일');
     const ell = await p.evaluate(() => { const t = document.querySelector('#f-chips [data-bxsub="loc"] .bx-er-t'); const s = getComputedStyle(t); return { cut: t.scrollWidth > t.clientWidth, ov: s.textOverflow, ws: s.whiteSpace, h: Math.round(t.closest('.bx-er').getBoundingClientRect().height) }; });
     c.ok(ell.cut && ell.ov === 'ellipsis' && ell.ws === 'nowrap' && ell.h === 56, '긴 장소는 한 줄, 뒤는 …(줄 높이 56) ' + JSON.stringify(ell));

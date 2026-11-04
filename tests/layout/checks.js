@@ -4,7 +4,7 @@
 //  ③ cut    글자 잘림(…로 줄인 것 말고): 화면 밖 · 상자 밖 · 숨김 상자에 잘림 · 입력칸 안내 글
 //  ④ col    같은 목록 안 줄끼리 칸 시작 위치(시각 · 아이콘 · 이름 · 상태 · 체크)
 //  ⑤ icon   같은 목록 안 아이콘: 한 세트 · 같은 크기 · 같은 굵기
-//  + midword(낱말 가운데 줄바꿈) · time24(오전 · 오후 없는 시각, 12시간 표시일 때)
+//  + midword(낱말 가운데 줄바꿈) · time24(오전 · 오후 없는 시각, 12시간 표시일 때) · comp(공통 부품과 다른 모양, 시험판 55)
 // 결과: [{k, p(자리), t(글), ...}] — 하나라도 있으면 시험판을 내지 않는다
 module.exports = function audit(opts){
   opts = opts || {};
@@ -214,6 +214,32 @@ module.exports = function audit(opts){
         if (m.index < 4) { const pv = n2.previousSibling ? n2.previousSibling.textContent : (pe.previousSibling ? pe.previousSibling.textContent : ''); ctx = String(pv || '').slice(-4) + ctx; }
         if (!/오[전후]\s?$/.test(ctx) && !/[–~\-]\s?$/.test(ctx)) out.push({k: 'time24', p: path(pe), t: t.slice(Math.max(0, m.index - 10), m.index + 10)});
       }
+    }
+  }
+  // ⑥ comp  공통 부품(app.css 맨 앞 '공통 부품')과 다른 모양(대표 11/5 01:30 '완성본을 골라 재활용', 결정 기록 D-28)
+  //   화면 규칙이 단추 · 칩 · 나눔 단추 · 글자 단추 · 아이콘 단추 · 체크의 높이 · 너비 · 모서리 · 글자 · 굵기를 다시 정하면 걸린다
+  //   기댓값은 :root 공통 값에서 읽는다(대표가 고른 값이 바뀌면 점검도 따라감). 선택자 목록은 app.css 공통 부품과 같게
+  {
+    const R = getComputedStyle(document.documentElement), tv = k => R.getPropertyValue(k).trim(), px = k => parseFloat(tv(k));
+    const C = [
+      {n: '큰 단추', sel: ':is(.btn,.bx-rt-new,.bxs-test,.bx-med-stop):not(.sm):not(.sq):not(.icon-btn)', h: px('--b-h'), r: tv('--b-r'), fs: tv('--b-fs'), fw: tv('--b-fw')},
+      {n: '작은 단추', sel: ':is(.btn.sm,.bx-ttb,.bx-mic):not(.icon-btn):not(.sq)', h: px('--bs-h'), r: tv('--bs-r'), fs: tv('--bs-fs'), fw: tv('--b-fw')},
+      {n: '칩', sel: ':is(.chip,.bx-cchip,.bx-ft-chip)', h: px('--c-h'), r: tv('--c-r'), fs: tv('--c-fs'), fw: tv('--c-fw')},
+      {n: '요일 동그라미', sel: ':is(.bx-tt45-days .tt-dbtn,.bx-rt45-days .day-tog)', h: px('--c-day'), w: px('--c-day'), fw: tv('--c-fw')},
+      {n: '나눔 단추', sel: '.seg > button', h: px('--sg-h'), fs: tv('--sg-fs'), fw: tv('--sg-fw')},
+      {n: '글자 단추', sel: ':is(.link-btn,.sec-link,.bx-rt-tog,.bxs-skip,.bxs-links button,.bxp-later,.bx-del-link,.bx-sum-back):not(.add)', h: px('--tb-h'), fs: tv('--tb-fs'), fw: tv('--tb-fw')},
+      {n: '아이콘 단추', sel: ':is(.icon-btn,.nav-btn,.bx-set-back,.bx-sum-nav,.bxs-back-i,.sec-link.add)', w: px('--icb'), h: px('--icb')},
+      {n: '체크 칸', sel: '.chk', w: px('--ck'), h: px('--ck'), r: tv('--ck-r')}
+    ];
+    if (!isNaN(px('--b-h'))) for (const c of C) for (const e of all) {
+      if (!e.matches(c.sel)) continue;
+      const s = cs(e), q = e.getBoundingClientRect(), why = [];
+      if (c.h && Math.abs(q.height - c.h) > 0.6) why.push('높이 ' + Math.round(q.height * 2) / 2 + '≠' + c.h);
+      if (c.w && Math.abs(q.width - c.w) > 0.6) why.push('너비 ' + Math.round(q.width * 2) / 2 + '≠' + c.w);
+      if (c.r && s.borderTopLeftRadius !== c.r) why.push('모서리 ' + s.borderTopLeftRadius + '≠' + c.r);
+      if (c.fs && s.fontSize !== c.fs) why.push('글자 ' + s.fontSize + '≠' + c.fs);
+      if (c.fw && s.fontWeight !== c.fw) why.push('굵기 ' + s.fontWeight + '≠' + c.fw);
+      if (why.length) out.push({k: 'comp', p: path(e), t: c.n + ' · ' + txt(e), why: why.join(' · ')});
     }
   }
   return out;

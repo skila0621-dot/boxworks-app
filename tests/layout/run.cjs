@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const OUT = path.resolve(arg('out', path.join(__dirname, 'out')));
-const GATE = ['tap', 'cover', 'cut', 'col', 'icon', 'gap', 'ink', 'midword', 'time24', 'error'];
+const GATE = ['tap', 'cover', 'cut', 'col', 'icon', 'gap', 'ink', 'midword', 'time24', 'comp', 'error'];
 
 if (process.argv[2] === '--worker') {
   const W = +process.argv[3], theme = process.argv[4], snapDir = arg('snap', ''), only = arg('only', ''), shots = arg('shots', '1') === '1';
