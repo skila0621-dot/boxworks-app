@@ -73,6 +73,8 @@ module.exports = async function () {
 
     await p.click('.bx-fab'); await p.waitForTimeout(600);
     c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 내일 오후 3시 치과', '새 일정 제목 칸(390): 원래 예시 그대로');
+    const pill = await p.evaluate(() => Array.from(document.querySelectorAll('.bx-pill49 .bx-pl-b')).map(b => { const r = b.getBoundingClientRect(), rg = document.createRange(); rg.selectNodeContents(b); const t = rg.getBoundingClientRect(); return Math.round(Math.abs((t.left + t.right) / 2 - (r.left + r.right) / 2)); }));
+    c.ok(pill.length === 2 && pill.every(d => d <= 2), "일정 창 '취소 | 저장': 글자가 단추 가운데(대표 11/4 22:15 '정렬 망가짐') " + JSON.stringify(pill));
     await p.setViewportSize({ width: 360, height: 844 }); await p.waitForTimeout(400);
     c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 오후 3시 치과', '새 일정 제목 칸(360): 칸에 안 들어가면 짧은 예시');
     await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(400);

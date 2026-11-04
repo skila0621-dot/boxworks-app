@@ -25,7 +25,9 @@
     'html.bx-app .bx-set-home .menu-row .mv{flex:1 1 auto;min-width:0;max-width:none;justify-content:flex-end}',
     'html.bx-app .bx-set-home .menu-row .mv .bx-mvt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
     'html.bx-app .bx-set-home .menu-row .mv svg{flex:none}',
-    'html.bx-app input{text-overflow:ellipsis}'
+    'html.bx-app input{text-overflow:ellipsis}',
+    // 대표 11/4 22:15 "취소 저장 버튼 정렬 망가짐": 단추는 글자 정렬을 바깥에서 물려받아(button{text-align:inherit}) 글자가 왼쪽에 붙어 있었다
+    'html.bx-app .bx-pill49 .bx-pl-b{text-align:center}'
   ].join('\n');
   (document.head || document.documentElement).appendChild(st);
   // 안내 글이 칸에 안 들어가면 짧은 글로. 원래 글은 data-bx-ph에 두고 칸이 넓어지면 되돌린다
