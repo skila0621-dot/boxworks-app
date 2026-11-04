@@ -33,15 +33,4 @@ document.addEventListener('click', ev => {
   rtPatchLog(rt.id, l => { l.holRun = true; });
   toast('오늘은 ' + rt.name + bxJosaUl(rt.name) + ' 해요. 알람도 울려요.');
 }, true);
-(function bxV31Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    '.bx-app .bx-holrow{margin-top:12px}',
-    // 쉬는 루틴 줄(오늘 쉬기 · 공휴일)은 흐리게. 오른쪽의 '오늘은 하기' · '다시 켜기'는 그대로 진하게
-    '.bx-app .bx-todo .rt-card.off .rt-h > :not([data-act]):not(.sp),.bx-app .bx-todo .rt-card.off .rt-note{opacity:.55}',
-    '.bx-app .bx-hol-note{margin:4px 0 0}',
-    '.bx-app .bx-hol-note[hidden]{display:none}'
-  ].join('');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

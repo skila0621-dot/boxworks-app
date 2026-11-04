@@ -47,55 +47,7 @@ document.addEventListener('click', ev => {
   }), 0);
 }, true);
 
-(function bxV30Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    // 시각 칩(규칙 12): 칸처럼 보이지 않고 누르는 값처럼
-    '.bx-tchip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:96px;height:44px;padding:0 16px;border-radius:12px;background:var(--sunk);border:1.5px solid var(--line);color:var(--ink);font-size:20px;font-weight:800;cursor:pointer}',
-    '.bx-tchip:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}',
-    '.bx-tchip input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none;background:transparent}',
-    // 설정: 켜기를 누른 줄 바로 아래, 오른쪽 같은 줄에 나오는 칸. 왼쪽에는 설명 한 줄
-    '.bx-app .bx-setsub{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:-2px 0 12px}',
-    '.bx-app .bx-setsub > .p.small{flex:1;min-width:0;margin:0;color:var(--ink-3);line-height:1.45;word-break:keep-all}',
-    '.bx-app .bx-setsub-c{display:inline-flex;align-items:center;gap:8px;flex:none}',
-    // '직접 입력'이 그 자리에서 입력칸이 된다(규칙 9·12)
-    '.bx-app .bx-cpick{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:40px;padding:0 12px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:14px;font-weight:700}',
-    '.bx-app .bx-cpick input{width:3.2em;height:30px;border:0;border-radius:8px;background:color-mix(in srgb,var(--accent-ink) 22%,transparent);color:inherit;font:inherit;font-size:16px;font-weight:800;text-align:center;padding:0;-moz-appearance:textfield}',
-    '.bx-app .bx-cpick input::-webkit-outer-spin-button,.bx-app .bx-cpick input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}',
-    '.bx-app .tt-pills .bx-cpick{flex:1.3;min-width:0;height:42px;border-radius:12px;padding:0 6px;font-size:13px}',
-    '.bx-app .tt-pills .bx-cpick input{width:2.6em}',
-    // '없음'은 칩 대신 아래 글자 단추(규칙 11)
-    '.bx-app .bx-none{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 2px;border:0;background:none;color:var(--ink-3);font:inherit;font-size:14px;font-weight:700}',
-    '.bx-app .bx-none[aria-pressed="true"]{color:var(--accent-text)}',
-    '.bx-app .bx-none .i{width:16px;height:16px}',
-    // 새 일정 창: 고르는 칸은 칩 위에(칩은 제자리)
-    '.bx-app #f-panel{margin:0 0 -6px}',
-    // 주간: 일정 없는 날은 한 줄
-    '.bx-app .day-g.bx-wk-empty{padding-top:0;padding-bottom:0}',
-    '.bx-app .day-g.bx-wk-empty .empty{display:none}',
-    '.bx-app .day-g.bx-wk-empty .sec-h{min-height:44px;margin:0;border-bottom:1px solid var(--line)}',
-    '.bx-app .day-g.bx-wk-empty .day-d{font-size:16px}',
-    '.bx-app .bx-wk-none{margin-left:10px;color:var(--ink-3);font-size:14px;font-weight:600}',
-    '.bx-app .screen.week{row-gap:12px}',
-    '.bx-app .day-g.bx-wk-empty + .day-g.bx-wk-empty{margin-top:-12px}',
-    '.bx-app .sec-link.add{width:40px;height:40px;padding:0;justify-content:center;border-radius:12px}',
-    '.bx-app .sec-link.add .i{width:20px;height:20px}',
-    // 캘린더 머리의 월간|주간 칩은 가운데(대표 의견 11/2: 아래 ‹ 11월 › 과 같은 세로줄). '이번 달로'는 오른쪽, 휴대폰 캘린더 표시는 그 아래 줄
-    '.bx-app .bx-ch-top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center}',
-    '.bx-app .bx-ch-top .tt-mode{display:contents}',
-    '.bx-app .bx-ch-top .seg{grid-column:2;grid-row:1}',
-    '.bx-app .bx-ch-top .bx-cal-lg{grid-column:1 / -1;grid-row:2;justify-self:center;margin-top:6px}',
-    '.bx-app .bx-ch-top .bx-ch-today{grid-column:3;grid-row:1;justify-self:end}',
-    // 다 했어요 표시는 네모 칸(대표 지적 11/2: 수업 점·지금 줄·동그라미가 다 동그라미라 누르는 곳인지 모름). 루틴 단계 표시도 같게
-    '.bx-app .chk{border-radius:7px}',
-    '.bx-app .rt-chk{border-radius:7px;border-width:2px}',
-    // 마이크에 '말하기' 글자
-    '.bx-app .bx-mic{width:auto;min-width:44px;padding:0 14px 0 11px;gap:5px;font:inherit;font-size:14px;font-weight:800;white-space:nowrap}',
-    '.bx-app .bx-mic svg{flex:none}'
-  ].join('');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 
 /* 홈 '오늘 할 일'을 한 목록, 시각 순서로(빈 공간 대표 11/2 · 문제점 점검 경험 1: 루틴·일정·수업 세 칸이라 10:30 수업이 맨 아래).
    칸 제목(루틴·일정·수업)과 접기를 빼고 시각 순서대로 한 목록에 둔다. 지난 일정(확인 필요)은 맨 위 그대로.
@@ -203,59 +155,11 @@ function bxTimeline(){
   // 칸별 접기는 쓰지 않는다(접어 둔 것이 있었으면 풀어 보인다)
   document.documentElement.classList.remove('bx-f-rt', 'bx-f-today', 'bx-f-tt');
 }
-(function bxTimelineStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    '.bx-app .bx-tl{margin-top:4px;border-top:0}',
-    '.bx-app .bx-todo .bx-tl > .row,.bx-app .bx-todo .bx-tl > .rt-card{border-bottom:1px solid var(--line)}',
-    '.bx-app .bx-todo .bx-tl > :last-child{border-bottom:0}',
-    '.bx-app .bx-todo .bx-tl > .rt-card{margin:0!important;padding:10px 0 8px!important}',
-    '.bx-app .bx-tl-rt .rt-h .rt-meta{display:none}',
-    '.bx-app .bx-tl .bx-tl-rt .rt-h{flex-wrap:nowrap;column-gap:14px}',
-    '.bx-app .bx-tl-rt .rt-h .bx-ic{flex:none}',
-    '.bx-app .bx-tl-rt .rt-h b{flex:1 1 0;min-width:0;font-size:16px}',
-    '.bx-app .bx-tl-rt .bx-tl-t .bx-tl-s{font-size:16px;font-weight:500;color:var(--ink)}',
-    '.bx-app .bx-tl-rt .bx-tl-t small{font-size:13px;color:var(--ink-3)}',
-    '.bx-app .bx-tl-rt .rt-note{padding-left:98px;margin-top:2px}',
-    '.bx-app .bx-tl-rt .rt-steps{margin-left:98px}',
-    // 지난 일 한 줄(접힘): 표시 칸에 꺾쇠, 글자는 시각 칸에서 시작
-    '.bx-app .bx-past-tog{display:flex;align-items:center;gap:14px;width:100%;min-height:44px;padding:0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink-3);font:inherit;font-size:14px;font-weight:600;text-align:left}',
-    '.bx-app .bx-pt-i{width:24px;display:inline-flex;justify-content:center;flex:none}.bx-app .bx-pt-i .i{width:18px;height:18px;transition:transform .15s}',
-    '.bx-app .bx-past-tog[aria-expanded="true"] .bx-pt-i .i{transform:rotate(180deg)}',
-    '.bx-app .bx-past > .row,.bx-app .bx-past > .rt-card{opacity:.62;border-bottom:1px solid var(--line)}',
-    '.bx-app .bx-past[hidden]{display:none}',
-    // 지금 하는 일: 배경, 다음 일: 지금 하는 일이 있으면 꼬리표만
-    '.bx-app .bx-todo .row.bx-now{background:var(--accent-soft)}',
-    '.bx-app .bx-todo .rt-card.bx-now,.bx-app .bx-todo .rt-card.bx-next{background:var(--accent-soft);border-radius:14px;margin:0 -10px!important;padding:10px 10px 8px!important;border-bottom-color:transparent}',
-    '.bx-app .bx-todo .row.bx-next-soft{background:none}',
-    '.bx-app .bx-next-tag{color:var(--accent-text);font-weight:700}',
-    '.bx-app .bx-tl-done{margin:10px 0 4px;color:var(--ink-3);font-size:14px;padding-left:58px}',
-    '.bx-app .bx-tl .now-line{margin:0;border-bottom:0}',
-    // 줄마다 같은 칸(대표 지적 11/2: 아이콘 크기·새로 붙은 항목 때문에 정렬이 흐트러짐): 표시 24px(가운데 32px) · 시각 58px · 제목 118px
-    '.bx-app .bx-tl .bx-tl-rt .rt-h{column-gap:14px}',
-    '.bx-app .bx-tl .bx-tl-rt .rt-h .bx-ic.rt{width:24px;height:24px;border-radius:8px}',
-    '.bx-app .bx-tl .bx-tl-rt .rt-h .bx-ic.rt .i{width:15px;height:15px}',
-    '.bx-app .bx-tl .tt-row .tt-dot{margin:0 6px}',
-    '.bx-app .bx-tl .rt-h [data-act="rt-skip"]{flex:none;white-space:nowrap;min-height:36px;padding:0 4px}'
-  ].join('');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 
 /* 새 일정·일정 고치기 창: 작게 시작한다(대표 결정 11/2 밤: A2는 지금 모습이 좋음, 여백은 조금 줄이기).
    칩을 눌러 칸이 열리면 창이 커지는데, 한 번에 튀지 않고 부드럽게 커져 눈이 누른 칩을 따라가게 한다 */
-(function bxFormStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    '.bx-app .bx-esheet .sheet-b{gap:14px;padding-bottom:16px}',
-    '.bx-app .bx-esheet #f-panel{margin-top:0;padding:12px}',
-    '.bx-app .bx-esheet .fchips{margin-top:0}',
-    '.bx-app .bx-esheet.bx-grow{transition:height .2s ease;overflow:hidden}',
-    '@media (prefers-reduced-motion:reduce){.bx-app .bx-esheet.bx-grow{transition:none}}'
-  ].join('');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
   const chip = ev.target.closest('#sheet-root .bx-esheet .fchip, #sheet-root .bx-esheet [data-bx-remsw], #sheet-root .bx-esheet [data-bx-rem]'); if (!chip) return;
@@ -313,18 +217,4 @@ document.addEventListener('click', ev => {
   }
   drawFRem();
 }, true);
-(function bxRemStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    '.bx-app .bx-rem-adv{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}',
-    // 켜기·끄기 줄: 이름은 왼쪽, 스위치는 오른쪽. 켰을 때만 아래에 고르는 칸
-    '.bx-app .bx-swrow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px}',
-    '.bx-app .bx-swrow > span{font-size:14px;font-weight:700;color:var(--ink)}',
-    '.bx-app .bx-swrow + .picks,.bx-app .bx-swrow + .tt-pills{margin-top:10px}',
-    // 시간을 정하지 않은 일정의 '출발·준비': 안내 한 줄과 단추를 가운데에(어느 칩에서 눌러도 눈이 가운데로, 대표 11/2)
-    '.bx-app #f-go:has(> [data-fpanel="time"]){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:100%;text-align:center}',
-    '.bx-app #f-go:has(> [data-fpanel="time"]) > .p{margin:0;word-break:keep-all}'
-  ].join('');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

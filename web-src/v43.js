@@ -116,28 +116,4 @@ setTimeout(() => {
   window.BX_back.bx43 = true;
 }, 0);
 
-(function bxV43Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v43';
-  st.textContent = [
-    // 왼쪽 아래 일 · 주 · 월(작게). + 단추(60px, 아래에서 16px)와 가운데를 맞춘다
-    'html.bx-app .bx-vsw{position:fixed;left:max(18px,env(safe-area-inset-left,0px));bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 24px);z-index:41;display:none;align-items:center;gap:2px;height:44px;padding:3px;border-radius:22px;background:color-mix(in srgb,var(--bg) 90%,var(--ink) 10%);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.1)}',
-    'html.bx-app.bx-vsw-on .bx-vsw{display:flex}',
-    'html.bx-app .bx-vsw button{display:flex;align-items:center;justify-content:center;width:40px;height:36px;padding:0;border:0;border-radius:18px;background:transparent;color:var(--ink-2);font:inherit;font-size:14px;font-weight:800;text-align:center}',
-    'html.bx-app .bx-vsw button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}',
-    // 위 줄이 빠진 머리: '‹ 11월 ›'이 맨 위, '오늘'은 그 줄 오른쪽 끝
-    'html.bx-app .bx-ch-mid{position:relative;margin-top:0}',
-    'html.bx-app .bx-ch-mid .bx-ch-today{position:absolute;right:0;top:50%;transform:translateY(-50%)}',
-    // 칩 줄과 요일 줄 사이 틈을 줄이고, 칸 높이는 화면에 맞춘다
-    'html.bx-app .screen.month{row-gap:14px}',
-    'html.bx-app .screen.month .cal .cell{min-height:var(--bx-cell-h,86px)}',
-    // 하루 보기
-    'html.bx-app .screen.day{row-gap:14px}',
-    'html.bx-app .screen.day .bx-dayv{margin:0 calc(-1 * var(--card-pad));padding:0;border:0;border-radius:24px;background:var(--card-bg);box-shadow:var(--card-sh);--sunk:var(--bx-card-in)}',
-    'html.bx-app .screen.day .bx-dayv .tc-body{padding:6px var(--card-pad) 10px}',
-    'html.bx-app .screen.day .bx-dayv .list{border-top:0}',
-    'html.bx-app .screen.day .bx-dayv-none{padding:18px 0 6px;color:var(--ink-3);text-align:center}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

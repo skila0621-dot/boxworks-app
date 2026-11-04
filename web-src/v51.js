@@ -34,29 +34,5 @@ window.BX_TIME = {bxT, bxTR, bxH, bxHR, bxHMAll};
   if (document.body) scan(document.body);
   ['input', 'change'].forEach(t => document.addEventListener(t, ev => { const i = ev.target; if (i && i.dataset && i.dataset.bx12) sync(i); }, true));
 
-  const st = document.createElement('style');
-  st.id = 'bx-v51-css';
-  st.textContent = [
-    // 시각 칸: 글은 아래, 투명한 입력 칸은 위(누르기)
-    'html.bx-app .bx-t12{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;overflow:hidden;white-space:nowrap;cursor:pointer}',
-    'html.bx-app .bx-t12 > .bx-t12-v{pointer-events:none;font-variant-numeric:tabular-nums}',
-    'html.bx-app .bx-t12 > input[type="time"]{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;opacity:0!important;z-index:1;background:transparent!important;box-shadow:none!important;cursor:pointer}',
-    'html.bx-app .bx-t12:focus-within{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}',
-    // 시간표 왼쪽 시각 줄: 12시간 숫자, 처음 시각의 오전 · 오후는 왼쪽 위 칸에, 정오에는 그 위에 '오후'
-    'html.bx-app .tt-h.tt-tc{display:flex;align-items:flex-end;justify-content:flex-end;padding:0 2px 2px 0}',
-    'html.bx-app .bx-tt-ap{font-size:11.5px;font-weight:500;color:var(--ink-3);line-height:1}',
-    'html.bx-app .tt-line span small{position:absolute;right:0;bottom:100%;font-size:11.5px;line-height:1.1;white-space:nowrap}',
-    // 줄의 시각 칸: '오후 12:30'(16px 굵게 75px)이 한 줄에 들어가게 넓힌다. 루틴 카드의 단계 · 안내 줄도 같은 만큼 오른쪽으로(아이콘 24 + 14 + 시각 76 + 14)
-    'html.bx-app .row-time{width:76px}',
-    'html.bx-app .row-time b,html.bx-app .row-time small{white-space:nowrap}',
-    'html.bx-app .bx-tl-rt .rt-note{padding-left:128px}',
-    'html.bx-app .bx-tl-rt .rt-steps{margin-left:128px}',
-    // 메모 줄 왼쪽 시각: '오후 12:30'(13px 굵게 61px)이 들어가고 줄마다 글이 같은 곳에서 시작하게
-    'html.bx-app .bx-mm-row > .bx-mm-t{min-width:62px;white-space:nowrap}',
-    // 출발 칸: '오후 2:40'이 칸을 넓히지 않게 한 단계 작게
-    'html.bx-app .bx-r49-go b{font-size:14px}',
-    // 떠 있는 '취소 | 저장'은 뒤 글자가 비치지 않게 바탕을 채운다
-    'html.bx-app .bx-pill49{background:var(--bg)}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
+  // 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 })();

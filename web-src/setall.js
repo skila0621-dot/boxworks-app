@@ -14,24 +14,4 @@ document.addEventListener('click', ev => {
   mr.type = 'button'; mr.className = 'menu-row'; mr.dataset.menu = b.dataset.act.slice(7); mr.hidden = true;
   document.body.appendChild(mr); mr.click(); mr.remove();
 }, true);
-(function bxSetRowsStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    'html.bx-app .set-sec.bx-all{padding:4px var(--card-pad);gap:0}',
-    'html.bx-app .bx-arow{display:flex;align-items:center;gap:10px;width:100%;min-height:66px;padding:11px 0;text-align:left;border-bottom:1px solid var(--line)}',
-    'html.bx-app .bx-all > .bx-arow:last-child{border-bottom:0}',
-    'html.bx-app .bx-at{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;text-align:left}',
-    'html.bx-app .bx-at b{font-size:16px;font-weight:600;color:var(--ink)}',
-    'html.bx-app .bx-at small{font-size:14px;line-height:1.35;color:var(--accent-text)}',
-    'html.bx-app .bx-arow > .i{color:var(--ink-3);flex:none}',
-    'html.bx-app .bx-adiv{width:1px;height:28px;background:var(--line-2);flex:none;margin:0 4px}',
-    'html.bx-app .bx-adanger{color:var(--danger)}',
-    // 자세한 화면: 제목은 머리 줄에 있으니 상자 안 같은 제목은 숨김, 설명 한 줄은 상자 밑
-    'html.bx-app .bx-setd{display:flex;flex-direction:column;gap:14px}',
-    'html.bx-app .bx-setd .bx-lock-h{display:none}',
-    'html.bx-app .bx-setd .bx-lvset > .p.small:first-of-type{margin-top:0!important}',
-    'html.bx-app .bx-setd-note{margin:-6px 4px 4px;color:var(--ink-3);line-height:1.5}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

@@ -10,6 +10,7 @@
    문서: 일정 item.att = [{id, kind:'img'|'file', path:'attach/…', thumb?, name, mime, size, w?, h?, at}] — path는 앱 폴더 기준 */
 const BX_ATT_MAX = 10;
 const BX_CLIP_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="m20.6 11.4-8.4 8.4a5.4 5.4 0 0 1-7.6-7.6l8.4-8.4a3.6 3.6 0 0 1 5.1 5.1l-8.4 8.3a1.8 1.8 0 0 1-2.5-2.5l7.7-7.7"/></svg>';
+ICON.clip = BX_CLIP_ICON; // 앱 아이콘 한 세트(ICON, 시험판 54)
 const BX_IMG_ICON = '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m20.5 16-4.8-4.8L6.2 19.5"/></svg>';
 const BX_CAM_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M4.5 8.5h3l1.6-2.5h5.8l1.6 2.5h3A1.5 1.5 0 0 1 21 10v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18v-8a1.5 1.5 0 0 1 1.5-1.5z"/><circle cx="12" cy="13.6" r="3.3"/></svg>';
 const BX_FILE_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M14 3.5H7.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8z"/><path d="M14 3.5V8h4.5"/></svg>';
@@ -247,38 +248,4 @@ importJson = async function(file){
   document.querySelectorAll('img[data-bxatt-rel]').forEach(i => { i.src = bxAttSrc(i.dataset.bxattRel); });
 };
 
-(function bxV42Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v42';
-  st.textContent = [
-    'html.bx-app .meta.bx-att-m{display:inline-flex;align-items:center;gap:2px}html.bx-app .meta.bx-att-m svg.i{width:14px;height:14px}',
-    'html.bx-app .bx-att-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}',
-    'html.bx-app .bx-att-th{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:var(--sunk)}',
-    'html.bx-app .bx-att-open{display:block;width:100%;height:100%;padding:0;border:0;background:transparent}',
-    'html.bx-app .bx-att-open img{display:block;width:100%;height:100%;object-fit:cover}',
-    'html.bx-app .bx-att-miss{display:none}html.bx-app .miss > img{display:none}html.bx-app .miss .bx-att-miss{display:flex;height:100%;align-items:center;justify-content:center;padding:6px;font-size:13px;color:var(--ink-3);text-align:center}',
-    'html.bx-app .bx-att-x{position:absolute;top:5px;right:5px;width:30px;height:30px;padding:0;border:0;border-radius:15px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff}',
-    'html.bx-app .bx-att-x svg.i{width:16px;height:16px}',
-    'html.bx-app .bx-att-files{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}',
-    'html.bx-app .bx-att-f{position:relative;display:flex;align-items:center;border-radius:14px;background:var(--sunk)}',
-    'html.bx-app .bx-att-fopen{flex:1;min-width:0;display:flex;align-items:center;gap:10px;height:52px;padding:0 44px 0 14px;border:0;background:transparent;color:var(--ink);text-align:left}',
-    'html.bx-app .bx-att-fopen svg.i{flex:none;width:20px;height:20px;color:var(--accent-text)}',
-    'html.bx-app .bx-att-fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;font-weight:600}',
-    'html.bx-app .bx-att-fopen small{flex:none;color:var(--ink-3);font-size:13px}',
-    'html.bx-app .bx-att-f .bx-att-x{top:11px;background:color-mix(in srgb,var(--ink) 14%,transparent);color:var(--ink)}',
-    'html.bx-app .bx-att-add{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
-    'html.bx-app .bx-att-add .btn{min-width:0;justify-content:center;gap:5px;padding:0 6px;white-space:nowrap}html.bx-app .bx-att-add .btn svg.i{flex:none;width:17px;height:17px}',
-    'html.bx-app .bx-att-note{margin:10px 2px 0;color:var(--ink-3)}',
-    // 크게 보기
-    '#bx-att-view{position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;background:#08090c;color:#fff;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}',
-    '#bx-att-view .bx-av-top{display:flex;align-items:center;gap:8px;min-height:56px;padding:0 6px 0 18px}',
-    '#bx-att-view .bx-av-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;font-weight:600;opacity:.9}',
-    '#bx-att-view .bx-av-x{width:48px;height:48px;border:0;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center}#bx-att-view .bx-av-x svg.i{width:24px;height:24px}',
-    '#bx-att-view .bx-av-img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 8px}',
-    '#bx-att-view .bx-av-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}',
-    '#bx-att-view .bx-av-miss{display:none;max-width:280px;text-align:center;line-height:1.6;opacity:.8}#bx-att-view .miss img{display:none}#bx-att-view .miss .bx-av-miss{display:block}',
-    '#bx-att-view .bx-av-bot{display:flex;justify-content:center;padding:12px 16px 18px}#bx-att-view .bx-av-bot .btn{min-width:200px}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

@@ -52,26 +52,4 @@ document.addEventListener('change', ev => {
   document.querySelectorAll('[data-bxlate46]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.bxlate46 === ev.target.value)));
 });
 
-(function bxV46Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v46';
-  st.textContent = [
-    'html.bx-app .bx-ep .bx-late46-q{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}',
-    'html.bx-app .bx-ep .bx-late46-q .pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:auto;height:auto;min-height:68px;margin:0;padding:10px 4px;border:0;border-radius:18px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:16px;font-weight:700;white-space:nowrap}',
-    'html.bx-app .bx-ep .bx-late46-q .pick small{margin:0;font-size:13px;font-weight:500;color:var(--ink-2)}',
-    'html.bx-app .bx-ep .bx-late46-q .pick[aria-pressed="true"]{background:var(--accent-soft)!important;box-shadow:inset 0 0 0 2px var(--accent)!important}',
-    'html.bx-app .bx-ep .bx-late46-box > .bx-er:last-child{border-bottom:0}',
-    // 홈 요약 상자 안 20(시험판 44의 규칙이 더 센 규칙에 눌려 14로 남아 있었음): 날짜 줄 화살표 · 숫자 칸이 글자 줄 32에서 시작
-    'html.bx-app .screen.today .home-col > section.bx-sumcard{padding:8px 20px 16px}',
-    // 상자 제목 크기 맞춤: '오늘의 메모'(19)를 '오늘 할 일'(20)과 같게
-    'html.bx-app .bx-mm-h h2{font-size:20px}',
-    // 새 루틴의 템플릿 칸: 테두리 상자 대신 채운 상자(삼성 상자처럼), 글자 계층 15.5 · 13
-    // 상자는 창 끝에서 12(다른 상자와 같은 줄), 상자 안 글자는 32에서 시작
-    'html.bx-app .bx-tpls{gap:10px;margin:0 calc(-1 * var(--card-pad))}',
-    'html.bx-app .bx-tpl{min-height:88px;padding:14px 20px;border:0;border-radius:22px;background:var(--bx-card)}',
-    'html.bx-app .bx-tpl:active{background:color-mix(in srgb,var(--bx-card) 88%,var(--ink))}',
-    'html.bx-app .bx-tpl b{font-size:16px}html.bx-app .bx-tpl small{font-size:13px}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

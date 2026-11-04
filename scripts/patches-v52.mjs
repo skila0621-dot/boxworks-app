@@ -52,21 +52,41 @@ export default [
   },
   {
     // 짧게 한 번 단계: '12분 지남'(주황) 대신 끝 시각과 다음 단계, 단추는 눌러도 되고 안 눌러도 되는 모양
+    // 시험판 54(대표 11/4 22:46 '했어요 기다리기보다 그냥 체크 박스로'): 앱에서는 단계 목록과 같은 체크 칸
     name: "└ 홈 루틴 카드 '지금' 줄",
     find: `      const late = s.nowM - c.at;
       now = '<div class="rt-now' + (late >= 10 ? ' late' : '') + '"><span class="rt-badge">지금</span><b>' + esc(c.name) + '</b><span class="rt-left tnum">' + bxT(mm(c.at)) + (late >= 1 ? ' · ' + leftText(late * 60000) + ' 지남' : ' · 지금 할 차례') + '</span><button type="button" class="btn sm primary" data-act="rt-ok" data-rid="' + rid + '" data-sid="' + esc(c.id) + '">' + esc(c.ok) + '</button></div>';`,
     replace: `      const late = s.nowM - c.at, sh = c.ring === 'short';
       const lt = sh ? (c.min ? bxT(mm(c.at + c.min)) + '까지' : bxT(mm(c.at))) + (s.next ? ' · 다음 ' + esc(s.next.leave ? '출발' : s.next.name) : '') : bxT(mm(c.at)) + (late >= 1 ? ' · ' + leftText(late * 60000) + ' 지남' : ' · 지금 할 차례');
-      now = '<div class="rt-now' + (late >= 10 && !sh ? ' late' : '') + '"><span class="rt-badge">지금</span><b>' + esc(c.name) + '</b><span class="rt-left tnum">' + lt + '</span><button type="button" class="btn sm' + (sh ? '' : ' primary') + '" data-act="rt-ok" data-rid="' + rid + '" data-sid="' + esc(c.id) + '">' + esc(c.ok) + '</button></div>';`
+      now = '<div class="rt-now' + (late >= 10 && !sh ? ' late' : '') + '"><span class="rt-badge">지금</span><b>' + esc(c.name) + '</b><span class="rt-left tnum">' + lt + '</span>' + (window.BX_APP ? '<button type="button" class="chk rt-chk" data-act="rt-done" data-rid="' + rid + '" data-sid="' + esc(c.id) + '" aria-label="' + esc(c.name) + ' 완료로 표시">' + ICON.check + '</button>' : '<button type="button" class="btn sm' + (sh ? '' : ' primary') + '" data-act="rt-ok" data-rid="' + rid + '" data-sid="' + esc(c.id) + '">' + esc(c.ok) + '</button>') + '</div>';`
   },
   {
-    // 시각이 지나 저절로 지나간 단계는 흐리게(지운 줄 · 체크 표시 없이). 확인한 단계만 체크와 시각
-    name: '└ 홈 루틴 카드 단계 목록: 저절로 지나간 단계',
-    find: `const isCur = s.cur && s.cur.id === r.id, cls = r.done ? 'done' : r.kind === 'wait' ? 'wait' : isCur ? 'cur' : '';
-    const st = r.done ? ICON.check + (r.done === 'auto' ? '끝' : hm(new Date(r.done))) : r.kind === 'wait' ? '기다리기' : isCur ? (r.started ? '하는 중' : '지금') : '';`,
-    // 확인한 단계는 체크만(시각 '07:00'이 24시간으로 보이던 것, 이름 칸이 좁아 '기상하…'로 잘리던 것)
-    replace: `const isCur = s.cur && s.cur.id === r.id, cls = r.done === 'auto' && window.BX_APP ? 'past' + (r.kind === 'wait' ? ' wait' : '') : r.done ? 'done' : r.kind === 'wait' ? 'wait' : isCur ? 'cur' : '';
-    const st = r.done === 'auto' && window.BX_APP ? '' : r.done ? ICON.check + (window.BX_APP ? '' : r.done === 'auto' ? '끝' : hm(new Date(r.done))) : r.kind === 'wait' ? '기다리기' : isCur ? (r.started ? '하는 중' : '지금') : '';`
+    // 시각이 지나 저절로 지나간 단계는 흐리게(지운 줄 · 체크 표시 없이). 확인한 단계만 체크
+    // 시험판 54(대표 11/4 22:46 ② '줄 목록 하나', 결정 기록 D-27): 앱에서는 줄마다 시각 | 아이콘 | 이름 | 체크 칸. 목록 전체가 같은 칸(app.css .rt-steps li)
+    //   · 지금 단계는 그 줄에 테두리, 이름 아래 '오후 10:25까지 · 다음 …'(이름과 같은 시작)
+    //   · '했어요' · '기다리기' 대신 체크 칸. 누르면 끝냄. 기다리기 단계는 시각이 지나면 저절로 체크
+    //   · 아이콘이 없는 단계도 아이콘 자리를 비워 둔다(이름 시작이 줄마다 같게)
+    name: '└ 홈 루틴 카드 단계 목록: 줄마다 시각 | 아이콘 | 이름 | 체크 칸',
+    find: `    const isCur = s.cur && s.cur.id === r.id, cls = r.done ? 'done' : r.kind === 'wait' ? 'wait' : isCur ? 'cur' : '';
+    const st = r.done ? ICON.check + (r.done === 'auto' ? '끝' : hm(new Date(r.done))) : r.kind === 'wait' ? '기다리기' : isCur ? (r.started ? '하는 중' : '지금') : '';
+    const chk = !r.done && r.kind !== 'wait' ? '<button type="button" class="rt-chk" data-act="rt-done" data-rid="' + rid + '" data-sid="' + esc(r.id) + '" aria-label="' + esc(r.name) + ' 완료로 표시"></button>' : '<span class="rt-chk-sp"></span>';
+    return '<li class="' + cls + '"><span class="rt-t tnum">' + bxT(mm(r.at)) + '</span><span class="rt-n">' + (window.BX_APP ? bxStepIconHtml(r.name) : '') + esc(r.name) + (r.min ? '<small>' + r.min + '분</small>' : '') + '</span><span class="rt-s">' + st + '</span>' + chk + '</li>';`,
+    replace: `    const isCur = s.cur && s.cur.id === r.id, cls = r.done === 'auto' && window.BX_APP ? 'past' + (r.kind === 'wait' ? ' wait' : '') : r.done ? 'done' : r.kind === 'wait' ? 'wait' : isCur ? 'cur' : '';
+    if (window.BX_APP) {
+      const on = !!r.done && (r.done !== 'auto' || r.kind === 'wait');
+      const sub = isCur ? '<span class="rt-sub tnum">' + (r.min ? bxT(mm(r.at + r.min)) + '까지' : '지금 할 차례') + '</span>' : '';
+      // 체크 칸은 홈 일정 줄과 같은 부품(.chk): 크기 · 테두리 · 체크 모양이 같다
+      const chk = on ? '<span class="chk rt-chk on" role="img" aria-label="' + esc(r.name) + ' 끝냄">' + ICON.check + '</span>' : '<button type="button" class="chk rt-chk" data-act="rt-done" data-rid="' + rid + '" data-sid="' + esc(r.id) + '" aria-label="' + esc(r.name) + ' 완료로 표시">' + ICON.check + '</button>';
+      return '<li class="' + cls + '"><span class="rt-t tnum">' + bxT(mm(r.at)) + '</span>' + bxStepIconHtml(r.name, true) + '<span class="rt-n"><span class="rt-nm">' + esc(r.name) + (r.min ? '<small>' + r.min + '분</small>' : '') + '</span>' + sub + '</span>' + chk + '</li>';
+    }
+    const st = r.done ? ICON.check + (r.done === 'auto' ? '끝' : hm(new Date(r.done))) : r.kind === 'wait' ? '기다리기' : isCur ? (r.started ? '하는 중' : '지금') : '';
+    const chk = !r.done && r.kind !== 'wait' ? '<button type="button" class="rt-chk" data-act="rt-done" data-rid="' + rid + '" data-sid="' + esc(r.id) + '" aria-label="' + esc(r.name) + ' 완료로 표시"></button>' : '<span class="rt-chk-sp"></span>';
+    return '<li class="' + cls + '"><span class="rt-t tnum">' + bxT(mm(r.at)) + '</span><span class="rt-n">' + esc(r.name) + (r.min ? '<small>' + r.min + '분</small>' : '') + '</span><span class="rt-s">' + st + '</span>' + chk + '</li>';`
+  },
+  {
+    name: '└ 도착 줄: 아이콘 자리 · 체크 자리를 비워 같은 칸에',
+    find: `'<li class="arr"><span class="rt-t tnum">' + bxT(rt.target) + '</span><span class="rt-n">도착<small>이동 ' + rt.travel + '분 · 여유 ' + rt.buffer + '분</small></span><span class="rt-s"></span><span class="rt-chk-sp"></span></li>'`,
+    replace: `'<li class="arr"><span class="rt-t tnum">' + bxT(rt.target) + '</span>' + (window.BX_APP ? '<span class="bx-ic st" aria-hidden="true"></span><span class="rt-n"><span class="rt-nm">도착<small>이동 ' + rt.travel + '분 · 여유 ' + rt.buffer + '분</small></span></span>' : '<span class="rt-n">도착<small>이동 ' + rt.travel + '분 · 여유 ' + rt.buffer + '분</small></span><span class="rt-s"></span>') + '<span class="rt-chk-sp"></span></li>'`
   },
   {
     // 앱을 열어 둔 동안 화면 안에 뜨는 알림 카드도 같은 규칙: 꼭 울림 단계만(짧게 한 번은 휴대폰 알림 한 장으로 충분), '10분 뒤 출발' 카드 없음

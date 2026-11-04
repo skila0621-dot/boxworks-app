@@ -6,22 +6,7 @@
    - 아래 메뉴: '더보기'를 빼고 기능만(기본 루틴 · 캘린더 · 홈 · 시간표). 4개까지 더 고를 수 있음(기능 · 메뉴 편집)
    - 처음 여는 화면: 로고 + '스케줄러' + 차오르는 게이지(patches-v38.mjs가 넣는 #bx-splash). 자료를 다 읽고 처음 그리면 닫힌다.
      너무 빨리 지나가 깜빡이지 않게 적어도 0.6초는 보인다. 누르는 것은 막지 않는다(pointer-events: none) */
-(function bxBarStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    '.ab-menu{display:none}',
-    // 왼쪽 메뉴 단추와 오른쪽 아이콘이 화면 끝에서 26(삼성 캘린더 26~28)
-    'html.bx-app .appbar-in{position:relative;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}',
-    'html.bx-app .ab-menu{display:inline-flex}',
-    'html.bx-app .ab-menu svg.i{width:22px;height:22px}',
-    'html.bx-app .ab-more{display:none}',
-    'html.bx-app .appbar-in > .brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:44px;padding:0 10px;gap:0}',
-    'html.bx-app .appbar-in > .brand svg{width:30px;height:30px}',
-    'html.bx-app .appbar-in > .brand .brand-t{display:none}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 // 처음 여는 화면 닫기: 자료를 읽고(S.firstServer) 첫 화면을 그린 뒤. 적어도 0.6초
 const BXSP_T0 = Date.now();
 function bxSplashCheck(){

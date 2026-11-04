@@ -11,26 +11,7 @@
    - 장소 페이지: 적는 칸 + 최근 장소 + '지도 앱에서 찾기'(휴대폰 지도 앱, 지도 API는 쓰지 않음 · D-02). 주소 검색은 정할 것 23 */
 
 /* 1) 캘린더 화면: + 단추 · 일 · 주 · 월 · 캘린더 칩 */
-(function bxV44CalStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v44-cal';
-  st.textContent = [
-    // + 단추: 번지는 파란 그림자를 빼고 옅은 그림자만, 불투명도 70%(+ 표시는 또렷하게). 누르는 동안은 진하게
-    'html.bx-app .bx-fab{background:color-mix(in srgb,var(--accent) 70%,transparent);box-shadow:0 2px 8px rgba(0,0,0,.18)}',
-    'html.bx-app .bx-fab:active{background:var(--accent)}',
-    // 일 · 주 · 월: 70%(높이 44 → 31, 단추 40×36 → 28×25). 손가락으로 누르는 범위는 위아래로 넓혀 44 그대로. + 단추와 가운데 높이를 맞춘다
-    'html.bx-app .bx-vsw{height:31px;padding:2px;gap:1px;border-radius:16px;bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 30px);box-shadow:0 2px 8px rgba(0,0,0,.18)}',
-    'html.bx-app .bx-vsw button{position:relative;width:28px;height:25px;border-radius:13px;font-size:11.5px;font-weight:700}',
-    'html.bx-app .bx-vsw button::after{content:"";position:absolute;left:0;right:0;top:-10px;bottom:-10px}',
-    // 캘린더 칩: 높이 34 → 28, 글자 13.5 → 12.5, 고른 칩만 굵게
-    'html.bx-app .bx-cchips{gap:6px}',
-    'html.bx-app .bx-cchip{height:28px;padding:0 11px;border-radius:14px;font-size:13px;font-weight:500;gap:5px}',
-    'html.bx-app .bx-cchip[aria-pressed="true"]{font-weight:700}',
-    'html.bx-app .bx-cchip .dot{width:7px;height:7px}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 
 /* 2) 일정 창 줄 목록 */
 const BX_EP_T = {date: '날짜', time: '시간', rem: '알림', cat: '캘린더', go: '출발·준비', att: '사진·파일', loc: '장소', note: '메모'};
@@ -67,7 +48,7 @@ function bxEdList(){
     // 비어 있으면 회색으로 이름만(삼성 '장소' · '메모'처럼). '알림 없음'은 이미 고른 것처럼 보인다(대표 11/3 18:12)
     bxEdRow('cat', '<span class="bx-er-cal">' + ICON.cal + catDot + '</span>', cat ? cat.name : '캘린더', !!cat, '캘린더') +
     bxEdRow('rem', ico('rem') || ICON.bell, set('rem') ? txt('rem') : '알림', set('rem'), '알림') +
-    (hasGo ? bxEdRow('go', BX_ICONS.walk, set('go') ? txt('go') : '출발·준비', set('go'), '출발·준비') : '') +
+    (hasGo ? bxEdRow('go', ICON.walk, set('go') ? txt('go') : '출발·준비', set('go'), '출발·준비') : '') +
     bxEdRow('more', BX_MEMO_ICON, note || '메모', !!note, '메모', 'note') +
     (hasAtt ? bxEdRow('att', BX_CLIP_ICON, n ? '사진·파일 ' + n + '개' : '사진·파일', n > 0, '사진·파일') : '');
 }
@@ -244,107 +225,7 @@ document.addEventListener('click', ev => {
 }, true);
 
 /* 4) 모양: 일정 창 줄 목록과 페이지(삼성 일정 편집 · 알림 설정을 잰 값: 줄 56, 글자 16, 아이콘 21, 상자 모서리 26, 상자 안 20) */
-(function bxV44Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v44';
-  const box = 'background:var(--card-bg);border-radius:26px;padding:0 20px';
-  st.textContent = [
-    // 줄 목록
-    'html.bx-app #f-chips.bx-ed{display:block;margin:0;padding:0}',
-    'html.bx-app .bx-er{display:flex;align-items:center;gap:16px;width:100%;min-height:56px;margin:0;padding:0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;font-weight:400;line-height:1.3;text-align:left;-webkit-tap-highlight-color:transparent}',
-    'html.bx-app #f-chips.bx-ed > .bx-er:last-child{border-bottom:0}',
-    'html.bx-app button.bx-er:active{background:color-mix(in srgb,var(--ink) 5%,transparent)}',
-    'html.bx-app .bx-er-ic{flex:none;position:relative;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--ink-2)}',
-    'html.bx-app .bx-er-ic svg.i{width:21px;height:21px}',
-    'html.bx-app .bx-er-cal{position:relative;display:flex}',
-    'html.bx-app .bx-er-cal .dot{position:absolute;right:-3px;bottom:-2px;width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--bg)}',
-    'html.bx-app .bx-er-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    'html.bx-app .bx-er-t.ph{color:var(--ink-3)}',
-    'html.bx-app .bx-er-sw .tog{flex:none}',
-    // 시작 → 끝
-    'html.bx-app .bx-edt{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr);align-items:center;padding:2px 0 10px;border-bottom:1px solid var(--line)}',
-    'html.bx-app .bx-edt-c{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}',
-    'html.bx-app .bx-edt-c button{max-width:100%;min-height:40px;padding:6px 8px;border:0;border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-size:16px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    'html.bx-app .bx-edt-c button:active{background:color-mix(in srgb,var(--ink) 6%,transparent)}',
-    'html.bx-app .bx-edt-c .bx-edt-t{font-size:16px;font-weight:500}',
-    'html.bx-app .bx-edt-c .ph{color:var(--ink-3);font-size:16px;font-weight:400}',
-    'html.bx-app .bx-edt-arr{display:flex;justify-content:center;color:var(--ink-3)}html.bx-app .bx-edt-arr svg.i{width:18px;height:18px}',
-    'html.bx-app .bx-esheet #f-panel[hidden]{display:none!important}',
-    // 페이지(일정 창 위를 덮음): ‹ 이름 · 완료
-    'html.bx-app .bx-ep{position:fixed;inset:0;z-index:85;display:flex;flex-direction:column;background:var(--bg);padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);animation:bxEpIn .2s ease-out}',
-    '@keyframes bxEpIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}',
-    '@media (prefers-reduced-motion:reduce){html.bx-app .bx-ep{animation:none}}',
-    'html.bx-app .bx-ep-h{flex:none;display:flex;align-items:center;gap:2px;height:60px;padding:0 8px 0 6px}',
-    'html.bx-app .bx-ep-h h2{flex:1;min-width:0;margin:0;font-size:20px;font-weight:700;color:var(--ink)}',
-    'html.bx-app .bx-ep-ok{flex:none;height:44px;padding:0 16px;border:0;border-radius:22px;background:transparent;color:var(--accent-text);font:inherit;font-size:16px;font-weight:700}',
-    'html.bx-app .bx-ep-ok:active{background:var(--accent-soft)}',
-    'html.bx-app .bx-ep-b{flex:1;overflow-y:auto;padding:4px 12px 32px;-webkit-overflow-scrolling:touch;--sunk:var(--bx-card-in,var(--sunk))}',
-    // 넓은 화면(가로로 편 폴드 · 태블릿): 페이지 내용은 일정 창 너비(560)만큼 가운데에
-    '@media (min-width:600px){html.bx-app .bx-ep-h,html.bx-app .bx-ep-b > *{width:100%;max-width:560px;margin-left:auto;margin-right:auto}html.bx-app .bx-ep-b{padding-left:20px;padding-right:20px}}',
-    'html.bx-app .bx-ep #f-panel{display:block;margin:0;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}',
-    'html.bx-app .bx-ep #f-panel > div{display:flex;flex-direction:column;gap:14px}',
-    'html.bx-app .bx-ep .bx-ep-gl,html.bx-app .bx-ep .fg-l{margin:6px 20px -6px;padding:0;font-size:13px;font-weight:500;color:var(--ink-2)}',
-    'html.bx-app .bx-ep .fg-l small{font-weight:400;color:var(--ink-3);margin-left:4px}',
-    'html.bx-app .bx-ep .bx-ep-box{display:flex;flex-direction:column;' + box + '}',
-    'html.bx-app .bx-ep .bx-ep-row{display:flex;align-items:center;gap:16px;width:100%;min-height:56px;padding:0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:16px;text-align:left}',
-    'html.bx-app .bx-ep .bx-ep-row:last-child{border-bottom:0}',
-    'html.bx-app .bx-ep .bx-ep-row > svg.i{flex:none;width:18px;height:18px;color:var(--ink-3)}',
-    'html.bx-app .bx-ep .bx-ep-note,html.bx-app .bx-ep .bx-fcol-note,html.bx-app .bx-ep .bx-rem-def,html.bx-app .bx-ep .bx-att-note,html.bx-app .bx-ep .tv-mem{margin:-4px 20px 0;color:var(--ink-3);line-height:1.5}',
-    // 고르는 칸 = 상자 안 줄 목록
-    'html.bx-app .bx-ep .bx-rem-q,html.bx-app .bx-ep #f-cat > .picks,html.bx-app .bx-ep #f-go > .picks:has([data-fprep]){display:flex!important;flex-direction:column;flex-wrap:nowrap;gap:0;margin:0;' + box + '}',
-    'html.bx-app .bx-ep .bx-rem-q .pick,html.bx-app .bx-ep #f-cat > .picks .pick,html.bx-app .bx-ep #f-go > .picks:has([data-fprep]) .pick{display:flex;align-items:center;justify-content:flex-start;gap:14px;width:100%;height:auto;min-height:56px;margin:0;padding:12px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent!important;box-shadow:none!important;color:var(--ink)!important;font-size:16px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;word-break:keep-all}',
-    'html.bx-app .bx-ep .bx-rem-q .pick:last-child,html.bx-app .bx-ep #f-cat > .picks .pick:last-child,html.bx-app .bx-ep #f-go > .picks:has([data-fprep]) .pick:last-child{border-bottom:0}',
-    // 동그라미(알림 · 준비 루틴). 고른 것은 파란 동그라미, '직접 입력'은 +
-    'html.bx-app .bx-ep .bx-rem-q .pick::before,html.bx-app .bx-ep #f-go > .picks:has([data-fprep]) .pick::before{content:"";flex:none;width:20px;height:20px;box-sizing:border-box;border:2px solid var(--ink-3);border-radius:50%}',
-    'html.bx-app .bx-ep .bx-rem-q .pick[aria-pressed="true"]::before,html.bx-app .bx-ep #f-go > .picks:has([data-fprep]) .pick[aria-pressed="true"]::before{border:6px solid var(--accent)}',
-    'html.bx-app .bx-ep .bx-rem-q .pick[data-bx-rem="adv"][aria-pressed="false"]::before{content:"+";border:0;color:var(--accent-text);font-size:1.5em;font-weight:400;line-height:19px;text-align:center}',
-    // 캘린더: 색 점 · 이름(길면 줄을 바꿔 다 보임) · 고른 것은 ✓
-    'html.bx-app .bx-ep #f-cat > .picks .pick i.dot{flex:none;width:14px;height:14px;margin:0 3px}',
-    'html.bx-app .bx-ep #f-cat > .picks .pick[data-fcat=""]{padding-left:36px;color:var(--ink-2)!important}',
-    'html.bx-app .bx-ep #f-cat > .picks .pick[aria-pressed="true"]{font-weight:700}',
-    'html.bx-app .bx-ep #f-cat > .picks .pick[aria-pressed="true"]::after{content:"";flex:none;margin-left:auto;width:20px;height:20px;background:var(--accent-text);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%272.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M5 12.5l4.5 4.5L19 7.5%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%272.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M5 12.5l4.5 4.5L19 7.5%27/%3E%3C/svg%3E") center/contain no-repeat}',
-    'html.bx-app .bx-ep .bx-fcol{display:flex;flex-direction:column;gap:14px;margin:0;padding:0;border:0}',
-    'html.bx-app .bx-ep .bx-fcol > .fg-l{margin:6px 20px -6px}',
-    'html.bx-app .bx-ep .bx-fcol-row{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr));justify-items:center;align-items:center;row-gap:12px;margin:0;padding:16px 14px}',
-    'html.bx-app .bx-ep .bx-fcol-row{' + box + ';padding:16px 14px}',
-    'html.bx-app .bx-ep .bx-fcol-row .bx-fcol-def{grid-column:1/-1;justify-self:start;margin-left:6px}',
-    // 알림 스위치 줄 · 여러 날 스위치 줄 = 상자 한 줄
-    'html.bx-app .bx-ep .bx-swrow,html.bx-app .bx-ep .bx-fmulti{margin:0;' + box + '}',
-    'html.bx-app .bx-ep .bx-swrow{display:flex;align-items:center;justify-content:space-between;min-height:60px;font-size:16px;font-weight:500}',
-    'html.bx-app .bx-ep .bx-swrow.on > span{color:var(--accent-text)}',
-    'html.bx-app .bx-ep .bx-fmulti .set-row{min-height:60px;padding:0;font-size:16px;font-weight:500}',
-    'html.bx-app .bx-ep .bx-fend{padding:0 0 16px}',
-    // 알림 '직접 입력'(여러 개 · 정한 시각)
-    'html.bx-app .bx-ep #f-rem > .rem-picks,html.bx-app .bx-ep #f-rem > .rem-ctl{margin:0;' + box + ';padding:16px 20px}',
-    'html.bx-app .bx-ep #f-rem > .rem-when{margin:-4px 20px 0;color:var(--ink-3)}',
-    // 날짜: 오늘 · 내일 · 모레 · 다음 주 월을 4칸(이름 위 · 날짜 아래), 달력에서 고르기는 상자 한 줄
-    'html.bx-app .bx-ep #f-date > .picks,html.bx-app .bx-ep .bx-fspan{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0}',
-    'html.bx-app .bx-ep .bx-fspan{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px}',
-    'html.bx-app .bx-ep #f-date > .picks .pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:auto;height:auto;min-height:68px;margin:0;padding:10px 4px;border:0;border-radius:18px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:16px;font-weight:700;white-space:nowrap}',
-    'html.bx-app .bx-ep #f-date > .picks .pick small{margin:0;font-size:13px;font-weight:500;color:var(--ink-2)}',
-    'html.bx-app .bx-ep #f-date > .picks .pick[aria-pressed="true"],html.bx-app .bx-ep #f-go > .picks:has([data-ftv]) .pick[aria-pressed="true"]{background:var(--accent-soft)!important;box-shadow:inset 0 0 0 2px var(--accent)!important}',
-    'html.bx-app .bx-ep #f-date > .inline{display:flex;align-items:center;gap:12px;min-height:60px;margin:0!important;' + box + '}',
-    // 시간: '종일 / 시간 지정'은 일정 창의 하루 종일 스위치로 하므로 숨김
-    'html.bx-app .bx-ep #f-time > .seg{display:none}',
-    'html.bx-app .bx-ep #f-time > .fgrid,html.bx-app .bx-ep #f-time > p{margin:0;' + box + ';padding:18px 20px}',
-    // 출발·준비: 이동 시간 4칸, 직접 · 준비 루틴은 상자
-    'html.bx-app .bx-ep #f-go > .picks:has([data-ftv]){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0}',
-    'html.bx-app .bx-ep #f-go > .picks:has([data-ftv]) .pick{width:auto;min-height:48px;margin:0;border:0;border-radius:16px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:16px;font-weight:600;white-space:nowrap;justify-content:center}',
-    'html.bx-app .bx-ep #f-go > .tv-cus{display:flex;align-items:center;gap:12px;min-height:60px;margin:0;' + box + '}',
-    'html.bx-app .bx-ep #f-go > .tv-line{margin:0;' + box + ';padding:16px 20px}',
-    // 장소 · 메모: 같은 칸을 반씩(장소 페이지는 장소만, 메모 페이지는 메모만)
-    'html.bx-app .bx-ep[data-k="loc"] #f-extra > .fld:has(#f-note),html.bx-app .bx-ep[data-k="note"] #f-extra > .fld:has(#f-loc),html.bx-app .bx-ep[data-k="note"] #bx-ep-places{display:none}',
-    'html.bx-app .bx-ep #f-extra > .fld{margin:0!important;' + box + ';padding:6px 20px}',
-    'html.bx-app .bx-ep #f-extra .fld-l{display:none}',
-    'html.bx-app .bx-ep #f-extra .inp{width:100%;min-height:52px;border:0;background:transparent;box-shadow:none;padding:0;font-size:16px;color:var(--ink)}',
-    'html.bx-app .bx-ep #f-extra textarea.inp{min-height:180px;padding:12px 0;line-height:1.55;resize:none}',
-    'html.bx-app .bx-ep #bx-ep-places{display:flex;flex-direction:column;gap:14px}',
-    // 사진 · 파일: 단추 3칸은 그대로, 사진 칸은 상자 없이
-    'html.bx-app .bx-ep #f-att{gap:14px}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 
 /* 5) 명상 소리(대표 11/4 2:09): "종소리도 강제로 선택하고 있어야 한다 · 앱을 종료했다가 다시 실행해도 소리가 나온다 ·
    명상이 끝나도 또 실행된다 · 원하는 소리만, 소리마다 크기를 조절해 원하는 환경에서 명상"
@@ -376,20 +257,7 @@ if (window.BX_APP) {
   setTimeout(() => { bxMedVolSync(); bxMedCancelCheck(); }, 900);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) bxMedCancelCheck(); });
 }
-// 종소리를 끈 명상: 첫 종 · 중간 종 없이, 끝은 소리 없는 알림 글만(bowl_none)
-const bxMedStart44 = medStart;
-medStart = function(){
-  if (bxMedBellOn()) return bxMedStart44.apply(this, arguments);
-  const now = Date.now(), start = now + MED_LEAD, min = MED.min;
-  const bg = bgPlug() ? bgCur() : '';
-  MED.run = {startAt: start, endAt: start + min * 60000, min, bellS: 0, leadAt: now, bg, startBell: false, silent: true};
-  medSave();
-  if (bg) { bgPlug().play({sound: bg, mode: 'med', startAt: start, until: MED.run.endAt - BG_END_LEAD}).catch(() => {}); BG = {sound: bg, mode: 'med'}; }
-  else if (BG.sound) bgStop();
-  const al = medAlarm();
-  if (al) al.cancelLocal({prefix: 'med_'}).catch(() => {}).then(() => al.local({alarms: [{id: 'med_end', at: MED.run.endAt, kind: 'item', sound: 'bowl_none', bowl: bxBowlType(), group: '명상', title: '명상을 마쳤어요', sub: min + '분 동안 잘했어요'}]})).catch(() => {});
-  render(); medTick();
-};
+// 종소리를 끈 명상(첫 종 · 중간 종 없이, 끝은 소리 없는 알림 글만)은 meditation.js medStart · medBellList에서(시험판 54)
 function bxMedSumText(){
   const bowl = (BX_BOWLS.find(b => b[0] === bxBowlType()) || BX_BOWLS[0])[1];
   const bell = bxMedBellOn() ? bowl + (MED.startBell === false ? '(시작 종 없음)' : '') + (bxMedVol('bell') < 100 ? ' ' + bxMedVol('bell') + '%' : '') : '종소리 끔';
@@ -429,8 +297,8 @@ function bxMedSoundHtml(){
   if (bgPlug()) {
     const cur = bgCur();
     h += '<div class="bx-ep-gl">배경 소리</div><div class="bx-ep-box"><div class="bx-bg-picks">' + BX_BGS.map(b => radio('data-bxbg', b[0] || 'none', cur || 'none', b[1])).join('') + '</div>' + (cur ? vol('bg', '크기') : '') + '</div>' +
-      '<p class="p small bx-ep-note">고르면 잠깐 들려요. 명상하는 동안 이어지다가 끝날 때 함께 꺼져요.</p>' +
-      (cur ? '<div class="bx-ep-box bx-bg-only">' + (BG.sound && BG.mode === 'only' ? '<button type="button" class="bx-ep-row btn" data-act="bx-med-bgstop"><span class="bx-er-ic" aria-hidden="true">' + bxIconSpan('music', '') + '</span><span class="bx-er-t">소리 끄기</span></button>' : '<button type="button" class="bx-ep-row btn" data-act="bx-med-bgonly"><span class="bx-er-ic" aria-hidden="true">' + bxIconSpan('music', '') + '</span><span class="bx-er-t">소리만 틀기</span></button>') + '</div>' +
+      '<p class="p small bx-ep-note">' + (medLive() ? '명상하는 동안에는 고르면 바로 그 소리로 바뀌어요. ‘없음’을 고르면 꺼져요.' : '고르면 잠깐 들려요. 명상하는 동안 이어지다가 끝날 때 함께 꺼져요.') + '</p>' +
+      (cur && !medLive() ? '<div class="bx-ep-box bx-bg-only">' + (BG.sound && BG.mode === 'only' ? '<button type="button" class="bx-ep-row btn" data-act="bx-med-bgstop"><span class="bx-er-ic" aria-hidden="true">' + bxIconSpan('music', '') + '</span><span class="bx-er-t">소리 끄기</span></button>' : '<button type="button" class="bx-ep-row btn" data-act="bx-med-bgonly"><span class="bx-er-ic" aria-hidden="true">' + bxIconSpan('music', '') + '</span><span class="bx-er-t">소리만 틀기</span></button>') + '</div>' +
         '<p class="p small bx-ep-note">명상 없이 소리만 틀어요(공부할 때). 화면을 꺼도 나오고, 앱을 닫으면 꺼져요.</p>' : '');
   }
   h += '<div class="bx-ep-gl">호흡</div><div class="bx-ep-box">' + sw('호흡 안내', bxSwitch('data-med-breath', MED.breath, '호흡 안내')) + '</div>' +
@@ -466,7 +334,7 @@ document.addEventListener('click', ev => {
   ev.preventDefault(); ev.stopPropagation();
   if (t.dataset.act === 'bx-med-sound') { bxMedPage(true); return; }
   if (t.dataset.bxmp != null) { bxMedPage(false); render(); return; }
-  if (t.dataset.bxmedBellon != null) { MED.bellOn = !bxMedBellOn(); medSave(); render(); }
+  if (t.dataset.bxmedBellon != null) { MED.bellOn = !bxMedBellOn(); medSave(); render(); medResched(); }
 }, true);
 // 소리 크기: 끄는 동안 바로 저장, 손을 떼면 그 크기로 한 번 들려 준다(배경 소리는 틀고 있으면 바로 따름)
 document.addEventListener('input', ev => {
@@ -493,34 +361,7 @@ setTimeout(() => {
   };
   window.BX_back.bx44m = true;
 }, 0);
-(function bxV44MedStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v44m';
-  st.textContent = [
-    'html.bx-app .bx-med-row{display:flex;align-items:center;gap:12px;width:100%;min-height:62px;margin-top:16px;padding:10px 0;border:0;border-top:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:left}',
-    'html.bx-app .bx-med-row > svg.i{flex:none;width:18px;height:18px;color:var(--ink-3)}',
-    'html.bx-app .bx-mp .bx-mp-sw{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;border-bottom:1px solid var(--line);font-size:16px}',
-    'html.bx-app .bx-mp .bx-mp-sw.on > span{color:var(--accent-text);font-weight:500}',
-    'html.bx-app .bx-mp .bx-ep-box > :last-child{border-bottom:0}',
-    'html.bx-app .bx-mp .bx-mp-r{display:flex;align-items:center;justify-content:flex-start;gap:14px;width:100%;height:auto;min-height:54px;margin:0;padding:0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent!important;box-shadow:none!important;color:var(--ink)!important;font:inherit;font-size:16px;font-weight:400;text-align:left}',
-    'html.bx-app .bx-mp .bx-bowl-picks,html.bx-app .bx-mp .bx-bg-picks{display:flex;flex-direction:column;gap:0;margin:0}',
-    'html.bx-app .bx-mp .bx-bg-picks .bx-mp-r:last-child{border-bottom:0}',
-    'html.bx-app .bx-mp .bx-bg-only .bx-ep-row.btn{height:auto;min-height:56px;padding:0;justify-content:flex-start;border-radius:0;background:transparent;color:var(--accent-text);font-weight:600;box-shadow:none}',
-    'html.bx-app .bx-med-row .bx-mm-t b{font-size:16px;font-weight:600;color:var(--ink)}',
-    'html.bx-app .bx-med-row .bx-mm-t small{font-size:14px;font-weight:400;color:var(--accent-text);line-height:1.35}',
-    'html.bx-app .bx-mp .bx-mp-r::before{content:"";flex:none;width:20px;height:20px;box-sizing:border-box;border:2px solid var(--ink-3);border-radius:50%}',
-    'html.bx-app .bx-mp .bx-mp-r[aria-pressed="true"]::before{border:6px solid var(--accent)}',
-    'html.bx-app .bx-mp .bx-mp-vol{display:flex;align-items:center;gap:14px;min-height:58px;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink-2)}',
-    'html.bx-app .bx-mp .bx-mp-vol input{flex:1;min-width:0;accent-color:var(--accent);height:28px}',
-    'html.bx-app .bx-mp .bx-mp-vol b{flex:none;width:44px;text-align:right;font-size:14px;font-weight:700;color:var(--ink)}',
-    'html.bx-app .bx-mp .bx-mp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:6px 0 16px;border-bottom:1px solid var(--line)}',
-    'html.bx-app .bx-mp .bx-mp-grid .pick{width:auto;min-height:44px;margin:0;justify-content:center;white-space:nowrap}',
-    'html.bx-app .bx-mp .bx-mp-grid .bx-cpick{grid-column:span 2}',
-    'html.bx-app .bx-mp .bx-ep-b{display:flex;flex-direction:column;gap:14px}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 
 /* 6) 앱의 다른 곳도 같은 기준(대표 11/4 1:24 · 1:51 · 1:34)
    - 루틴 고치기 창의 '아이콘 변경'은 그 자리에서 펼치지 않고 '아이콘' 페이지(고르면 바로, ‹ 는 되돌림)
@@ -567,19 +408,4 @@ setTimeout(() => {
   };
   window.BX_back.bx44p = true;
 }, 0);
-(function bxV44AllStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v44a';
-  st.textContent = [
-    'html.bx-app .bx-ft-chips{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}',
-    'html.bx-app .bx-ft-chip{justify-content:center;min-width:0;min-height:44px;padding:0 6px;border-radius:14px;white-space:nowrap}',
-    'html.bx-app .bx-ft-chip.off{grid-column:span 2}',
-    'html.bx-app .bx-sumcard{padding:8px 20px 16px}',
-    'html.bx-app .day-g.is-today{border-radius:24px}',
-    // 아이콘 페이지: 아이콘 칸을 상자 안에 고르게
-    'html.bx-app #bx-pg #bx-icpick{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;justify-items:center;padding:20px 16px;border-radius:26px;background:var(--card-bg)}',
-    'html.bx-app #bx-pg #bx-icpick .bx-icb{width:52px;height:52px}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

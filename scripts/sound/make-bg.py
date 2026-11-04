@@ -6,7 +6,9 @@
 #  - 갈대: 쓸 만한 갈대 녹음이 없어 가장 비슷한 '마른 풀이 바람에 스치는 소리'(대표가 들어 보고 정함), 90초
 #  - 백색소음은 파일이 아니라 휴대폰에서 그때그때 만든다(BxSoundService). 여기서는 그 세기만 맞춰 본다
 # 하는 일: 녹음 → 48kHz 두 채널 → 낮은 웅웅거림(마이크에 닿는 바람)을 거름 → 반복 구간을 잘라 끝과 처음을 3초 동안
-#   섞어 이음새 없이 되풀이되게 → 귀에 들리는 세기(LUFS)를 맞춤 → OGG(Vorbis)
+#   섞어 이음새 없이 되풀이되게 → 귀에 들리는 세기(LUFS)를 맞춤 → OGG(Vorbis q6, 한 번만)
+# 시험판 54(대표 11/4 22:32 '사운드들이 전체적으로 다 거칠다', 측정 조사 11/5): 바람 · 갈대의 고음 키움(+6 · +5dB)을 빼고
+#   낮은 쪽을 다듬음(120Hz 아래 거르기 + 250Hz 아래 −4dB). 압축은 q3 → q6(6kHz 위가 한쪽으로 뭉개지던 것, '점 스테레오')
 # 쓰는 법: python3 -I make-bg.py <녹음 폴더> <출력 폴더>  → bx_bg_<이름>.ogg
 # 녹음 폴더의 파일은 sha256이 맞는지 먼저 본다(다른 파일이면 멈춤). ffmpeg는 녹음을 소리 자료로만 푼다
 import hashlib, json, os, subprocess, sys
@@ -24,9 +26,9 @@ SOUNDS = {
     # 바람은 거의 다 300Hz 아래(웅— 하는 낮은 소리)라 휴대폰 스피커에서는 7dB쯤 작게 들린다. 200Hz 아래를 덜고 1kHz 위를 6dB 올려
     # '쏴—' 하는 결이 스피커에서도 들리게(스피커에서 작아지는 정도 7 → 3dB)
     'wind': dict(src='wind/1/wind.mp3', sha='da6ba4e941385f9e1ce70a7690f85512f5db281cc8526d1521ec742597bf4e8b',
-                 start=11.0, length=120.0, hp=(200, 2), shelf=(1000.0, 6.0), lufs=-21.0),
+                 start=11.0, length=120.0, hp=(120, 2), low=(250.0, -4.0), lufs=-20.0),  # 고음을 안 키우니 휴대폰 스피커에서 작게 들려 1dB 올림(최고점 −3dB 아래로)
     'reeds': dict(src='reeds/1/dry-grass-wind.ogg', sha='80bfbb90a7845994d4005ec679dd275ff5ca2a4eceeb69e6716ddac6c909d9d9',
-                  start=40.0, length=90.0, hp=(280, 4), shelf=(2500.0, 5.0), lufs=-22.0),
+                  start=40.0, length=90.0, hp=(120, 2), low=(250.0, -4.0), lufs=-22.0),
 }
 NOISE_LUFS = -25.0
 
@@ -53,6 +55,14 @@ def high_shelf(f0, gain_db, q=0.707):
     return np.array(b) / a[0], np.array(a) / a[0]
 
 
+def low_shelf(f0, gain_db, q=0.707):
+    # RBJ 오디오 EQ 요리책의 낮은 쪽 선반
+    A = 10 ** (gain_db / 40); w = 2 * np.pi * f0 / SR; c, s = np.cos(w), np.sin(w); al = s / (2 * q); sa = 2 * np.sqrt(A) * al
+    b = [A * ((A + 1) - (A - 1) * c + sa), 2 * A * ((A - 1) - (A + 1) * c), A * ((A + 1) - (A - 1) * c - sa)]
+    a = [(A + 1) + (A - 1) * c + sa, -2 * ((A - 1) + (A + 1) * c), (A + 1) + (A - 1) * c - sa]
+    return np.array(b) / a[0], np.array(a) / a[0]
+
+
 def make_loop(y, start, length):
     """start부터 length초. 끝 다음 3초를 처음 3초에 같은 힘으로 섞어(sin/cos) 끝에서 처음으로 끊김 없이 넘어가게"""
     a, L, n = int(round(start * SR)), int(round(length * SR)), int(round(XF * SR))
@@ -71,17 +81,22 @@ def lufs(x):
 
 def encode(x, path):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'f32le', '-ar', str(SR), '-ac', '2', '-i', '-', '-map_metadata', '-1',
-                    '-c:a', 'libvorbis', '-q:a', '3', path], input=x.astype('<f4').tobytes(), check=True)
+                    '-c:a', 'libvorbis', '-q:a', '6', path], input=x.astype('<f4').tobytes(), check=True)
 
 
 def noise(sec, seed=7):
-    """휴대폰 쪽 백색소음과 같은 방법: 두 채널 따로 고른 잡음 → 9kHz 위를 조금 눅임(한 극 저역 통과) → 30Hz 아래를 뺌"""
+    """휴대폰 쪽(BgPlayer) 소음과 같은 방법(시험판 54 '부드러운 소음'): 두 채널 따로 고른 잡음 → 분홍 소음(Paul Kellet 필터)
+    → 100Hz 아래 거르기(2차) → 6kHz 위를 완만히 눅임(1차). 전 백색소음은 8kHz 위가 47%라 날카로웠다(날카로움 2.52 → 1.82 acum)"""
     rng = np.random.default_rng(seed)
     x = rng.uniform(-1, 1, (int(sec * SR), 2))
-    a = 1 - np.exp(-2 * np.pi * 9000 / SR)
-    x = ss.lfilter([a], [1, -(1 - a)], x, axis=0)
-    r = 1 - 2 * np.pi * 30 / SR
-    return ss.lfilter([1, -1], [1, -r], x, axis=0)
+    b = [0.99886, 0.99332, 0.96900, 0.86650, 0.55000, -0.7616]
+    k = [0.0555179, 0.0750759, 0.1538520, 0.3104856, 0.5329522, -0.0168980]
+    y = np.zeros_like(x)
+    for bi, ki in zip(b, k):
+        y += ss.lfilter([ki], [1, -bi], x, axis=0)
+    y += np.vstack([np.zeros((1, 2)), x[:-1]]) * 0.115926 + x * 0.5362
+    y = ss.sosfilt(ss.butter(2, 100, 'highpass', fs=SR, output='sos'), y, axis=0)
+    return ss.sosfilt(ss.butter(1, 6000, 'lowpass', fs=SR, output='sos'), y, axis=0)
 
 
 def main():
@@ -98,6 +113,9 @@ def main():
             y = ss.sosfilt(ss.butter(order, f, 'highpass', fs=SR, output='sos'), y, axis=0)
         if 'shelf' in k:
             b, a = high_shelf(*k['shelf'])
+            y = ss.lfilter(b, a, y, axis=0)
+        if 'low' in k:
+            b, a = low_shelf(*k['low'])
             y = ss.lfilter(b, a, y, axis=0)
         x = make_loop(y, k['start'], k['length'])
         g = k['lufs'] - lufs(x)

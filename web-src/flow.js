@@ -250,6 +250,7 @@ document.addEventListener('click', ev => {
 /* 17. 홈 화면 위젯 두기: 홈의 안내 카드 대신 설정 › 화면의 한 줄(정리판 1번, 대표 결정 11/1). 위젯 두 가지를 보여 주고 고른 것을 놓는다 */
 const BX_WIDGETS = [['now', '지금 단계', '2×2 · 루틴 중 지금 할 단계와 출발까지 남은 시간'], ['list', '오늘 일정', '4×2 · 하루 일정 · ‹ ›로 날짜 넘기기']];
 const BX_WIDGET_ICON = '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.8"/></svg>';
+ICON.widget = BX_WIDGET_ICON; // 앱 아이콘 한 세트(ICON, 시험판 54)
 function bxWidgetRowHtml(){
   const w = window.BX_WPLACED || {}, n = (w.now ? 1 : 0) + (w.list ? 1 : 0);
   return '<div class="set-menu"><button type="button" class="menu-row" data-act="bx-widget-open"><span class="mi">' + BX_WIDGET_ICON + '</span><span class="ml">위젯 추가</span><span class="mv">' + (n ? n + '개 놓음' : '') + ICON.chevR + '</span></button></div>';
@@ -263,7 +264,9 @@ function bxWidgetOpen(){
         (w[k] ? '<span class="bx-wg-on">' + ICON.check + '추가됨</span>' : can ? '<button type="button" class="btn sm" data-bx-wpin="' + k + '">추가</button>' : '') + '</div>').join('') + '</div>' +
       // 시험판 36(대표 결정 11/3 17:01): 위젯은 작게 두고 '루틴 포함 / 일정만'은 여기 스위치 하나(처음엔 루틴도 보임)
       '<div class="bx-grp"><div class="bx-swrow bx-wg-rt"><span><b>오늘 일정 위젯에 루틴도 보기</b><small>끄면 일정 · 시간표만</small></span>' + bxSwitch('data-bxwrt', M.settings.bxWidgetRt !== false, '오늘 일정 위젯에 루틴도 보기') + '</div></div>' +
-      '<p class="p small">' + (can ? '추가를 누르면 휴대폰이 놓을 자리를 물어요. ' : '') + '홈 화면을 길게 누른 뒤 위젯 › ' + esc(window.BX_NAME) + '에서도 추가할 수 있어요.</p>', '');
+      '<p class="p small">' + (can ? '추가를 누르면 휴대폰이 놓을 자리를 물어요. ' : '') + '홈 화면을 길게 누른 뒤 위젯 › ' + esc(window.BX_NAME) + '에서도 추가할 수 있어요.</p>' +
+      // 대표 지시 11/4 23:09: 크기 바꾸기를 모르는 사람이 많다
+      '<p class="p small">오늘 일정 위젯은 길게 눌러 4×4까지 늘릴 수 있어요.</p>', '');
   };
   openSheet({title: '홈 화면 위젯', draw, refresh: draw});
 }
@@ -385,7 +388,7 @@ function bxItemMenu(id, el){
   openSheet({title: it.title || '(제목 없음)', draw: () => setSheet(
     '<p class="p small" style="margin:-6px 0 10px">' + esc(when) + (it.location ? ' · ' + esc(it.location) : '') + '</p><div class="menu">' +
     row('edit', ICON.edit, pc ? '알림 · 이동 시간 수정' : '수정', '') +
-    (pc ? '' : row('done', ICON.check, it.done ? '완료 취소' : '완료', '') +
+    (pc ? '' : row('done', ICON.checkC, it.done ? '완료 취소' : '완료', '') +
       row('tmr', ICON.clock, '내일로 미루기', fmtMD(ymd(addDays(parseYmd(M.today), 1))) + (it.start ? ' ' + bxT(it.start) : '')) +
       row('del', ICON.trash, '삭제', '휴지통에 30일 보관', true)) +
     '</div>' + (pc ? '<p class="p small" style="margin:10px 0 0">휴대폰 캘린더에서 읽어 온 일정은 그 캘린더 앱에서 지우거나 옮겨요.</p>' : ''), '')});

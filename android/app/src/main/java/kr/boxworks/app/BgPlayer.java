@@ -18,7 +18,9 @@ import java.util.Arrays;
 /**
  * 배경 소리 하나를 끊김 없이 되풀이해 트는 재생기(시험판 33, 대표 요청·결정 11/3, 결정 기록 D-12).
  * 파일(res/raw/bx_bg_*.ogg)은 끝과 처음이 이어지게 만든 반복 구간이라(scripts/sound/make-bg.py) 한 번 풀어 메모리에 두고 돈다.
- * 백색소음은 파일 없이 여기서 만든다: 두 채널 따로 고른 잡음 → 9kHz 위를 조금 눅임 → 30Hz 아래를 뺌(make-bg.py의 noise와 같은 방법).
+ * 백색소음은 파일 없이 여기서 만든다(시험판 54 '부드러운 소음'): 두 채널 따로 고른 잡음 → 분홍 소음(Paul Kellet 필터)
+ * → 100Hz 아래 거르기(2차 버터워스) → 6kHz 위를 완만히 눅임(1차). make-bg.py의 noise와 같은 방법.
+ * 전에는 거의 하얀 잡음이라 8kHz 위가 47% — 거칠고 날카로웠다(대표 11/4 22:32). 이름은 '백색소음' 그대로.
  * 소리 크기는 휴대폰 미디어 소리(음량 단추)를 따른다. 켤 때 서서히 커지고, 끌 때 서서히 줄어든다.
  */
 final class BgPlayer extends Thread {
@@ -29,7 +31,7 @@ final class BgPlayer extends Thread {
     /** waves 파도 · birds 숲속 새소리 · wind 바람 · reeds 갈대 · noise 백색소음 */
     static final String[] SOUNDS = {"waves", "birds", "wind", "reeds", "noise"};
     /** make-bg.py가 잰 값: 진폭 1인 백색소음은 −1.6 LUFS, 이 배율을 곱하면 −25 LUFS(파일 소리보다 3dB 작게) */
-    static final float NOISE_GAIN = 0.0676f;
+    static final float NOISE_GAIN = 0.0312f; // make-bg.py가 잰 값(−25 LUFS)
     private static final int NOISE_RATE = 48000;
     private static final int FRAMES = 1024;
 
@@ -143,13 +145,18 @@ final class BgPlayer extends Thread {
             final short[] buf = new short[FRAMES * ch];
             final float fadeIn = 1f / (rate * Math.max(0.05f, fadeInSec));
             final float quick = 1f / (rate * 0.3f);
-            // 백색소음 상태: xorshift 잡음 → 한 극 저역 통과(9kHz) → 직류 막기(30Hz)
+            // 소음 상태: xorshift 잡음 → 분홍(필터 7개) → 100Hz 고역 통과(2차) → 6kHz 저역 통과(1차)
             int seed = (int) System.nanoTime() | 1;
-            final float a = (float) (1 - Math.exp(-2 * Math.PI * 9000 / rate));
-            final float r = (float) (1 - 2 * Math.PI * 30 / rate);
-            final float[] lp = new float[ch];
-            final float[] hx = new float[ch];
-            final float[] hy = new float[ch];
+            final float[][] pk = new float[ch][7];
+            // 2차 버터워스 고역 통과 100Hz(RBJ, Q = 1/√2)
+            final double hw = 2 * Math.PI * 100 / rate, hc = Math.cos(hw), hal = Math.sin(hw) / (2 * 0.7071067811865476), ha0 = 1 + hal;
+            final float hb0 = (float) ((1 + hc) / 2 / ha0), hb1 = (float) (-(1 + hc) / ha0), hb2 = hb0;
+            final float ha1 = (float) (-2 * hc / ha0), ha2 = (float) ((1 - hal) / ha0);
+            // 1차 버터워스 저역 통과 6kHz(쌍선형)
+            final double lk = Math.tan(Math.PI * 6000 / rate);
+            final float lb = (float) (lk / (1 + lk)), la = (float) ((lk - 1) / (lk + 1));
+            final float[] hx1 = new float[ch], hx2 = new float[ch], hy1 = new float[ch], hy2 = new float[ch];
+            final float[] lx1 = new float[ch], ly1 = new float[ch];
             float g = 0f;
             int pos = 0;
             boolean held = false;
@@ -197,11 +204,20 @@ final class BgPlayer extends Thread {
                             seed ^= seed >>> 17;
                             seed ^= seed << 5;
                             float w = seed * (1f / 2147483648f);
-                            lp[c] += a * (w - lp[c]);
-                            float y = lp[c] - hx[c] + r * hy[c];
-                            hx[c] = lp[c];
-                            hy[c] = y;
-                            s = y * NOISE_GAIN;
+                            final float[] kb = pk[c];
+                            kb[0] = 0.99886f * kb[0] + w * 0.0555179f;
+                            kb[1] = 0.99332f * kb[1] + w * 0.0750759f;
+                            kb[2] = 0.96900f * kb[2] + w * 0.1538520f;
+                            kb[3] = 0.86650f * kb[3] + w * 0.3104856f;
+                            kb[4] = 0.55000f * kb[4] + w * 0.5329522f;
+                            kb[5] = -0.7616f * kb[5] - w * 0.0168980f;
+                            float pnk = kb[0] + kb[1] + kb[2] + kb[3] + kb[4] + kb[5] + kb[6] + w * 0.5362f;
+                            kb[6] = w * 0.115926f;
+                            float hpv = hb0 * pnk + hb1 * hx1[c] + hb2 * hx2[c] - ha1 * hy1[c] - ha2 * hy2[c];
+                            hx2[c] = hx1[c]; hx1[c] = pnk; hy2[c] = hy1[c]; hy1[c] = hpv;
+                            float lpv = lb * hpv + lb * lx1[c] - la * ly1[c];
+                            lx1[c] = hpv; ly1[c] = lpv;
+                            s = lpv * NOISE_GAIN;
                         } else {
                             s = data[pos * ch + c] * (1f / 32768f);
                         }

@@ -11,25 +11,7 @@
    '오전 · 오후'(D-24)가 빠졌던 글은 원래 자리(flow.js · start.js · brief.js)에서 고친다 */
 (function(){
   if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v53-css';
-  st.textContent = [
-    'html.bx-app body{word-break:keep-all;overflow-wrap:break-word}',
-    'html.bx-app .bx-tl-rt .rt-steps li.arr{grid-template-columns:76px minmax(0,1fr)}',
-    'html.bx-app .bx-tl-rt .rt-steps li.arr .rt-s,html.bx-app .bx-tl-rt .rt-steps li.arr .rt-chk-sp{display:none}',
-    'html.bx-app .row.bx-r49.late .row-meta{flex-wrap:wrap;overflow:visible;row-gap:2px}',
-    'html.bx-app #alarms{width:min(440px,calc(100% - 24px))}',
-    'html.bx-app .alarm{padding:12px 16px 10px 15px}',
-    'html.bx-app .row.bx-r49 .row-meta > .bx-r49-pl{display:block}',
-    'html.bx-app .bx-set-home .menu-row .ml{flex:none}',
-    'html.bx-app .bx-set-home .menu-row .mv{flex:1 1 auto;min-width:0;max-width:none;justify-content:flex-end}',
-    'html.bx-app .bx-set-home .menu-row .mv .bx-mvt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    'html.bx-app .bx-set-home .menu-row .mv svg{flex:none}',
-    'html.bx-app input{text-overflow:ellipsis}',
-    // 대표 11/4 22:15 "취소 저장 버튼 정렬 망가짐": 단추는 글자 정렬을 바깥에서 물려받아(button{text-align:inherit}) 글자가 왼쪽에 붙어 있었다
-    'html.bx-app .bx-pill49 .bx-pl-b{text-align:center}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
+  // 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
   // 안내 글이 칸에 안 들어가면 짧은 글로. 원래 글은 data-bx-ph에 두고 칸이 넓어지면 되돌린다
   const SHORT = { '예) 내일 오후 3시 치과': '예) 오후 3시 치과' };
   let cv = null, q = 0;

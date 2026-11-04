@@ -42,6 +42,13 @@ jobs:
           set -o pipefail
           node tests/run.cjs 2>&1 | tee "$GITHUB_WORKSPACE/test.log"
 
+      # 정렬 점검(대표 상시 규칙 11/4 22:59, D-27): 모든 화면 · 창을 폭 360 · 384 · 412 × 라이트 · 다크로 열어
+      # 겹침 · 가림 · 잘림 · 칸 어긋남 · 아이콘 세트를 잰다. 하나라도 걸리면 설치 파일을 만들지 않는다
+      - name: 정렬 점검
+        run: |
+          set -o pipefail
+          node tests/layout/run.cjs --shots 0 2>&1 | tee "$GITHUB_WORKSPACE/layout.log"
+
       - name: 설치 파일(APK) 만들기
         working-directory: android
         env:

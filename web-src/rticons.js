@@ -10,7 +10,8 @@ function bxRtIconKey(rt){
 }
 function bxIconSpan(key, cls){ return key && BX_ICONS[key] ? '<span class="bx-ic ' + (cls || '') + '" aria-hidden="true">' + BX_ICONS[key] + '</span>' : ''; }
 function bxRtIconHtml(rt){ return bxIconSpan(bxRtIconKey(rt), 'rt'); }
-function bxStepIconHtml(name){ return bxIconSpan(bxIconFor(name), 'st'); }
+// slot: 아이콘이 없는 단계도 같은 자리를 비워 둔다(홈 루틴 카드 단계 목록, 시험판 54 — 이름 시작이 줄마다 같게)
+function bxStepIconHtml(name, slot){ return bxIconSpan(bxIconFor(name), 'st') || (slot ? '<span class="bx-ic st" aria-hidden="true"></span>' : ''); }
 // 루틴 창: 아이콘 고르기(자동 + 모음 전체)
 // 루틴 고치기 창의 소리·아이콘(대표 결정 10/31: 이름 → 언제 → 단계 → 소리 → 아이콘 순서, 아이콘은 접어 둔다)
 function bxIconGridHtml(){
@@ -77,3 +78,12 @@ document.addEventListener('click', ev => {
   R.icon = b.dataset.ricon || null;
   bxIconPickRefresh();
 }, true);
+
+// 시험판 54(대표 11/4 22:59 '출발·준비 아이콘만 다른 세트'): 화면 줄의 아이콘은 앱 아이콘 한 세트(ICON).
+// 걷기는 루틴 아이콘(BX_ICONS.walk)이 다른 아이콘보다 작고 가늘어 앱 아이콘 크기로 새로 그림. 따로 그린 아이콘(메모 · 첨부 · 모래시계 · 휴대폰 · 위젯)도 ICON에 모음
+ICON.walk = '<svg class="i" viewBox="0 0 24 24"><circle cx="14" cy="4" r="2.2"/><path d="M8 21.5l3.3-6.8 3.7 3.1v3.7"/><path d="M11.3 14.7l1.7-8"/><path d="M5.5 11.5l3.3-4.6h4.2l2.6 4.3 3.9 1.6"/></svg>';
+ICON.memo = BX_MEMO_ICON;
+ICON.home = BX_HOME_ICON;
+ICON.checkC = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.3 2.5 2.5 4.6-5"/></svg>';
+// 자동 정렬 점검(tests/layout)이 아이콘 세트를 가려 보게(앱 아이콘 ICON | 루틴 아이콘 BX_ICONS)
+window.BX_ICONSRC = {app: ICON, rt: BX_ICONS};

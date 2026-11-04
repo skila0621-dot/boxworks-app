@@ -71,30 +71,7 @@ window.BX_openFromWidget = function(o){
 /* 4) 목록 줄 정렬(대표 지적 11/3 "정렬이 흐트러졌다"): 시작 시각 · 제목 · 왼쪽 표시(체크 · 점 · 아이콘) · 오른쪽 단추를 첫 줄 한가운데에 맞춘다.
       전에는 줄 안을 가운데 맞춤이라 제목이 두 줄 시각(시작 · 끝)의 가운데로 내려가거나, 시각이 제목 · 장소 두 줄의 가운데로 내려갔다.
       첫 줄 높이 22px, 위아래 13px. 끝 시각 · 장소 같은 둘째 줄은 그 밑으로 */
-(function bxRowAlignStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    '.bx-app .row{align-items:flex-start;padding-top:0!important;padding-bottom:0!important;min-height:48px}',
-    '.bx-app .row-main{align-items:flex-start;min-height:48px;padding:13px 0;box-sizing:border-box}',
-    '.bx-app .row-time{gap:1px}',
-    '.bx-app .row-time b,.bx-app .row-title{line-height:22px}',
-    '.bx-app .row-body{gap:2px}',
-    '.bx-app .row > .chk{margin-top:12px}',
-    '.bx-app .row.tt-row > .tt-dot,.bx-app .bx-tl .row.tt-row > .tt-dot{margin-top:18px}',
-    '.bx-app .row > .lamp{align-self:flex-start;margin-top:calc(24px - var(--bx-lamp-h, 32px) / 2)}',
-    '.bx-app .bx-tl-rt .rt-h{align-items:flex-start}',
-    '.bx-app .bx-tl-rt .rt-h .bx-ic{margin-top:-1px}',
-    '.bx-app .bx-tl-rt .bx-tl-t .bx-tl-s,.bx-app .bx-tl-rt .rt-h b{line-height:22px}',
-    '.bx-app .bx-tl-rt .bx-tl-t{gap:1px}',
-    '.bx-app .bx-tl-rt .rt-h .bx-rt-tog{margin-top:-4px}',
-    '.bx-app .bx-tl-rt .rt-h [data-act="rt-skip"]{margin-top:-7px}',
-    // 위젯 창의 '루틴도 보기' 스위치 줄, 확인 필요 카드 단추의 아이콘(시험판 36)
-    '.bx-app .bx-wg-rt{margin-top:14px;gap:12px}.bx-app .bx-wg-rt > span{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.bx-app .bx-wg-rt small{font-size:13px;color:var(--ink-3)}',
-    '.bx-app .bx-lc-a .btn .i{width:16px;height:16px;flex:none}.bx-app .bx-lc-a .btn{gap:5px}'
-  ].join('');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 
 /* 5) 장소 알아듣기. "강남역에서 만나" → 강남역, "늘푸른 병원 예약" → 늘푸른 병원, "연세치과 예약" → 연세치과.
    '…에서' 앞의 말은 장소. '에서'가 없으면 병원 · 치과 · 역 · 카페처럼 장소를 뜻하는 말로 끝나고 이름이 붙은 것만(그냥 "치과 예약"은 아님) */

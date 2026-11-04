@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 53;
+const BX_TRIAL = 54;
 
 /* 설정(앱): 첫 화면은 묶음 목록(화면 · 휴대폰 캘린더 · 알림 · 분류·데이터), 누르면 그 묶음만 보이는 화면.
    뒤로 가기(‹ 또는 휴대폰 뒤로)로 목록에 돌아온다. 휴대폰 설정과 같은 방식(대표 결정 11/3: 한 페이지가 너무 길어 메뉴를 다시 찾기 불편).
@@ -12,6 +12,7 @@ const BX_TRIAL = 53;
    뺀 것: 메인 색(색은 파랑 하나, 10/31 결정), 분류 색 표시(늘 켬), 공휴일 데이터, 사용 설명서(웹 시절 내용), 웹의 연동·아침 일정 보고 칸 */
 let BX_SET = null;
 const BX_SET_PHONE = '<svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>';
+ICON.phone = BX_SET_PHONE; // 앱 아이콘 한 세트(ICON, 시험판 54)
 function bxSetGroups(){
   const st = M.settings, th = lsGet('bx:theme') || '', rep = bxRepCfg();
   const pre = st.defaultRemind == null || st.defaultRemind === '' || remAbs(String(st.defaultRemind)) ? null : +st.defaultRemind;

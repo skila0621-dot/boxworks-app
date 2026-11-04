@@ -113,14 +113,15 @@ module.exports = async function () {
       const t0 = card.querySelector('.rt-steps li .rt-t');
       return { miss: !!card.querySelector('.bx-miss-line'), tile, badge: badge ? !badge.hidden && badge.textContent.trim() : false,
         now: (card.querySelector('.rt-now b') || {}).textContent, left: (card.querySelector('.rt-now .rt-left') || {}).textContent,
-        primary: !!card.querySelector('.rt-now .btn.primary'), late: !!card.querySelector('.rt-now.late'), btn: (card.querySelector('.rt-now .btn') || {}).textContent,
+        primary: !!card.querySelector('.rt-now .btn.primary'), late: !!card.querySelector('.rt-now.late'), btn: card.querySelector('.rt-now .chk.rt-chk[data-act="rt-done"]') ? '체크 칸' : (card.querySelector('.rt-now .btn') || {}).textContent,
         past: lis.filter(li => li.classList.contains('past')).map(li => li.querySelector('.rt-n').textContent.replace(/\d+분$/, '')),
         done: lis.filter(li => li.classList.contains('done')).length,
         oneLine: t0 ? t0.getBoundingClientRect().height < 26 : null, t0: t0 && t0.textContent };
     });
     c.eq([h.miss, h.badge], [false, false], '확인하지 않아도 홈 주의 줄 · 아래 메뉴 빨간 숫자 없음');
     c.ok(/확인필요0/.test(h.tile), "'확인 필요'에 루틴 단계를 세지 않음 " + h.tile);
-    c.eq([h.now, h.left, h.primary, h.late, h.btn], ['식사', '오전 7:52까지 · 다음 출근 준비', false, false, '했어요'], "'지금'은 시각으로(식사), 끝 시각 · 다음 단계, 단추는 눌러도 되고 안 눌러도 되는 모양");
+    // 시험판 54(대표 11/4 22:46 '했어요 기다리기보다 그냥 체크 박스로'): '했어요' 단추 대신 체크 칸
+    c.eq([h.now, h.left, h.primary, h.late, h.btn], ['식사', '오전 7:52까지 · 다음 출근 준비', false, false, '체크 칸'], "'지금'은 시각으로(식사), 끝 시각 · 다음 단계, 누르지 않아도 되는 체크 칸");
     c.eq(h.past, ['스트레칭', '이불 개기', '씻기', '머리 말리기', '옷 입기'], '지나간 짧게 한 번 단계는 흐리게(지운 줄 없이)');
     c.eq(h.done, 0, '확인한 단계가 없으면 지운 줄도 없음');
     c.ok(h.oneLine && h.t0 === '오전 7:00', "펼친 단계 목록의 시각 '오전 7:00'이 한 줄 " + JSON.stringify([h.t0, h.oneLine]));
@@ -185,7 +186,8 @@ module.exports = async function () {
     await p.waitForTimeout(800);
     c.eq(await p.evaluate(() => document.querySelectorAll('#alarms .alarm.rt').length), 0, '7:04 스트레칭(짧게 한 번): 앱 안 알림 카드 없음');
     c.eq(await p.evaluate(() => (document.querySelector('.rt-card[data-rid="rt_w"] .rt-now b') || {}).textContent), '스트레칭', "기상을 확인하면 '지금' 스트레칭");
-    c.eq(await p.evaluate(() => { const li = document.querySelector('.rt-card[data-rid="rt_w"] .rt-steps li.done'); return li ? [li.querySelector('.rt-s').textContent, !!li.querySelector('.rt-s svg')] : null; }), ['', true], "확인한 단계는 체크만(24시간 시각 '07:00' 없이)");
+    // 시험판 54(대표 11/4 22:46 ② 체크 칸): 확인한 단계는 체크 칸이 채워짐(상태 글자 칸은 없음 — 시각 '07:00'도 없음)
+    c.eq(await p.evaluate(() => { const li = document.querySelector('.rt-card[data-rid="rt_w"] .rt-steps li.done'); return li ? [!!li.querySelector('.chk.rt-chk.on svg'), !li.querySelector('.rt-s'), /\d{2}:\d{2}/.test(li.textContent.replace(/오[전후] \d{1,2}:\d{2}/g, ''))] : null; }), [true, true, false], "확인한 단계는 체크만(24시간 시각 '07:00' 없이)");
     c.eq(app.errors, [], '화면 오류(앱 안 알림 카드)');
   } finally { await app.close(); }
 
@@ -194,7 +196,9 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.waitForTimeout(500);
-    c.eq(await p.evaluate(() => (document.querySelector('.rt-card[data-rid="rt_k"] .rt-now .btn') || {}).textContent), '했어요', "'약속 준비'는 '먹었어요'가 아니라 '했어요'");
+    // 홈 카드는 체크 칸(시험판 54), 확인 글은 앱 안 알림 카드 단추
+    c.eq(await p.evaluate(() => (document.querySelector('#alarms .alarm.rt [data-alarm="rt-ok"]') || {}).textContent), '했어요', "'약속 준비'는 '먹었어요'가 아니라 '했어요'");
+    c.ok(await p.evaluate(() => !!document.querySelector('.rt-card[data-rid="rt_k"] .rt-now .chk.rt-chk[data-act="rt-done"]')), "홈 카드 '지금' 상자: '했어요' 단추 대신 체크 칸");
     await p.click('.dock [data-view="routines"]'); await p.waitForTimeout(500);
     c.eq(await p.evaluate(() => getComputedStyle(document.querySelector('.rt-item .rt-open > span')).wordBreak), 'keep-all', "루틴 목록 줄은 낱말 단위로 꺾임('오 / 전 9:00' 막기)");
     c.eq(app.errors, [], '화면 오류(단추 글)');

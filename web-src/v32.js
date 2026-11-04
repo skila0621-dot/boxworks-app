@@ -71,27 +71,4 @@ document.addEventListener('click', ev => {
     .catch(() => toast('알림을 보내지 못했어요. 알림이 켜져 있는지 봐 주세요.'));
 }, true);
 
-(function bxV32Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.textContent = [
-    // 설정 묶음 화면: 왼쪽 위 ‹ 단추와 제목
-    '.bx-app .bx-set-subh{display:flex;align-items:center;gap:4px}',
-    '.bx-app .bx-set-back{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-10px;border:0;border-radius:12px;background:none;color:var(--ink)}',
-    '.bx-app .bx-set-back .i{width:24px;height:24px}',
-    '.bx-app .bx-set-home .menu-row .mv{max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.bx-app .bx-set-foot{margin:14px 4px 0;text-align:center;color:var(--ink-3)}',
-    // 루틴 단계의 세기 세 칸(시험판 52)은 v52.js
-    '.bx-app .bx-rs-note{margin:2px 0 8px}',
-    // 내가 쓸 기능: 줄마다 한 줄 설명, 아침 일정은 켜면 아래에 언제 오는지와 단추 둘
-    '.bx-app .bx-ft-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}',
-    '.bx-app .bx-ft-t small{font-size:13px;font-weight:400;color:var(--ink-3)}',
-    '.bx-app .bx-ft-more{margin:-2px 0 4px;padding:10px 12px;border-radius:12px;background:var(--sunk)}',
-    '.bx-app .bx-ft-more .p{margin:0 0 8px}',
-    '.bx-app .bx-ft-acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}',
-    // 명상 시작 전 5초: 원 가운데에 큰 숫자, 아래 안내 두 줄까지
-    '.bx-app .bx-med-run.lead .bx-med-left{font-size:38px}',
-    '.bx-app .bx-med-run.lead .bx-med-cue{max-width:150px;text-align:center;word-break:keep-all;line-height:1.35}'
-  ].join('');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

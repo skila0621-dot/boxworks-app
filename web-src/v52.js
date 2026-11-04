@@ -29,28 +29,4 @@ document.addEventListener('input', ev => {
   if (st && seg && !st.ring && st.kind !== 'wait') seg.outerHTML = bxRsAlarmHtml(Object.assign({}, st, {name: t.value}), i);
 });
 
-(function(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v52-css';
-  st.textContent = [
-    // 단계 줄: 첫 줄은 이름 · 분, 둘째 줄은 세기 세 칸 · 위로 · 지우기(세 칸이 좁은 휴대폰에서도 한 줄에 들게)
-    'html.bx-app #r-steps .rs-row{grid-template-columns:minmax(0,1fr) auto auto;column-gap:8px;row-gap:8px}',
-    'html.bx-app #r-steps .rs-row .rs-name{grid-column:1;grid-row:1}',
-    'html.bx-app #r-steps .rs-row > .stepper{grid-column:2/4;grid-row:1;justify-self:end}',
-    'html.bx-app #r-steps .rs-row .bx-rs-ring{grid-column:1/3;grid-row:2;width:auto;min-width:0}',
-    'html.bx-app #r-steps .rs-row .rs-act{grid-column:3;grid-row:2;justify-self:end}',
-    'html.bx-app .bx-rs-ring button{height:38px;padding:0 4px;font-size:13px;font-weight:600;white-space:nowrap;word-break:keep-all}',
-    'html.bx-app .bx-rs-ring button[aria-pressed="true"]{color:var(--accent-text)}',
-    // 홈 루틴 카드: 시각이 지나 저절로 지나간 단계는 흐리게(지운 줄 · 체크 없이). 확인한 단계만 줄을 긋는다
-    'html.bx-app .rt-steps li.past .rt-n,html.bx-app .rt-steps li.past .rt-t{color:var(--ink-3)}',
-    'html.bx-app .rt-steps li.past .rt-n{font-weight:500}',
-    // 펼친 단계 목록: 시각은 카드 머리의 시각 칸 아래, 이름은 루틴 이름 아래(시험판 51에서 '오전 7:00'이 두 줄로 꺾이던 것)
-    'html.bx-app .bx-tl-rt .rt-steps{margin-left:38px}',
-    'html.bx-app .bx-tl-rt .rt-steps li{grid-template-columns:76px minmax(0,1fr) auto 32px;column-gap:14px}',
-    'html.bx-app .bx-tl-rt .rt-steps li .rt-t{white-space:nowrap}',
-    // 루틴 목록 줄: '오전 9:00'이 '오 / 전 9:00'으로 꺾이지 않게
-    'html.bx-app .rt-item .rt-open > span{word-break:keep-all}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

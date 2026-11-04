@@ -175,20 +175,4 @@ document.addEventListener('change', ev => {
   bxTtsPatch(SH.bxTts, {from, to}); M = buildModel(); bxTtsDetailDraw(SH.bxTts);
 }, true);
 
-(function bxV40Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v40';
-  st.textContent = [
-    'html.bx-app .bx-ttchips{display:flex;gap:8px;margin:2px calc(-1 * var(--gut)) 10px;padding:2px var(--gut) 4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}',
-    'html.bx-app .bx-ttchips::-webkit-scrollbar{display:none}',
-    'html.bx-app .bx-cchip.bx-ended:not([aria-pressed="true"]){color:var(--ink-3)}',
-    'html.bx-app .bx-tt-note{display:flex;align-items:center;gap:6px;width:100%;margin:0 0 10px;padding:9px 12px;border-radius:12px;background:var(--bx-card);color:var(--ink-2);font-size:13px;font-weight:600;text-align:left}',
-    'html.bx-app .bx-tt-note span{flex:1;min-width:0}html.bx-app .bx-tt-note .i{width:16px;height:16px;color:var(--ink-3);flex:none}',
-    'html.bx-app .bx-tt-note.warn{background:color-mix(in srgb,var(--warn) 12%,transparent);color:var(--ink)}',
-    'html.bx-app .bx-tt-end{color:var(--ink-3)!important}',
-    'html.bx-app .bx-tts-colnote{margin:8px 0 0;color:var(--ink-3)}html.bx-app .bx-cald .swatches .swatch{width:30px;height:30px}',
-    'html.bx-app .bx-ttper{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0 16px}html.bx-app .bx-ttper .inp{width:100%;min-width:0}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

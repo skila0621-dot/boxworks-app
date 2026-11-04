@@ -252,40 +252,4 @@ document.addEventListener('focusout', ev => {
 document.addEventListener('mousedown', ev => { if (window.BX_APP && ev.target.closest && ev.target.closest('.bx-mm-add')) ev.preventDefault(); }, true);
 // 날짜 창에서 메모를 넣으면 창의 목록만 다시 그린다(render가 SH.refresh로 부름) → 위 render 감싸기가 칸을 다시 잡는다
 
-(function bxV41Style(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-v41';
-  st.textContent = [
-    'html.bx-app .bx-mm-card{margin-top:14px}html.bx-app .bx-mm-card .tc-body{padding-top:16px;padding-bottom:14px}',
-    'html.bx-app .bx-mm-h{display:flex;align-items:baseline;gap:8px;margin:0 0 2px}',
-    'html.bx-app .bx-mm-h h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em}html.bx-app .bx-mm-sec .bx-mm-h h2{font-size:16px}',
-    'html.bx-app .bx-mm-h .n{font-size:13px;font-weight:700;color:var(--ink-3)}',
-    'html.bx-app .bx-mm-row{display:flex;gap:12px;width:100%;padding:11px 0;border-bottom:1px solid var(--line);align-items:flex-start;text-align:left;color:var(--ink)}',
-    'html.bx-app .bx-mm-t{flex:none;min-width:44px;font-size:13px;font-weight:700;color:var(--ink-3);line-height:22px}',
-    'html.bx-app .bx-mm-x{flex:1;min-width:0;font-size:16px;line-height:22px;font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere}',
-    'html.bx-app .bx-mm-row.moved .bx-mm-x{color:var(--ink-3)}html.bx-app .bx-mm-tag{display:inline-block;margin-left:8px;font-size:13px;font-weight:700;color:var(--accent-text)}',
-    'html.bx-app .bx-mm-in{display:flex;align-items:center;gap:8px;margin-top:10px;padding:5px 5px 5px 14px;border-radius:16px;background:var(--bx-card-in)}',
-    'html.bx-app .bx-mm-in .bx-mm-inp{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);height:40px}',
-    'html.bx-app .bx-mm-in .bx-mic{width:40px;min-width:40px;height:40px;padding:0;border-radius:20px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-text);justify-content:center}',
-    'html.bx-app .bx-mm-in .bx-mic span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}',
-    'html.bx-app .bx-mm-in .bx-mm-add{height:40px;padding:0 14px;border-radius:12px}',
-    'html.bx-app .bx-mm-sec{margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}',
-    'html.bx-app .bx-mm-ta{min-height:120px;width:100%;font-size:16px;line-height:1.6}html.bx-app .bx-mm-when{margin:6px 2px 0;color:var(--ink-3)}',
-    'html.bx-app .bx-mm-sres{margin-top:12px}html.bx-app .bx-mm-sres .bx-mm-t{min-width:54px}',
-    // 메모 화면: 맨 위 오늘 칸, 그 아래 다가오는 날 · 지난 메모 상자(날짜마다 작은 제목)
-    // 메모 화면의 상자: 홈 상자와 같은 반투명 상자(성격이 다른 묶음은 상자로 나눔, 시험판 37)
-    'html.bx-app .screen.memo{row-gap:14px}html.bx-app .screen.memo .page-head{margin-bottom:10px}',
-    'html.bx-app .screen.memo .bx-mm-card{margin:0 calc(-1 * var(--card-pad)) 0;padding:0;border:0;border-radius:24px;background:var(--card-bg);box-shadow:var(--card-sh);--sunk:var(--bx-card-in)}',
-    'html.bx-app .screen.memo .bx-mm-card .tc-body{padding:16px var(--card-pad) 8px}',
-    'html.bx-app .bx-mmp-quick{margin-top:4px}html.bx-app .bx-mmp-quick .bx-mm-in{margin:12px 0 4px}',
-    'html.bx-app .bx-mmp-day{padding-top:12px}html.bx-app .bx-mmp-day + .bx-mmp-day{margin-top:4px}',
-    'html.bx-app .bx-mmp-dh{display:flex;align-items:baseline;gap:8px;padding:2px 0 2px}html.bx-app .bx-mmp-dh b{font-size:14px;font-weight:800;color:var(--ink-2)}html.bx-app .bx-mmp-dh .n{font-size:13px;font-weight:700;color:var(--ink-3)}',
-    'html.bx-app .bx-mmp-day .bx-mm-row:last-child,html.bx-app .bx-mmp-quick .bx-mm-row:last-child{border-bottom:0}',
-    'html.bx-app .bx-mmp-tip{margin:10px 2px 0;color:var(--ink-3)}',
-    // 달력 칸: 메모한 날 오른쪽 위에 작은 표시
-    'html.bx-app .cal .cell{position:relative}',
-    'html.bx-app .bx-mm-mark{position:absolute;top:4px;right:4px;width:8px;height:10px;border-radius:2px;background:color-mix(in srgb,var(--warn) 85%,#fff);box-shadow:inset 0 -3px 0 rgba(0,0,0,.14);pointer-events:none}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

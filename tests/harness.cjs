@@ -6,7 +6,8 @@ const fs = require('fs');
 const { pathToFileURL } = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
-const APP = path.join(ROOT, 'www', 'index.html');
+// BX_APP_HTML: 다른 곳에 만든 www/index.html로 열기(덧칠 정리 도구 · 전후 비교)
+const APP = process.env.BX_APP_HTML ? path.resolve(process.env.BX_APP_HTML) : path.join(ROOT, 'www', 'index.html');
 const APP_URL = pathToFileURL(APP).href;
 
 // 시험에 쓰는 '지금': 2026년 11월 2일 월요일 오전 6시 50분(한국 시각)
@@ -32,10 +33,11 @@ function settings(extra = {}) {
  * now: 시계 · data: [[id, 문서], ...] (처음 한 번만 넣는다) · perms: 알람 권한 상태 · speech: true | false | null(플러그인 없음)
  * sound: 배경 소리 플러그인(BxSound)을 둘지
  */
-async function openApp({ now = NOW, data = null, perms = null, speech = true, sound = true } = {}) {
+async function openApp({ now = NOW, data = null, perms = null, speech = true, sound = true, width = 390, height = 844, colorScheme = 'light', insets = null } = {}) {
   if (!fs.existsSync(APP)) throw new Error('www/index.html이 없습니다. 먼저 node scripts/build-web.mjs');
   const browser = await chromium.launch();
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Seoul', locale: 'ko-KR' });
+  // width · height · colorScheme: 자동 정렬 점검(tests/layout)이 폭 360 · 384 · 412, 라이트 · 다크로 연다
+  const ctx = await browser.newContext({ viewport: { width, height }, timezoneId: 'Asia/Seoul', locale: 'ko-KR', colorScheme });
   await ctx.addInitScript(({ data, perms, speech, sound }) => {
     window.__sync = [];
     window.__bg = [];
@@ -94,6 +96,8 @@ async function openApp({ now = NOW, data = null, perms = null, speech = true, so
     }
   }, { data, perms, speech, sound });
   const page = await ctx.newPage();
+  // insets: 휴대폰 위 · 아래 막대 자리(env(safe-area-inset-*)). 대표 휴대폰은 아래에 버튼 세 개 막대가 있다
+  if (insets) { const c = await ctx.newCDPSession(page); await c.send('Emulation.setSafeAreaInsetsOverride', { insets: Object.assign({ top: 0, bottom: 0, left: 0, right: 0 }, insets) }); }
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.clock.setSystemTime(new Date(now));

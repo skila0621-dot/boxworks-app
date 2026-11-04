@@ -88,38 +88,4 @@ homeDayGo = function(d){
   if (d) bxOnce(document.querySelector('.screen.today .bx-todo'), d > 0 ? 'bx-slide-l' : 'bx-slide-r');
   return r;
 };
-(function bxMotionStyle(){
-  if (!window.BX_APP) return;
-  const st = document.createElement('style');
-  st.id = 'bx-motion';
-  const OUT = 'cubic-bezier(.2,.8,.2,1)', IN = 'cubic-bezier(.4,0,1,1)';
-  st.textContent = [
-    '@keyframes bxDrop{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}',
-    '@keyframes bxLift{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-12px)}}',
-    '@keyframes bxRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}',
-    '@keyframes bxSink{from{opacity:1;transform:none}to{opacity:0;transform:translateY(10px)}}',
-    '@keyframes bxFadeOut{from{opacity:1}to{opacity:0}}',
-    '@keyframes bxSheetDown{from{transform:none}to{transform:translateY(64px)}}',
-    '@keyframes bxIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}',
-    '@keyframes bxPop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}',
-    '@keyframes bxScreen{from{opacity:.15}to{opacity:1}}',
-    '@keyframes bxCardOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(.96)}}',
-    // 토스트는 보통 아래 메뉴 위(아래에서 떠오름), 창이 열려 있으면 화면 위(위에서 내려옴)
-    '.bx-app #toasts .toast{animation:bxRise .26s ' + OUT + '}',
-    '.bx-app #toasts .toast.bx-out{animation:bxSink .2s ' + IN + ' forwards}',
-    'html.locked.bx-app #toasts .toast{animation:bxDrop .26s ' + OUT + '}',
-    'html.locked.bx-app #toasts .toast.bx-out{animation:bxLift .2s ' + IN + ' forwards}',
-    '.bx-ghost{pointer-events:none!important}',
-    '.bx-ghost.bx-ghost-sheet{animation:bxFadeOut .22s ease-in forwards}',
-    '.bx-ghost.bx-ghost-sheet .sheet{animation:bxSheetDown .22s ' + IN + ' forwards}',
-    '.bx-ghost.bx-ghost-card{position:fixed;z-index:85;margin:0!important;box-sizing:border-box;animation:bxCardOut .2s ease-in forwards}',
-    '.bx-app .bx-in{animation:bxIn .22s ' + OUT + '}',
-    '.bx-app .chk.bx-pop{animation:bxPop .3s cubic-bezier(.3,1.4,.5,1)}',
-    // 화면 전체는 위치를 옮기지 않고 투명도만(화면 안의 고정 막대가 흔들리지 않게)
-    '.bx-app #screen.bx-enter{animation:bxScreen .2s ease-out}',
-    '.bx-app .screen.today .bx-todo.bx-slide-l .bx-tl{animation:slideL .24s ease-out}',
-    '.bx-app .screen.today .bx-todo.bx-slide-r .bx-tl{animation:slideR .24s ease-out}',
-    '@media (prefers-reduced-motion:reduce){.bx-ghost{display:none!important}}'
-  ].join('\n');
-  (document.head || document.documentElement).appendChild(st);
-})();
+// 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

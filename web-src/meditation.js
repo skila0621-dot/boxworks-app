@@ -49,7 +49,7 @@ function medBellText(sec){ return sec < 60 ? sec + '초' : (sec % 60 ? Math.floo
 // 직접 입력한 분(1–120)·중간 종 간격(분)은 바로 반영된다
 document.addEventListener('change', ev => {
   if (!ev.target) return;
-  if (ev.target.id === 'bx-med-cbell') { MED.bellS = Math.max(1, Math.min(60, Math.round(+ev.target.value) || 5)) * 60; MED.bellCust = true; if (MED.bellS >= MED.min * 60) MED.bellS = 0; medSave(); render(); return; }
+  if (ev.target.id === 'bx-med-cbell') { MED.bellS = Math.max(1, Math.min(60, Math.round(+ev.target.value) || 5)) * 60; MED.bellCust = true; if (MED.bellS >= MED.min * 60) MED.bellS = 0; medSave(); render(); medResched(); return; }
   if (ev.target.id !== 'bx-med-cmin') return;
   const v = Math.max(1, Math.min(120, Math.round(+ev.target.value) || 10));
   MED.min = v; MED.cust = !MED_MINS.includes(v);
@@ -156,9 +156,12 @@ function medHtml(){
 // 시작을 누르면 5초를 센 뒤 첫 종(대표 요청 11/3: 휴대폰을 내려놓고 자세와 자리를 잡을 시간). 첫 종도 휴대폰 알람으로 걸어 화면을 꺼도 울린다
 const MED_LEAD = 5000;
 function medStart(){
-  const now = Date.now(), start = now + MED_LEAD, min = MED.min, startBell = MED.startBell !== false, bellS = MED.bellS && MED.bellS < min * 60 ? MED.bellS : 0, type = bxBowlType();
+  const now = Date.now(), start = now + MED_LEAD, min = MED.min, on = bxMedBellOn();
+  // 종소리를 끄면(시험판 44) 첫 종 · 중간 종 없이, 끝은 소리 없는 알림 글만(bowl_none)
+  const startBell = on && MED.startBell !== false, bellS = on && MED.bellS && MED.bellS < min * 60 ? MED.bellS : 0, type = bxBowlType();
   const bg = bgPlug() ? bgCur() : '';
   MED.run = {startAt: start, endAt: start + min * 60000, min, bellS, leadAt: now, bg, startBell};
+  if (!on) MED.run.silent = true;
   medSave();
   // 배경 소리: 첫 종과 함께 서서히 커지고, 끝 종 2초 전부터 3초 동안 줄어 끝 종이 또렷하게 들린다(대표 지적 11/3: 끝나도 소리가 계속 나와 끝을 모름).
   // 휴대폰이 시각을 알고 있어 화면이 꺼져도 맞게 꺼진다
@@ -166,15 +169,33 @@ function medStart(){
   else if (BG.sound) bgStop();
   const al = medAlarm();
   if (!al && startBell) setTimeout(() => { if (MED.run && MED.run.startAt === start) medPlay('bowl', type); }, MED_LEAD);
-  if (al) {
-    // 시작 종을 끄면 첫 종 알람만 빼고, 끝 종(세 번)은 늘 건다
-    const list = [{id: 'med_end', at: MED.run.endAt, kind: 'item', sound: 'bowl3', bowl: type, group: '명상', title: '명상을 마쳤어요', sub: min + '분 동안 잘했어요'}];
-    if (startBell) list.unshift({id: 'med_start', at: start, kind: 'item', sound: 'bowl', bowl: type, group: '명상', title: '명상을 시작해요', sub: min + '분 · 편하게 숨 쉬어요'});
-    // 중간 종: 다시 치는 간격마다(소리가 40초 넘게 울려서 짧은 간격이면 겹쳐 이어진다). 휴대폰 알람은 150개까지
-    if (bellS) for (let t = bellS; t < min * 60 && list.length < 150; t += bellS) list.push({id: 'med_b' + t, at: start + t * 1000, kind: 'item', sound: 'bowl_soft', bowl: type, group: '명상', title: '명상 ' + medMinText(t), sub: medMinText(min * 60 - t) + ' 남았어요'});
-    al.cancelLocal({prefix: 'med_'}).catch(() => {}).then(() => al.local({alarms: list})).catch(() => {});
-  }
+  if (al) al.cancelLocal({prefix: 'med_'}).catch(() => {}).then(() => al.local({alarms: medBellList(MED.run, 0)})).catch(() => {});
   render(); medTick();
+}
+// 명상 종 알람: 시작 종 · 중간 종(다시 치는 간격마다, 소리가 40초 넘게 울려서 짧은 간격이면 겹쳐 이어진다) · 끝 종(세 번). from 뒤의 것만.
+// 시작 종을 끄면 첫 종 알람만 빼고, 종소리를 끄면 끝 알림만 소리 없이. 휴대폰 알람은 150개까지
+function medBellList(run, from){
+  const type = bxBowlType(), on = !run.silent, min = run.min;
+  const list = [{id: 'med_end', at: run.endAt, kind: 'item', sound: on ? 'bowl3' : 'bowl_none', bowl: type, group: '명상', title: '명상을 마쳤어요', sub: min + '분 동안 잘했어요'}];
+  if (on && run.startBell && run.startAt > from) list.unshift({id: 'med_start', at: run.startAt, kind: 'item', sound: 'bowl', bowl: type, group: '명상', title: '명상을 시작해요', sub: min + '분 · 편하게 숨 쉬어요'});
+  if (on && run.bellS) for (let t = run.bellS; t < min * 60 && list.length < 150; t += run.bellS) {
+    const at = run.startAt + t * 1000;
+    if (at > from) list.push({id: 'med_b' + t, at, kind: 'item', sound: 'bowl_soft', bowl: type, group: '명상', title: '명상 ' + medMinText(t), sub: medMinText(min * 60 - t) + ' 남았어요'});
+  }
+  return list;
+}
+function medLive(){ return !!(MED.run && MED.run.endAt > Date.now()); }
+// 명상하는 동안 종 설정(켜기 · 종류 · 시작 종 · 중간 종)을 바꾸면 남은 종을 지금 설정대로 다시 건다
+// (대표 11/4 22:32 '종소리를 껐는데도 어디선가 들려옴': 시작할 때 걸어 둔 종이 그대로 울렸다)
+function medResched(){
+  const run = MED.run; if (!medLive()) return;
+  const on = bxMedBellOn(), min = run.min;
+  run.bellS = on && MED.bellS && MED.bellS < min * 60 ? MED.bellS : 0; run.startBell = on && MED.startBell !== false;
+  if (on) delete run.silent; else run.silent = true;
+  medSave();
+  const al = medAlarm();
+  if (al) al.cancelLocal({prefix: 'med_'}).catch(() => {}).then(() => al.local({alarms: medBellList(run, Date.now() + 300)})).catch(() => {});
+  if (typeof bxMedNotify === 'function') bxMedNotify(run);
 }
 function medStop(record){
   const run = MED.run; MED.run = null; medSave();
@@ -226,14 +247,22 @@ document.addEventListener('click', ev => {
     $$('[data-bxbowl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.bxbowl === k)));
     medPlay('bowl', k);
     if (k !== bxBowlType()) saveSettings({bxBowl: k});
+    medResched();
     return;
   }
   if (t.dataset.bxbg != null) {
     // 고르면 6초 들려 준다. 소리만 틀어 둔 중이면 그 자리에서 바꾼다('없음'이면 끔)
-    const k = t.dataset.bxbg === 'none' ? '' : t.dataset.bxbg, p = bgPlug();
-    MED.bg = BX_BGS.some(b => b[0] === k) ? k : ''; medSave();
+    // 명상하는 동안이면 미리 듣기 대신 명상 소리를 그 소리로 바꾸거나 끈다('없음'). 전에는 미리 듣기만 멈춰 명상 소리가 계속 나왔고,
+    // 다른 소리를 고르면 겹쳤다(대표 11/4 22:32 '끈 상태에서도 계속 나오는 문제')
+    const k = t.dataset.bxbg === 'none' ? '' : t.dataset.bxbg, p = bgPlug(), run = medLive() ? MED.run : null;
+    MED.bg = BX_BGS.some(b => b[0] === k) ? k : ''; if (run) run.bg = MED.bg; medSave();
     if (p) {
-      if (BG.sound && BG.mode === 'only') {
+      if (run) {
+        p.preview({sound: ''}).catch(() => {});
+        if (MED.bg) { p.play({sound: MED.bg, mode: 'med', startAt: Math.max(run.startAt, Date.now() + 200), until: run.endAt - BG_END_LEAD}).catch(() => {}); BG = {sound: MED.bg, mode: 'med'}; }
+        else bgStop();
+        if (typeof bxMedNotify === 'function') bxMedNotify(run);
+      } else if (BG.sound && BG.mode === 'only') {
         if (MED.bg) { p.play({sound: MED.bg, mode: 'only'}).catch(() => {}); BG = {sound: MED.bg, mode: 'only'}; } else bgStop();
       } else p.preview({sound: MED.bg}).catch(() => {});
     }
@@ -243,14 +272,14 @@ document.addEventListener('click', ev => {
     // 끄면 간격을 기억해 두었다가 다시 켜면 그 간격(처음엔 3분, 명상 시간보다 짧게)
     if (MED.bellS) { MED.bellLast = MED.bellS; MED.bellS = 0; MED.bellCust = false; MED.bellOpen = false; }
     else { const v = MED.bellLast || 180; MED.bellS = v < MED.min * 60 ? v : 60; }
-    medSave(); render(); return;
+    medSave(); render(); medResched(); return;
   }
-  if (t.dataset.medBellc != null) { MED.bellOpen = true; MED.bellCust = true; if (!MED.bellS) MED.bellS = 300; medSave(); render(); setTimeout(() => { const i = $('#bx-med-cbell'); if (i) { i.focus(); i.select(); } }, 50); return; }
+  if (t.dataset.medBellc != null) { MED.bellOpen = true; MED.bellCust = true; if (!MED.bellS) MED.bellS = 300; medSave(); render(); medResched(); setTimeout(() => { const i = $('#bx-med-cbell'); if (i) { i.focus(); i.select(); } }, 50); return; }
   if (t.dataset.medCustom != null) { MED.cust = true; render(); setTimeout(() => { const i = $('#bx-med-cmin'); if (i) { i.focus(); i.select(); } }, 50); return; }
   if (t.dataset.medMin != null) { MED.cust = false; MED.min = +t.dataset.medMin; if (MED.bellS >= MED.min * 60) MED.bellS = 0; medSave(); render(); return; }
-  if (t.dataset.medBell != null) { MED.bellS = +t.dataset.medBell; MED.bellCust = false; MED.bellOpen = false; medSave(); render(); return; }
+  if (t.dataset.medBell != null) { MED.bellS = +t.dataset.medBell; MED.bellCust = false; MED.bellOpen = false; medSave(); render(); medResched(); return; }
   if (t.dataset.medBreath != null) { MED.breath = t.dataset.medBreath === '1'; medSave(); render(); return; }
-  if (t.dataset.medStartbell != null) { MED.startBell = t.dataset.medStartbell === '1'; medSave(); render(); return; }
+  if (t.dataset.medStartbell != null) { MED.startBell = t.dataset.medStartbell === '1'; medSave(); render(); medResched(); return; }
   if (act === 'bx-med-open') { closeSheet(); go('med'); return; }
   if (act === 'bx-med-hear') { medPlay('bowl'); return; }
   if (act === 'bx-med-bgonly') { bgOnly(); return; }

@@ -236,6 +236,13 @@ document.addEventListener('click', ev => {
   else if (t.dataset.act === 'bx-help') bxHelpOpen();
   else { closeSheet(); go('guide'); }
 }, true);
+// 앱 안 알림 카드(#alarms, 화면 위에 떠 있음)가 글자 · 단추를 가리지 않게: 카드가 있는 동안 그 높이만큼 화면 내용을 내린다
+// (대표 상시 규칙 11/4 22:59 ② '떠 있는 것(알림 글)이 글자나 단추를 가림 0'. 모양은 app.css .content의 --bx-al-h)
+(function bxAlarmsSpace(){
+  const el = document.getElementById('alarms'); if (!window.BX_APP || !el || typeof ResizeObserver !== 'function') return;
+  const set = () => { const h = el.children.length ? Math.ceil(el.getBoundingClientRect().height) : 0; document.documentElement.style.setProperty('--bx-al-h', h ? h + 12 + 'px' : '0px'); };
+  new ResizeObserver(set).observe(el); new MutationObserver(set).observe(el, {childList: true}); set();
+})();
 // 새 일정 + 단추: 일정을 넣는 화면(홈·캘린더)에서만 보인다. 시간표·루틴에는 각자 넣는 칸이 있다
 function bxFabSync(){
   const fab = document.querySelector('.bx-fab'); if (!fab) return;
