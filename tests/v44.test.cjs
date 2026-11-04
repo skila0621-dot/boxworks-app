@@ -11,7 +11,8 @@ function seed() {
     ['it_2', { type: 'item', title: '점심', date: '2026-11-01', start: '12:00', end: '', location: '강남역 2번 출구', categoryId: 'c_p', createdAt: old, updatedAt: '2026-10-31T00:00:00.000Z' }],
     ['it_3', { type: 'item', title: '회의', date: '2026-10-30', start: '10:00', end: '', location: '회사', categoryId: 'c_w', createdAt: old, updatedAt: '2026-10-29T00:00:00.000Z' }]];
 }
-const rows = p => p.evaluate(() => Array.from(document.querySelectorAll('#f-chips > .bx-er, #f-chips > .bx-edt')).map(r => r.classList.contains('bx-edt') ? 'DT' : r.textContent.trim()));
+// 시험판 49: 고치기의 '일정 삭제' 줄(맨 아래)은 빼고 센다(v49에서 따로 봄)
+const rows = p => p.evaluate(() => Array.from(document.querySelectorAll('#f-chips > .bx-er:not(.bx-er-del), #f-chips > .bx-edt')).map(r => r.classList.contains('bx-edt') ? 'DT' : r.textContent.trim()));
 const row = (p, sel) => p.evaluate(s => { const r = document.querySelector('#f-chips ' + s); if (!r) return null; const t = r.querySelector('.bx-er-t'); return { t: (t || r).textContent.trim(), ph: !!(t && t.classList.contains('ph')) }; }, sel);
 const page = p => p.evaluate(() => { const e = document.getElementById('bx-ep'); return e ? e.querySelector('#bx-ep-t').textContent : null; });
 const done = p => p.click('#bx-ep [data-bxep="done"]').then(() => p.waitForTimeout(250));

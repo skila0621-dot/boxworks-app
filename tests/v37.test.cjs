@@ -63,7 +63,8 @@ module.exports = async function () {
     await p.fill('#f-title', '내일 오후 3시 치과'); await p.waitForTimeout(400);
     c.eq(await chip(), '10분 전', '시간을 말하면 기본값 10분 전');
     // (4) 닫을 때 시트 그림이 내려가며 사라지고, 곧 치워진다
-    await p.click('#sheet-root [data-act="sheet-close"]'); await p.waitForTimeout(60);
+    // 시험판 49: 위 × 대신 아래 '취소 | 저장'의 '취소'
+    await p.click('#sheet-root .bx-pill49 [data-act="sheet-close"]'); await p.waitForTimeout(60);
     c.eq(await p.evaluate(() => [document.querySelectorAll('.bx-ghost-sheet').length, !!document.querySelector('#sheet-root .sheet')]), [1, false], '닫으면 그림만 남고 창은 바로 비움');
     await p.waitForTimeout(400);
     c.eq(await p.evaluate(() => document.querySelectorAll('.bx-ghost').length), 0, '그림은 곧 치움');
