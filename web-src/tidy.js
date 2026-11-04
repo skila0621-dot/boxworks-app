@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 52;
+const BX_TRIAL = 53;
 
 /* 설정(앱): 첫 화면은 묶음 목록(화면 · 휴대폰 캘린더 · 알림 · 분류·데이터), 누르면 그 묶음만 보이는 화면.
    뒤로 가기(‹ 또는 휴대폰 뒤로)로 목록에 돌아온다. 휴대폰 설정과 같은 방식(대표 결정 11/3: 한 페이지가 너무 길어 메뉴를 다시 찾기 불편).
@@ -30,7 +30,7 @@ function bxSettingsHtml(){
     BX_SET = null;
     return '<div class="page-head"><div class="ph-t"><h1>설정</h1></div></div>' +
       '<section class="set-sec bx-set-home" aria-label="설정 묶음"><div class="set-menu">' +
-      g.map(x => '<button type="button" class="menu-row" data-bxset="' + x[0] + '"><span class="mi">' + x[1] + '</span><span class="ml">' + x[2] + '</span><span class="mv">' + esc(x[3]) + ICON.chevR + '</span></button>').join('') +
+      g.map(x => '<button type="button" class="menu-row" data-bxset="' + x[0] + '"><span class="mi">' + x[1] + '</span><span class="ml">' + x[2] + '</span><span class="mv"><span class="bx-mvt">' + esc(x[3]) + '</span>' + ICON.chevR + '</span></button>').join('') +
       '</div></section>' +
       '<p class="p small bx-set-foot">이 휴대폰에만 저장 · 시험판 ' + BX_TRIAL + '</p>';
   }

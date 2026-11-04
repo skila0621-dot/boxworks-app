@@ -154,7 +154,7 @@ function bxMD(d){ const x = parseYmd(d); return (x.getMonth() + 1) + '월 ' + x.
 function bxLateLabel(it, tg){
   if (!tg.start) return '오늘로';
   const pre = tg.date === M.today ? (it.date < M.today ? '오늘 ' : '') : '내일 ';
-  return pre + tg.start + bxRo(tg.start);
+  return pre + bxT(tg.start) + bxRo(tg.start);
 }
 // 날짜 고르기: 휴대폰 달력 창을 바로 연다(내일이 골라져 있음). 창을 못 여는 휴대폰이면 카드 안에 날짜 칸
 function bxLateMove(id, d, base){

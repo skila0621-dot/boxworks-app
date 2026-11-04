@@ -60,7 +60,7 @@ function bxMemoInHtml(ds, ph, key){
 function bxMemoCardHtml(ds){
   const list = bxMemos(ds), d = parseYmd(ds), isT = ds === M.today;
   return '<section class="tcard bx-mm-card" id="bx-mm-card" aria-labelledby="h-memo"' + bxMemoBox(ds, 'asc') + '><div class="tc-body"><div class="bx-mm-h"><h2 id="h-memo">' + (isT ? '오늘의 메모' : (d.getMonth() + 1) + '월 ' + d.getDate() + '일 메모') + '</h2>' +
-    bxMemoNHtml(list.length) + '</div>' + bxMemoListHtml(list) + bxMemoInHtml(ds, isT ? '떠오른 것을 적거나 말해 보세요' : '이날 메모 추가') + '</div></section>';
+    bxMemoNHtml(list.length) + '</div>' + bxMemoListHtml(list) + bxMemoInHtml(ds, isT ? '떠오른 것을 적거나 말해요' : '이날 메모 추가') + '</div></section>';
 }
 // 날짜 창: 일정 아래
 function bxMemoSecHtml(ds){
@@ -84,7 +84,7 @@ function bxMemoPageHtml(){
   return '<div class="page-head"><div class="ph-t"><h1>메모</h1><p>' + esc(bxMemoPageSub()) + '</p></div></div>' +
     '<section class="tcard bx-mm-card bx-mmp-quick" aria-label="오늘 메모"' + bxMemoBox(t, 'desc') + '><div class="tc-body">' +
       '<div class="bx-mm-h"><h2>' + esc(bxMemoDayName(t)) + '</h2>' + bxMemoNHtml(today.length) + '</div>' +
-      bxMemoInHtml(t, '떠오른 것을 적거나 말해 보세요', 'p') + bxMemoListHtml(today) +
+      bxMemoInHtml(t, '떠오른 것을 적거나 말해요', 'p') + bxMemoListHtml(today) +
       (n ? '' : '<p class="p small bx-mmp-tip">적은 날짜에 쌓이고 홈 · 캘린더의 그날에도 보여요. 일정이 될 것은 눌러서 ‘일정으로 만들기’.</p>') +
     '</div></section>' +
     (fut.length ? '<section class="tcard bx-mm-card bx-mmp-grp" aria-labelledby="h-mmp-fut"><div class="tc-body"><div class="bx-mm-h"><h2 id="h-mmp-fut">다가오는 날</h2></div>' + fut.map(d => day(d, false)).join('') + '</div></section>' : '') +
