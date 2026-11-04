@@ -5,6 +5,7 @@
 //  ④ col    같은 목록 안 줄끼리 칸 시작 위치(시각 · 아이콘 · 이름 · 상태 · 체크)
 //  ⑤ icon   같은 목록 안 아이콘: 한 세트 · 같은 크기 · 같은 굵기
 //  + midword(낱말 가운데 줄바꿈) · time24(오전 · 오후 없는 시각, 12시간 표시일 때) · comp(공통 부품과 다른 모양, 시험판 55)
+//  + fit(시각이 든 고정 칸에 가장 넓은 시각을 넣어도 2px 남는지 — 데이터 · 휴대폰 글자 그리기에 따라 넓어짐, 시험판 55 CI)
 // 결과: [{k, p(자리), t(글), ...}] — 하나라도 있으면 시험판을 내지 않는다
 module.exports = function audit(opts){
   opts = opts || {};
@@ -83,6 +84,19 @@ module.exports = function audit(opts){
     const cut = all.find(e => sc.contains(e) && ownText(e) && e.getBoundingClientRect().top < sb - 2 && e.getBoundingClientRect().bottom > sb + 2);
     if (cut) out.push({k: 'cover', why: '경계 없음', p: path(sc) + ' ▸ ' + path(nx), t: txt(cut) + ' ▸ ' + txt(nx).slice(0, 12)});
   }
+  // 상자 안 내용(흐름 안의 글 · 아이콘)의 가로 범위와 안쪽(여백 · 테두리를 뺀) 범위. 떠 있는 것(absolute · fixed — 처리 중 동그라미 등)은 뺀다
+  const inner = e => { const r = e.getBoundingClientRect(), s = cs(e); return { L: r.left + parseFloat(s.borderLeftWidth) + parseFloat(s.paddingLeft), R: r.right - parseFloat(s.borderRightWidth) - parseFloat(s.paddingRight) }; };
+  const span = e => {
+    let L = Infinity, R = -Infinity;
+    for (const c of e.childNodes) {
+      let b = null;
+      if (c.nodeType === 3) { if (!c.textContent.trim()) continue; const rg = document.createRange(); rg.selectNodeContents(c); b = rg.getBoundingClientRect(); }
+      else if (c.nodeType === 1) { const q = cs(c); if (/absolute|fixed/.test(q.position) || q.display === 'none' || q.visibility === 'hidden') continue; b = c.getBoundingClientRect(); }
+      if (!b || b.width <= 0) continue;
+      L = Math.min(L, b.left); R = Math.max(R, b.right);
+    }
+    return R > L ? { L, R, w: R - L } : null;
+  };
   // ③ 글자 잘림(…로 줄인 것 · 줄 수를 정해 …로 끝내는 것 말고)
   for (const e of all) {
     if (srOnly(e)) continue;
@@ -95,6 +109,8 @@ module.exports = function audit(opts){
     if (ownText(e) && /hidden|clip/.test(s.overflowY) && (!s.webkitLineClamp || s.webkitLineClamp === 'none') && e.scrollHeight > e.clientHeight + 2) out.push({k: 'cut', why: '세로 잘림', p: path(e), t: txt(e), h: e.clientHeight, need: e.scrollHeight});
     // 상자 밖으로 넘친 글(겹쳐 보임)
     if (ownText(e) && s.overflowX === 'visible' && !/flex|grid/.test(s.display) && e.scrollWidth > e.clientWidth + 2 && e.clientWidth > 0 && s.whiteSpace !== 'normal') out.push({k: 'cut', why: '상자 밖', p: path(e), t: txt(e), w: e.clientWidth, need: e.scrollWidth});
+    // 단추 · 칩처럼 flex · grid로 놓인 상자: 안의 글 · 아이콘이 안쪽 여백을 밀고 들어가거나 밖으로 나감(시험판 55: 폭 360 '오늘 오전 11:00로' 단추 — 위 검사는 flex 상자를 건너뛰어 못 잡았음)
+    if (ownText(e) && /flex|grid/.test(s.display) && s.textOverflow !== 'ellipsis') { const q = span(e), m = inner(e); if (q && (q.R > m.R + 1 || q.L < m.L - 1)) out.push({k: 'cut', why: '안쪽 여백 침범', p: path(e), t: txt(e), w: Math.round((m.R - m.L) * 10) / 10, need: Math.round(q.w * 10) / 10}); }
   }
   const cv = document.createElement('canvas').getContext('2d');
   for (const e of all.filter(x => x.matches('input[placeholder]'))) {
@@ -103,6 +119,55 @@ module.exports = function audit(opts){
     cv.font = ps.fontWeight + ' ' + ps.fontSize + ' ' + ps.fontFamily;
     const need = cv.measureText(e.placeholder).width + (parseFloat(ps.letterSpacing) || 0) * e.placeholder.length, room = e.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
     if (need > room + 1) out.push({k: 'cut', why: '안내 글', p: path(e), t: e.placeholder, w: Math.round(room), need: Math.round(need)});
+  }
+  // fit: 시각 글자가 든 고정 칸(줄을 바꾸지 않는 칸)은 지금 보이는 시각이 아니라 가장 넓은 시각으로 잰다(시험판 55: 캘린더 목록 '오전 10:00'이
+  // 76px 칸을 넘음 — 개발 쪽에선 1.4px라 통과, CI 글자 그리기에선 2px 넘게). 휴대폰마다 글자 폭이 조금씩 달라 2px 남아야 통과.
+  // 칸이 글에 맞춰 늘어나는 경우(폭을 정하지 않은 칸)는 넘칠 일이 없으니 넘어간다
+  {
+    const TM = /(오전|오후) ?\d{1,2}:\d{2}|\d{1,2}:\d{2}/g;
+    const WIDE = ['오전 10:00', '오후 12:59', '오후 10:44', '오전 12:00', '오후 12:00'], WIDE24 = ['12:59', '10:44', '20:44', '00:00'];
+    const seen = new Set();
+    for (const e of all) {
+      if (srOnly(e) || e.closest('input,textarea,select,#bx-spec')) continue;
+      const tn = Array.from(e.childNodes).filter(c => c.nodeType === 3 && /\d{1,2}:\d{2}/.test(c.textContent));
+      if (!tn.length) continue;
+      const s = cs(e), box = /^inline$/.test(s.display) ? e.parentElement : e;
+      if (!box || seen.has(box)) continue; seen.add(box);
+      const bs = cs(box);
+      if (!/nowrap|pre$/.test(s.whiteSpace) && !/nowrap|pre$/.test(bs.whiteSpace)) continue;
+      // 시각이 글의 거의 전부(시각 칸 · '오늘 오전 11:00로' 단추)면 …로 줄어도 안 된다. 시각이 든 긴 문장은 …면 넘어감
+      const isLabel = (box.textContent || '').replace(TM, '').replace(/\s+/g, '').length <= 6;
+      if (!isLabel && (s.textOverflow === 'ellipsis' || bs.textOverflow === 'ellipsis')) continue;
+      const orig = tn.map(c => c.textContent);
+      const room = () => { const m = inner(box); return m.R - m.L; };
+      const need = () => { const q = span(box); return q ? q.w : 0; };
+      const put = k => tn.forEach((c, i) => { c.textContent = orig[i].replace(TM, m => (/오전|오후/.test(m) ? WIDE[k] : WIDE24[k]) + (k === 9 ? '00' : '')); });
+      // 위 상자(4단계까지)가 지금(바꾸기 전) 얼마나 넘쳐 있는지 — 원래 넘쳐 있던 만큼은 시각 탓이 아님(음수 여백으로 넓힌 줄 등)
+      const ancs = []; for (let x = box.parentElement, d = 0; x && x !== document.body && d < 4; x = x.parentElement, d++) ancs.push(x);
+      const ov = x => { const q = span(x), m = inner(x); return q ? Math.max(0, q.R - m.R) : 0; };
+      const ov0 = ancs.map(ov);
+      let worst = null;
+      try {
+        for (let k = 0; k < WIDE.length; k++) {
+          if (k >= WIDE24.length && !orig.some(t => /오전|오후/.test(t))) break;
+          put(k); const r0 = room(), n0 = need();
+          // 칸이 글에 맞춰 늘어나는지: 같은 시각 뒤에 글자 둘을 더 붙여 칸 폭이 커지면 늘어나는 칸
+          tn.forEach((c, i) => { c.textContent = c.textContent + '00'; }); const r1 = room();
+          if (r1 > r0 + 1) {
+            // 칸이 글에 맞춰 늘어남: 그 시각을 넣은 채로 위 상자(4단계까지)가 넘치지 않는지
+            put(k);
+            for (let d = 0; d < ancs.length; d++) {
+              const x = ancs[d], o = ov(x);
+              if (o > ov0[d] + 0.5) { const m = inner(x), q = span(x); worst = { over: 99, t: tn.map(c => c.textContent).join('').trim(), w: Math.round((m.R - m.L) * 10) / 10, need: Math.round(q.w * 10) / 10, anc: name(x) }; break; }
+            }
+            if (worst && worst.anc) break;
+            continue;
+          }
+          if (!worst || n0 - r0 > worst.over) worst = { over: n0 - r0, t: tn.map(c => c.textContent.replace(/00$/, '')).join('').trim(), w: Math.round(r0 * 10) / 10, need: Math.round(n0 * 10) / 10 };
+        }
+      } finally { tn.forEach((c, i) => { c.textContent = orig[i]; }); }
+      if (worst && worst.over > -2) out.push({k: 'fit', why: worst.anc ? '가장 넓은 시각을 넣으면 ' + worst.anc + '이 넘침' : '가장 넓은 시각이 칸에 안 맞음(2px 여유)', p: path(box), t: worst.t, w: worst.w, need: worst.need});
+    }
   }
   // ④ ⑤ 목록: 같은 상자 안 줄(두 칸 이상 · 높이 28 넘음)끼리 칸 시작 · 아이콘
   const STATE = /^(done|cur|past|wait|late|blink|on|off|active|sel|selected|today|soon|live|now|next|open|bx-now|bx-next|bx-next-soft|bx-open|bx-one|bx-span|pc|tt-row|lk|bx-off|bx-r49|bx-untimed|bx-tl-rt|arr|bx-im-del|danger|bx-arow-sw|bx-hid)$/;

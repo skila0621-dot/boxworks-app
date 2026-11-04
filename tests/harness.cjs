@@ -35,7 +35,9 @@ function settings(extra = {}) {
  */
 async function openApp({ now = NOW, data = null, perms = null, speech = true, sound = true, width = 390, height = 844, colorScheme = 'light', insets = null } = {}) {
   if (!fs.existsSync(APP)) throw new Error('www/index.html이 없습니다. 먼저 node scripts/build-web.mjs');
-  const browser = await chromium.launch();
+  // 글자 그리기를 개발 쪽과 CI에서 같게: CI(우분투)는 글꼴 힌팅(slight)을 켜 글자 폭이 1~2px 넓게 나와, 개발 쪽에서 통과한 칸이 CI에서 넘쳤다(시험판 55).
+  // 힌팅을 끄면 두 쪽 다 글꼴에 적힌 폭 그대로 그린다. 휴대폰과의 차이는 정렬 점검의 '가장 넓은 시각' 여유(fit)로 막는다
+  const browser = await chromium.launch({ args: ['--font-render-hinting=none'] });
   // width · height · colorScheme: 자동 정렬 점검(tests/layout)이 폭 360 · 384 · 412, 라이트 · 다크로 연다
   const ctx = await browser.newContext({ viewport: { width, height }, timezoneId: 'Asia/Seoul', locale: 'ko-KR', colorScheme });
   await ctx.addInitScript(({ data, perms, speech, sound }) => {

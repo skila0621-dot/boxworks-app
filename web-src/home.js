@@ -178,10 +178,12 @@ function bxLateOpen(only){
     const tmr = ymd(addDays(parseYmd(M.today), 1));
     // 시험판 36(대표 지적 11/3: 지난 일정을 미루려니 안 됐다 · '1시간 뒤로'가 원래 시각 + 1시간인지 헷갈림): 미루는 단추에 옮길 시각을 그대로 쓴다.
     // 완료 · 17:40으로(오늘 일정) / 오늘 15:00으로(지난 날) · 날짜 변경(날짜 · 시각 칸) · 그대로
+    // 시험판 55: 미루는 단추 글은 시각에 따라 길어진다('오늘 오후 12:50으로'). 폭 360에서 두 칸 단추에 시계 아이콘까지 넣으면 넘쳐서
+    // 아이콘을 빼고 글은 span으로(혹시 넘치면 …). 정렬 점검 fit이 가장 넓은 시각으로 잰다
     const card = i => { const tg = bxLateTarget(i);
       return '<div class="bx-lc"><div class="bx-lc-t"><b>' + (esc(i.title) || '(제목 없음)') + '</b><small>' + esc(relDay(i.date, M.today) + ' ' + timeText(i)) + '</small></div><div class="bx-lc-a">' +
       '<button type="button" class="btn sm primary" data-bx-late="done" data-id="' + esc(i.id) + '">' + ICON.check + '완료</button>' +
-      '<button type="button" class="btn sm" data-bx-late="' + (i.date < M.today ? 'today' : 'later') + '" data-id="' + esc(i.id) + '">' + ICON.clock + esc(bxLateLabel(i, tg)) + '</button>' +
+      '<button type="button" class="btn sm" data-bx-late="' + (i.date < M.today ? 'today' : 'later') + '" data-id="' + esc(i.id) + '"><span>' + esc(bxLateLabel(i, tg)) + '</span></button>' +
       '<button type="button" class="btn sm" data-bx-late="pick" data-id="' + esc(i.id) + '" aria-expanded="' + (BXL_PICK === i.id) + '">' + ICON.cal + '날짜 변경</button>' +
       '<button type="button" class="btn sm" data-bx-late="keep" data-id="' + esc(i.id) + '">그대로</button></div>' +
       (BXL_PICK === i.id ? '<div class="bx-lc-pick"><input type="date" class="inp" id="bx-lc-date" value="' + tmr + '" min="' + esc(M.today) + '" aria-label="옮길 날짜">' +

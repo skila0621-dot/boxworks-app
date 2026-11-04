@@ -326,8 +326,10 @@ function bxFeatDraw(){
       '<div class="bx-ft-acts"><button type="button" class="btn sm" data-bxset="alarm">시각 변경</button><button type="button" class="btn sm primary" data-act="bx-rep-try">미리 보기</button></div></div>' : '');
   const lab = k => BX_DOCK_ALL[k].label;
   const chip = k => { const i = FEAT.dock.indexOf(k), ok = bxFeatDockOk(k);
-    return ok ? '<button type="button" class="bx-ft-chip' + (i >= 0 ? ' on' : '') + '" aria-pressed="' + (i >= 0) + '" data-bx-fdock="' + k + '">' + (i >= 0 ? ICON.check : '') + lab(k) + '</button>'
-      : '<span class="bx-ft-chip off">' + lab(k) + ' · 꺼짐</span>'; };
+    // 시험판 55: 고른 칩은 칩 모양(보라 테두리 · 연보라)으로 보이니 체크 아이콘은 뺀다 — 4칸에서 '✓ 캘린더' · '✓ 시간표'가 칩 안쪽 여백을 넘었음.
+    // 꺼진 기능 칩은 두 칸(app.css .bx-ft-chip.off). 글은 span으로(넘치면 …)
+    return ok ? '<button type="button" class="bx-ft-chip' + (i >= 0 ? ' on' : '') + '" aria-pressed="' + (i >= 0) + '" data-bx-fdock="' + k + '"><span>' + lab(k) + '</span></button>'
+      : '<span class="bx-ft-chip off"><span>' + lab(k) + ' · 꺼짐</span></span>'; };
   const half = Math.ceil(FEAT.dock.length / 2), prev = FEAT.dock.slice(0, half).map(lab).concat(['홈']).concat(FEAT.dock.slice(half).map(lab));
   setSheet(
     // 시험판 37: 묶음 제목과 설명은 상자 밖, 고르는 줄은 묶음마다 반투명 상자 하나(bx-grp)

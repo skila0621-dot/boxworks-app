@@ -10,6 +10,8 @@ const TV_OUT = {name: '외출 준비', steps: [['씻기', 20], ['옷 입기', 10
 const ICON_GO = '<svg class="i" viewBox="0 0 24 24"><path d="M4 12h11.5M11 7.5l4.5 4.5-4.5 4.5"/><path d="M20 4.5v15"/></svg>';
 let tvNote = '';
 
+// 이동 시간 칸(4칸) 글: 정시는 'N시간', 나머지는 'N분'(90분 · 75분). '1시간 30분'은 폭 360 · 384의 칸에 안 들어감(시험판 55 정렬 점검)
+function tvPickText(m){ m = Math.round(+m || 0); return m >= 60 && m % 60 === 0 ? m / 60 + '시간' : m + '분'; }
 function tvMinText(m){ m = Math.round(+m || 0); const h = Math.floor(m / 60), r = m % 60; return h ? h + '시간' + (r ? ' ' + r + '분' : '') : r + '분'; }
 function tvKey(s){ return String(s || '').replace(/\s+/g, '').replace(/(?:에서|에|으로|로|까지)$/, '').slice(0, 30); }
 function tvMem(){ const d = getDoc(TV_MEM); return d && d.map && typeof d.map === 'object' ? d.map : {}; }
@@ -166,7 +168,7 @@ function tvDrawPanel(){
   const p = tvFormPlan();
   const line = p ? tvLineHtml(p, F.start, (F.parsed && F.parsed.title) || F.title) : '';
   el.innerHTML =
-    '<div class="fg-l">이동 시간</div><div class="picks">' + tvs.map(v => '<button type="button" class="pick" data-ftv="' + v + '" aria-pressed="' + ((+F.travel || 0) === v) + '">' + (v ? tvMinText(v) : '없음') + '</button>').join('') + '</div>' +
+    '<div class="fg-l">이동 시간</div><div class="picks">' + tvs.map(v => '<button type="button" class="pick" data-ftv="' + v + '" aria-pressed="' + ((+F.travel || 0) === v) + '">' + (v ? tvPickText(v) : '없음') + '</button>').join('') + '</div>' +
     '<div class="tv-cus"><span class="p small">직접</span>' + stepperHtml('f-travel', +F.travel || 0, 0, 300, null, 5) + '<span class="p small">분</span></div>' +
     (F.tvSrc === 'mem' && F.tvKey ? '<p class="p small tv-mem">‘' + esc(F.tvKey) + '’까지 지난번에 ' + tvMinText(F.travel) + '이 걸렸어요</p>' : '') +
     '<div class="fg-l tv-h">준비 루틴 <small>출발 시각에 끝나게 거꾸로 놓여요</small></div><div class="picks">' +

@@ -24,6 +24,8 @@
   /* 칩 D '네모 칩' — 높이 36 · 모서리 10 · 글자 14 · 고르면 연보라 바탕에 보라 굵은 테(요일 동그라미도 같은 색) */
   --c-h:36px; --c-r:10px; --c-fs:14px; --c-fw:600; --c-px:14px; --c-bg:transparent; --c-bd:var(--line-2); --c-bw:1px; --c-fg:var(--ink);
   --c-on-bg:var(--accent-soft); --c-on-fg:var(--accent-text); --c-on-bd:var(--accent-text); --c-on-bw:2px; --c-day:36px;
+  /* 목록 줄 시각 칸: 가장 넓은 시각('오후 12:59', 16px · 굵기 800 · 숫자 폭 같게 77.4px) + 휴대폰 글자 그리기 차이 여유. 76이던 것이 캘린더 목록에서 넘침(시험판 55 CI) */
+  --row-tw:80px;
   /* 나눔 단추 D '떨어진 칸' — 칸마다 회색 테 · 고르면 연보라 바탕에 보라 테 · 높이 40 */
   --sg-bg:transparent; --sg-pad:0px; --sg-gap:8px; --sg-r:0px; --sg-ir:12px; --sg-h:40px; --sg-fs:14px; --sg-fw:700; --sg-fg:var(--ink-2);
   --sg-on-bg:var(--accent-soft); --sg-on-fg:var(--accent-text); --sg-on-sh:inset 0 0 0 1.5px var(--accent-text); --sg-it-bw:1px; --sg-it-bd:var(--line-2); --sg-track:none;
@@ -83,6 +85,8 @@ html.bx-app :where(.btn.is-busy > .spin){display:block;position:absolute;inset:0
    (.pick은 칩이 아니라 '고르는 줄 · 고르는 칸'으로 쓰여 여기에 넣지 않는다) */
 html.bx-app :where(.chip,.bx-cchip,.bx-ft-chip,.bx-tt45-days .tt-dbtn,.bx-rt45-days .day-tog){position:relative;display:inline-flex;align-items:center;justify-content:center;gap:var(--c-gap);box-sizing:border-box;height:var(--c-h);min-height:0;max-width:100%;padding:0 var(--c-px);border:0;border-radius:var(--c-r);background:var(--c-bg);box-shadow:inset 0 0 0 var(--c-bw) var(--c-bd);color:var(--c-fg);font-family:var(--f);font-size:var(--c-fs);font-weight:var(--c-fw);line-height:1.25;letter-spacing:var(--ls-note,-.16px);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
 html.bx-app :where(.chip,.bx-cchip,.bx-ft-chip) > svg.i{flex:none;width:var(--c-ic);height:var(--c-ic)}
+/* 칩 글: 칸보다 길면 줄을 바꾸거나 안쪽 여백을 넘지 않고 …(단추와 같은 규칙, 시험판 55) */
+html.bx-app :where(.chip,.bx-cchip,.bx-ft-chip) > span:not(.dot):not(.sr){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html.bx-app :where(.chip,.bx-cchip,.bx-ft-chip,.bx-tt45-days .tt-dbtn,.bx-rt45-days .day-tog):is([aria-pressed="true"],.on){background:var(--c-on-bg);box-shadow:inset 0 0 0 var(--c-on-bw) var(--c-on-bd);color:var(--c-on-fg)}
 html.bx-app :where(.chip.ghost,.bx-cchip-add,.bx-ft-chip.off){background:transparent;box-shadow:inset 0 0 0 1px var(--line-2);color:var(--ink-2)}
 html.bx-app :where(.chip,.bx-cchip,.bx-ft-chip):disabled{cursor:default;background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--ink-3)}
@@ -569,7 +573,7 @@ html.bx-ttbar-on #toasts{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,
 .bx-app .bx-lc-t{display:flex;flex-direction:column;gap:2px}
 .bx-app .bx-lc-t b{font-size:16px}
 .bx-app .bx-lc-t small{font-size:13px;color:var(--ink-2)}
-.bx-app .bx-lc-a{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.bx-app .bx-lc-a{display:grid;grid-template-columns:repeat(2,minmax(max-content,1fr));gap:8px;margin-top:12px}
 
 .bx-app .bx-late-ok{display:flex;align-items:center;gap:8px;min-height:50px;padding:0 14px;border-radius:14px;background:var(--sunk);font-size:14px;color:var(--ink-2)}
 .bx-app .bx-late-ok .i{width:18px;height:18px;color:var(--accent-text);stroke-width:2.4}
@@ -1260,7 +1264,8 @@ html.bx-app .bx-att-fopen svg.i{flex:none;width:20px;height:20px;color:var(--acc
 html.bx-app .bx-att-fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;font-weight:600}
 html.bx-app .bx-att-fopen small{flex:none;color:var(--ink-3);font-size:13px}
 html.bx-app .bx-att-f .bx-att-x{top:11px;background:color-mix(in srgb,var(--ink) 14%,transparent);color:var(--ink)}
-.bx-app .bx-att-add{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+/* 같은 폭 단추 칸: 칸이 글보다 좁아지면 글이 단추 안쪽 여백을 넘었다(폭 360 '사진 고르기', 시험판 55). 글이 다 들어가는 폭 아래로는 줄지 않고 남는 폭만 나눔 */
+.bx-app .bx-att-add{display:grid;grid-template-columns:repeat(3,minmax(max-content,1fr));gap:8px}
 .bx-app .bx-att-add .btn{min-width:0;justify-content:center}
 
 html.bx-app .bx-att-note{margin:10px 2px 0;color:var(--ink-3)}
@@ -1779,7 +1784,7 @@ html.bx-app .bx-pill49 .bx-pl-save svg{display:none}
 html.bx-app .bx-tt-ap{font-size:11.5px;font-weight:500;color:var(--ink-3);line-height:1}
 .bx-app .tt-line span small{position:absolute;right:0;bottom:100%;font-size:11.5px;line-height:1.1;white-space:nowrap}
 /* 줄의 시각 칸: '오후 12:30'(16px 굵게 75px)이 한 줄에 들어가게 넓힌다. 루틴 카드의 단계 · 안내 줄도 같은 만큼 오른쪽으로(아이콘 24 + 14 + 시각 76 + 14) */
-.bx-app .row-time{width:76px}
+.bx-app .row-time{width:var(--row-tw)}
 .row-time b,.row-time small{white-space:nowrap}
 .bx-tl-rt .rt-note{padding-left:128px}
 .bx-tl-rt .rt-steps{margin-left:128px}

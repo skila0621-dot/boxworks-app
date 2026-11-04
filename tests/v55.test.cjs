@@ -3,6 +3,9 @@
 // (2) 웹 원본의 같은 규칙은 빌드 때 지움(scripts/ui-owned.mjs) · 화면 규칙이 모양을 다시 정하면 정렬 점검(comp)이 걸림
 // (3) 아이콘이 앞에 붙은 단추는 아이콘 쪽 안쪽 여백을 줄임 · 처리 중 · 못 누름에서도 크기 그대로
 // (4) 출발 아이콘은 '집에서 나가기' · 홈 '오늘 할 일' · '오늘의 메모' 제목은 상자 밖 위 · 날짜 이동 줄 글자 20 · '완료' 오른쪽 끝 32
+// (5) CI에서 걸린 것(빌드 61): 목록 시각 칸이 가장 넓은 시각('오후 12:59', 굵기 800)보다 좁았음 → 칸 폭 공통 값 --row-tw 80.
+//     같은 종류(글이 칸보다 넓음) 앱 전체: 확인 필요 '오늘 오전 11:00로' · 사진·파일 3칸 · 이동 시간 4칸 '1시간 30분' · 아래 메뉴 칩 '✓ 캘린더'.
+//     정렬 점검에 fit(가장 넓은 시각) · '안쪽 여백 침범'(flex 상자 안 글)을 더함 — 일부러 만든 넘침을 잡는지 여기서 확인
 const fs = require('fs');
 const path = require('path');
 const { openApp, settings, checker, ROOT } = require('./harness.cjs');
@@ -67,5 +70,38 @@ module.exports = async function () {
     c.ok(pg && pg.right === 32, "페이지 머리 '완료' 글자 끝이 화면 끝에서 32 " + JSON.stringify(pg));
     c.ok(pg && pg.dfs === '20px', '날짜 페이지 달력 머리 글자 20');
   } finally { await app.close(); }
+  // (5) 목록 시각 칸 · 같은 종류
+  const app2 = await openApp({ width: 360, height: 780, data: [['settings', settings()],
+    ['it_1', { type: 'item', title: '보고서 마감', date: '2026-11-02', start: '10:00', end: '12:30', createdAt: old, updatedAt: old }],
+    ['it_9', { type: 'item', title: '지난 일', date: '2026-11-01', start: '11:00', createdAt: old, updatedAt: old }]] });
+  const q = app2.page;
+  try {
+    await q.waitForTimeout(700);
+    c.eq(await q.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--row-tw').trim()), '80px', '목록 시각 칸 폭은 공통 값 하나(--row-tw 80)');
+    // 가장 넓은 시각을 굵기 800으로 넣어도 2px 남음
+    const room = await q.evaluate(() => { const b = document.createElement('b'); b.style.cssText = 'position:fixed;top:0;left:0;white-space:nowrap;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:var(--ls-body)'; b.textContent = '오후 12:59'; document.body.appendChild(b); const w = b.getBoundingClientRect().width; b.remove(); return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-tw')) - w; });
+    c.ok(room >= 2, "가장 넓은 시각('오후 12:59' · 굵기 800)이 시각 칸에 2px 넘게 남음 " + room.toFixed(2));
+    // 확인 필요: 미루는 단추는 아이콘 없이 글만(span) · 두 칸은 글이 다 들어가는 폭 아래로 안 줄어듦
+    await q.click('[data-act="bx-late-open"]'); await q.waitForTimeout(600);
+    const lc = await q.evaluate(() => { const b = document.querySelector('.bx-lc-a [data-bx-late="today"], .bx-lc-a [data-bx-late="later"]'); if (!b) return null; const sp = b.querySelector(':scope > span'); return { svg: !!b.querySelector('svg'), cut: sp ? sp.scrollWidth > sp.clientWidth : true, cols: getComputedStyle(b.parentElement).gridTemplateColumns }; });
+    c.ok(lc && !lc.svg && !lc.cut, "확인 필요 '오늘 …로' 단추: 아이콘 없이 글 전부 보임(폭 360) " + JSON.stringify(lc));
+    await q.evaluate(() => window.BX_back && window.BX_back()); await q.waitForTimeout(300);
+    // 이동 시간 칸 글: 정시는 'N시간', 나머지는 'N분'
+    await q.click('#tcard2 .row-main[data-id="it_1"]'); await q.waitForTimeout(500);
+    await q.click('#sheet-root .bx-er[data-fpanel="go"]'); await q.waitForTimeout(600);
+    const tv = await q.evaluate(() => Array.from(document.querySelectorAll('#bx-ep [data-ftv]')).map(b => { const r = document.createRange(); r.selectNodeContents(b); const s = getComputedStyle(b), q = b.getBoundingClientRect(); return [b.textContent.trim(), r.getBoundingClientRect().width <= q.width - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight) + 0.5]; }));
+    c.ok(tv.length >= 7 && tv.some(x => x[0] === '90분') && tv.some(x => x[0] === '1시간') && !tv.some(x => /시간 \d+분/.test(x[0])) && tv.every(x => x[1]), "이동 시간 칸: 정시는 'N시간', 나머지는 'N분'('1시간 30분' → '90분'), 폭 360에서 칸 안에 다 들어감 " + JSON.stringify(tv));
+    await q.evaluate(() => { for (let i = 0; i < 4; i++) window.BX_back && window.BX_back(); }); await q.waitForTimeout(400);
+    // 정렬 점검의 새 검사가 일부러 만든 넘침을 잡는지(검사가 늘 '통과'만 하는 게 아님을 확인)
+    const audit = require('./layout/checks.js').toString();
+    await q.evaluate(() => { const d = document.createElement('div'); d.id = 'bx-t55'; d.style.cssText = 'position:fixed;left:16px;top:120px;z-index:99999;background:#fff;display:grid;gap:8px';
+      d.innerHTML = '<div style="display:grid;grid-template-columns:70px"><button type="button" class="btn sm">사진 고르기</button></div>' +
+        '<span class="row-time" style="display:block;width:70px"><b style="display:block;white-space:nowrap;font-size:16px;font-weight:800">오전 7:30</b></span>';
+      document.body.appendChild(d); });
+    const got = await q.evaluate('(' + audit + ')({top:true})');
+    const mine = got.filter(x => /bx-t55|row-time|btn\.sm/.test(x.p || '') && (x.k === 'fit' || x.why === '안쪽 여백 침범'));
+    c.ok(mine.some(x => x.k === 'fit') && mine.some(x => x.why === '안쪽 여백 침범'), "정렬 점검이 일부러 만든 넘침을 잡음(70px 칸의 '오전 7:30' → fit, 좁은 칸 '사진 고르기' → 안쪽 여백 침범) " + JSON.stringify(mine.map(x => x.k + ':' + x.t)));
+    c.eq(app2.errors, [], '화면 오류');
+  } finally { await app2.close(); }
   return c.done();
 };
