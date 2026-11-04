@@ -11,7 +11,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * 홈 화면 위젯과 박스웍스 화면을 잇는 연결부. 웹에서는 Capacitor.Plugins.BxWidget.
  * update(data): 위젯에 보여 줄 앞으로의 일정·알람 시각을 넘긴다.
  * 위젯 단추로 앱이 열리면 알림을 보낸다: 'speak'(말하기) · 'add'(일정 추가, 시험판 36) · 'open'(줄 누르기 {k, id, ds}, 시험판 36)
- * · 'memo'(✎ 메모, 시험판 41).
+ * · 'memo'(✎ 메모, 시험판 41) · 'home'(앱 열기 · 위젯 누르기 → 홈 화면, 시험판 48).
  * 앱이 꺼져 있다가 열렸으면 consumeLaunch()로 알려 준다.
  */
 @CapacitorPlugin(name = "BxWidget")
@@ -19,6 +19,7 @@ public class BxWidgetPlugin extends Plugin {
     private boolean pendingSpeak = false;
     private boolean pendingAdd = false;
     private boolean pendingMemo = false;
+    private boolean pendingHome = false;
     private String pendingDs = null;
     private JSObject pendingOpen = null;
 
@@ -53,6 +54,10 @@ public class BxWidgetPlugin extends Plugin {
             // ✎ 메모(시험판 41, 대표 요청 11/3 23:38): 메모 화면 + 맨 위 칸에 커서
             if (live) notifyListeners("memo", new JSObject(), true);
             else pendingMemo = true;
+        } else if (BxWidgetProvider.ACTION_HOME.equals(a)) {
+            // 시험판 48: 위젯을 눌러 열면 홈 화면으로
+            if (live) notifyListeners("home", new JSObject(), true);
+            else pendingHome = true;
         } else if (BxWidgetProvider.ACTION_OPEN.equals(a)) {
             JSObject o = new JSObject();
             o.put("k", i.getStringExtra("k"));
@@ -72,11 +77,13 @@ public class BxWidgetPlugin extends Plugin {
         r.put("speak", pendingSpeak);
         r.put("add", pendingAdd);
         r.put("memo", pendingMemo);
+        r.put("home", pendingHome);
         if (pendingDs != null) r.put("ds", pendingDs);
         if (pendingOpen != null) r.put("open", pendingOpen);
         pendingSpeak = false;
         pendingAdd = false;
         pendingMemo = false;
+        pendingHome = false;
         pendingDs = null;
         pendingOpen = null;
         call.resolve(r);

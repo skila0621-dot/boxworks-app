@@ -71,6 +71,16 @@ cd android && ./gradlew assembleDebug
 
 - '날짜 변경'(`bxLatePickDate`)은 카드 안에 칸을 펼치지 않고 페이지를 연다(`web-src/v46.js`). 페이지 안의 `#bx-lc-date` · `#bx-lc-time`과 숨은 `data-bx-late="move"` 단추를 쓰므로, 옮기는 일은 예전 '변경' 단추 처리(`flow.js`)가 그대로 한다. '완료'를 누르면 그 단추를 누른 것과 같다
 
+## 명상 끝내기 · 메모 화면 · 위젯 → 홈 (시험판 48)
+
+- 명상하는 동안 알림창 · 잠금 화면에 '명상 중 · N분' 알림 한 장(남은 시간을 거꾸로 셈, '명상 끝내기' 단추). 휴대폰 쪽은 `MedOngoing`(채널 `bx_med_v1`). 배경 소리가 나오면 소리 서비스(`BxSoundService`)의 알림이 같은 모양으로 대신해 알림이 두 장이 되지 않는다. 그래서 앱은 `BxSound.medOngoing({startAt, endAt, min, bg, bell})`을 배경 소리를 틀기 **전에** 부른다(`web-src/v48.js`)
+- '명상 끝내기'는 `AlarmActionReceiver`(`med-stop`) → `MedOngoing.stopAll`: 남은 명상 종 · 배경 소리 · 울리는 종을 멈추고 `SoundPrefs.medCancel`을 적는다. 앱이 살아 있으면 `medStop` {at}을 알려 '명상 중' 화면을 바로 치우고, 끝낸 시각까지 한 만큼 기록한다
+- 앱 안에서도 명상 화면이 아닌 곳이면 아래 메뉴 위에 '명상 중 · 남은 시간 · 끝내기' 줄(`#bx-medbar`). 시간표에서는 아래 도구 줄 위. 줄이 있는 동안 + 단추 · 일 · 주 · 월 · 알림 글은 그만큼 위로
+- 호흡 안내: 원 뒤 꽃잎 여섯 장(`.bx-med-fl`)이 들이쉴 때(4초) 피고 내쉴 때(6초) 오므린다. 시작 전 5초 동안은 지연(`--bx-bd`)을 양수로 둬 첫 종과 함께 피기 시작한다
+- 메모 화면은 적은 메모만. + 단추(캘린더와 같은 단추, `data-bxmemo`) → '새 메모' 페이지(`#bx-mmn`, ‹ 는 적지 않고 닫기 · 완료는 저장)
+- 위젯 단추(✎ · 🎤 · + · 앱 열기 · 일정 줄)로 들어오면 먼저 홈 화면(`BX_goHome`). '앱 열기' · 위젯 누르기는 새 동작 `kr.boxworks.app.W_HOME`(`BxWidgetPlugin`의 'home')
+- 휴대폰 캘린더 일정은 테두리 칸이 아니라 그 캘린더 색으로 그린다. 칩 줄 위에서는 달 넘기기(옆으로 밀기)를 하지 않는다(`home.js`)
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.

@@ -10,6 +10,11 @@ public class AlarmActionReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String act = intent.getStringExtra(AlarmNotify.EXTRA_ACT);
+        // 시험판 48: 명상 알림의 '명상 끝내기'
+        if (MedOngoing.ACT_STOP.equals(act)) {
+            MedOngoing.stopAll(context);
+            return;
+        }
         if ("report-close".equals(act)) {
             androidx.core.app.NotificationManagerCompat.from(context).cancel(AlarmNotify.REPORT_ID);
             return;

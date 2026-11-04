@@ -75,6 +75,39 @@ public class BxSoundPlugin extends Plugin {
         call.resolve();
     }
 
+    /**
+     * 시험판 48: 명상 알림('명상 중 · 남은 시간 · 명상 끝내기'). {startAt, endAt, min, bg(배경 소리 이름), bell} 또는 {clear: true}
+     */
+    @PluginMethod
+    public void medOngoing(PluginCall call) {
+        JSObject d = call.getData();
+        if (d.optBoolean("clear", false)) {
+            MedOngoing.clear(getContext());
+            call.resolve();
+            return;
+        }
+        long startAt = d.optLong("startAt", 0), endAt = d.optLong("endAt", 0);
+        if (endAt <= System.currentTimeMillis()) {
+            MedOngoing.clear(getContext());
+            call.resolve();
+            return;
+        }
+        MedOngoing.start(getContext(), startAt, endAt, d.optInt("min", 0), d.optString("bg", ""), d.optBoolean("bell", true));
+        call.resolve();
+    }
+
+    /** 알림에서 명상을 끝냈을 때 앱 화면에 알린다(앱이 열려 있으면 '명상 중' 화면을 바로 치움) */
+    static void medStopped() {
+        BxSoundPlugin p = inst;
+        if (p == null) return;
+        try {
+            JSObject o = new JSObject();
+            o.put("at", System.currentTimeMillis());
+            p.notifyListeners("medStop", o);
+        } catch (Exception ignored) {
+        }
+    }
+
     static synchronized void previewPlay(Context c, String sound) {
         if (preview != null) preview.finish(0.3f);
         final BgPlayer p = new BgPlayer(c, sound, 0, System.currentTimeMillis() + 6000, 0.6f, 1.5f, ended -> {

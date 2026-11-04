@@ -42,6 +42,8 @@ public class BxWidgetProvider extends AppWidgetProvider {
     static final String ACTION_OPEN = "kr.boxworks.app.OPEN_ROW";
     // ✎ 메모(시험판 41, 대표 요청 11/3 23:38): 앱의 메모 화면을 열고 바로 적기
     static final String ACTION_MEMO = "kr.boxworks.app.MEMO";
+    /** 시험판 48(대표 11/4 14:07): 위젯을 눌러 앱을 열면 보던 화면이 아니라 홈 화면으로 */
+    static final String ACTION_HOME = "kr.boxworks.app.W_HOME";
     static final String ACTION_TICK = "kr.boxworks.app.WIDGET_TICK";
     static final String ACTION_DAY = "kr.boxworks.app.WIDGET_DAY";
     private static final long DAY_MS = 24 * 3600 * 1000L;
@@ -316,7 +318,7 @@ public class BxWidgetProvider extends AppWidgetProvider {
         v.setViewVisibility(R.id.w_next, day >= today + d.optInt("ahead", 14) * DAY_MS ? View.INVISIBLE : View.VISIBLE);
         v.setOnClickPendingIntent(R.id.w_prev, dayPi(c, wid, -1));
         v.setOnClickPendingIntent(R.id.w_next, dayPi(c, wid, 1));
-        v.setOnClickPendingIntent(R.id.w_head, day == today ? activityPi(c, 0x0B10, null, null) : dayPi(c, wid, 0));
+        v.setOnClickPendingIntent(R.id.w_head, day == today ? activityPi(c, 0x0B10, ACTION_HOME, null) : dayPi(c, wid, 0));
 
         // 목록: 위젯마다 · 날마다 다른 인텐트여야 휴대폰이 목록을 따로 만든다
         Intent svc = new Intent(c, BxWidgetService.class);
@@ -336,7 +338,7 @@ public class BxWidgetProvider extends AppWidgetProvider {
         int mut = Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0;
         v.setPendingIntentTemplate(R.id.w_list, PendingIntent.getActivity(c, 0x0B14, open, PendingIntent.FLAG_UPDATE_CURRENT | mut));
 
-        v.setOnClickPendingIntent(R.id.w_root, activityPi(c, 0x0B10, null, null));
+        v.setOnClickPendingIntent(R.id.w_root, activityPi(c, 0x0B10, ACTION_HOME, null));
         // 새 일정(＋) = 새 일정 창(글자로), 말하기(🎤) = 새 일정 창 + 바로 듣기. 보고 있는 날짜로(대표 요청 11/3: 따로)
         v.setOnClickPendingIntent(R.id.w_add, activityPi(c, 0x0B13, ACTION_ADD, ds));
         v.setOnClickPendingIntent(R.id.w_mic, activityPi(c, 0x0B11, ACTION_SPEAK, ds));

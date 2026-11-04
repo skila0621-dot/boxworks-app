@@ -35,7 +35,7 @@ public class BxSoundService extends Service {
     private static final String EXTRA_MODE = "mode";
     private static final String EXTRA_START = "startAt";
     private static final String EXTRA_UNTIL = "until";
-    private static final String CHANNEL = "bx_bg_v1";
+    static final String CHANNEL = "bx_bg_v1";
     static final int NOTIF_ID = 0x42470001;
 
     private static volatile BxSoundService self;
@@ -43,6 +43,22 @@ public class BxSoundService extends Service {
     static volatile String nowSound = "";
     static volatile String nowMode = "";
     static volatile long nowUntil = 0;
+    /** 시험판 48: 명상 배경 소리일 때 이 서비스의 알림이 명상 알림('명상 중 · 남은 시간 · 명상 끝내기')을 대신하는 중 */
+    private static volatile boolean medFgs = false;
+
+    static boolean medNotice() {
+        return medFgs && self != null;
+    }
+
+    /** 시험판 48: 명상 배경 소리가 나오는 중이면 이 서비스의 알림을 명상 알림('명상 중 · 남은 시간 · 명상 끝내기')으로 바꾼다. 바꿨으면 true */
+    static boolean refreshMedNotice(Context c) {
+        final BxSoundService s = self;
+        if (s == null || !"med".equals(nowMode)) return false;
+        s.handler.post(() -> {
+            if (self == s && "med".equals(nowMode)) s.goForeground(nowSound, "med");
+        });
+        return true;
+    }
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private BgPlayer player;
@@ -207,6 +223,10 @@ public class BxSoundService extends Service {
         }
         stopSelf();
         clearState();
+        // 배경 소리만 먼저 끝났고(전화 · 이어폰 빠짐 등) 명상은 아직이면, 따로 명상 알림을 다시 붙인다
+        boolean wasMed = medFgs;
+        medFgs = false;
+        if (wasMed && MedOngoing.active(this)) MedOngoing.post(this);
     }
 
     private boolean goForeground(String sound, String mode) {
@@ -222,6 +242,23 @@ public class BxSoundService extends Service {
                 nm.createNotificationChannel(nc);
             }
         }
+        // 시험판 48: 명상 중이면 명상 알림과 같은 모양(남은 시간 · '명상 끝내기')으로 띄우고, 따로 붙어 있던 명상 알림은 지운다
+        if ("med".equals(mode) && MedOngoing.active(this)) {
+            Notification mn = MedOngoing.build(this, true);
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) startForeground(NOTIF_ID, mn, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+                else startForeground(NOTIF_ID, mn);
+                medFgs = true;
+                try {
+                    NotificationManagerCompat.from(this).cancel(MedOngoing.NOTIF_ID);
+                } catch (Exception ignored) {
+                }
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        medFgs = false;
         Intent open = new Intent(this, MainActivity.class);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openPi = PendingIntent.getActivity(this, NOTIF_ID, open,

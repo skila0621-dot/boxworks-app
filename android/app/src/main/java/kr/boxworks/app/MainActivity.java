@@ -32,6 +32,7 @@ public class MainActivity extends BridgeActivity {
     static void stopMeditation(android.content.Context c, boolean withBells) {
         BowlPlayer.stopAll();
         if (!withBells) return;
+        MedOngoing.clear(c);
         if (AlarmStore.cancelPrefix(c, "med_") > 0) SoundPrefs.medCancel(c, System.currentTimeMillis());
     }
 

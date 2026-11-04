@@ -93,21 +93,27 @@ module.exports = async function () {
     c.eq(await texts(p, '.bx-mmp-quick .bx-mm-x'), ['택배 반품 신청', '빨래 돌리기', '치과 예약 전화하기일정으로 옮김', '우유 사기'], '오늘 메모는 새 것부터(칸 바로 아래에 방금 적은 것)');
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('.bx-mmp-grp')).map(g => [g.querySelector('h2').textContent, Array.from(g.querySelectorAll('.bx-mmp-dh b')).map(b => b.textContent)])),
       [['다가오는 날', ['11월 5일 (목)']], ['지난 메모', ['어제 · 11월 1일 (일)']]], '다가오는 날 · 지난 메모(날짜마다 작은 제목)');
-    await p.fill('#bx-mm-in-p20261102', '물 마시기');
-    await p.press('#bx-mm-in-p20261102', 'Enter'); await p.waitForTimeout(500);
-    c.eq((await texts(p, '.bx-mmp-quick .bx-mm-x'))[0], '물 마시기', '메모 화면에서 적으면 칸 바로 아래 맨 위');
-    c.eq(await active(p), 'bx-mm-in-p20261102', '메모 화면 칸에 커서 그대로');
+    // 시험판 48(대표 11/4 14:00): 메모 화면에는 적는 칸 없이 메모만, 적기는 오른쪽 아래 + → '새 메모' 페이지
+    c.ok(await p.evaluate(() => !document.querySelector('.screen.memo .bx-mm-inp') && !!document.querySelector('.bx-fab[data-bxmemo]') && getComputedStyle(document.querySelector('.bx-fab')).display !== 'none'), '메모 화면: 적는 칸 없음 · + 단추');
+    await p.click('.bx-fab'); await p.waitForTimeout(400);
+    c.eq(await active(p), 'bx-mmn-ta', "+ → '새 메모' 페이지, 적는 칸에 커서");
+    await p.fill('#bx-mmn-ta', '물 마시기');
+    await p.click('#bx-mmn [data-bxmmn="done"]'); await p.waitForTimeout(500);
+    c.eq((await texts(p, '.bx-mmp-quick .bx-mm-x'))[0], '물 마시기', "완료 → 오늘 메모 맨 위");
     await p.click('.appbar [data-act="bx-help"]'); await p.waitForTimeout(400);
     c.ok(/위젯의 ✎ 단추/.test(await p.evaluate(() => document.getElementById('sheet-root').textContent)), '메모 화면 도움말');
     await p.evaluate(() => window.BX_back()); await p.waitForTimeout(200);
     await p.evaluate(() => window.BX_back()); await p.waitForTimeout(400);
     c.eq(await p.evaluate(() => location.hash), '#today', '뒤로 → 홈');
-    // (10) 위젯 ✎: 메모 화면 + 맨 위 칸에 커서 + 키보드 올리기
+    // (10) 위젯 ✎(시험판 48, 대표 11/4 14:07): 보던 화면이 아니라 홈 화면에서 '새 메모' 페이지 + 키보드 올리기
     c.eq(await p.evaluate(() => { window.__kb = 0; return window.BX_widgetData().memo; }), true, '위젯 자료: ✎ 단추 보임');
+    await p.click('.dock [data-view="memo"]'); await p.waitForTimeout(400);
     await p.evaluate(() => window.__wl.memo({})); await p.waitForTimeout(900);
-    c.ok(await p.evaluate(() => !!document.querySelector('.screen.memo .bx-mmp-quick')), '위젯 ✎ → 메모 화면');
-    c.eq(await active(p), 'bx-mm-in-p20261102', '맨 위 칸에 커서');
+    c.ok(await p.evaluate(() => !!document.querySelector('.screen.today') && !!document.getElementById('bx-mmn')), "위젯 ✎ → 홈 화면에서 '새 메모' 페이지");
+    c.eq(await active(p), 'bx-mmn-ta', '적는 칸에 커서');
     c.ok(await p.evaluate(() => (window.__kb || 0) >= 1), '휴대폰 쪽 키보드 올리기를 부름');
+    await p.fill('#bx-mmn-ta', '우산 챙기기'); await p.click('#bx-mmn [data-bxmmn="done"]'); await p.waitForTimeout(500);
+    c.eq((await texts(p, '#bx-mm-card .bx-mm-x')).slice(-1), ['우산 챙기기'], '완료 → 홈의 오늘의 메모에 바로 보임');
     // (11) 기능 · 메뉴 편집에서 메모 끄기 → 홈 상자 · 달력 표시 · 아래 메뉴 · 위젯 ✎ · '메모 …' 규칙이 빠짐(적어 둔 메모는 남음)
     await p.click('.ab-menu'); await p.waitForTimeout(400);
     await p.click('#sheet-root [data-act="bx-feat"]'); await p.waitForTimeout(500);

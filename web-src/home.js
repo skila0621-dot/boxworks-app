@@ -86,7 +86,8 @@ document.addEventListener('touchstart', ev => {
   bxSw = null;
   if (!window.BX_APP || ev.touches.length !== 1) return;
   const t = ev.target;
-  if (!t.closest || t.closest('input, textarea, select, .tt-wrap, .seg')) return;
+  // 옆으로 미는 칩 줄(캘린더 · 시간표 고르기) 위에서는 달을 넘기지 않는다(대표 11/4 14:03 "슬라이드가 정상작동하지 않는다")
+  if (!t.closest || t.closest('input, textarea, select, .tt-wrap, .seg, .bx-cchips')) return;
   let kind = null;
   if (SH) { if (t.closest('#sheet-root .sheet') && $('#sheet-root [data-act="day-add"]')) kind = 'day'; }
   else if (S.view === 'month' && t.closest('.screen.month')) kind = 'month';

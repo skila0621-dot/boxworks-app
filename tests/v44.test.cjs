@@ -29,9 +29,10 @@ module.exports = async function () {
       return { bg: f.backgroundColor, sh: f.boxShadow, vh: Math.round(v.getBoundingClientRect().height), bw: Math.round(b.getBoundingClientRect().width), hitTop: hit.top, ch: Math.round(document.querySelector('.bx-cchip').getBoundingClientRect().height),
         dy: Math.round((v.getBoundingClientRect().top + v.getBoundingClientRect().height / 2) - (document.querySelector('.bx-fab').getBoundingClientRect().top + 30)) };
     });
-    const alpha = +((cal.bg.match(/[\d.]+(?=\))/) || [1])[0]);
-    c.ok(/rgba|color\(/.test(cal.bg) && alpha > 0.6 && alpha < 0.8, '+ 단추 불투명도 70% ' + cal.bg);
-    c.ok(!/0px 8px 22px/.test(cal.sh) && /0px 2px 8px/.test(cal.sh), '+ 단추 번지는 그림자 없음 ' + cal.sh);
+    // 시험판 48(대표 11/4 13:51 "단추는 100%, 번지는 효과만 70%"): 단추는 꽉 찬 색, 둘레 빛은 전(40%)의 70%인 28%
+    c.ok(/^rgb\(/.test(cal.bg), '+ 단추 불투명도 100% ' + cal.bg);
+    const glow = +(((cal.sh.match(/\/ ([\d.]+)\) 0px 8px 22px/) || [])[1]) || 0);
+    c.ok(/0px 8px 22px/.test(cal.sh) && glow > 0.25 && glow < 0.31, '+ 단추 둘레 빛 70%(28%) ' + cal.sh);
     c.ok(cal.vh === 31 && cal.bw === 28 && cal.hitTop === '-10px' && Math.abs(cal.dy) <= 2, '일 · 주 · 월 70%(높이 31 · 단추 28, 누르는 범위 44), + 단추와 같은 높이 ' + JSON.stringify(cal));
     c.eq(cal.ch, 28, '캘린더 칩 높이 28');
     // (2) 일정 창: 삼성 순서의 줄 목록, 길면 …, 비어 있으면 회색 이름

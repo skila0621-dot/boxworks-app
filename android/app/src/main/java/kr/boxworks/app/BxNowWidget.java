@@ -98,6 +98,8 @@ public class BxNowWidget extends AppWidgetProvider {
         }
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.bx_now_widget);
         Intent open = new Intent(c, MainActivity.class);
+        // 시험판 48: '앱 열기' · 위젯 누르기는 홈 화면으로(대표 11/4 14:07)
+        open.setAction(BxWidgetProvider.ACTION_HOME);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent openPi = PendingIntent.getActivity(c, 0x0B30, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

@@ -25,6 +25,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                 SoundPrefs.medCancel(context, System.currentTimeMillis());
                 return;
             }
+            // 시험판 48: 끝 종이 울리면 '명상 중' 알림을 지운다
+            if ("med_end".equals(o.optString("id"))) MedOngoing.clear(context);
             // 종소리는 알림 소리에 맡기지 않고 앱이 직접 끝까지 튼다(알림은 소리 없이 글만)
             AlarmNotify.showSoft(context, o);
             // 시험판 44: 종소리를 끈 명상은 끝날 때 소리 없이 알림 글만(bowl_none)

@@ -709,7 +709,11 @@
     var app3 = plugin('App');
     if (app3 && app3.addListener) app3.addListener('resume', placedRefresh);
     window.BX_widgetPin = function (which) { return widgetPl.pin({ which: which || 'now' }); };
+    // 시험판 48(대표 11/4 14:07): 위젯 단추로 들어오면 보던 화면(캘린더 등) 위가 아니라 먼저 홈 화면으로 간다.
+    // 넣고 나서 잘 들어갔는지 홈에서 바로 보이게. 위젯이 다른 날을 보고 있었으면 홈도 그날(web-src/v48.js BX_goHome)
+    var toHome = function (ds) { if (typeof window.BX_goHome === 'function') window.BX_goHome(ds); };
     var speakNow = function (r) {
+      toHome(r && r.ds);
       // 위젯이 다른 날을 보고 있었으면 그 날짜로(시험판 36, ‹ ›)
       if (r && r.ds && typeof window.BX_newOn === 'function') { setTimeout(function () { window.BX_newOn(r.ds, true); }, 300); return; }
       setTimeout(function () {
@@ -721,15 +725,18 @@
     };
     // 위젯 '일정 추가'(시험판 36, 대표 요청 11/3: 일정 추가와 마이크를 따로): 새 일정 창만 연다(글자로 넣기)
     var addNow = function (r) {
+      toHome(r && r.ds);
       if (r && r.ds && typeof window.BX_newOn === 'function') { setTimeout(function () { window.BX_newOn(r.ds, false); }, 300); return; }
       setTimeout(function () { var add = document.querySelector('.bx-fab'); if (add) add.click(); }, 300);
     };
     // 위젯의 줄을 누르면: 일정은 고치기 창, 루틴 · 시간표는 그 화면(web-src/v36.js BX_openFromWidget)
     var openRow = function (o) {
+      if (o && o.k === 'item') toHome(o.ds);
       setTimeout(function () { if (o && typeof window.BX_openFromWidget === 'function') window.BX_openFromWidget(o); }, 300);
     };
     // 위젯 ✎ 메모(시험판 41, 대표 요청 11/3 23:38): 메모 화면 + 맨 위 칸에 커서(web-src/v41.js BX_memoQuick)
     var memoNow = function () {
+      toHome();
       setTimeout(function () { if (typeof window.BX_memoQuick === 'function') window.BX_memoQuick(); }, 300);
     };
     // 누르지 않은 칸에 커서만 두면 키보드가 안 뜰 때가 있어 휴대폰 쪽에서 올린다(BxWidgetPlugin.keyboard)
@@ -739,6 +746,8 @@
       widgetPl.addListener('add', addNow);
       widgetPl.addListener('open', openRow);
       widgetPl.addListener('memo', memoNow);
+      // '앱 열기' · 위젯 누르기(시험판 48): 홈 화면으로
+      widgetPl.addListener('home', function () { toHome(); });
     }
     if (widgetPl.consumeLaunch) widgetPl.consumeLaunch().then(function (r) {
       if (!r) return;
@@ -746,6 +755,7 @@
       else if (r.add) setTimeout(function () { addNow(r); }, 700);
       else if (r.memo) setTimeout(memoNow, 700);
       else if (r.open) setTimeout(function () { openRow(r.open); }, 700);
+      else if (r.home) setTimeout(function () { toHome(); }, 700);
     }).catch(function () {});
   }
 

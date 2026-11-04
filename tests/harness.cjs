@@ -74,7 +74,9 @@ async function openApp({ now = NOW, data = null, perms = null, speech = true, so
         preview: async x => { window.__bg.push(['preview', x]); return {}; },
         stop: async () => { window.__bg.push(['stop']); plugins.BxSound.st = off; return {}; },
         status: async () => plugins.BxSound.st,
-        addListener: (ev, cb) => { if (ev === 'state') window.__bgL = cb; return { remove() {} }; }
+        addListener: (ev, cb) => { if (ev === 'state') window.__bgL = cb; (window.__bgLs = window.__bgLs || {})[ev] = cb; return { remove() {} }; },
+        // 시험판 48: 명상 알림('명상 중 · 남은 시간 · 명상 끝내기'). 부른 것을 window.__mo에
+        medOngoing: async x => { (window.__mo = window.__mo || []).push(x); return {}; }
       };
     }
     if (speech !== null) {
