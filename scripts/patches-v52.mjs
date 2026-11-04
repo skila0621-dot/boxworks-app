@@ -64,8 +64,9 @@ export default [
     name: '└ 홈 루틴 카드 단계 목록: 저절로 지나간 단계',
     find: `const isCur = s.cur && s.cur.id === r.id, cls = r.done ? 'done' : r.kind === 'wait' ? 'wait' : isCur ? 'cur' : '';
     const st = r.done ? ICON.check + (r.done === 'auto' ? '끝' : hm(new Date(r.done))) : r.kind === 'wait' ? '기다리기' : isCur ? (r.started ? '하는 중' : '지금') : '';`,
+    // 확인한 단계는 체크만(시각 '07:00'이 24시간으로 보이던 것, 이름 칸이 좁아 '기상하…'로 잘리던 것)
     replace: `const isCur = s.cur && s.cur.id === r.id, cls = r.done === 'auto' && window.BX_APP ? 'past' + (r.kind === 'wait' ? ' wait' : '') : r.done ? 'done' : r.kind === 'wait' ? 'wait' : isCur ? 'cur' : '';
-    const st = r.done === 'auto' && window.BX_APP ? '' : r.done ? ICON.check + (r.done === 'auto' ? '끝' : hm(new Date(r.done))) : r.kind === 'wait' ? '기다리기' : isCur ? (r.started ? '하는 중' : '지금') : '';`
+    const st = r.done === 'auto' && window.BX_APP ? '' : r.done ? ICON.check + (window.BX_APP ? '' : r.done === 'auto' ? '끝' : hm(new Date(r.done))) : r.kind === 'wait' ? '기다리기' : isCur ? (r.started ? '하는 중' : '지금') : '';`
   },
   {
     // 앱을 열어 둔 동안 화면 안에 뜨는 알림 카드도 같은 규칙: 꼭 울림 단계만(짧게 한 번은 휴대폰 알림 한 장으로 충분), '10분 뒤 출발' 카드 없음

@@ -185,6 +185,7 @@ module.exports = async function () {
     await p.waitForTimeout(800);
     c.eq(await p.evaluate(() => document.querySelectorAll('#alarms .alarm.rt').length), 0, '7:04 스트레칭(짧게 한 번): 앱 안 알림 카드 없음');
     c.eq(await p.evaluate(() => (document.querySelector('.rt-card[data-rid="rt_w"] .rt-now b') || {}).textContent), '스트레칭', "기상을 확인하면 '지금' 스트레칭");
+    c.eq(await p.evaluate(() => { const li = document.querySelector('.rt-card[data-rid="rt_w"] .rt-steps li.done'); return li ? [li.querySelector('.rt-s').textContent, !!li.querySelector('.rt-s svg')] : null; }), ['', true], "확인한 단계는 체크만(24시간 시각 '07:00' 없이)");
     c.eq(app.errors, [], '화면 오류(앱 안 알림 카드)');
   } finally { await app.close(); }
 
