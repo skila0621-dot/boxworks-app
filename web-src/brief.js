@@ -34,7 +34,8 @@ function bxAddReports(out, days){
   for (let k = 0; k <= days; k++) {
     const day = addDays(sod(new Date(now)), k), ds = ymd(day), noon = addMin(day, 11 * 60).getTime();
     const rep = bxReportFor(ds);
-    const firstRt = out.filter(a => a.kind === 'routine' && /^r_/.test(a.id) && !/_r\d+$/.test(a.id) && a.at >= day.getTime() && a.at < noon).sort((a, b) => a.at - b.at)[0];
+    // 확인을 받는 알람(꼭 울림)에만 붙인다. 짧게 한 번 · 소리 없이는 누를 것이 없어 아침 요약이 뜰 때가 없다(시험판 52)
+    const firstRt = out.filter(a => a.kind === 'routine' && /^r_/.test(a.id) && !/_r\d+$/.test(a.id) && a.ring !== 'short' && a.ring !== 'silent' && a.at >= day.getTime() && a.at < noon).sort((a, b) => a.at - b.at)[0];
     if (firstRt) { firstRt.report = rep; continue; }
     const t = addMin(day, toMin(cfg.at)).getTime();
     if (t <= now) continue;
@@ -128,10 +129,13 @@ window.BX_widgetData = function(plan){
       const rows = p.rows.filter(r => r.kind !== 'wait'); if (!rows.length) return;
       const done = lg.done || {}, from = addMin(day, p.start).getTime(), leave = p.leave != null ? addMin(day, p.leave).getTime() : 0;
       const last = rows[rows.length - 1], end = leave || addMin(day, last.at + (last.min || 5)).getTime();
-      const allDone = rows.every(r => done[r.id]);
+      // 시험판 52: 꼭 울림 단계(기상 · 약 · 출발)는 확인, 짧게 한 번 단계는 시각이 지나면 끝난 것으로 본다
+      const allDone = rows.every(r => done[r.id] || (r.ring !== 'must' && addMin(day, r.at + (r.min || 0)).getTime() <= now));
       list.push({at: from, end, title: rt.name || '루틴', place: '', go: 0, c: '#7C3AED', k: 'routine', done: allDone});
       if (rows.length >= 2 && k >= 0 && k <= 3) routines.push({rid: rt.id, ds, name: rt.name || '루틴', from, leave,
-        steps: rows.map(r => ({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!done[r.id]}))});
+        // r: 세기(m 꼭 울림 · s 짧게 한 번 · w 소리 없이). '지금 단계' 위젯의 확인 단추는 꼭 울림 단계에만(BX_alarmPlan 단계표와 같게)
+        steps: p.rows.map(r => Object.assign({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!done[r.id],
+          r: r.kind === 'wait' ? 'w' : r.ring === 'must' ? 'm' : 's'}, r.leave ? {ok: '다 했어요'} : {}))});
     });
   }
   list.sort((a, b) => a.at - b.at);
@@ -145,7 +149,8 @@ window.BX_widgetData = function(plan){
 /* ---------- 루틴 단계를 확인하지 않았을 때(대표 요청) ----------
    1) 휴대폰 알람에서 '확인'을 누른 단계는 앱에도 '했어요'로 옮긴다(BxAlarm.confirmed → rlog done)
    2) 시각이 10분 넘게 지났는데 하지 않은 단계는 오늘 화면 루틴 카드에 주의로 보이고, 아래 메뉴 '오늘'의 빨간 숫자에 더한다
-   3) 루틴이 끝난 10분 뒤에도 확인하지 않은 단계가 있으면 휴대폰이 한 번 더 알린다(BX_alarmPlan의 rcheck) */
+   3) 루틴이 끝난 10분 뒤에도 확인하지 않은 단계가 있으면 휴대폰이 한 번 더 알린다(BX_alarmPlan의 rcheck)
+   시험판 52(대표 11/4 16:58, D-25): 2) · 3)은 약 단계(꼭 울림)에만. 다른 단계는 확인을 받지 않으므로 '놓침'도 없다 */
 window.BX_applyConfirmed = function(map){
   if (!M || !map) return 0;
   let n = 0;
@@ -167,7 +172,7 @@ function bxRtMissedOf(rt){
   if (!rtActiveOn(rt, M.today)) return [];
   const s = rtToday(rt); if (s.skip || s.finished) return [];
   const born = bxRtBornM(rt, M.today);
-  return s.rows.filter(r => r.kind !== 'wait' && !r.done && r.at + 10 <= s.nowM && r.at >= born);
+  return s.rows.filter(r => r.kind !== 'wait' && r.ring === 'must' && bxIsMed(r.name) && !r.done && r.at + 10 <= s.nowM && r.at >= born);
 }
 function bxRtMissed(){ return M && M.routines ? M.routines.reduce((a, rt) => a.concat(bxRtMissedOf(rt).map(r => ({rt, r}))), []) : []; }
 // 오늘 화면 루틴 카드에 주의 줄 붙이기(render 끝의 bxFoldDecorate에서 부름)
@@ -181,7 +186,8 @@ function bxRtMissDecorate(){
     c.classList.add('bx-miss');
     const line = document.createElement('div');
     line.className = 'bx-miss-line';
-    line.innerHTML = ICON.alert + '<span>놓친 단계 ' + miss.length + '개 · ' + esc(miss.map(r => r.leave ? '출발' : r.name).join(', ')) + '</span><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(rt.id) + '">모두 완료</button>';
+    // 시험판 52: 약 단계만 남아 '놓친 단계' 대신 무엇을 확인할지 그대로
+    line.innerHTML = ICON.alert + '<span>먹었는지 확인하지 않은 약 · ' + esc(miss.map(r => r.name).join(', ')) + '</span><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(rt.id) + '">먹었어요</button>';
     const hd = c.querySelector('.rt-h'); if (hd) hd.after(line); else c.prepend(line);
   });
   // 루틴 머리의 '확인 N' 칩은 뺐다(홈 요약 '확인 필요' 숫자 하나로 통일, 10/31)
@@ -196,5 +202,5 @@ document.addEventListener('click', ev => {
   const nx = JSON.parse(JSON.stringify(cur)); nx.done = nx.done || {};
   miss.forEach(r => { nx.done[r.id] = nowIso(); }); nx.updatedAt = nowIso();
   writeDoc(id, nx);
-  toast(rt.name + ' · ' + miss.length + '단계를 했어요로 표시했어요', [['되돌리기', () => { if (keep) writeDoc(id, keep); else removeDoc(id); }]]);
+  toast(miss.map(r => r.name).join(', ') + ' · 먹었어요로 표시했어요', [['되돌리기', () => { if (keep) writeDoc(id, keep); else removeDoc(id); }]]);
 }, true);

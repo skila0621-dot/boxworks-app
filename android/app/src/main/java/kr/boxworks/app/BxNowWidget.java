@@ -128,13 +128,21 @@ public class BxNowWidget extends AppWidgetProvider {
                 v.setViewVisibility(R.id.n_next, View.GONE);
             }
             boolean ok = RoutineOngoing.isDone(s, done);
-            if (ok) {
+            // 시험판 52(D-25): 확인 단추는 꼭 울림 단계(기상 · 약 · 출발)에만. 짧게 한 번 · 소리 없이 단계는 글만 보이고 단추는 '앱 열기'
+            boolean must = s != null && "m".equals(s.optString("r", "m"));
+            if (!must) {
+                v.setTextViewText(R.id.n_ok, "앱 열기");
+                v.setInt(R.id.n_ok, "setBackgroundResource", R.drawable.bx_widget_chip);
+                v.setTextColor(R.id.n_ok, c.getResources().getColor(R.color.bx_w_ink, null));
+                v.setOnClickPendingIntent(R.id.n_ok, openPi);
+            } else if (ok) {
                 v.setTextViewText(R.id.n_ok, "확인했어요");
                 v.setInt(R.id.n_ok, "setBackgroundResource", R.drawable.bx_widget_chip);
                 v.setTextColor(R.id.n_ok, c.getResources().getColor(R.color.bx_w_ink2, null));
                 v.setOnClickPendingIntent(R.id.n_ok, openPi);
             } else {
-                v.setTextViewText(R.id.n_ok, "확인");
+                String okl = s.optString("ok", "");
+                v.setTextViewText(R.id.n_ok, okl.isEmpty() ? "확인" : okl);
                 v.setInt(R.id.n_ok, "setBackgroundResource", R.drawable.bx_widget_btn);
                 v.setTextColor(R.id.n_ok, 0xFFFFFFFF);
                 v.setOnClickPendingIntent(R.id.n_ok, confirmPi(c, s));

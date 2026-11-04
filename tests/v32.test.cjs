@@ -1,4 +1,4 @@
-// 시험판 32: 대표 휴대폰 확인 뒤 고침(11/3). 설정 묶음 목록, 루틴 단계 '알람' 스위치, 루틴 꾹 누르기,
+// 시험판 32: 대표 휴대폰 확인 뒤 고침(11/3). 설정 묶음 목록, 루틴 단계 '알람' 스위치(시험판 52부터 세 칸), 루틴 꾹 누르기,
 // ⋯ 메뉴의 위젯 두기, '내가 쓸 기능' 설명과 아침 일정 받아 보기, 명상 시작 전 5초
 const { openApp, settings, checker } = require('./harness.cjs');
 
@@ -52,12 +52,15 @@ module.exports = async function () {
     const p = app.page;
     await p.click('.dock [data-view="routines"]'); await p.waitForTimeout(600);
     await p.locator('.rt-item .rt-open', { hasText: '아침 준비' }).first().click(); await p.waitForTimeout(600);
-    const sw = await p.evaluate(() => ({ sel: document.querySelectorAll('#sheet-root select.rs-kind').length, on: Array.from(document.querySelectorAll('#sheet-root [data-rs-alarm]')).map(b => b.getAttribute('aria-checked')), note: (document.querySelector('#sheet-root .bx-rs-note') || {}).textContent || '' }));
-    c.ok(sw.sel === 0 && JSON.stringify(sw.on) === '["true","false","true"]' && /울리지 않고 시간만/.test(sw.note), "단계마다 '알람' 스위치(기다리는 단계는 꺼짐), 할 일/기다리기 칸 없음 " + JSON.stringify(sw));
-    await p.click('#sheet-root [data-rs-alarm="2"]'); await p.waitForTimeout(200);
+    // 시험판 52: '알람' 스위치는 세 칸(꼭 울림 · 짧게 한 번 · 소리 없이)으로 바뀌었다(v52.test.cjs에서 자세히)
+    const sw = await p.evaluate(() => ({ sel: document.querySelectorAll('#sheet-root select.rs-kind').length,
+      on: Array.from(document.querySelectorAll('#sheet-root .bx-rs-ring')).map(g => (g.querySelector('[aria-pressed="true"]') || {}).dataset.rsRing),
+      note: (document.querySelector('#sheet-root .bx-rs-note') || {}).textContent }));
+    c.ok(sw.sel === 0 && JSON.stringify(sw.on) === '["must","silent","short"]' && /소리 없이는 시간만/.test(sw.note), "단계마다 세 칸(첫 단계 꼭 울림 · 기다리는 단계는 소리 없이), 할 일/기다리기 칸 없음 " + JSON.stringify(sw));
+    await p.click('#sheet-root [data-rs-ring="silent"][data-i="2"]'); await p.waitForTimeout(200);
     await p.click('#sheet-root [data-act="rt-save"]'); await p.waitForTimeout(500);
     const rt = await doc(p, 'rt_m');
-    c.eq(rt && rt.steps.map(s => s.kind), ['do', 'wait', 'wait'], "스위치를 끈 단계는 '시간만'으로 저장");
+    c.eq(rt && rt.steps.map(s => s.kind), ['do', 'wait', 'wait'], "소리 없이를 고른 단계는 '시간만'으로 저장");
     // 꾹 누르기
     await p.click('.dock [data-view="routines"]'); await p.waitForTimeout(400);
     const bb = await p.evaluate(() => { const r = document.querySelector('.rt-item .rt-open[data-rid="rt_m"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });

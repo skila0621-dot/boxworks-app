@@ -187,10 +187,10 @@ function bxLateOpen(only){
       (BXL_PICK === i.id ? '<div class="bx-lc-pick"><input type="date" class="inp" id="bx-lc-date" value="' + tmr + '" min="' + esc(M.today) + '" aria-label="옮길 날짜">' +
         '<input type="time" class="inp" id="bx-lc-time" value="' + esc(i.start || '') + '" aria-label="옮길 시각"><button type="button" class="btn sm primary" data-bx-late="move" data-id="' + esc(i.id) + '">변경</button></div>' : '') + '</div>'; };
     if (only) { setSheet(card(its[0]), ''); return; }
-    let html = '<p class="p small bx-late-p">지난 일정과 놓친 루틴 단계예요. 그대로 둬도 괜찮아요.</p>';
+    // 시험판 52: 루틴은 약 단계만 확인을 받는다(다른 단계는 '놓침'이 없음)
+    let html = '<p class="p small bx-late-p">' + (byRt.length ? '지난 일정과 먹었는지 확인하지 않은 약이에요.' : '지난 일정이에요.') + ' 그대로 둬도 괜찮아요.</p>';
     html += '<h3 class="bx-late-h">일정 · ' + its.length + '</h3>' + (its.length ? its.map(card).join('') : '<p class="bx-late-ok">' + ICON.check + '지난 일정 없음</p>');
-    const rtToday = bxModOn('routines') && M.routines.some(r => rtActiveOn(r, M.today));
-    if (byRt.length || rtToday) html += '<h3 class="bx-late-h">루틴 단계 · ' + miss.length + '</h3>' + (byRt.length ? byRt.map(g => '<div class="bx-late-rt"><div><b>' + esc(g.rt.name) + '</b><span>' + esc(g.rows.map(r => r.leave ? '출발' : r.name).join(', ')) + '</span></div><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(g.rt.id) + '">모두 완료</button></div>').join('') : '<p class="bx-late-ok">' + ICON.check + '놓친 루틴 단계 없음</p>');
+    if (byRt.length) html += '<h3 class="bx-late-h">약 · ' + miss.length + '</h3>' + byRt.map(g => '<div class="bx-late-rt"><div><b>' + esc(g.rt.name) + '</b><span>' + esc(g.rows.map(r => r.name).join(', ')) + '</span></div><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(g.rt.id) + '">먹었어요</button></div>').join('');
     setSheet(html, its.length > 1 ? '<button type="button" class="btn grow" data-bx-late="keepall">모두 그대로</button>' : '');
   };
   BXL_PICK = null;
@@ -198,11 +198,11 @@ function bxLateOpen(only){
 }
 // ⓘ: 지금 화면 사용법(꾹 누르기·밀기처럼 눌러 보기 전엔 모르는 것들)
 const BX_HELP = {
-  today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 안 한 루틴 단계가 모여요.', '네모 칸을 누르면 완료. 일정을 길게 누르면 수정 · 완료 · 내일로 미루기 · 삭제가 바로 나와요.', '오른쪽 아래 +로 새 일정. 길게 누르면 바로 말하기.'],
+  today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 먹었는지 확인하지 않은 약이 모여요.', '네모 칸을 누르면 완료. 일정을 길게 누르면 수정 · 완료 · 내일로 미루기 · 삭제가 바로 나와요.', '오른쪽 아래 +로 새 일정. 길게 누르면 바로 말하기.'],
   month: ['날짜를 누르면 그날 일정이 열리고, 거기서 바로 추가할 수 있어요. 일정을 길게 누르면 수정 · 삭제가 바로 나와요.', '옆으로 밀면 이전·다음 달로 넘어가요.', '위의 ‘주간’을 누르면 한 주를 요일별로 봐요.', '오른쪽 아래 +는 고른 날짜에 일정을 추가해요.'],
   week: ['옆으로 밀면 이전·다음 주로 넘어가요.', '요일 옆 ‘+ 추가’로 그날 일정을 추가해요.', '‘월간’을 누르면 달력으로 돌아가요.'],
   tt: ['아래 ‘빠른 추가’에 말하거나 적으면 시간표가 채워져요. 예) “월수 10시 반 경영학원론 301호”', '블록을 길게 누르면 들어 올려져요. 끌어서 시간·요일을 옮기고, 위·아래 끝을 끌어 길이를 바꿔요.', '길게 누른 뒤 나오는 줄에서 수업 묶기 · 휴강(그날만) · 복제 · 삭제.', '아래 ‘보기 설정’에서 표시 시간과 주말을 바꿔요.'],
-  routines: ['루틴은 단계마다 알람이 울리고, 확인을 누를 때까지 다시 알려요.', '템플릿을 고르거나 빠른 추가로 만들 수 있어요.', '스위치를 끄면 그 루틴 알람이 쉬어요.', '홈의 ‘오늘 할 일’에서 오늘 루틴을 확인해요.'],
+  routines: ['루틴은 단계가 바뀔 때마다 짧게 한 번 울려요. 첫 단계 · 약 · 출발만 끌 때까지 울려요.', '템플릿을 고르거나 빠른 추가로 만들 수 있어요.', '스위치를 끄면 그 루틴 알람이 쉬어요.', '홈의 ‘오늘 할 일’에서 오늘 루틴을 확인해요.'],
   med: ['시간을 고르고 시작하면 싱잉볼 소리로 시작을 알려요.', '휴대폰을 내려놓아도 중간 종과 끝 종이 울려요.', '‘소리와 호흡’에서 종소리·중간 종·호흡 안내를 바꿔요. 호흡 안내를 켜면 원이 커질 때 들이쉬고 작아질 때 내쉬어요.']
 };
 function bxHelpOpen(){

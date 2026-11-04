@@ -261,7 +261,8 @@ public class AlarmActivity extends Activity {
         View spacer = new View(this);
         root.addView(spacer, new LinearLayout.LayoutParams(1, 0, 1f));
 
-        Button ok = button("확인", Color.WHITE, 0xFF1C1C1C, 0, dp(32));
+        // 출발은 '다 했어요'(대표 11/4 16:58 "출근 직전에 '다 했다' 누르면 될 일", 시험판 52)
+        Button ok = button(AlarmNotify.okLabel(alarm), Color.WHITE, 0xFF1C1C1C, 0, dp(32));
         ok.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         ok.setOnClickListener(v -> {
             AlarmStore.confirm(this, alarm, true);

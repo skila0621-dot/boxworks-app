@@ -2,19 +2,22 @@
    대표가 휴대폰에서 시험판 31을 확인하고 고칠 것으로 정한 것(11/3). 설정 묶음은 tidy.js, 명상 5초는 meditation.js,
    '내가 쓸 기능' 설명은 flow.js, 휴대폰을 쓰는 중 알람은 휴대폰 쪽(AlarmRingService) */
 
-/* 루틴 단계: '할 일 / 기다리기' 칸 대신 단계마다 '알람' 스위치(대표 결정 11/3).
-   켜면 그 단계 시각에 알람이 울리고 '확인'을 누를 때까지 다시 울린다(할 일). 끄면 울리지 않고 시간만 지나간다(기다리기: 세탁기 돌리기처럼) */
+/* 루틴 단계: '할 일 / 기다리기' 칸 대신 단계마다 '알람' 스위치(대표 결정 11/3, D-12).
+   시험판 52(대표 11/4 16:58, D-25): 스위치를 세 칸으로 — 꼭 울림(끌 때까지) · 짧게 한 번(누를 것 없음) · 소리 없이(시간만 지나감: 세탁 기다리기처럼).
+   소리 없이는 지금처럼 kind 'wait'. 고르지 않은 단계는 자리 · 이름으로 정해진 기본값(v52.js bxStepRing)이 눌린 채 보인다 */
 function bxRsAlarmHtml(s, i){
-  const on = s.kind !== 'wait';
-  return '<span class="bx-rs-al"><span class="bx-rs-al-l" aria-hidden="true">알람</span><button type="button" class="tog" role="switch" aria-checked="' + on + '" aria-label="' + (i + 1) + '번째 단계 알람" data-rs-alarm="' + i + '"><i></i></button></span>';
+  const cur = bxStepRing(s, i, R ? R.steps : null);
+  return '<div class="seg seg3 bx-rs-ring" role="group" aria-label="' + (i + 1) + '번째 단계 알림">' +
+    BX_RINGS.map(([v, label]) => '<button type="button" data-rs-ring="' + v + '" data-i="' + i + '" aria-pressed="' + (v === cur) + '">' + label + '</button>').join('') + '</div>';
 }
 document.addEventListener('click', ev => {
-  const b = ev.target.closest && ev.target.closest('[data-rs-alarm]'); if (!b || !R || !window.BX_APP) return;
+  const b = ev.target.closest && ev.target.closest('[data-rs-ring]'); if (!b || !R || !window.BX_APP) return;
   ev.preventDefault(); ev.stopPropagation();
-  const st = R.steps[+b.dataset.rsAlarm]; if (!st) return;
-  st.kind = st.kind === 'wait' ? 'do' : 'wait';
-  b.setAttribute('aria-checked', String(st.kind !== 'wait'));
-  rtRedrawParts('prev');
+  const st = R.steps[+b.dataset.i]; if (!st) return;
+  const v = b.dataset.rsRing;
+  if (v === 'silent') { st.kind = 'wait'; delete st.ring; } else { st.kind = 'do'; st.ring = v; }
+  // 첫 단계가 '소리 없이'가 되면 다음 단계의 기본값이 바뀌므로 단계 줄을 모두 다시 그린다
+  rtRedrawParts('steps');
 }, true);
 
 /* 루틴 목록에서 루틴을 꾹 누르면 고치기 · 지우기(대표 요청 11/3). 일정 꾹 누르기와 같은 모양, 지운 뒤 되돌리기.
@@ -78,9 +81,7 @@ document.addEventListener('click', ev => {
     '.bx-app .bx-set-back .i{width:24px;height:24px}',
     '.bx-app .bx-set-home .menu-row .mv{max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
     '.bx-app .bx-set-foot{margin:14px 4px 0;text-align:center;color:var(--ink-3)}',
-    // 루틴 단계의 알람 스위치: 분 칸 오른쪽, 위·지우기 단추 앞
-    '.bx-app .bx-rs-al{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;min-height:44px}',
-    '.bx-app .bx-rs-al-l{font-size:14px;font-weight:600;color:var(--ink-2)}',
+    // 루틴 단계의 세기 세 칸(시험판 52)은 v52.js
     '.bx-app .bx-rs-note{margin:2px 0 8px}',
     // 내가 쓸 기능: 줄마다 한 줄 설명, 아침 일정은 켜면 아래에 언제 오는지와 단추 둘
     '.bx-app .bx-ft-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}',

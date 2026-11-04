@@ -293,7 +293,7 @@ function bxLevelSetHtml(){
   return '<div class="bx-lvset"><b class="bx-lock-h">울리는 방식</b><p class="p small" style="margin:2px 0 6px">종류마다 정해 두었어요. 바꿀 것만 바꾸세요.</p>' +
     BX_LV_KINDS.map(([k, label]) => setRow(label, segHtml('data-bxlv-' + k, [['alarm', '알람'], ['notice', '알림'], ['quiet', '조용히']], bxLevel(k), label + ' 울리는 방식', 210))).join('') +
     // 바꿀 수 없는 줄(아침에 오늘 일정 · 명상)은 뺐다(정리판 20번)
-    '<p class="p small bx-lv-note">알람: 잠금 화면에 크게, 확인할 때까지 · 알림: 위에서 내려오고 소리 한 번 · 조용히: 알림창에만. 5분 뒤로 미뤄도 처음과 같은 세기로 다시 울려요.</p></div>';
+    '<p class="p small bx-lv-note">알람: 잠금 화면에 크게, 확인할 때까지 · 알림: 위에서 내려오고 소리 한 번 · 조용히: 알림창에만. 5분 뒤로 미뤄도 처음과 같은 세기로 다시 울려요. 루틴은 꼭 울림 단계에만 이 세기를 쓰고, 짧게 한 번 단계는 짧은 소리 한 번이에요(조용히면 소리 없이).</p></div>';
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;

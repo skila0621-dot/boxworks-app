@@ -63,7 +63,14 @@ public class AlarmReceiver extends BroadcastReceiver {
         } else {
             // 같은 단계의 앞 알림과 이 루틴의 지난 단계 알림을 먼저 지운다(알림이 쌓여 아이콘 숫자 17, 대표 확인 11/2)
             if ("routine".equals(kind)) AlarmNotify.tidyBefore(context, o);
-            AlarmNotify.show(context, o);
+            // 시험판 52(D-25): 루틴 단계 세기. 짧게 한 번 = 알림 한 장 + 짧은 소리 한 번(누를 것 없음), 소리 없이 = 알림 없이 진행 알림 · 위젯만
+            String lv = o.optString("lv", "alarm");
+            if ("short".equals(lv)) {
+                AlarmNotify.showShort(context, o);
+                ShortChime.play(context, goAsync());
+            } else if (!"silent".equals(lv)) {
+                AlarmNotify.show(context, o);
+            }
             // 루틴 단계 알람이면 알림창의 '진행 중' 알림을 만들거나 고친다
             if ("routine".equals(kind) && unlocked) RoutineOngoing.onAlarm(context, o);
         }

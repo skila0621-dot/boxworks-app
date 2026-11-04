@@ -307,7 +307,7 @@ final class AlarmNotify {
             .setSmallIcon(R.drawable.ic_stat_bx)
             .setContentTitle(all ? title : pubTitle(c, o))
             .setContentText(all ? body : pubSub(c, o))
-            .addAction(0, "확인", actionPi(c, "ok", o))
+            .addAction(0, okLabel(o), actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
         NotificationCompat.Builder b = new NotificationCompat.Builder(c, ch)
             .setSmallIcon(R.drawable.ic_stat_bx)
@@ -321,7 +321,7 @@ final class AlarmNotify {
             .setPublicVersion(pub.build())
             .setAutoCancel(true)
             .setContentIntent(openPi)
-            .addAction(0, "확인", actionPi(c, "ok", o))
+            .addAction(0, okLabel(o), actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
         // 지난 일정 알림이 알림창에 쌓이지 않게 6시간 뒤 저절로 지운다('알람이 곧 끝나요'는 남긴다)
         if (!"bx_renew".equals(id)) b.setTimeoutAfter(6 * 3600 * 1000L);
@@ -337,6 +337,12 @@ final class AlarmNotify {
             showNotice(c, o, "quiet".equals(lv));
             return;
         }
+        // 시험판 52: 루틴 '짧게 한 번'은 위에서 내려오는 알림 한 장(소리는 AlarmReceiver가 ShortChime으로), '소리 없이'는 알림 없음
+        if ("short".equals(lv)) {
+            showShort(c, o);
+            return;
+        }
+        if ("silent".equals(lv)) return;
         ensureChannel(c);
         String id = o.optString("id");
         String title = o.optString("title");
@@ -373,7 +379,7 @@ final class AlarmNotify {
             .setFullScreenIntent(fullPi, true)
             // 지난 알람이 알림창에 쌓이지 않게(아이콘 숫자 17, 대표 확인 11/2): 루틴 단계는 1시간 반, 그 밖은 3시간 뒤 저절로 지운다
             .setTimeoutAfter("routine".equals(o.optString("kind")) ? 90 * 60 * 1000L : 3 * 3600 * 1000L)
-            .addAction(0, "확인", actionPi(c, "ok", o))
+            .addAction(0, okLabel(o), actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
         if (live) {
             // 위에서 내려오는 작은 알림이라도 눈에 띄게 파란 바탕(서비스 알림만 색을 입힐 수 있다, 대표 지적 11/3 '알람이 너무 작다').
@@ -389,7 +395,7 @@ final class AlarmNotify {
                 .setContentTitle(pubTitle(c, o))
                 .setContentText(pubSub(c, o))
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .addAction(0, "확인", actionPi(c, "ok", o))
+                .addAction(0, okLabel(o), actionPi(c, "ok", o))
                 .addAction(0, "5분 뒤", actionPi(c, "snooze", o))
                 .build());
         }
@@ -455,12 +461,76 @@ final class AlarmNotify {
         JSONArray steps = o.optJSONArray("steps");
         long at = o.optLong("at", 0);
         if (steps == null) return;
+        // 시험판 52: 짧게 한 번 · 소리 없이 단계는 앞의 꼭 울림 알림(기상 · 약, 확인 단추가 있음)을 지우지 않는다. 확인할 곳이 사라지지 않게
+        boolean must = !"short".equals(o.optString("lv")) && !"silent".equals(o.optString("lv"));
         for (int i = 0; i < steps.length(); i++) {
             JSONObject st = steps.optJSONObject(i);
             if (st == null) continue;
             String s = st.optString("s", "");
             if (s.isEmpty() || s.equals(series) || st.optLong("at", 0) >= at) continue;
+            if (!must && "m".equals(st.optString("r", "m"))) continue;
             dismissSeries(c, s, null);
+        }
+    }
+
+    /** 확인 단추 글: 출발은 '다 했어요'(대표 11/4 16:58), 그 밖은 '확인' */
+    static String okLabel(JSONObject o) {
+        String ok = o.optString("ok", "");
+        return ok.isEmpty() ? "확인" : ok;
+    }
+
+    /**
+     * 시험판 52(대표 11/4 16:58, D-25): 루틴 '짧게 한 번' 단계. 위에서 내려오는 알림 한 장, 단추 없음, 1분 뒤 알림창에서 저절로 사라진다
+     * (알림창에는 루틴 진행 알림 한 장만 남게). 채널은 소리 · 진동 없이: 소리 · 진동은 ShortChime이 한 번 낸다(무음에서도 들리게).
+     * 일정의 '출발 10분 전'도 같은 방식
+     */
+    static final String CHANNEL_SHORT = "bx_short_v1";
+
+    static void showShort(Context c, JSONObject o) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = c.getSystemService(NotificationManager.class);
+            if (nm != null && nm.getNotificationChannel(CHANNEL_SHORT) == null) {
+                NotificationChannel nc = new NotificationChannel(CHANNEL_SHORT, "루틴 단계 (짧게 한 번)", NotificationManager.IMPORTANCE_HIGH);
+                nc.setDescription("루틴 단계가 바뀔 때 위에서 내려오고 짧은 소리가 한 번 나요. 1분 뒤 저절로 사라져요");
+                nc.setSound(null, null);
+                nc.enableVibration(false);
+                nc.setShowBadge(false);
+                nc.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+                nm.createNotificationChannel(nc);
+            }
+        }
+        String id = o.optString("id");
+        String title = o.optString("title");
+        if (title.isEmpty()) title = appName(c);
+        String sub = o.optString("sub", "");
+        String next = o.optString("next", "");
+        String text = sub + (next.isEmpty() ? "" : (sub.isEmpty() ? "" : " · ") + "다음 " + next);
+        Intent open = new Intent(c, MainActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent openPi = PendingIntent.getActivity(c, notifId(id) + 1, open,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        boolean all = showAllOnLock(c);
+        Notification pub = new NotificationCompat.Builder(c, CHANNEL_SHORT)
+            .setSmallIcon(R.drawable.ic_stat_bx)
+            .setContentTitle(all ? title : pubTitle(c, o))
+            .setContentText(all ? text : pubSub(c, o))
+            .build();
+        NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL_SHORT)
+            .setSmallIcon(R.drawable.ic_stat_bx)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSubText(o.optString("group", ""))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(pub)
+            // setSilent(true)는 쓰지 않는다: 묶음으로 처리되어 위에서 내려오지 않는다. 소리 · 진동은 채널에서 끄고 ShortChime이 낸다
+            .setAutoCancel(true)
+            .setTimeoutAfter(60 * 1000L)
+            .setContentIntent(openPi);
+        try {
+            NotificationManagerCompat.from(c).notify(notifId(id), b.build());
+        } catch (SecurityException ignored) {
         }
     }
 

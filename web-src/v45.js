@@ -257,7 +257,7 @@ document.addEventListener('click', ev => {
 const BX_SAND_I = '<svg class="i" viewBox="0 0 24 24"><path d="M6.5 3.5h11M6.5 20.5h11"/><path d="M7.5 3.5c0 4.5 4.5 5.5 4.5 8.5s-4.5 4-4.5 8.5M16.5 3.5c0 4.5-4.5 5.5-4.5 8.5s4.5 4 4.5 8.5"/></svg>';
 function bxRt45NtfText(){
   if (R.sound === 'bowl') { const b = BX_BOWLS.find(x => x[0] === (R.bowl || bxBowlType())); return '싱잉볼 · ' + (b ? b[1] : '맑은 볼'); }
-  return '알람 · ' + (+R.times ? R.every + '분마다 ' + R.times + '번 더' : '한 번만');
+  return '알람 · 꼭 울림은 ' + (+R.times ? R.every + '분마다 ' + R.times + '번 더' : '한 번만');
 }
 function bxRt45Row(k){
   const row = (icon, title, val) => '<button type="button" class="bx-er bx-rt45-r" data-bxrt45="' + k + '" aria-label="' + esc(title + ', ' + val) + '"><span class="bx-er-ic" aria-hidden="true">' + icon + '</span><span class="bx-er-tt"><span class="bx-er-t">' + esc(title) + '</span><small>' + esc(val) + '</small></span></button>';
@@ -303,7 +303,7 @@ bxDrawRoutine = function(){
       '<label class="sr" for="r-name">이름</label><input id="r-name" class="title-in" value="' + esc(R.name) + '" maxlength="30" autocomplete="off" enterkeyhint="done" placeholder="루틴 이름 예) 아침 준비">' +
       '<div class="bx-ed" id="bx-rt45" role="group" aria-label="루틴 내용">' + bxRt45Row('ntf') + when + '</div>' +
       '<div id="r-prev" class="rt-prev">' + rtPreviewHtml() + '</div>' +
-      '<div class="bx-rt45-sh"><span class="fg-l">단계 <small>이름 · 시간(분) · 알람</small></span><p class="p small bx-rs-note">알람을 끄면 그 단계는 울리지 않고 시간만 지나가요. 세탁기 돌리기처럼 기다리는 단계에 써요.</p></div>' +
+      '<div class="bx-rt45-sh"><span class="fg-l">단계 <small>이름 · 시간(분) · 알림</small></span><p class="p small bx-rs-note">' + BX_RS_NOTE + '</p></div>' +
       '<div id="r-steps">' + rtStepsHtml() + '</div><div class="bx-rt45-add"><button type="button" class="btn sm" data-act="rs-add">' + ICON.plus + '단계 추가</button></div>' +
       '<div class="bx-ed bx-rt45-icr"><button type="button" class="bx-er bx-icsum" id="bx-icsum">' + bxIconSumHtml() + '</button></div>' +
       (R.id ? '<div class="bx-rdel"><button type="button" class="bx-del-link" data-act="rt-del">루틴 삭제</button></div>' : '') +

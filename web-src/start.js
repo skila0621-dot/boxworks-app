@@ -4,7 +4,7 @@
    루틴을 켰는데 하나도 없으면 홈 '오늘 할 일'에 '아침 루틴 30초 만에 만들기' 카드. 고르는 칸에는 늘 '직접 입력'과 '나중에'. */
 const BX_MODS = [
   ['report', '아침 요약', '아침 알림 하나로 오늘 할 일 한눈에', 'sun'],
-  ['routines', '루틴', '아침 준비·약 먹기를 단계마다 알람으로', 'loop'],
+  ['routines', '루틴', '아침 준비·약 먹기를 단계마다 알려 줘요', 'loop'],
   ['tt', '시간표', '매주 반복되는 수업·학원·알바', 'school'],
   // 시험판 41(대표 아이디어 11/3 15:17 · 요청 23:38): 떠오른 것을 바로 적는 메모. 시간 · 행동 관리 쪽(아래 메뉴)
   ['memo', '메모', '떠오른 것을 바로 적어 두면 그날에 모여요', 'note'],
@@ -45,7 +45,7 @@ function bxStartDraw(){
   const keys = bxStartDock(), pos = k => { const i = keys.indexOf(k); return i < 0 ? '' : '아래 메뉴 ' + (i < Math.ceil(keys.length / 2) ? i + 1 : i + 2) + '번째'; };
   const card = (icon, name, where, text) => '<div class="bxs-card"><span class="bxs-ic">' + bxIconSpan(icon, '') + '</span><span class="bxs-t"><span class="bxs-cn"><b>' + name + '</b>' + (where ? '<em>' + where + '</em>' : '') + '</span><small>' + text + '</small></span></div>';
   const cards = [];
-  if (BXS.sel.routines) cards.push(card('loop', '루틴', pos('routines'), '아침 준비·약 먹기처럼 반복하는 일을 단계로 나눠, 단계마다 알람으로 알려 주고 다 했는지 챙겨 줘요. 처음 들어가면 몇 가지만 물어볼게요.'));
+  if (BXS.sel.routines) cards.push(card('loop', '루틴', pos('routines'), '아침 준비·약 먹기처럼 반복하는 일을 단계로 나눠, 단계가 바뀔 때마다 짧게 알려 줘요. 기상 · 약 · 출발만 확인을 받아요. 처음 들어가면 몇 가지만 물어볼게요.'));
   cards.push(card('home', '일정 · 캘린더', '오른쪽 아래 +', '“내일 3시 치과”처럼 말하거나 적으면 날짜·시간이 알아서 들어가요. 삼성 캘린더 같은 휴대폰 캘린더 일정도 함께 볼 수 있어요. 달력은 ' + (pos('month') || '⋯ 메뉴') + '.'));
   if (BXS.sel.report) cards.push(card('sun', '아침 요약', '', '매일 아침 알림 하나로 오늘 할 일을 보여 줘요. 처음엔 7:30, 아침 루틴을 만들면 그 시각에 맞춰요.'));
   if (BXS.sel.tt) cards.push(card('school', '시간표', pos('tt'), '“월수 10시 반 경영학원론”처럼 말하면 채워지고, 수업 전에 알려 줘요.'));

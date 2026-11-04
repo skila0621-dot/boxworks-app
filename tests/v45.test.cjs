@@ -155,7 +155,7 @@ module.exports = async function () {
     const rr = await p.evaluate(() => ({ title: document.getElementById('r-name').classList.contains('title-in'),
       rows: Array.from(document.querySelectorAll('#bx-rt45 > *, #bx-rt45 #r-timebox > *')).filter(e => e.id !== 'r-timebox').map(e => e.classList.contains('bx-rt45-days') ? 'DAYS:' + document.getElementById('bx-rt45-dsum').textContent : e.textContent.replace(/\s+/g, ' ').trim().slice(0, 24)),
       det: document.querySelectorAll('#sheet-b details').length, rep: Array.from(document.querySelectorAll('#sheet-b #bx-rrep, #sheet-b #bx-rbowl, #sheet-b .bx-lockset')).filter(e => e.getBoundingClientRect().height > 0).length }));
-    c.eq(rr.rows, ['알림 방식알람 · 5분마다 6번 더', 'DAYS:평일', '공휴일 제외공휴일에도 울려요', '기준시작 시각부터', '시작 시각오전 7:00'], '루틴 창 줄: 알림 방식 → 요일 → 공휴일 제외 → 기준 → 시작 시각(칸 위에 오전 · 오후 글)');
+    c.eq(rr.rows, ['알림 방식알람 · 꼭 울림은 5분마다 6번 ', 'DAYS:평일', '공휴일 제외공휴일에도 울려요', '기준시작 시각부터', '시작 시각오전 7:00'], '루틴 창 줄: 알림 방식 → 요일 → 공휴일 제외 → 기준 → 시작 시각(칸 위에 오전 · 오후 글)');
     c.ok(rr.title && rr.det === 0 && rr.rep === 0, '이름은 제목 칸, 펼치는 칸(details · 간격 · 횟수 · 종소리)을 창에 두지 않음 ' + JSON.stringify(rr));
     // 알림 방식 페이지: 싱잉볼로 바꿨다가 ‹ → 그대로
     await p.click('[data-bxrt45="ntf"]'); await p.waitForTimeout(300);
@@ -163,12 +163,12 @@ module.exports = async function () {
     await p.click('#bx-pg [data-rsound="bowl"]'); await p.waitForTimeout(200);
     c.ok(await p.evaluate(() => document.querySelector('#bx-pg #bx-rrep').hidden && !document.querySelector('#bx-pg #bx-rbowl').hidden), '싱잉볼: 페이지 안에서 종소리 목록으로');
     await pgBack(p);
-    c.eq(await p.evaluate(() => document.querySelector('[data-bxrt45="ntf"] small').textContent), '알람 · 5분마다 6번 더', '‹ : 알람 그대로');
+    c.eq(await p.evaluate(() => document.querySelector('[data-bxrt45="ntf"] small').textContent), '알람 · 꼭 울림은 5분마다 6번 더', '‹ : 알람 그대로');
     await p.click('[data-bxrt45="ntf"]'); await p.waitForTimeout(300);
     c.eq(await p.evaluate(() => document.querySelector('#bx-pg [data-rsound=""]').getAttribute('aria-checked')), 'true', '다시 열면 알람에 동그라미');
     await p.click('#bx-pg [data-step="1"][data-for="r-times"]'); await p.waitForTimeout(150);
     await pgDone(p);
-    c.eq(await p.evaluate(() => document.querySelector('[data-bxrt45="ntf"] small').textContent), '알람 · 5분마다 7번 더', '완료: 횟수 7번');
+    c.eq(await p.evaluate(() => document.querySelector('[data-bxrt45="ntf"] small').textContent), '알람 · 꼭 울림은 5분마다 7번 더', '완료: 횟수 7번');
     // 기준 페이지: 도착 시각에 맞추기 → 완료 → 시각 줄이 도착 · 이동 · 여유
     await p.click('[data-bxrt45="mode"]'); await p.waitForTimeout(300);
     await p.click('#bx-pg [data-rmode="arrive"]'); await p.waitForTimeout(200);

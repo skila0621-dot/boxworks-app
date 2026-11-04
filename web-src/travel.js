@@ -92,21 +92,24 @@ function tvPlan(it, rtOverride){
   const arrive = at(it.date, it.start), leave = addMin(arrive, -travel), rows = [];
   if (rt) {
     let t = addMin(leave, -rt.steps.reduce((a, s) => a + (+s.min || 0), 0));
-    rt.steps.forEach(s => { rows.push({id: s.id, name: s.name, at: t, min: +s.min || 0, kind: s.kind}); t = addMin(t, +s.min || 0); });
-  } else rows.push({id: 'pre', name: '출발 ' + TV_PRE + '분 전', at: addMin(leave, -TV_PRE), min: 0, kind: 'do', pre: true});
-  if (travel) rows.push({id: 'leave', name: '출발', at: leave, min: 0, kind: 'do', leave: true});
+    // 시험판 52: 단계 세기는 루틴과 같다(첫 단계 · 약은 꼭 울림, 중간은 짧게 한 번, 기다리기는 소리 없이)
+    rt.steps.forEach((s, i) => { rows.push({id: s.id, name: s.name, at: t, min: +s.min || 0, kind: s.kind, ring: bxStepRing(s, i, rt.steps)}); t = addMin(t, +s.min || 0); });
+  } else rows.push({id: 'pre', name: '출발 ' + TV_PRE + '분 전', at: addMin(leave, -TV_PRE), min: 0, kind: 'do', pre: true, ring: 'short'});
+  if (travel) rows.push({id: 'leave', name: '출발', at: leave, min: 0, kind: 'do', leave: true, ring: 'must'});
   return {it, rt, travel, arrive, leave, rows, start: rows[0].at};
 }
 function tvAlarms(it){
   const p = tvPlan(it); if (!p) return [];
-  const al = p.rows.filter(r => r.kind !== 'wait'), end = p.travel ? p.leave : p.arrive;
+  // 짧게 한 번 단계는 같은 시각에 꼭 울림 단계가 있거나 앞 단계와 시각이 같으면(0분 단계) 따로 울리지 않는다(BX_alarmPlan 루틴과 같게)
+  const al0 = p.rows.filter(r => r.kind !== 'wait'), end = p.travel ? p.leave : p.arrive;
+  const al = al0.filter((r, i) => r.ring !== 'short' || !al0.some((x, q) => q !== i && +x.at === +r.at && (x.ring === 'must' || q < i)));
   return al.map((r, i) => {
     const nx = al[i + 1], left = Math.round((end - r.at) / 60000);
     let title, sub, next;
     if (r.leave) { title = '출발할 시간'; sub = it.title + ' · ' + bxT(it.start) + ' 도착' + (it.location ? ' · ' + it.location : ''); next = bxT(it.start) + ' 도착'; }
     else if (r.pre) { title = it.title || '(제목 없음)'; sub = TV_PRE + '분 뒤 출발 · ' + bxT(it.start) + ' 도착'; next = bxT(p.leave) + ' 출발'; }
     else { title = r.name; sub = (p.travel ? '출발까지 ' : '시작까지 ') + left + '분'; next = nx ? bxT(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : bxT(it.start) + ' ' + (it.title || ''); }
-    return {id: r.id, at: r.at.getTime(), title, sub, next, routine: !!p.rt,
+    return {id: r.id, at: r.at.getTime(), title, sub, next, routine: !!p.rt, pre: !!r.pre, ring: r.ring === 'short' ? 'short' : 'must', ok: r.leave && p.rt ? '다 했어요' : '',
       group: p.rt ? p.rt.name + ' · ' + (it.title || '') : '일정', from: p.start.getTime(), to: end.getTime()};
   });
 }

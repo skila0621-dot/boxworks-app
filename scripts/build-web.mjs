@@ -22,6 +22,7 @@ import v41 from './patches-v41.mjs';
 import v42 from './patches-v42.mjs';
 import v43 from './patches-v43.mjs';
 import v51 from './patches-v51.mjs';
+import v52 from './patches-v52.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -123,16 +124,37 @@ window.BX_alarmPlan = function(days){
   const nagOf = a => [3, 10].forEach((m, j) => { const t2 = a.at + m * 60000; if (t2 <= until) nags.push(Object.assign({}, a, {id: a.id + '_n' + (j + 1), at: t2, kind: 'nag', of: a.id, nag: j + 1})); });
   // 울리는 방식(종류별 기본값, web-src/flow.js): lv = alarm | notice | quiet. 끈 기능(루틴·시간표)은 알람도 쉰다
   const lvR = bxLevel('routine'), lvI = bxLevel('item'), lvT = bxLevel('tt'), rtOn = bxModOn('routines'), ttOnF = bxModOn('tt');
+  // 시험판 52(대표 11/4 16:58, D-25): 루틴 단계마다 세기. 꼭 울림 = 끌 때까지(lvR, 다시 알림) · 짧게 한 번 = 짧은 소리 한 번(누를 것 없음,
+  // 울리는 방식이 '조용히'면 소리 없이) · 소리 없이(기다리기) = 울리지 않고 알림창 '진행 중' · 위젯 글만 바뀐다
+  const lvS = lvR === 'quiet' ? 'silent' : 'short';
+  // 출발 10분 전 알림(짧게 한 번)이 루틴을 하는 동안이면 울리지 않는다: 루틴 알림창에 '출발까지 N분'이 이미 보인다(출근 준비 단계와 겹치면 하나로).
+  // 일정의 출발이 루틴의 출발과 같은 때(앞뒤 2분)면 루틴 출발 알람 하나만(확인을 두 번 받지 않게)
+  const rtWins = [], rtLeaves = [];
+  if (rtOn) M.routines.forEach(rt => {
+    if (rt.sound === 'bowl') return;
+    const p = rtPlan(rt); if (p.bad || !(p.end > p.start)) return;
+    for (let k = 0; k <= days; k++) {
+      const day = addDays(sod(new Date(now)), k), ds = ymd(day);
+      if (!rtActiveOn(rt, ds) || (M.rlogs.get(rt.id + '|' + ds) || {}).skip) continue;
+      rtWins.push([addMin(day, p.start).getTime(), addMin(day, p.end).getTime()]);
+      if (p.leave != null) rtLeaves.push(addMin(day, p.leave).getTime());
+    }
+  });
+  const inRt = t => rtWins.some(w => t >= w[0] && t <= w[1]);
+  const rtLeaveNear = t => rtLeaves.some(x => Math.abs(x - t) <= 2 * 60000);
   M.items.forEach(it => {
     if (it.done || it.deletedAt) return;
     const tvs = tvAlarms(it);
     tvs.forEach(a => {
       if (a.at <= now || a.at > until) return;
+      if (a.pre && inRt(a.at)) return;
       // pt·ps·pg: 잠금 화면에 대신 보일 제목·내용·묶음 이름(대표 결정 10/31: 일정 제목·장소는 잠금을 풀면)
       const isLeave = a.title === '출발할 시간';
+      if (isLeave && rtLeaveNear(a.at)) return;
       out.push({id: 'iv_' + it.id + '_' + a.id + '_' + a.at, at: a.at, kind: a.routine ? 'routine' : 'item', group: a.group, title: a.title, sub: a.sub,
         body: a.sub, from: a.routine ? a.from : 0, to: a.routine ? a.to : 0, next: a.next,
-        pt: isLeave ? '출발할 시간' : a.routine ? a.title : '곧 출발', ps: isLeave ? '일정 내용은 잠금을 풀면 보여요' : a.sub, pg: a.routine ? String(a.group).split(' · ')[0] : '일정', lv: lvR});
+        pt: isLeave ? '출발할 시간' : a.routine ? a.title : '곧 출발', ps: isLeave ? '일정 내용은 잠금을 풀면 보여요' : a.sub, pg: a.routine ? String(a.group).split(' · ')[0] : '일정',
+        lv: a.ring === 'short' ? lvS : lvR, ring: a.ring === 'short' ? 'short' : 'must', ok: a.ok || undefined});
     });
     tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
@@ -148,8 +170,10 @@ window.BX_alarmPlan = function(days){
     if (!rtOn) return;
     const p = rtPlan(rt); if (p.bad) return;
     const rows = p.rows.filter(r => r.kind !== 'wait');
-    // 다시 알림: 확인을 누르지 않으면 every분마다 times번 더(루틴 창에서 정함). 다음 단계가 울리기 전까지만
+    // 다시 알림: 꼭 울림 단계에서 확인을 누르지 않으면 every분마다 times번 더(루틴 창에서 정함). 다음 꼭 울림 단계가 울리기 전까지만
     const bowl = rt.sound === 'bowl';
+    // 단계표의 세기: m 꼭 울림 · s 짧게 한 번 · w 소리 없이(위젯 '확인' 단추는 꼭 울림 단계에만)
+    const RC = r => r.kind === 'wait' ? 'w' : r.ring === 'must' ? 'm' : 's';
     const rep = bowl ? 0 : Math.max(0, Math.min(12, Math.round(+rt.times || 0))), every = Math.max(1, Math.min(60, Math.round(+rt.every || 5)));
     for (let k = 0; k <= days; k++) {
       const day = addDays(sod(new Date(now)), k), ds = ymd(day);
@@ -158,31 +182,45 @@ window.BX_alarmPlan = function(days){
       const doneMap = lg.done || {};
       // 알림창 '진행 중'과 '지금 단계' 위젯이 쓰는 그날 단계표(첫 알람에만 싣는다)
       const leaveAt = p.leave != null ? addMin(day, p.leave).getTime() : 0;
-      const steps = rows.map(r => ({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!doneMap[r.id]}));
+      // 시험판 52: 기다리기 단계도 넣는다(알림창 · 위젯이 '지금 세탁 기다리기'를 보이게)
+      const steps = p.rows.map(r => Object.assign({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!doneMap[r.id], r: RC(r)}, r.leave ? {ok: '다 했어요'} : {}));
       rows.forEach((r, i) => {
         if (doneMap[r.id]) return;
-        const base = 'r_' + rt.id + '_' + ds + '_' + r.id, nx = rows[i + 1];
-        const limit = nx ? addMin(day, nx.at).getTime() : addMin(day, r.at + rep * every + 1).getTime();
-        for (let j = 0; j <= rep; j++) {
+        const must = r.ring === 'must';
+        // 짧게 한 번: 같은 시각에 꼭 울림 단계가 있거나 앞 단계와 시각이 같으면(0분 단계) 따로 울리지 않는다
+        if (!must && !bowl && rows.some((x, q) => q !== i && x.at === r.at && (x.ring === 'must' || q < i))) return;
+        const base = 'r_' + rt.id + '_' + ds + '_' + r.id, nx = p.rows[p.rows.indexOf(r) + 1];
+        const nm = rows.slice(i + 1).find(x => x.ring === 'must'), rp = must && !bowl ? rep : 0;
+        const limit = nm ? addMin(day, nm.at).getTime() : addMin(day, r.at + rp * every + 1).getTime();
+        for (let j = 0; j <= rp; j++) {
           const atM = r.at + j * every, t = addMin(day, atM).getTime();
           if (j > 0 && t >= limit) break;
           if (t <= now || t > until) continue;
           const left = p.leave != null && !r.leave ? Math.round(p.leave - atM) : null;
-          const sub = [r.leave ? (j ? '출발 시각이 ' + (j * every) + '분 지났어요' : '지금 나갈 시간') : left != null ? '출발까지 ' + left + '분' : '', j ? '다시 알림 ' + j + '/' + rep : ''].filter(Boolean).join(' · ');
+          const sub = [r.leave ? (j ? '출발 시각이 ' + (j * every) + '분 지났어요' : '지금 나갈 시간') : left != null ? '출발까지 ' + left + '분' : '', j ? '다시 알림 ' + j + '/' + rp : ''].filter(Boolean).join(' · ');
           const a = {id: base + (j ? '_r' + j : ''), at: t, kind: 'routine', group: rt.name || '루틴', icon: r.leave ? 'car' : bxIconFor(r.name) || bxRtIconKey(rt),
             title: r.leave ? '출발할 시간' : r.name, sub, body: (rt.name || '루틴') + (sub ? ' · ' + sub : ''),
             from: addMin(day, p.start).getTime(), to: p.leave != null ? addMin(day, p.leave).getTime() : 0,
             next: nx ? bxT(hmOf(nx.at)) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
           // series: 이 단계의 알람 묶음. 휴대폰에서 '확인'을 누르면 남은 다시 알림을 지우고, 앱에 '했어요'로 옮긴다
           a.series = base;
-          a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴'; a.lv = lvR;
+          a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴'; a.lv = must ? lvR : lvS; a.ring = must ? 'must' : 'short';
+          if (r.leave) a.ok = '다 했어요';
           if (!j && !bowl) { a.rid = rt.id; a.ds = ds; a.leave = leaveAt; a.steps = steps; }
           if (bowl) { a.sound = 'bowl'; a.bowl = rt.bowl || bxBowlType(); }
           (j ? reps : out).push(a);
         }
       });
-      // 루틴이 끝난 10분 뒤: 확인하지 않은 단계가 있으면 휴대폰이 한 번 더 알린다(대표 요청). 다 확인했으면 울리지 않는다
-      const born = bxRtBornM(rt, ds), todo = rows.filter(r => !doneMap[r.id] && r.at >= born);
+      // 소리 없이(기다리기) 단계가 시작될 때: 소리 · 알림 없이 알림창 '진행 중'과 위젯만 고친다(상태 표시줄 '다음 알람'에도 넣지 않음)
+      if (!bowl) p.rows.forEach(r => {
+        if (r.kind !== 'wait' || doneMap[r.id]) return;
+        const t = addMin(day, r.at).getTime(); if (t <= now || t > until) return;
+        const sid = 'r_' + rt.id + '_' + ds + '_' + r.id;
+        out.push({id: sid, at: t, kind: 'routine', lv: 'silent', ring: 'silent', series: sid, group: rt.name || '루틴', title: r.name, sub: '', body: '',
+          rid: rt.id, ds, leave: leaveAt, steps});
+      });
+      // 루틴이 끝난 10분 뒤: 확인하지 않은 약 단계가 있으면 휴대폰이 한 번 더 알린다(대표 요청, 시험판 52부터 약 단계만: 약 루틴은 지금처럼 확인)
+      const born = bxRtBornM(rt, ds), todo = rows.filter(r => r.ring === 'must' && bxIsMed(r.name) && !doneMap[r.id] && r.at >= born);
       const endM = p.leave != null ? p.leave : rows.length ? rows[rows.length - 1].at + rows[rows.length - 1].min : null;
       // 싱잉볼 루틴(명상 등): 마지막 단계가 끝날 때 끝 종 세 번. 확인 안 한 단계 알림은 하지 않는다
       if (bowl && endM != null && rows.length && rows[rows.length - 1].min > 0) {
@@ -329,7 +367,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'setall.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v38.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v39.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v40.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v41.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v42.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v43.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v44.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v45.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v46.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v48.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v49.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v50.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v51.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'setall.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v38.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v39.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v40.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v41.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v42.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v43.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v44.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v45.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v46.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v48.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v49.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v50.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v51.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v52.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
@@ -408,7 +446,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words, ...v37, ...v38, ...v39, ...v40, ...v41, ...v42, ...v43, ...v51);
+patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words, ...v37, ...v38, ...v39, ...v40, ...v41, ...v42, ...v43, ...v51, ...v52);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;

@@ -1,5 +1,6 @@
 // 알람 계산(BX_alarmPlan): 휴대폰에 거는 알람 목록이 정한 대로 나오는지.
 // 기준 시각 2026-11-02(월) 06:50. 루틴 '아침 준비' 07:30 시작(일어나기 5 · 씻기 15 · 옷 입기 10 · 가방 챙기기 5분, 5분마다 6번 다시 알림)
+// 시험판 52(D-25): 첫 단계만 꼭 울림(다시 알림), 나머지는 짧게 한 번. 확인 안 한 단계 알림(rcheck)은 약 단계에만 — 자세한 것은 v52.test.cjs
 const { openApp, settings, checker, NOW, ymdOf, hmOf } = require('./harness.cjs');
 
 const old = '2026-10-29T00:00:00.000Z';
@@ -31,14 +32,16 @@ module.exports = async function () {
     c.ok(plan.every(a => a.at > nowMs), '지난 시각의 알람이 들어 있음');
     c.ok(plan.length <= 205, '휴대폰에 거는 알람이 너무 많음: ' + plan.length);
 
-    // 루틴 단계: 시각 · 다시 알림은 다음 단계 전까지만
+    // 루틴 단계: 첫 단계는 꼭 울림(다시 알림은 다음 꼭 울림 단계 전까지, 없으면 6번 다), 중간 · 마지막 단계는 짧게 한 번
     c.eq(find('2026-11-02', '07:30', a => a.kind === 'routine').map(a => a.title), ['일어나기'], '07:30 첫 단계');
-    c.eq(find('2026-11-02', '07:30')[0] && find('2026-11-02', '07:30')[0].lv, 'alarm', '루틴 단계는 알람 세기');
-    const wash = plan.filter(a => a.series && a.series === (find('2026-11-02', '07:35', x => x.title === '씻기')[0] || {}).series).map(a => hmOf(a.at));
-    c.eq(wash, ['07:35', '07:40', '07:45'], '씻기: 07:35 + 다시 알림 2번(07:50 옷 입기 전까지)');
+    c.eq(find('2026-11-02', '07:30')[0] && find('2026-11-02', '07:30')[0].lv, 'alarm', '첫 단계는 알람 세기');
+    const wake = plan.filter(a => a.series && a.series === (find('2026-11-02', '07:30')[0] || {}).series).map(a => hmOf(a.at));
+    c.eq(wake, ['07:30', '07:35', '07:40', '07:45', '07:50', '07:55', '08:00'], '일어나기: 07:30 + 다시 알림 6번(짧게 한 번 단계가 끼어 있어도)');
+    const wash = plan.filter(a => a.series && a.series === (find('2026-11-02', '07:35', x => x.title === '씻기')[0] || {}).series);
+    c.eq(wash.map(a => [hmOf(a.at), a.lv]), [['07:35', 'short']], '씻기: 짧게 한 번, 다시 알림 없음');
     const last = plan.filter(a => a.series && a.series === (find('2026-11-02', '08:00', x => x.title === '가방 챙기기')[0] || {}).series);
-    c.eq(last.length, 7, '마지막 단계: 08:00 + 다시 알림 6번');
-    c.eq(find('2026-11-02', '08:15', a => a.kind === 'rcheck').length, 1, '루틴이 끝난 10분 뒤 확인 알림 하나');
+    c.eq(last.length, 1, '마지막 단계도 짧게 한 번');
+    c.eq(find('2026-11-02', '08:15', a => a.kind === 'rcheck').length, 0, '약 단계가 없으면 루틴 끝 확인 알림 없음');
 
     // 시간표와 일정
     c.eq(find('2026-11-02', '10:20', a => a.group === '시간표').map(a => a.title), ['경영학원론'], '수업 10분 전');
@@ -47,7 +50,7 @@ module.exports = async function () {
     c.eq(dent[0] && dent[0].lv, 'notice', '일정은 알림 세기(D-09)');
 
     // 계획 기간: 첫 알람은 14일 동안, 다시 알림은 앞 7일까지만
-    const firsts = plan.filter(a => a.kind === 'routine' && a.title === '일어나기').map(a => ymdOf(a.at));
+    const firsts = plan.filter(a => a.kind === 'routine' && a.title === '일어나기' && !/_r\d+$/.test(a.id)).map(a => ymdOf(a.at));
     c.eq(firsts.length, 14, '일어나기 알람이 14일 치');
     const reps = plan.filter(a => /_r\d+$/.test(a.id));
     c.ok(reps.length > 0 && reps.every(a => a.at <= nowMs + 7 * 864e5), '다시 알림은 앞 7일까지만');
