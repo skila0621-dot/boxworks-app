@@ -132,8 +132,9 @@ function bxHomeSplit(head, body, o){
   const total = rtN + ttN + o.n + (o.ns || 0), late = body.indexOf('id="late-block"') >= 0;
   const name = o.isT ? '오늘 할 일' : o.title.replace(/일정$/, '할 일');
   const items = total || late ? '<div class="bx-sub it-sub">' + secHead('h-today', '일정', '', '') + body + '</div>'
-    : o.isT ? '<div class="bx-empty-ex"><p class="empty bx-todo-empty">' + (M.items.length ? '오늘 할 일이 없어요.' : '아직 일정이 없어요.') + ' 이렇게 적어 보세요.</p><div class="bx-ex-chips">' +
-        BX_EXAMPLES.map(x => '<button type="button" class="bx-ex" data-bx-ex="' + esc(x) + '">“' + esc(x) + '”</button>').join('') + '</div></div>'
+    // 시험판 50(대표 11/4 15:25 "버튼이 굳이 필요할까요? 안내 예시 문구만 표시해 줘도 되는 거 아냐?"): 누르는 예시 칩 대신 예시 글 한 줄
+    : o.isT ? '<div class="bx-empty-ex"><p class="empty bx-todo-empty">' + (M.items.length ? '오늘 할 일이 없어요.' : '아직 일정이 없어요.') + '</p>' +
+        '<p class="p small bx-ex-txt">오른쪽 아래 <span class="bx-mmp-plus" aria-label="더하기">+</span>를 눌러 ' + BX_EXAMPLES.slice(0, 2).map(x => '<span class="q">“' + esc(x) + '”</span>').join(', ') + '처럼 적거나 말해 보세요.</p></div>'
     : '<p class="empty bx-todo-empty">이 날은 할 일이 없어요.</p>';
   // 요약은 두 줄(대표 결정 10/31): 날짜 한 줄(‹ 날짜 ›), 숫자 한 줄. '확인 필요'는 지난 일정 + 안 한 루틴 단계를 한 숫자로
   const vD = parseYmd(o.vd), miss = o.isT ? bxRtMissed().length : 0, need = (o.lateN || 0) + miss;

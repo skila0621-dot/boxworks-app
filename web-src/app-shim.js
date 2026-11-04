@@ -332,7 +332,8 @@
     '.bx-app .bx-ttb.main{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}',
     'html.bx-ttbar-on .content{padding-bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 76px)}html.bx-ttbar-on #toasts{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 72px)}',
     // 빈 홈의 예시 문장, + 단추 팁
-    '.bx-app .bx-empty-ex{padding:14px 0 6px}.bx-app .bx-empty-ex .bx-todo-empty{padding:0;margin:0 0 10px;text-align:left}.bx-app .bx-ex-chips{display:flex;flex-wrap:wrap;gap:8px}',
+    '.bx-app .bx-empty-ex{padding:14px 0 6px}.bx-app .bx-empty-ex .bx-todo-empty{padding:0;margin:0 0 6px;text-align:left}.bx-app .bx-ex-chips{display:flex;flex-wrap:wrap;gap:8px}',
+    '.bx-app .bx-ex-txt{margin:0;color:var(--ink-3);line-height:1.6;word-break:keep-all}.bx-app .bx-ex-txt .q{white-space:nowrap;color:var(--ink-2)}',
     '.bx-app .bx-ex{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--line-2);background:var(--bg);font-size:14px;color:var(--ink)}',
     // 새 일정: 자주 넣은 말
     '.bx-app .bx-freq{margin-top:12px}.bx-app .bx-freq-h{display:block;font-size:13px;font-weight:500;color:var(--ink-2);margin-bottom:6px}.bx-app .bx-freq-c{display:flex;flex-wrap:wrap;gap:8px}',
