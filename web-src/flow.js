@@ -128,7 +128,7 @@ document.addEventListener('click', ev => {
     if (!isDate(d)) return;
     BXL_PICK = null;
     if (isHM(t)) { const dur = it.start && it.end ? toMin(it.end) - toMin(it.start) : null;
-      bxLatePatch(id, Object.assign(base, {date: d, start: t, end: dur != null ? fromMin(Math.min(1439, toMin(t) + dur)) : null}), bxMD(d) + ' ' + t + bxRo(t) + ' 옮겼어요'); }
+      bxLatePatch(id, Object.assign(base, {date: d, start: t, end: dur != null ? fromMin(Math.min(1439, toMin(t) + dur)) : null}), bxMD(d) + ' ' + bxT(t) + bxRo(t) + ' 옮겼어요'); }
     else bxLateMove(id, d, base);
     return;
   }
@@ -191,7 +191,7 @@ function bxTtPrevHtml(){
   return '<span class="bxt-ph">알아들은 것 ' + ok.length + '개' + (ok.length ? ' · 넣은 뒤 시간표에서 고칠 수 있어요' : '') + '</span>' + rows.map((r, i) => {
     const good = r.p.name && r.p.days.length && r.p.start;
     return '<div class="bxt-row' + (good ? '' : ' bad') + '"><span class="bxt-bar" style="--c:' + TT_COLORS[i % TT_COLORS.length] + '"></span><span class="bxs-t"><b>' + esc(good ? r.p.name : r.line) + '</b><small>' +
-      esc(good ? ttDaysText(r.p.days) + ' ' + r.p.start + '–' + r.p.end + (r.p.place ? ' · ' + r.p.place : '') : !r.p.days.length ? '요일을 알아듣지 못했어요' : !r.p.start ? '시각을 알아듣지 못했어요' : '이름을 적어 주세요') + '</small></span></div>';
+      esc(good ? ttDaysText(r.p.days) + ' ' + bxTR(r.p.start, r.p.end) + (r.p.place ? ' · ' + r.p.place : '') : !r.p.days.length ? '요일을 알아듣지 못했어요' : !r.p.start ? '시각을 알아듣지 못했어요' : '이름을 적어 주세요') + '</small></span></div>';
   }).join('');
 }
 function bxTtHelpDraw(){
@@ -386,7 +386,7 @@ function bxItemMenu(id, el){
     '<p class="p small" style="margin:-6px 0 10px">' + esc(when) + (it.location ? ' · ' + esc(it.location) : '') + '</p><div class="menu">' +
     row('edit', ICON.edit, pc ? '알림 · 이동 시간 수정' : '수정', '') +
     (pc ? '' : row('done', ICON.check, it.done ? '완료 취소' : '완료', '') +
-      row('tmr', ICON.clock, '내일로 미루기', fmtMD(ymd(addDays(parseYmd(M.today), 1))) + (it.start ? ' ' + it.start : '')) +
+      row('tmr', ICON.clock, '내일로 미루기', fmtMD(ymd(addDays(parseYmd(M.today), 1))) + (it.start ? ' ' + bxT(it.start) : '')) +
       row('del', ICON.trash, '삭제', '휴지통에 30일 보관', true)) +
     '</div>' + (pc ? '<p class="p small" style="margin:10px 0 0">휴대폰 캘린더에서 읽어 온 일정은 그 캘린더 앱에서 지우거나 옮겨요.</p>' : ''), '')});
   SH.bxIm = {id, el};

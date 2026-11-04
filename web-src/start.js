@@ -129,13 +129,13 @@ function bxRtHelpResult(){
   // 만든 루틴은 거꾸로 짠 시각표를 그대로 보여 준다(전체 흐름 와이어프레임 5)
   const rows = BXR.made.map(id => { const rt = getDoc(id); if (!rt) return ''; const p = rtPlan(rt);
     const tot = rt.steps.reduce((a, s) => a + (+s.min || 0), 0);
-    const tl = p.rows.filter(r => r.kind !== 'wait').map(r => '<li class="' + (r.leave ? 'lv' : '') + '"><span class="bxs-tm">' + mm(r.at) + '</span>' + (r.leave ? '<span class="bxs-flag" aria-hidden="true">' + ICON.flag + '</span>' : '<i aria-hidden="true"></i>') + '<span class="bxs-sn">' + esc(r.leave ? '출발' : r.name) + '</span>' + (r.leave ? '' : '<span class="bxs-sm">' + (+r.min || 0) + '분</span>') + '</li>').join('');
-    return '<div class="bxs-res col"><div class="bxs-rh"><span class="bxs-t"><b>' + esc(rt.name) + '</b><small>' + esc(rtWhenText(rt) + ' · 단계 ' + rt.steps.length + '개' + (tot ? ' · ' + tot + '분' : '') + (rt.mode === 'arrive' ? ' · ' + mm(p.start) + ' 시작' : '')) + '</small></span>' +
+    const tl = p.rows.filter(r => r.kind !== 'wait').map(r => '<li class="' + (r.leave ? 'lv' : '') + '"><span class="bxs-tm">' + bxT(mm(r.at)) + '</span>' + (r.leave ? '<span class="bxs-flag" aria-hidden="true">' + ICON.flag + '</span>' : '<i aria-hidden="true"></i>') + '<span class="bxs-sn">' + esc(r.leave ? '출발' : r.name) + '</span>' + (r.leave ? '' : '<span class="bxs-sm">' + (+r.min || 0) + '분</span>') + '</li>').join('');
+    return '<div class="bxs-res col"><div class="bxs-rh"><span class="bxs-t"><b>' + esc(rt.name) + '</b><small>' + esc(rtWhenText(rt) + ' · 단계 ' + rt.steps.length + '개' + (tot ? ' · ' + tot + '분' : '') + (rt.mode === 'arrive' ? ' · ' + bxT(mm(p.start)) + ' 시작' : '')) + '</small></span>' +
       '<span class="bx-togw"><span>알람</span><button type="button" class="tog" role="switch" aria-checked="' + (rt.on !== false) + '" aria-label="' + esc(rt.name) + ' 알람" data-bxr-tog="' + esc(id) + '"><i></i></button></span></div>' +
       '<ol class="bxs-tl">' + tl + '</ol></div>'; }).join('');
   const tpls = RT_TEMPLATES.filter(t => !['work', 'meds'].includes(t.key)).slice(0, 4).map(t => '<button type="button" class="bxs-chip" data-act="rt-tpl" data-key="' + t.key + '">+ ' + esc(t.name) + '</button>').join('');
   const first = BXR.made.map(getDoc).filter(Boolean).find(rt => rt.mode === 'arrive');
-  const lead = first ? (() => { const p = rtPlan(first); return mm(p.leave) + '에 나가려면 ' + mm(p.start) + '에 시작해요.'; })() : '';
+  const lead = first ? (() => { const p = rtPlan(first); return bxT(mm(p.leave)) + '에 나가려면 ' + bxT(mm(p.start)) + '에 시작해요.'; })() : '';
   bxStartOverlay(
     '<div class="bxs-top"><span class="bxs-tt">루틴 도우미</span></div>' +
     '<h1 class="bxs-h">' + (BXR.made.length ? '이렇게 만들어 뒀어요' : '언제든 다시 만들 수 있어요') + '</h1><p class="bxs-p">' + (BXR.made.length ? (lead ? lead + ' ' : '') + '루틴을 누르면 단계·시간을 고쳐요.' : '루틴 탭의 ‘+ 새 루틴’에서 템플릿을 고르거나 말로 만들 수 있어요.') + '</p>' +
@@ -161,10 +161,10 @@ window.BX_permRefresh = async function(){
 };
 function bxPermDraw(){
   const st = PERM.st || {}, d = PERM.at ? new Date(PERM.at) : null, sam = st.maker === 'samsung';
-  const when = d ? relDay(ymd(d), M.today) + (d.getHours() < 12 ? ' 아침 ' : ' ') + hm(d) : '';
+  const when = d ? relDay(ymd(d), M.today) + ' ' + bxT(d) : '';
   const rows = [
     ['notifications', '알림', '알람과 아침 일정을 알려 줘요'],
-    ['exact', '정확한 알람', when ? hm(d) + ' 알람이 늦게 울리지 않게' : '정한 시각에 늦지 않게'],
+    ['exact', '정확한 알람', when ? bxT(d) + ' 알람이 늦게 울리지 않게' : '정한 시각에 늦지 않게'],
     ['fullScreen', '잠금 화면 알람', '화면이 꺼져 있어도 알람처럼 크게. 일정 내용은 안 보여요'],
     ['battery', '절전 예외', sam ? '‘절전 앱·깊은 절전 앱’에 들어가면 알람이 늦거나 안 울려요' : '절전 때문에 알람이 늦거나 빠지지 않게', !sam]
   ];

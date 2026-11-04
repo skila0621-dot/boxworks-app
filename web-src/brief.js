@@ -14,16 +14,16 @@ function bxReportFor(ds){
   // 이어서 할 일: 지금 이미 지난(어제까지) 일만. 미래 날의 보고에서 그 사이 일을 지났다고 짐작하지 않는다
   const late = M.items.filter(i => !i.done && !i.pc && i.date < M.today && !(typeof bxSpan === 'function' && bxSpan(i)));
   const first = rows.find(r => r.start);
-  let title = rows.length ? '오늘 ' + rows.length + '건' + (first ? ' · 첫 일정 ' + first.start + ' ' + first.title : '') : '오늘은 정해진 일정이 없어요';
+  let title = rows.length ? '오늘 ' + rows.length + '건' + (first ? ' · 첫 일정 ' + bxT(first.start) + ' ' + first.title : '') : '오늘은 정해진 일정이 없어요';
   if (late.length) title += ' · 이어서 ' + late.length + '건';
   const lines = [];
   if (late.length) lines.push('이어서 할 일: ' + late.slice(0, 3).map(i => i.title).join(' · ') + (late.length > 3 ? ' 외 ' + (late.length - 3) + '건' : ''));
-  rows.slice(0, 6).forEach(r => lines.push((r.start || '종일') + '  ' + r.title + (r.place ? ' · ' + r.place : '') + (r.go ? ' · ' + r.go + ' 출발' : '')));
+  rows.slice(0, 6).forEach(r => lines.push((r.start ? bxT(r.start) : '종일') + '  ' + r.title + (r.place ? ' · ' + r.place : '') + (r.go ? ' · ' + bxT(r.go) + ' 출발' : '')));
   if (rows.length > 6) lines.push('외 ' + (rows.length - 6) + '건');
   // 다가오는 일: 다음 사흘 안의 시간 있는 일정 하나(출발이 있으면 출발 시각도)
   for (let k = 1; k <= 3; k++) {
     const d2 = ymd(addDays(parseYmd(ds), k)), nx = dayItems(d2).find(i => !i.done && i.start && i.date === d2 && (typeof bxHomeOk !== 'function' || bxHomeOk(i)));
-    if (nx) { const p = tvPlan(nx); lines.push('다가오는 일: ' + bxShortDay(d2) + ' ' + nx.start + ' ' + nx.title + (p && p.travel ? ' · ' + hm(p.leave) + ' 출발' : '')); break; }
+    if (nx) { const p = tvPlan(nx); lines.push('다가오는 일: ' + bxShortDay(d2) + ' ' + bxT(nx.start) + ' ' + nx.title + (p && p.travel ? ' · ' + bxT(p.leave) + ' 출발' : '')); break; }
   }
   return {title, text: lines.join('\n') || '오늘 할 일을 넣으려면 앱을 열어 말해 보세요.'};
 }
@@ -129,7 +129,7 @@ window.BX_widgetData = function(plan){
       const done = lg.done || {}, from = addMin(day, p.start).getTime(), leave = p.leave != null ? addMin(day, p.leave).getTime() : 0;
       const last = rows[rows.length - 1], end = leave || addMin(day, last.at + (last.min || 5)).getTime();
       const allDone = rows.every(r => done[r.id]);
-      list.push({at: from, end, title: rt.name || '루틴', place: '', go: 0, c: '#3555D8', k: 'routine', done: allDone});
+      list.push({at: from, end, title: rt.name || '루틴', place: '', go: 0, c: '#7C3AED', k: 'routine', done: allDone});
       if (rows.length >= 2 && k >= 0 && k <= 3) routines.push({rid: rt.id, ds, name: rt.name || '루틴', from, leave,
         steps: rows.map(r => ({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!done[r.id]}))});
     });

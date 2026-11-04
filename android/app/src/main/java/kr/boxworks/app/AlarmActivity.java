@@ -17,6 +17,9 @@ import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.RelativeSizeSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -180,13 +183,24 @@ public class AlarmActivity extends Activity {
         return lp;
     }
 
+    // 시험판 51(대표 11/4): 시각은 '오후 3:00'
     private static String hm(long ms) {
-        return new SimpleDateFormat("HH:mm", Locale.KOREA).format(new Date(ms));
+        return new SimpleDateFormat("a h:mm", Locale.KOREA).format(new Date(ms));
+    }
+
+    // 큰 시계: '오후'는 작게(숫자 옆), 숫자는 크게 — 화면 너비를 넘지 않게
+    private static CharSequence clock(long ms) {
+        String s = hm(ms);
+        int sp = s.indexOf(' ');
+        SpannableString out = new SpannableString(s);
+        if (sp > 0) out.setSpan(new RelativeSizeSpan(0.4f), 0, sp + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return out;
     }
 
     private View buildUi() {
         boolean routine = "routine".equals(alarm.optString("kind"));
-        int accent = routine ? 0xFF7A4FD6 : 0xFF3A5BF0;
+        // 시험판 51: 브랜드 색 보라 하나(대표 11/4). 보라 위 아이콘은 흰색
+        int accent = 0xFF7C3AED;
         // 잠금 화면에서는 일정 제목·장소를 가린다(대표 결정 10/31). 루틴 단계 이름과 남은 시간은 보인다
         shownLocked = isLocked();
         String mode = AlarmStore.lockMode(this);
@@ -201,7 +215,9 @@ public class AlarmActivity extends Activity {
 
         long now = System.currentTimeMillis();
         root.addView(text(new SimpleDateFormat("M월 d일 EEEE", Locale.KOREAN).format(new Date(now)), 16, 0xFFC9CCD3, false), wrap(0));
-        root.addView(text(hm(now), 72, Color.WHITE, true), wrap(0));
+        TextView clk = text("", 72, Color.WHITE, true);
+        clk.setText(clock(now));
+        root.addView(clk, wrap(0));
 
         String group = none ? "" : hide ? alarm.optString("pg", routine ? alarm.optString("group", "") : "") : alarm.optString("group", "");
         root.addView(text(AlarmNotify.appName(this) + (group.isEmpty() ? "" : " · " + group), 13, 0xFFC9CCD3, false), wrap(32));
@@ -228,7 +244,7 @@ public class AlarmActivity extends Activity {
         root.addView(circle, clp);
 
         String title = hide ? AlarmNotify.pubTitle(this, alarm) : alarm.optString("title", "");
-        TextView t = text(title.isEmpty() ? AlarmNotify.appName(this) + " 알람" : title, 34, Color.WHITE, true);
+        TextView t = text(title.isEmpty() ? AlarmNotify.appName(this) + " 알람" : title, 28, Color.WHITE, true);
         t.setMaxLines(2);
         root.addView(t, wrap(16));
 
@@ -246,7 +262,7 @@ public class AlarmActivity extends Activity {
         root.addView(spacer, new LinearLayout.LayoutParams(1, 0, 1f));
 
         Button ok = button("확인", Color.WHITE, 0xFF1C1C1C, 0, dp(32));
-        ok.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
+        ok.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         ok.setOnClickListener(v -> {
             AlarmStore.confirm(this, alarm, true);
             // 아침 루틴 첫 알람이면 확인한 직후 아침 보고를 띄운다
@@ -288,16 +304,16 @@ public class AlarmActivity extends Activity {
         float f = Math.max(0f, Math.min(1f, (now - from) / (float) (to - from)));
         View fill = new View(this);
         GradientDrawable fd = new GradientDrawable();
-        fd.setColor(accent == 0xFF7A4FD6 ? 0xFF9B7BE3 : 0xFF7D96FF);
+        fd.setColor(0xFFA98BFA); // 어두운 바탕 위 막대는 밝은 보라
         fd.setCornerRadius(dp(5));
         fill.setBackground(fd);
         bar.addView(fill, new FrameLayout.LayoutParams(Math.max(dp(10), Math.round(width * f)), dp(10)));
         box.addView(bar, new LinearLayout.LayoutParams(width, dp(10)));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.HORIZONTAL);
-        TextView a = text(hm(from), 12, 0xFFA9ADB6, false);
+        TextView a = text(hm(from), 13, 0xFFA9ADB6, false);
         a.setGravity(Gravity.START);
-        TextView b = text(hm(to) + " 출발", 12, 0xFFA9ADB6, false);
+        TextView b = text(hm(to) + " 출발", 13, 0xFFA9ADB6, false);
         b.setGravity(Gravity.END);
         labels.addView(a, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         labels.addView(b, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));

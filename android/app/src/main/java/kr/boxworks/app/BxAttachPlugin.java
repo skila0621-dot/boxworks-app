@@ -171,7 +171,7 @@ public class BxAttachPlugin extends Plugin {
             JSArray out = new JSArray();
             int failed = 0;
             try {
-                out.put(saveImage(Uri.fromFile(tmp), "사진 " + new SimpleDateFormat("M월 d일 HH:mm", Locale.KOREAN).format(new Date()) + ".jpg"));
+                out.put(saveImage(Uri.fromFile(tmp), "사진 " + new SimpleDateFormat("M월 d일 a h:mm", Locale.KOREAN).format(new Date()) + ".jpg"));
             } catch (Throwable t) {
                 failed = 1;
             } finally {

@@ -4,10 +4,10 @@
     <color name="bx_w_bg">#FFFFFF</color>
     <color name="bx_w_ink">#1D2129</color>
     <color name="bx_w_ink2">#5F6673</color>
-    <color name="bx_w_accent">#3555D8</color>
+    <color name="bx_w_accent">#7C3AED</color>
     <color name="bx_w_line">#E4E6EA</color>
     <color name="bx_w_chip">#F0F1F4</color>
-    <color name="bx_w_btn">#3555D8</color>
+    <color name="bx_w_btn">#7C3AED</color>
     <color name="bx_w_dim">#8A909B</color>
     <color name="bx_w_warn">#A4500B</color>
     <color name="bx_w_warn_bg">#FFF4E8</color>
@@ -16,8 +16,8 @@
     <string name="bx_widget_desc">오늘 일정을 시각·색과 함께 보고, 글자나 말로 바로 넣어요. 메모도 바로 적어요</string>
     <string name="bx_now_widget_label">지금 단계</string>
     <string name="bx_now_widget_desc">루틴을 하는 동안 지금 할 단계와 출발까지 남은 시간을 보여 줘요</string>
-    <color name="bx_w_live">#EEF1FD</color>
-    <color name="bx_w_btn2">#E9EDFC</color>
+    <color name="bx_w_live">#F3EEFE</color>
+    <color name="bx_w_btn2">#EFE7FD</color>
     <color name="bx_w_thumb">#C9CED6</color>
     <!-- 시험판 38: 목록 아래가 흐려지는 그러데이션의 끝(위젯 바탕색과 같은 색, 투명) -->
     <color name="bx_w_bg0">#00FFFFFF</color>

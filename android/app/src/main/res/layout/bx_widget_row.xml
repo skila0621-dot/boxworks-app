@@ -12,11 +12,11 @@
     android:paddingRight="8dp">
     <TextView
         android:id="@+id/wr_t"
-        android:layout_width="46dp"
+        android:layout_width="72dp"
         android:layout_height="wrap_content"
         android:maxLines="1"
         android:textColor="@color/bx_w_ink"
-        android:textSize="13.5sp"
+        android:textSize="14sp"
         android:textStyle="bold" />
     <FrameLayout
         android:id="@+id/wr_c"
@@ -33,7 +33,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/bx_w_ink"
-        android:textSize="14.5sp" />
+        android:textSize="14sp" />
     <TextView
         android:id="@+id/wr_m"
         android:layout_width="wrap_content"
@@ -44,5 +44,5 @@
         android:maxLines="1"
         android:maxWidth="130dp"
         android:textColor="@color/bx_w_ink2"
-        android:textSize="12.5sp" />
+        android:textSize="13sp" />
 </LinearLayout>

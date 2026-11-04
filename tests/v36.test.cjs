@@ -17,7 +17,7 @@ module.exports = async function () {
     await p.click('.bx-fab'); await p.waitForTimeout(500);
     await p.fill('#f-title', '17일 오후 3시 늘푸른 병원 예약'); await p.waitForTimeout(300);
     let h = await hint(p);
-    c.ok(/12월 17일/.test(h) && /15:00/.test(h) && /늘푸른 병원 예약/.test(h), '해석: 12월 17일 15:00 · ' + h);
+    c.ok(/12월 17일/.test(h) && /오후 3:00/.test(h) && /늘푸른 병원 예약/.test(h), '해석: 12월 17일 오후 3:00 · ' + h);
     c.ok(/17일은 지나서 12월로 넣었어요/.test(h), '다음 달로 넣었다는 줄 · ' + h);
     c.eq(await p.evaluate(() => { const b = document.querySelector('[data-act="bx-date-alt"]'); return b ? [b.dataset.d, b.textContent] : null; }), ['2026-11-17', '11월 17일로'], '이번 달로 바꾸는 단추');
     await p.click('[data-act="bx-date-alt"]'); await p.waitForTimeout(300);

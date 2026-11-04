@@ -41,7 +41,7 @@
             android:maxLines="1"
             android:text="오늘"
             android:textColor="@color/bx_w_ink"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
         <FrameLayout
             android:id="@+id/w_next"

@@ -23,7 +23,7 @@ function bxMDw(ds){ const d = parseYmd(ds); return (d.getMonth() + 1) + '/' + d.
 // '2/3일째 · ~11/8 (일)', 마지막 날은 '3/3일째 · 마지막 날'
 function bxSpanLabel(it, ds){
   const n = bxSpanN(it), k = Math.max(1, Math.min(n, diffDays(ds || M.today, it.date) + 1));
-  return k + '/' + n + '일째 · ' + (k === n ? '마지막 날' + (it.end ? ' ~' + it.end : '') : '~' + bxMDw(it.endDate));
+  return k + '/' + n + '일째 · ' + (k === n ? '마지막 날' + (it.end ? ' ~' + bxT(it.end) : '') : '~' + bxMDw(it.endDate));
 }
 // '11월 6일 ~ 8일', 달이 다르면 '11월 30일 ~ 12월 2일'
 function bxRangeLabel(a, b){
@@ -33,12 +33,12 @@ function bxRangeLabel(a, b){
 }
 function bxRangeShort(it){ return bxRangeLabel(it.date, it.endDate); }
 // 알림 글 · 아침 요약: '10:00 시작 · ~11/8 (일) 15:00'
-function bxSpanTime(it){ return (it.start ? it.start + ' 시작' : '종일') + ' · ~' + bxMDw(it.endDate) + (it.end ? ' ' + it.end : ''); }
+function bxSpanTime(it){ return (it.start ? bxT(it.start) + ' 시작' : '종일') + ' · ~' + bxMDw(it.endDate) + (it.end ? ' ' + bxT(it.end) : ''); }
 // 목록 줄의 시각 칸: 첫날 시작 · 가운데 날 종일 · 마지막 날 끝
 function bxSpanTimeCol(it, ds){
   ds = ds || M.today;
-  if (it.start && ds === it.date) return '<b>' + it.start + '</b><small>시작</small>';
-  if (it.end && ds === it.endDate) return '<b class="allday">~' + it.end + '</b>';
+  if (it.start && ds === it.date) return '<b>' + bxT(it.start) + '</b><small>시작</small>';
+  if (it.end && ds === it.endDate) return '<b class="allday">~' + bxT(it.end) + '</b>';
   return '<b class="allday">종일</b>';
 }
 
@@ -89,7 +89,7 @@ function bxDefCal(){
    막대는 그 주에서 시작하는 칸에 그리고 이어지는 칸 너비만큼 넓힌다(누르기는 아래 칸으로 지나감). 보이는 줄은 휴대폰 2 · 넓은 화면 3 */
 function bxChipHtml(i){
   const lt = isLate(i), c = lt ? 'var(--warn)' : i.done ? 'var(--done)' : bxItemColor(i);
-  return '<span class="c-chip' + (i.done ? ' done' : '') + (lt ? ' late' : '') + '" style="--c:' + c + '" data-item="' + esc(i.id) + '" title="두 번 누르면 수정"><i class="dot" style="--c:' + c + '"></i><span>' + (i.start ? '<b class="c-t">' + i.start + ' </b>' : '') + (esc(i.title) || '(제목 없음)') + '</span></span>';
+  return '<span class="c-chip' + (i.done ? ' done' : '') + (lt ? ' late' : '') + '" style="--c:' + c + '" data-item="' + esc(i.id) + '" title="두 번 누르면 수정"><i class="dot" style="--c:' + c + '"></i><span>' + (i.start ? '<b class="c-t">' + bxT(i.start) + ' </b>' : '') + (esc(i.title) || '(제목 없음)') + '</span></span>';
 }
 function bxBarHtml(g){
   const it = g.it, n = g.e - g.s + 1;
@@ -295,7 +295,7 @@ onTitleInput = function(v){
 const bxHint39 = drawFHint;
 drawFHint = function(){
   const r = bxHint39.apply(this, arguments);
-  if (window.BX_APP && F && bxFMulti()) { const b = document.querySelector('#f-hint .hint:not(.bx-dn) b'); if (b) b.textContent = bxFRangeLabel() + (F.timed && isHM(F.start) ? ' ' + F.start + ' 시작' : ''); }
+  if (window.BX_APP && F && bxFMulti()) { const b = document.querySelector('#f-hint .hint:not(.bx-dn) b'); if (b) b.textContent = bxFRangeLabel() + (F.timed && isHM(F.start) ? ' ' + bxT(F.start) + ' 시작' : ''); }
   return r;
 };
 // 분류 관리 → 캘린더 목록(⋯ · 설정 › 캘린더 · 데이터)
@@ -408,7 +408,7 @@ render = function(){
     // 월간 칸: 줄 높이를 맞춘다(막대 · 하루 일정 · 빈 자리)
     'html.bx-app .cell .c-chips>.c-chip,html.bx-app .cell .c-chips>.c-bar,html.bx-app .cell .c-chips>.c-gap{display:block;flex:none;height:16px;box-sizing:border-box}',
     'html.bx-app .cell .c-chips>.c-chip{line-height:14px}',
-    'html.bx-app .c-bar{position:relative;z-index:1;width:calc(var(--n) * 100% + (var(--n) - 1) * 2px);pointer-events:none;background:var(--c);color:var(--on,#fff);font-size:10.5px;font-weight:700;line-height:16px;padding:0 4px;border-radius:0;text-align:left;white-space:nowrap;overflow:hidden}',
+    'html.bx-app .c-bar{position:relative;z-index:1;width:calc(var(--n) * 100% + (var(--n) - 1) * 2px);pointer-events:none;background:var(--c);color:var(--on,#fff);font-size:11.5px;font-weight:700;line-height:16px;padding:0 4px;border-radius:0;text-align:left;white-space:nowrap;overflow:hidden}',
     'html.bx-app .c-bar>span{display:block;overflow:hidden;text-overflow:ellipsis}',
     'html.bx-app .c-bar.h{border-top-left-radius:4px;border-bottom-left-radius:4px}',
     'html.bx-app .c-bar.t{border-top-right-radius:4px;border-bottom-right-radius:4px}',
@@ -423,19 +423,19 @@ render = function(){
     // 캘린더 칩 줄(달 넘기기 · 개수 줄 아래, 옆으로 밀어 봄)
     'html.bx-app .page-head.bx-ch>.bx-cchips{display:flex;gap:8px;margin:12px calc(-1 * var(--gut)) 0;padding:2px var(--gut) 4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}',
     'html.bx-app .bx-cchips::-webkit-scrollbar{display:none}',
-    'html.bx-app .bx-cchip{flex:none;display:inline-flex;align-items:center;gap:6px;height:34px;max-width:168px;padding:0 14px;border-radius:17px;background:var(--bx-card);color:var(--ink);font-size:13.5px;font-weight:700;white-space:nowrap}',
+    'html.bx-app .bx-cchip{flex:none;display:inline-flex;align-items:center;gap:6px;height:34px;max-width:168px;padding:0 14px;border-radius:17px;background:var(--bx-card);color:var(--ink);font-size:14px;font-weight:700;white-space:nowrap}',
     'html.bx-app .bx-cchip span{overflow:hidden;text-overflow:ellipsis}',
     'html.bx-app .bx-cchip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}',
     'html.bx-app .bx-cchip.pc{background:transparent;box-shadow:inset 0 0 0 1px var(--line-2)}html.bx-app .bx-cchip.pc[aria-pressed="true"]{background:var(--ink);box-shadow:none}',
     'html.bx-app .bx-cchip-add{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line-2);color:var(--ink-2);padding:0 13px 0 10px;gap:4px}html.bx-app .bx-cchip-add .i{width:16px;height:16px}',
     'html.bx-app .bx-cdot{display:inline-block;flex:none;width:10px;height:10px;border-radius:50%;background:var(--c)}',
-    'html.bx-app .bx-cf-note{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:13.5px;font-weight:600;color:var(--ink-2)}html.bx-app .bx-cf-note span{flex:1}',
+    'html.bx-app .bx-cf-note{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:14px;font-weight:600;color:var(--ink-2)}html.bx-app .bx-cf-note span{flex:1}',
     // 캘린더 목록 · 자세히
     'html.bx-app .bx-cals{padding-top:0;padding-bottom:0}html.bx-app .bx-cals>.bx-arow:last-child{border-bottom:0}',
     'html.bx-app .bx-calrow .bx-at b{display:flex;align-items:center;gap:9px}',
     'html.bx-app .bx-calrow .bx-at small{padding-left:19px}',
-    'html.bx-app .bx-calrow-sw{display:flex;flex-direction:column;align-items:center;gap:3px;flex:none}html.bx-app .bx-calrow-sw small{font-size:11px;color:var(--ink-3);white-space:nowrap}',
-    'html.bx-app .bx-cal-add{display:flex;align-items:center;gap:8px;width:100%;min-height:56px;color:var(--accent);font-size:15.5px;font-weight:700}html.bx-app .bx-cal-add .i{width:18px;height:18px}',
+    'html.bx-app .bx-calrow-sw{display:flex;flex-direction:column;align-items:center;gap:3px;flex:none}html.bx-app .bx-calrow-sw small{font-size:11.5px;color:var(--ink-3);white-space:nowrap}',
+    'html.bx-app .bx-cal-add{display:flex;align-items:center;gap:8px;width:100%;min-height:56px;color:var(--accent-text);font-size:16px;font-weight:700}html.bx-app .bx-cal-add .i{width:18px;height:18px}',
     'html.bx-app .bx-cal-note{margin:-6px 4px 0;color:var(--ink-3);line-height:1.5}',
     'html.bx-app .bx-cald{display:flex;flex-direction:column;gap:16px;padding-top:16px;padding-bottom:18px}',
     'html.bx-app .bx-cald .swatches{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}',

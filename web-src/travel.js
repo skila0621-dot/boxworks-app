@@ -103,9 +103,9 @@ function tvAlarms(it){
   return al.map((r, i) => {
     const nx = al[i + 1], left = Math.round((end - r.at) / 60000);
     let title, sub, next;
-    if (r.leave) { title = '출발할 시간'; sub = it.title + ' · ' + it.start + ' 도착' + (it.location ? ' · ' + it.location : ''); next = it.start + ' 도착'; }
-    else if (r.pre) { title = it.title || '(제목 없음)'; sub = TV_PRE + '분 뒤 출발 · ' + it.start + ' 도착'; next = hm(p.leave) + ' 출발'; }
-    else { title = r.name; sub = (p.travel ? '출발까지 ' : '시작까지 ') + left + '분'; next = nx ? hm(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : it.start + ' ' + (it.title || ''); }
+    if (r.leave) { title = '출발할 시간'; sub = it.title + ' · ' + bxT(it.start) + ' 도착' + (it.location ? ' · ' + it.location : ''); next = bxT(it.start) + ' 도착'; }
+    else if (r.pre) { title = it.title || '(제목 없음)'; sub = TV_PRE + '분 뒤 출발 · ' + bxT(it.start) + ' 도착'; next = bxT(p.leave) + ' 출발'; }
+    else { title = r.name; sub = (p.travel ? '출발까지 ' : '시작까지 ') + left + '분'; next = nx ? bxT(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : bxT(it.start) + ' ' + (it.title || ''); }
     return {id: r.id, at: r.at.getTime(), title, sub, next, routine: !!p.rt,
       group: p.rt ? p.rt.name + ' · ' + (it.title || '') : '일정', from: p.start.getTime(), to: end.getTime()};
   });
@@ -122,7 +122,7 @@ function bxNextAlarm(it){
 }
 function tvRowMeta(it){
   const p = tvPlan(it); if (!p || isLate(it)) return '';
-  return '<span class="meta bx-go">' + ICON_GO + (p.rt && !p.travel ? '준비 ' + hm(p.start) + '부터' : (p.rt ? '준비 ' + hm(p.start) + ' · ' : '') + hm(p.leave) + ' 출발') + '</span>';
+  return '<span class="meta bx-go">' + ICON_GO + (p.rt && !p.travel ? '준비 ' + bxT(p.start) + '부터' : (p.rt ? '준비 ' + bxT(p.start) + ' · ' : '') + bxT(p.leave) + ' 출발') + '</span>';
 }
 function tvPrepUses(rid){ return M.items.filter(i => !i.done && i.prep === rid && i.date >= M.today).length; }
 function tvRtSum(rt){
@@ -139,15 +139,15 @@ function tvFormPlan(){
 function tvTab(tab){
   if (!F) return '';
   const p = tvFormPlan(), set = !!(F.travel || F.prep || F.prepNew);
-  const label = p ? (p.travel ? hm(p.leave) + ' 출발' : '준비 ' + hm(p.start) + '부터') : F.travel ? '이동 ' + tvMinText(F.travel) : '출발·준비';
+  const label = p ? (p.travel ? bxT(p.leave) + ' 출발' : '준비 ' + bxT(p.start) + '부터') : F.travel ? '이동 ' + tvMinText(F.travel) : '출발·준비';
   return tab('go', ICON_GO, label, set);
 }
 function tvHint(){
   const p = tvFormPlan(), rm = F && F.remSaid && F.timed && remList(F.remT)[0] ? ' · ' + esc(remLabel(remList(F.remT)[0])) + ' 알림' : '';
   if (!p) return (F && F.travel ? ' · 이동 ' + tvMinText(F.travel) : '') + rm;
   let s = rm;
-  if (p.travel) s += ' · <b>' + hm(p.leave) + ' 출발</b> (이동 ' + tvMinText(p.travel) + (F.tvSrc === 'mem' ? ', 지난번 그대로' : '') + ')';
-  if (p.rt) s += ' · ' + esc(p.rt.name) + ' ' + hm(p.start) + '부터';
+  if (p.travel) s += ' · <b>' + bxT(p.leave) + ' 출발</b> (이동 ' + tvMinText(p.travel) + (F.tvSrc === 'mem' ? ', 지난번 그대로' : '') + ')';
+  if (p.rt) s += ' · ' + esc(p.rt.name) + ' ' + bxT(p.start) + '부터';
   return s;
 }
 function tvDrawPanel(){
@@ -173,8 +173,8 @@ function tvDrawPanel(){
 // 준비·출발·도착 시각 줄(새 일정 창, 휴대폰 캘린더 일정 창)
 function tvLineHtml(p, start, title){
   const al = new Set(p.rows.filter(r => r.kind !== 'wait').map(r => r.id));
-  return '<ol class="tv-line">' + p.rows.map(r => '<li class="' + (r.leave ? 'go' : r.pre ? 'pre' : '') + (r.kind === 'wait' ? ' wait' : '') + '"><b class="tnum">' + hm(r.at) + '</b><span>' + esc(r.leave ? '출발' : r.name) + (r.min ? '<small>' + tvMinText(r.min) + '</small>' : '') + '</span>' + (al.has(r.id) ? ICON.bell : '') + '</li>').join('') +
-    '<li class="arr"><b class="tnum">' + esc(start) + '</b><span>' + (p.travel ? '도착' : '시작') + (title ? ' · ' + esc(title) : '') + '</span></li></ol>' +
+  return '<ol class="tv-line">' + p.rows.map(r => '<li class="' + (r.leave ? 'go' : r.pre ? 'pre' : '') + (r.kind === 'wait' ? ' wait' : '') + '"><b class="tnum">' + bxT(r.at) + '</b><span>' + esc(r.leave ? '출발' : r.name) + (r.min ? '<small>' + tvMinText(r.min) + '</small>' : '') + '</span>' + (al.has(r.id) ? ICON.bell : '') + '</li>').join('') +
+    '<li class="arr"><b class="tnum">' + esc(bxT(start)) + '</b><span>' + (p.travel ? '도착' : '시작') + (title ? ' · ' + esc(title) : '') + '</span></li></ol>' +
     '<p class="p small">출발·준비 알람 ' + al.size + '개' + (p.rt ? ' · 루틴 단계 시간은 루틴 탭에서 고쳐요' : '') + '</p>';
 }
 // 기본 '외출 준비' 루틴이 없으면 만든다(일정에 붙여 쓰는 용도라 꺼 둠)
@@ -223,7 +223,7 @@ function tvFields(fields, start){
 function tvWhenTail(fields){
   if (!fields.start) return '';
   const p = tvPlan(Object.assign({done: false}, fields));
-  return (p ? ' · ' + (p.travel ? hm(p.leave) + ' 출발' : '준비 ' + hm(p.start) + '부터') : '') + (tvNote ? ' · ' + tvNote : '');
+  return (p ? ' · ' + (p.travel ? bxT(p.leave) + ' 출발' : '준비 ' + bxT(p.start) + '부터') : '') + (tvNote ? ' · ' + tvNote : '');
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !F) return;

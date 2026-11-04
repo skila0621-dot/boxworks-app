@@ -22,7 +22,7 @@ module.exports = async function () {
       go: r.querySelector('.bx-r49-go') ? r.querySelector('.bx-r49-go').textContent : null, next: r.classList.contains('bx-next'),
       goBg: r.querySelector('.bx-r49-go') ? getComputedStyle(r.querySelector('.bx-r49-go')).backgroundColor : null })));
     const r1 = rows.find(r => r.title === '노동부 방문'), r2 = rows.find(r => r.title === '저녁 약속');
-    c.ok(r1 && JSON.stringify(r1.t) === '["15:00","16:00"]' && JSON.stringify(r1.meta) === '["롯데마트 옆 고용복지센터"]' && r1.go === '14:40출발' && r1.next, "홈 줄 ②: 시작 · 끝 | 제목 + 장소 | '14:40 출발' 칸 " + JSON.stringify(r1));
+    c.ok(r1 && JSON.stringify(r1.t) === '["오후 3:00","오후 4:00"]' && JSON.stringify(r1.meta) === '["롯데마트 옆 고용복지센터"]' && r1.go === '오후 2:40출발' && r1.next, "홈 줄 ②: 시작 · 끝 | 제목 + 장소 | '14:40 출발' 칸 " + JSON.stringify(r1));
     c.ok(r2 && JSON.stringify(r2.meta) === '["강남역 2번 출구"]' && r2.go === null, '출발 시각이 없는 일정은 오른쪽 칸 없음 ' + JSON.stringify(r2));
     c.ok(r1 && r1.goBg && r1.goBg !== 'rgba(0, 0, 0, 0)' && !/255, 255, 255/.test(r1.goBg), '다음 일정의 출발 칸은 채운 색 ' + (r1 && r1.goBg));
     // (2) 일정 창: 제목 옆 색 동그라미 · 아래 '취소 | 저장', 위 × 숨김

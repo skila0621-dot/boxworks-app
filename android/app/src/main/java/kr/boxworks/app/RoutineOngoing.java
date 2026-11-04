@@ -35,7 +35,7 @@ final class RoutineOngoing {
     }
 
     private static String hm(long ms) {
-        return new SimpleDateFormat("H:mm", Locale.KOREA).format(new Date(ms));
+        return new SimpleDateFormat("a h:mm", Locale.KOREA).format(new Date(ms));
     }
 
     /** 루틴 단계 알람이 울렸을 때. 단계가 둘 이상인 루틴만 띄운다 */

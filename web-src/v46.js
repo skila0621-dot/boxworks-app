@@ -58,7 +58,7 @@ document.addEventListener('change', ev => {
   st.id = 'bx-v46';
   st.textContent = [
     'html.bx-app .bx-ep .bx-late46-q{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}',
-    'html.bx-app .bx-ep .bx-late46-q .pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:auto;height:auto;min-height:68px;margin:0;padding:10px 4px;border:0;border-radius:18px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:15px;font-weight:700;white-space:nowrap}',
+    'html.bx-app .bx-ep .bx-late46-q .pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:auto;height:auto;min-height:68px;margin:0;padding:10px 4px;border:0;border-radius:18px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:16px;font-weight:700;white-space:nowrap}',
     'html.bx-app .bx-ep .bx-late46-q .pick small{margin:0;font-size:13px;font-weight:500;color:var(--ink-2)}',
     'html.bx-app .bx-ep .bx-late46-q .pick[aria-pressed="true"]{background:var(--accent-soft)!important;box-shadow:inset 0 0 0 2px var(--accent)!important}',
     'html.bx-app .bx-ep .bx-late46-box > .bx-er:last-child{border-bottom:0}',
@@ -71,7 +71,7 @@ document.addEventListener('change', ev => {
     'html.bx-app .bx-tpls{gap:10px;margin:0 calc(-1 * var(--card-pad))}',
     'html.bx-app .bx-tpl{min-height:88px;padding:14px 20px;border:0;border-radius:22px;background:var(--bx-card)}',
     'html.bx-app .bx-tpl:active{background:color-mix(in srgb,var(--bx-card) 88%,var(--ink))}',
-    'html.bx-app .bx-tpl b{font-size:15.5px}html.bx-app .bx-tpl small{font-size:13px}'
+    'html.bx-app .bx-tpl b{font-size:16px}html.bx-app .bx-tpl small{font-size:13px}'
   ].join('\n');
   (document.head || document.documentElement).appendChild(st);
 })();

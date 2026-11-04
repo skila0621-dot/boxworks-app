@@ -44,7 +44,7 @@ module.exports = async function () {
     const ell = await p.evaluate(() => { const t = document.querySelector('#f-chips [data-bxsub="loc"] .bx-er-t'); const s = getComputedStyle(t); return { cut: t.scrollWidth > t.clientWidth, ov: s.textOverflow, ws: s.whiteSpace, h: Math.round(t.closest('.bx-er').getBoundingClientRect().height) }; });
     c.ok(ell.cut && ell.ov === 'ellipsis' && ell.ws === 'nowrap' && ell.h === 56, '긴 장소는 한 줄, 뒤는 …(줄 높이 56) ' + JSON.stringify(ell));
     c.eq(await row(p, '[data-fpanel="go"]'), { t: '출발·준비', ph: true }, '정하지 않은 출발·준비는 회색 이름');
-    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt button')).map(b => b.textContent)), ['11월 2일 (월)', '15:00', '11월 2일 (월)', '16:00'], '시작 → 끝: 날짜 · 시각 두 칸');
+    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt button')).map(b => b.textContent)), ['11월 2일 (월)', '오후 3:00', '11월 2일 (월)', '오후 4:00'], '시작 → 끝: 날짜 · 시각 두 칸');
     // (3) 알림 페이지: 고르고 ‹ 이면 되돌림, 완료면 바뀜
     await p.click('#f-chips [data-fpanel="rem"]'); await p.waitForTimeout(400);
     c.eq(await page(p), '알림', '알림 줄 → 알림 페이지');
@@ -98,12 +98,12 @@ module.exports = async function () {
     await p.click('.bx-fab'); await p.waitForTimeout(500);
     c.eq(await p.evaluate(() => [document.querySelector('#f-chips [data-bxallday]').getAttribute('aria-checked'), document.querySelectorAll('#f-chips .bx-edt-t').length]), ['true', 0], '새 일정: 하루 종일 켜짐, 시각 칸 없음');
     await p.click('#f-chips [data-bxallday]'); await p.waitForTimeout(200);
-    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt-t')).map(b => b.textContent)), ['07:00', '08:00'], '하루 종일을 끄면 시각 두 칸(기본 + 1시간)');
+    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt-t')).map(b => b.textContent)), ['오전 7:00', '오전 8:00'], '하루 종일을 끄면 시각 두 칸(기본 + 1시간)');
     // 손으로 하루 종일을 바꾸면 말보다 손이 먼저(지금 앱과 같음) → 새 창에서 말로
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="sheet-close"]').click()); await p.waitForTimeout(300);
     await p.click('.bx-fab'); await p.waitForTimeout(500);
     await p.fill('#f-title', '내일 오후 3시 치과'); await p.waitForTimeout(400);
-    c.eq(await p.evaluate(() => [document.querySelector('#f-chips [data-bxallday]').getAttribute('aria-checked'), Array.from(document.querySelectorAll('#f-chips .bx-edt button')).map(b => b.textContent)]), ['false', ['11월 3일 (화)', '15:00', '11월 3일 (화)', '16:00']], '말로 시각을 넣으면 하루 종일 꺼짐 · 날짜 · 시각');
+    c.eq(await p.evaluate(() => [document.querySelector('#f-chips [data-bxallday]').getAttribute('aria-checked'), Array.from(document.querySelectorAll('#f-chips .bx-edt button')).map(b => b.textContent)]), ['false', ['11월 3일 (화)', '오후 3:00', '11월 3일 (화)', '오후 4:00']], '말로 시각을 넣으면 하루 종일 꺼짐 · 날짜 · 시각');
     await p.click('#f-chips .bx-edt-t'); await p.waitForTimeout(300);
     c.ok(await p.evaluate(() => document.getElementById('bx-ep-t').textContent === '시간' && getComputedStyle(document.querySelector('#bx-ep #f-time > .seg')).display === 'none'), "시각을 누르면 시간 페이지('종일/시간 지정'은 하루 종일 스위치로)");
     await done(p);

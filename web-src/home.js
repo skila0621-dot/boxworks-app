@@ -394,7 +394,7 @@ function bxRtParse(text){
   return {name: evening ? '저녁 루틴' : morning && wake ? '아침 루틴' : '내 루틴', days: days || RT_ALL, mode: 'start', target: wake || timeIn(t) || '08:00', every: 5, times: 6, steps};
 }
 function bxRtNewOpen(){
-  const tpls = RT_TEMPLATES.map(t => '<button type="button" class="bx-tpl" data-act="rt-tpl" data-key="' + t.key + '"><span class="bx-tpl-i">' + bxIconSpan(bxRtIconKey(t), '') + '</span><b>' + esc(t.name) + '</b><small>' + esc((t.mode === 'arrive' ? t.target + ' 도착' : t.target + ' 시작') + ' · ' + t.steps.length + '단계') + '</small></button>').join('');
+  const tpls = RT_TEMPLATES.map(t => '<button type="button" class="bx-tpl" data-act="rt-tpl" data-key="' + t.key + '"><span class="bx-tpl-i">' + bxIconSpan(bxRtIconKey(t), '') + '</span><b>' + esc(t.name) + '</b><small>' + esc((t.mode === 'arrive' ? bxT(t.target) + ' 도착' : bxT(t.target) + ' 시작') + ' · ' + t.steps.length + '단계') + '</small></button>').join('');
   openSheet({title: '새 루틴', draw: () => setSheet(
     '<h3 class="bx-late-h">템플릿 <small>누르면 열려요. 시각만 바꾸고 저장하세요</small></h3><div class="bx-tpls">' + tpls + '</div>' +
     '<h3 class="bx-late-h" style="margin-top:18px">빠른 추가</h3>' +

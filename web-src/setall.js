@@ -23,7 +23,7 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-all > .bx-arow:last-child{border-bottom:0}',
     'html.bx-app .bx-at{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;text-align:left}',
     'html.bx-app .bx-at b{font-size:16px;font-weight:600;color:var(--ink)}',
-    'html.bx-app .bx-at small{font-size:13.5px;line-height:1.35;color:var(--accent)}',
+    'html.bx-app .bx-at small{font-size:14px;line-height:1.35;color:var(--accent-text)}',
     'html.bx-app .bx-arow > .i{color:var(--ink-3);flex:none}',
     'html.bx-app .bx-adiv{width:1px;height:28px;background:var(--line-2);flex:none;margin:0 4px}',
     'html.bx-app .bx-adanger{color:var(--danger)}',

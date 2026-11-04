@@ -17,7 +17,7 @@ function data(extra) {
 }
 const plan = p => p.evaluate(() => window.BX_alarmPlan(5).filter(a => a.kind === 'routine').map(a => ({ at: a.at, g: a.group })));
 const tl = p => p.evaluate(() => Array.from(document.querySelectorAll('.bx-tl > *')).map(e => ({
-  t: e.classList.contains('now-line') ? '지금' : (e.querySelector('.row-title, .rt-h > b, .row-main') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 8),
+  t: e.classList.contains('now-line') ? '지금' : (e.querySelector('.row-title, .rt-h > b, .row-main') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 12),
   off: e.classList.contains('off'), next: e.classList.contains('bx-next') || e.classList.contains('bx-next-soft'),
   note: ((e.querySelector('.rt-note') || {}).textContent || '').trim(), btn: ((e.querySelector('.rt-h [data-act]') || {}).textContent || '').trim()
 })));
@@ -58,7 +58,7 @@ module.exports = async function () {
     await p.click('#sheet-root [data-act="rt-save"]'); await p.waitForTimeout(500);
     c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'rt_m') || [0, {}])[1].skipHol), true, '저장하면 루틴에 남음');
     // 앞의 알림('오늘은 … 해요')이 사라진 뒤에 나온다
-    const want = '아침 약을 저장했어요. 매일(공휴일 빼고) 08:00에 시작해요.';
+    const want = '아침 약을 저장했어요. 매일(공휴일 빼고) 오전 8:00에 시작해요.';
     await p.waitForFunction(w => Array.from(document.querySelectorAll('.toast')).some(t => t.textContent === w), want, { timeout: 8000 }).catch(() => {});
     c.eq(await p.evaluate(w => Array.from(document.querySelectorAll('.toast')).map(t => t.textContent).find(t => t === w) || Array.from(document.querySelectorAll('.toast')).map(t => t.textContent).join(' / '), want), want, '저장 알림 글자(조사 · 공휴일 빼고)');
     c.eq(app.errors, [], '화면 오류(공휴일)');

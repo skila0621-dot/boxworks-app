@@ -173,7 +173,7 @@ document.addEventListener('change', ev => {
 const bxTtRange45 = ttRangeOpen;
 ttRangeOpen = function(){
   if (!window.BX_APP) return bxTtRange45.apply(this, arguments);
-  const rg = ttRange(), opt = (a, b, cur) => Array.from({length: b - a + 1}, (_, i) => a + i).map(h => '<option value="' + h + '"' + (h === cur ? ' selected' : '') + '>' + h + '시</option>').join('');
+  const rg = ttRange(), opt = (a, b, cur) => Array.from({length: b - a + 1}, (_, i) => a + i).map(h => '<option value="' + h + '"' + (h === cur ? ' selected' : '') + '>' + bxH(h) + '</option>').join('');
   const wk = (M.settings && M.settings.ttWeek) === 'all' ? 'all' : 'wd';
   openSheet({title: '시간표 보기 설정', draw: () => setSheet(
     '<div class="bx-tt45-rg"><div class="bx-tt45-gl">표시 시간</div><div class="bx-grp">' +
@@ -189,7 +189,7 @@ ttRangeOpen = function(){
 /* 2) 휴대폰 캘린더 일정 창: 알림 · 출발·준비를 줄로(누르면 페이지, 고르면 바로 바뀌고 ‹ 는 되돌림) */
 function bxPc45Go(it){
   const p = it.start ? tvPlan(it) : null;
-  return p ? (p.travel ? hm(p.leave) + ' 출발' : '준비 ' + hm(p.start) + '부터') : +it.travel ? '이동 ' + tvMinText(+it.travel) : '';
+  return p ? (p.travel ? bxT(p.leave) + ' 출발' : '준비 ' + bxT(p.start) + '부터') : +it.travel ? '이동 ' + tvMinText(+it.travel) : '';
 }
 function bxPc45Rem(it){ const r = remList(it.remind)[0] || ''; return r ? remLabel(r) : ''; }
 function bxPc45PageHtml(k, it){
@@ -218,7 +218,7 @@ pcDraw = function(id){
   const row = (k, icon, text, set, label) => '<button type="button" class="bx-er" data-bxpc45="' + k + '" aria-label="' + esc(label + ', ' + (set ? text : '없음')) + '"><span class="bx-er-ic" aria-hidden="true">' + icon + '</span><span class="bx-er-t' + (set ? '' : ' ph') + '">' + esc(text) + '</span></button>';
   const body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcColor(e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
     '<h3 class="pc-title">' + esc(it.title) + '</h3>' +
-    '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(it.start) + ' 시작' + (it.end ? ' · ' + esc(it.end) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(it.start) + (it.end ? '–' + esc(it.end) : '') : '종일')) + '</p>' +
+    '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(bxT(it.start)) + ' 시작' + (it.end ? ' · ' + esc(bxT(it.end)) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(bxTR(it.start, it.end)) : '종일')) + '</p>' +
     (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +
     (it.note ? '<p class="pc-note">' + esc(it.note.slice(0, 300)) + (it.note.length > 300 ? '…' : '') + '</p>' : '') +
     '<div class="bx-ed bx-pc45" role="group" aria-label="' + esc(window.BX_NAME) + '에서 정하는 것">' + row('rem', ICON.bell, rem || '알림', !!rem, '알림') +
@@ -349,12 +349,12 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-tt45-rows{display:block;margin:0;padding:0}',
     'html.bx-app .bx-tt45-rows > :last-child{border-bottom:0}',
     'html.bx-app .bx-tt45-days .tt-days,html.bx-app .bx-tt45-col .tt-sws{flex:1;min-width:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;justify-items:center;align-items:center;padding:0}',
-    'html.bx-app .bx-tt45-days .tt-dbtn{position:relative;flex:none;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:transparent;font-size:15px;font-weight:500}',
+    'html.bx-app .bx-tt45-days .tt-dbtn{position:relative;flex:none;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:transparent;font-size:16px;font-weight:500}',
     'html.bx-app .bx-tt45-days .tt-dbtn::after{content:"";position:absolute;inset:-4px}',
     'html.bx-app .bx-tt45-days .tt-dbtn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}',
     'html.bx-app .bx-tt45-col .tt-sw{width:28px;height:28px;border-radius:50%}',
     'html.bx-app .bx-tt45-t{padding:6px 0}',
-    'html.bx-app .bx-tt45-time{width:100%;max-width:160px;min-height:44px;margin:0;padding:4px 6px;border:0;border-radius:12px;background:transparent;box-shadow:none;color:var(--ink);font:inherit;font-size:17px;font-weight:500;text-align:center}',
+    'html.bx-app .bx-tt45-time{width:100%;max-width:160px;min-height:44px;margin:0;padding:4px 6px;border:0;border-radius:12px;background:transparent;box-shadow:none;color:var(--ink);font:inherit;font-size:16px;font-weight:500;text-align:center}',
     'html.bx-app .bx-tt45-time:focus{outline:none;background:color-mix(in srgb,var(--ink) 6%,transparent)}',
     'html.bx-app .bx-tt45-time::-webkit-datetime-edit{display:inline-flex;justify-content:center;padding:0}',
     'html.bx-app .bx-tt45-time::-webkit-calendar-picker-indicator{display:none}',
@@ -362,27 +362,27 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-ep .bx-tt45-pg{display:flex;flex-direction:column;gap:14px}',
     'html.bx-app .bx-ep .bx-tt45-pg:empty{display:none}',
     'html.bx-app .bx-ep .bx-tt45-in{padding:6px 20px}',
-    'html.bx-app .bx-ep .bx-tt45-in .inp{width:100%;min-height:52px;border:0;background:transparent;box-shadow:none;padding:0;font-size:17px;color:var(--ink)}',
+    'html.bx-app .bx-ep .bx-tt45-in .inp{width:100%;min-height:52px;border:0;background:transparent;box-shadow:none;padding:0;font-size:16px;color:var(--ink)}',
     'html.bx-app .bx-ep .tt-remw{display:flex;flex-direction:column;gap:14px}',
     'html.bx-app .bx-ep .tt-remw .tt-pills,html.bx-app .bx-ep .bx-pc45-list{display:flex!important;flex-direction:column;flex-wrap:nowrap;gap:0;margin:0;' + box + '}',
     'html.bx-app .bx-ep .tt-remw .tt-pill,html.bx-app .bx-ep .bx-pc45-list .pick{display:flex;align-items:center;justify-content:flex-start;gap:14px;flex:none;width:100%;height:auto;min-height:56px;margin:0;padding:12px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent!important;box-shadow:none!important;color:var(--ink)!important;font-size:16px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;word-break:keep-all}',
     'html.bx-app .bx-ep .tt-remw .tt-pill:last-child,html.bx-app .bx-ep .bx-pc45-list .pick:last-child{border-bottom:0}',
     'html.bx-app .bx-ep .tt-remw .tt-pill::before,html.bx-app .bx-ep .bx-pc45-list .pick::before{content:"";flex:none;width:20px;height:20px;box-sizing:border-box;border:2px solid var(--ink-3);border-radius:50%}',
     'html.bx-app .bx-ep .tt-remw .tt-pill[aria-pressed="true"]::before,html.bx-app .bx-ep .bx-pc45-list .pick[aria-pressed="true"]::before{border:6px solid var(--accent)}',
-    'html.bx-app .bx-ep .tt-remw .tt-pill[data-v="custom"]::before{content:"+";border:0;color:var(--accent);font-size:24px;font-weight:400;line-height:19px;text-align:center}',
+    'html.bx-app .bx-ep .tt-remw .tt-pill[data-v="custom"]::before{content:"+";border:0;color:var(--accent-text);font-size:1.5em;font-weight:400;line-height:19px;text-align:center}',
     'html.bx-app .bx-ep .tt-remw .bx-cpick{min-height:56px;padding:8px 0}',
-    'html.bx-app .bx-ep .tt-remw .bx-cpick input{outline:none;flex:none;width:4.2em;height:40px;padding:0 8px;border:0;border-bottom:2px solid var(--accent);border-radius:0;background:transparent;color:var(--ink);font:inherit;font-size:17px;font-weight:500;text-align:center}',
+    'html.bx-app .bx-ep .tt-remw .bx-cpick input{outline:none;flex:none;width:4.2em;height:40px;padding:0 8px;border:0;border-bottom:2px solid var(--accent);border-radius:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;font-weight:500;text-align:center}',
     'html.bx-app .bx-ep .tt-remw .bx-cpick span{font-size:16px}',
     'html.bx-app .bx-ep .bx-pc45-list .pick small{color:var(--ink-3);font-size:13px}',
     // 시간표 고르기: 색 점 · 이름 · 고른 것은 ✓
     'html.bx-app .bx-ep .bx-tt45-opt i.dot{flex:none;width:14px;height:14px;margin:0 3px;border-radius:50%;background:var(--c)}',
     'html.bx-app .bx-ep .bx-tt45-opt[aria-pressed="true"]{font-weight:700}',
-    'html.bx-app .bx-ep .bx-tt45-opt[aria-pressed="true"]::after{content:"";flex:none;margin-left:auto;width:20px;height:20px;background:var(--accent);-webkit-mask:' + BX_CHECK_MASK + ';mask:' + BX_CHECK_MASK + '}',
+    'html.bx-app .bx-ep .bx-tt45-opt[aria-pressed="true"]::after{content:"";flex:none;margin-left:auto;width:20px;height:20px;background:var(--accent-text);-webkit-mask:' + BX_CHECK_MASK + ';mask:' + BX_CHECK_MASK + '}',
     // 휴대폰 캘린더: 이동 시간 4칸, 출발 줄은 상자
     'html.bx-app .bx-ep .bx-pc45-pg > .fg-l{margin:6px 20px -6px;padding:0;font-size:13px;font-weight:500;color:var(--ink-2)}',
     'html.bx-app .bx-ep .bx-pc45-pg > .fg-l small{font-weight:400;color:var(--ink-3);margin-left:4px}',
     'html.bx-app .bx-ep .bx-pc45-tv{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0}',
-    'html.bx-app .bx-ep .bx-pc45-tv .pick{width:auto;min-width:0;min-height:48px;margin:0;padding:0 4px;border:0;border-radius:16px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:15px;font-weight:600;white-space:nowrap;justify-content:center}',
+    'html.bx-app .bx-ep .bx-pc45-tv .pick{width:auto;min-width:0;min-height:48px;margin:0;padding:0 4px;border:0;border-radius:16px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:16px;font-weight:600;white-space:nowrap;justify-content:center}',
     'html.bx-app .bx-ep .bx-pc45-tv .pick[aria-pressed="true"]{background:var(--accent-soft)!important;box-shadow:inset 0 0 0 2px var(--accent)!important}',
     'html.bx-app .bx-ep .bx-pc45-pg > .tv-line{margin:0;' + box + ';padding:16px 20px}',
     // 시간표 보기 설정
@@ -390,7 +390,7 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-tt45-gl{margin:18px 0 8px;font-size:13px;font-weight:500;color:var(--ink-2)}',
     'html.bx-app .bx-tt45-gl:first-child{margin-top:2px}',
     'html.bx-app .bx-tt45-rg .bx-grp > :last-child{border-bottom:0}',
-    'html.bx-app .bx-tt45-sel{flex:none;min-height:44px;margin:0 -8px 0 0;padding:0 8px;border:0;border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-size:17px;font-weight:500;text-align:right}',
+    'html.bx-app .bx-tt45-sel{flex:none;min-height:44px;margin:0 -8px 0 0;padding:0 8px;border:0;border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-size:16px;font-weight:500;text-align:right}',
     'html.bx-app .bx-tt45-sel:focus{outline:none;background:color-mix(in srgb,var(--ink) 6%,transparent)}',
     'html.bx-app .bx-tt45-ro{gap:14px}',
     'html.bx-app .bx-tt45-ro::before{content:"";flex:none;width:20px;height:20px;box-sizing:border-box;border:2px solid var(--ink-3);border-radius:50%}',
@@ -401,7 +401,7 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-pc45 > :last-child{border-bottom:0}',
     // 두 줄 줄(이름 + 파란 한 줄, 삼성 설정 줄처럼)
     'html.bx-app .bx-er-tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:9px 0}',
-    'html.bx-app .bx-er-tt > small{font-size:13.5px;font-weight:400;line-height:1.35;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    'html.bx-app .bx-er-tt > small{font-size:14px;font-weight:400;line-height:1.35;color:var(--accent-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
     // 루틴 창
     'html.bx-app .bx-rt45-form{display:flex;flex-direction:column;gap:0}',
     'html.bx-app .bx-rt45-form #r-name{margin:0 0 6px}',
@@ -409,25 +409,25 @@ document.addEventListener('click', ev => {
     'html.bx-app #bx-rt45 > :last-child,html.bx-app #bx-rt45 #r-timebox > :last-child{border-bottom:0}',
     'html.bx-app #bx-rt45 #r-timebox{display:block;margin:0}',
     'html.bx-app .bx-rt45-hol .bx-er-tt > small,html.bx-app .bx-rt45-once .bx-er-tt > small{color:var(--ink-3)}',
-    'html.bx-app .bx-rt45-hol .bx-er-tt > small.on{color:var(--accent)}',
+    'html.bx-app .bx-rt45-hol .bx-er-tt > small.on{color:var(--accent-text)}',
     'html.bx-app .bx-rt45-hol .tog{flex:none}',
     'html.bx-app .bx-rt45-days{display:block;padding:6px 0 12px}',
     'html.bx-app .bx-rt45-dh{display:flex;align-items:center;gap:16px;min-height:44px}',
     'html.bx-app .bx-rt45-dh .rdays-q{display:flex;gap:2px;margin-left:auto}',
     'html.bx-app .bx-rt45-dh .rdays-q .sec-link{min-height:36px;padding:0 10px;font-size:14px}',
     'html.bx-app .bx-rt45-days .rdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));justify-items:center;gap:0;margin:2px 0 0 30px}',
-    'html.bx-app .bx-rt45-days .day-tog{position:relative;width:36px;height:36px;border:0;background:transparent;font-size:15px;font-weight:500;color:var(--ink)}',
+    'html.bx-app .bx-rt45-days .day-tog{position:relative;width:36px;height:36px;border:0;background:transparent;font-size:16px;font-weight:500;color:var(--ink)}',
     'html.bx-app .bx-rt45-days .day-tog::after{content:"";position:absolute;inset:-4px}',
     'html.bx-app .bx-rt45-days .day-tog.sun{color:var(--sun)}html.bx-app .bx-rt45-days .day-tog.sat{color:var(--sat)}',
     'html.bx-app .bx-rt45-days .day-tog[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}',
     'html.bx-app .bx-rt45-v{gap:12px}',
     'html.bx-app .bx-rt45-v .bx-er-ic{margin-right:4px}',
     'html.bx-app .bx-rt45-v .bx-er-t{flex:1}',
-    'html.bx-app .bx-rt45-time{flex:none;min-height:44px;margin:0 -8px 0 0;padding:4px 8px;border:0;border-radius:12px;background:transparent;box-shadow:none;color:var(--ink);font:inherit;font-size:17px;font-weight:500;text-align:right}',
+    'html.bx-app .bx-rt45-time{flex:none;min-height:44px;margin:0 -8px 0 0;padding:4px 8px;border:0;border-radius:12px;background:transparent;box-shadow:none;color:var(--ink);font:inherit;font-size:16px;font-weight:500;text-align:right}',
     'html.bx-app .bx-rt45-time:focus{outline:none;background:color-mix(in srgb,var(--ink) 6%,transparent)}',
     'html.bx-app .bx-rt45-time::-webkit-calendar-picker-indicator{display:none}',
     'html.bx-app .bx-rt45-v .stepper{flex:none}',
-    'html.bx-app .bx-rt45-u{flex:none;font-size:15px;color:var(--ink-2)}',
+    'html.bx-app .bx-rt45-u{flex:none;font-size:16px;color:var(--ink-2)}',
     'html.bx-app .bx-rt45-form > #r-prev{margin:12px 0 0}',
     'html.bx-app .bx-rt45-sh{margin:22px 0 8px}',
     'html.bx-app .bx-rt45-sh .fg-l{font-size:13px;font-weight:500;color:var(--ink-2)}',
@@ -443,7 +443,7 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-rt45-icr .bx-icsum-i{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--ink-2)}',
     'html.bx-app .bx-rt45-icr .bx-icsum-i svg{width:21px;height:21px}',
     'html.bx-app .bx-rt45-icr .bx-icsum-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:9px 0;font-size:16px;font-weight:400;color:var(--ink)}',
-    'html.bx-app .bx-rt45-icr .bx-icsum-t small{font-size:13.5px;color:var(--accent)}',
+    'html.bx-app .bx-rt45-icr .bx-icsum-t small{font-size:14px;color:var(--accent-text)}',
     'html.bx-app .bx-rt45-icr .bx-icsum-c{display:none}',
     // 루틴 페이지: 알림 방식(알람 · 싱잉볼 동그라미, 간격 · 횟수 상자, 종소리 목록) · 기준
     'html.bx-app .bx-ep .bx-notify{display:flex;flex-direction:column;gap:14px;margin:0}',
@@ -458,7 +458,7 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-ep #bx-rrep .bx-rrow:first-child{border-radius:26px 26px 0 0;border-bottom:1px solid var(--line)}',
     'html.bx-app .bx-ep #bx-rrep .bx-rrow:nth-child(2){border-radius:0 0 26px 26px}',
     'html.bx-app .bx-ep #bx-rrep .bx-rl{flex:1;font-size:16px;font-weight:400;color:var(--ink)}',
-    'html.bx-app .bx-ep #bx-rrep .bx-ru{font-size:15px;font-weight:400;color:var(--ink-2);min-width:3.2em}',
+    'html.bx-app .bx-ep #bx-rrep .bx-ru{font-size:16px;font-weight:400;color:var(--ink-2);min-width:3.2em}',
     'html.bx-app .bx-ep #bx-rrep .bx-rnote,html.bx-app .bx-ep #bx-rbowl > .p{margin:12px 20px 0;color:var(--ink-3)}',
     'html.bx-app .bx-ep #bx-rbowl .bx-sndrow{display:block}',
     'html.bx-app .bx-ep #bx-rbowl .bx-bowl-picks{display:flex!important;flex-direction:column;flex-wrap:nowrap;gap:0;margin:0;' + box + '}',

@@ -88,6 +88,15 @@ cd android && ./gradlew assembleDebug
 - 일정 창: 제목 옆 `.bx-tdot`(누르면 캘린더 페이지), 아래 `.bx-pill49`('취소'는 `sheet-close`, '저장'은 원래 단추를 옮긴 것), 고치기의 '삭제'는 줄 목록 맨 아래 `.bx-er-del`
 - 명상 배경 그림(`web-src/v50.js`): 배경 소리마다 SVG · CSS로 그린 장면(`BX_SCENES`). 다시 그려도 튀지 않게 앱을 연 때부터의 시간(`--t`)만큼 애니메이션을 앞당긴다
 
+## 디자인 가이드: 보라 · 글자 6단계 · 오전 · 오후 (시험판 51)
+
+기준은 Design System 문서 '박스웍스 디자인 가이드'(결정 기록 D-24). 새 화면은 이 세 가지를 지킨다.
+
+- **색**: `--accent`(#7C3AED, 라이트 · 다크 같음)는 채운 것에만 쓰고 그 위 글자 · 아이콘은 `--accent-ink`(흰색). 바탕 위 보라 글자 · 선은 `--accent-text`(다크 #A98BFA). CSS에 `color:var(--accent)`를 쓰지 않는다. 휴대폰 쪽: 위젯 `bx_w_*`, 알림 `setColor`, 잠금 화면 알람, 앱 아이콘(`ic_launcher_foreground_bx`)
+- **글자 크기**: 28 · 20 · 16 · 14 · 13 · 11.5만. `scripts/build-web.mjs`가 마지막에 모든 `font-size:Npx`를 가장 가까운 단계로 맞춘다(명상 타이머 숫자 50 · 38만 따로). 휴대폰 쪽 글자(sp)도 같은 단계
+- **시각**: 화면 · 알림 글은 `bxT('15:00')` → '오후 3:00', 두 시각은 `bxTR(a, b)` → '오후 3:00–4:00'(오전 · 오후가 같으면 뒤를 줄임), 시(時)만은 `bxH(9)` → '오전 9시'. 저장 값과 계산은 그대로 'HH:MM'. 화면 글에서 시각을 다시 읽을 때는 `bxHMAll`(오전 · 오후를 안다). 원본 · 앞 패치의 글은 `scripts/patches-v51.mjs`가 바꾼다(다른 패치가 끝난 뒤의 글자를 찾음)
+- 시각 입력 칸(`input type=time`)은 `web-src/v51.js`가 칸 위에 '오후 3:00'을 그리고 칸을 투명하게 위에 둔다(값 · id · 휴대폰 시각 창은 그대로). 휴대폰 쪽은 `SimpleDateFormat("a h:mm", Locale.KOREA)`
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.

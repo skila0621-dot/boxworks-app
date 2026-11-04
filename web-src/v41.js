@@ -34,7 +34,7 @@ bxIconSpan = function(key, cls){ return key === 'note' ? '<span class="bx-ic ' +
 function bxMemoWhen(m){
   const c = m.createdAt ? new Date(m.createdAt) : null;
   if (c && !isNaN(c.getTime()) && ymd(c) !== m.date) return (c.getMonth() + 1) + '/' + c.getDate();
-  return m.at || '';
+  return m.at ? bxT(m.at) : '';
 }
 function bxMemoRowsHtml(list){
   return list.map(m => '<button type="button" class="bx-mm-row' + (bxMemoMoved(m) ? ' moved' : '') + '" data-bxmm="' + esc(m.id) + '"><span class="bx-mm-t tnum">' + esc(bxMemoWhen(m)) + '</span>' +
@@ -136,7 +136,7 @@ function bxMemoOpen(id){
   const m = getDoc(id); if (!m) return;
   openSheet({title: fmtMD(m.date) + ' 메모', draw: () => setSheet(
     '<div class="fld"><label class="sr" for="bx-mm-edit">메모</label><textarea id="bx-mm-edit" class="inp bx-mm-ta" maxlength="300">' + esc(m.text) + '</textarea>' +
-      (m.at ? '<p class="p small bx-mm-when">' + esc(m.at) + '에 적음</p>' : '') + '</div>' +
+      (m.at ? '<p class="p small bx-mm-when">' + esc(bxT(m.at)) + '에 적음</p>' : '') + '</div>' +
     '<div class="bx-grp bx-cals"><button type="button" class="bx-arow" data-act="bx-mm-toitem"><span class="bx-at"><b>일정으로 만들기</b><small>이 글로 새 일정 창을 열어요. 메모는 남아요</small></span>' + ICON.chevR + '</button></div>',
     '<button type="button" class="btn bx-del-btn" data-act="bx-mm-del">' + ICON.trash + '삭제</button><button type="button" class="btn primary grow" data-act="bx-mm-save">저장</button>')});
   SH.bxMm = id;
@@ -259,15 +259,15 @@ document.addEventListener('mousedown', ev => { if (window.BX_APP && ev.target.cl
   st.textContent = [
     'html.bx-app .bx-mm-card{margin-top:14px}html.bx-app .bx-mm-card .tc-body{padding-top:16px;padding-bottom:14px}',
     'html.bx-app .bx-mm-h{display:flex;align-items:baseline;gap:8px;margin:0 0 2px}',
-    'html.bx-app .bx-mm-h h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.02em}html.bx-app .bx-mm-sec .bx-mm-h h2{font-size:15px}',
+    'html.bx-app .bx-mm-h h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em}html.bx-app .bx-mm-sec .bx-mm-h h2{font-size:16px}',
     'html.bx-app .bx-mm-h .n{font-size:13px;font-weight:700;color:var(--ink-3)}',
     'html.bx-app .bx-mm-row{display:flex;gap:12px;width:100%;padding:11px 0;border-bottom:1px solid var(--line);align-items:flex-start;text-align:left;color:var(--ink)}',
     'html.bx-app .bx-mm-t{flex:none;min-width:44px;font-size:13px;font-weight:700;color:var(--ink-3);line-height:22px}',
-    'html.bx-app .bx-mm-x{flex:1;min-width:0;font-size:15.5px;line-height:22px;font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere}',
-    'html.bx-app .bx-mm-row.moved .bx-mm-x{color:var(--ink-3)}html.bx-app .bx-mm-tag{display:inline-block;margin-left:8px;font-size:12px;font-weight:700;color:var(--accent)}',
+    'html.bx-app .bx-mm-x{flex:1;min-width:0;font-size:16px;line-height:22px;font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere}',
+    'html.bx-app .bx-mm-row.moved .bx-mm-x{color:var(--ink-3)}html.bx-app .bx-mm-tag{display:inline-block;margin-left:8px;font-size:13px;font-weight:700;color:var(--accent-text)}',
     'html.bx-app .bx-mm-in{display:flex;align-items:center;gap:8px;margin-top:10px;padding:5px 5px 5px 14px;border-radius:16px;background:var(--bx-card-in)}',
-    'html.bx-app .bx-mm-in .bx-mm-inp{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:15.5px;color:var(--ink);height:40px}',
-    'html.bx-app .bx-mm-in .bx-mic{width:40px;min-width:40px;height:40px;padding:0;border-radius:20px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);justify-content:center}',
+    'html.bx-app .bx-mm-in .bx-mm-inp{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);height:40px}',
+    'html.bx-app .bx-mm-in .bx-mic{width:40px;min-width:40px;height:40px;padding:0;border-radius:20px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-text);justify-content:center}',
     'html.bx-app .bx-mm-in .bx-mic span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}',
     'html.bx-app .bx-mm-in .bx-mm-add{height:40px;padding:0 14px;border-radius:12px}',
     'html.bx-app .bx-mm-sec{margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}',
@@ -280,7 +280,7 @@ document.addEventListener('mousedown', ev => { if (window.BX_APP && ev.target.cl
     'html.bx-app .screen.memo .bx-mm-card .tc-body{padding:16px var(--card-pad) 8px}',
     'html.bx-app .bx-mmp-quick{margin-top:4px}html.bx-app .bx-mmp-quick .bx-mm-in{margin:12px 0 4px}',
     'html.bx-app .bx-mmp-day{padding-top:12px}html.bx-app .bx-mmp-day + .bx-mmp-day{margin-top:4px}',
-    'html.bx-app .bx-mmp-dh{display:flex;align-items:baseline;gap:8px;padding:2px 0 2px}html.bx-app .bx-mmp-dh b{font-size:14.5px;font-weight:800;color:var(--ink-2)}html.bx-app .bx-mmp-dh .n{font-size:12.5px;font-weight:700;color:var(--ink-3)}',
+    'html.bx-app .bx-mmp-dh{display:flex;align-items:baseline;gap:8px;padding:2px 0 2px}html.bx-app .bx-mmp-dh b{font-size:14px;font-weight:800;color:var(--ink-2)}html.bx-app .bx-mmp-dh .n{font-size:13px;font-weight:700;color:var(--ink-3)}',
     'html.bx-app .bx-mmp-day .bx-mm-row:last-child,html.bx-app .bx-mmp-quick .bx-mm-row:last-child{border-bottom:0}',
     'html.bx-app .bx-mmp-tip{margin:10px 2px 0;color:var(--ink-3)}',
     // 달력 칸: 메모한 날 오른쪽 위에 작은 표시

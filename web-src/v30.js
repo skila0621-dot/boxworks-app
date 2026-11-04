@@ -9,16 +9,16 @@
 
 // 시각 칩: 보이는 글자는 24시간(07:30), 누르면 그 위에 투명하게 놓인 시각 칸이 휴대폰 시계 창을 연다
 function bxTimeChip(id, v, aria, cls){
-  return '<label class="bx-tchip' + (cls ? ' ' + cls : '') + '"><span class="bx-tchip-v tnum" aria-hidden="true">' + (isHM(v) ? v : '--:--') + '</span>' +
+  return '<label class="bx-tchip' + (cls ? ' ' + cls : '') + '"><span class="bx-tchip-v tnum" aria-hidden="true">' + (isHM(v) ? bxT(v) : '--:--') + '</span>' +
     '<input type="time" id="' + id + '" step="300" value="' + esc(isHM(v) ? v : '') + '" aria-label="' + esc(aria || '시각') + '"></label>';
 }
 document.addEventListener('input', ev => {
   const c = ev.target && ev.target.closest && ev.target.closest('.bx-tchip'); if (!c) return;
-  const v = c.querySelector('.bx-tchip-v'); if (v) v.textContent = isHM(ev.target.value) ? ev.target.value : '--:--';
+  const v = c.querySelector('.bx-tchip-v'); if (v) v.textContent = isHM(ev.target.value) ? bxT(ev.target.value) : '--:--';
 }, true);
 document.addEventListener('change', ev => {
   const c = ev.target && ev.target.closest && ev.target.closest('.bx-tchip'); if (!c) return;
-  const v = c.querySelector('.bx-tchip-v'); if (v) v.textContent = isHM(ev.target.value) ? ev.target.value : '--:--';
+  const v = c.querySelector('.bx-tchip-v'); if (v) v.textContent = isHM(ev.target.value) ? bxT(ev.target.value) : '--:--';
 }, true);
 
 // 누른 단추를 제자리에: 창 안에서 칩·켜기를 누른 뒤 창이 다시 그려져 그 단추가 밀려나면, 창 안 스크롤로 되돌린다
@@ -52,7 +52,7 @@ document.addEventListener('click', ev => {
   const st = document.createElement('style');
   st.textContent = [
     // 시각 칩(규칙 12): 칸처럼 보이지 않고 누르는 값처럼
-    '.bx-tchip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:96px;height:44px;padding:0 16px;border-radius:12px;background:var(--sunk);border:1.5px solid var(--line);color:var(--ink);font-size:18px;font-weight:800;cursor:pointer}',
+    '.bx-tchip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:96px;height:44px;padding:0 16px;border-radius:12px;background:var(--sunk);border:1.5px solid var(--line);color:var(--ink);font-size:20px;font-weight:800;cursor:pointer}',
     '.bx-tchip:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}',
     '.bx-tchip input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none;background:transparent}',
     // 설정: 켜기를 누른 줄 바로 아래, 오른쪽 같은 줄에 나오는 칸. 왼쪽에는 설명 한 줄
@@ -60,14 +60,14 @@ document.addEventListener('click', ev => {
     '.bx-app .bx-setsub > .p.small{flex:1;min-width:0;margin:0;color:var(--ink-3);line-height:1.45;word-break:keep-all}',
     '.bx-app .bx-setsub-c{display:inline-flex;align-items:center;gap:8px;flex:none}',
     // '직접 입력'이 그 자리에서 입력칸이 된다(규칙 9·12)
-    '.bx-app .bx-cpick{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:40px;padding:0 12px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:14.5px;font-weight:700}',
+    '.bx-app .bx-cpick{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:40px;padding:0 12px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:14px;font-weight:700}',
     '.bx-app .bx-cpick input{width:3.2em;height:30px;border:0;border-radius:8px;background:color-mix(in srgb,var(--accent-ink) 22%,transparent);color:inherit;font:inherit;font-size:16px;font-weight:800;text-align:center;padding:0;-moz-appearance:textfield}',
     '.bx-app .bx-cpick input::-webkit-outer-spin-button,.bx-app .bx-cpick input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}',
     '.bx-app .tt-pills .bx-cpick{flex:1.3;min-width:0;height:42px;border-radius:12px;padding:0 6px;font-size:13px}',
     '.bx-app .tt-pills .bx-cpick input{width:2.6em}',
     // '없음'은 칩 대신 아래 글자 단추(규칙 11)
-    '.bx-app .bx-none{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 2px;border:0;background:none;color:var(--ink-3);font:inherit;font-size:13.5px;font-weight:700}',
-    '.bx-app .bx-none[aria-pressed="true"]{color:var(--accent)}',
+    '.bx-app .bx-none{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 2px;border:0;background:none;color:var(--ink-3);font:inherit;font-size:14px;font-weight:700}',
+    '.bx-app .bx-none[aria-pressed="true"]{color:var(--accent-text)}',
     '.bx-app .bx-none .i{width:16px;height:16px}',
     // 새 일정 창: 고르는 칸은 칩 위에(칩은 제자리)
     '.bx-app #f-panel{margin:0 0 -6px}',
@@ -75,8 +75,8 @@ document.addEventListener('click', ev => {
     '.bx-app .day-g.bx-wk-empty{padding-top:0;padding-bottom:0}',
     '.bx-app .day-g.bx-wk-empty .empty{display:none}',
     '.bx-app .day-g.bx-wk-empty .sec-h{min-height:44px;margin:0;border-bottom:1px solid var(--line)}',
-    '.bx-app .day-g.bx-wk-empty .day-d{font-size:17px}',
-    '.bx-app .bx-wk-none{margin-left:10px;color:var(--ink-3);font-size:13.5px;font-weight:600}',
+    '.bx-app .day-g.bx-wk-empty .day-d{font-size:16px}',
+    '.bx-app .bx-wk-none{margin-left:10px;color:var(--ink-3);font-size:14px;font-weight:600}',
     '.bx-app .screen.week{row-gap:12px}',
     '.bx-app .day-g.bx-wk-empty + .day-g.bx-wk-empty{margin-top:-12px}',
     '.bx-app .sec-link.add{width:40px;height:40px;padding:0;justify-content:center;border-radius:12px}',
@@ -120,14 +120,15 @@ function bxTimeline(){
   const body = document.querySelector('#tcard2 .tc-body'); if (!body || body.querySelector('.bx-tl')) return;
   const rtSec = body.querySelector(':scope > .rt-sec'), itSub = body.querySelector(':scope > .it-sub'), ttSub = body.querySelector(':scope > .bx-tts');
   if (!rtSec && !itSub && !ttSub) return;
-  const hm = t => { const m = /(\d{1,2}):(\d{2})/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; };
+  // 시험판 51: 화면 글자가 '오후 3:00'이어도 읽는다(bxHMAll)
+  const hm = t => { const a = bxHMAll(t); return a.length ? a[0] : null; };
   const ents = [];
   let lateWrap = null, nowLine = null;
-  const hmAll = t => { const out = []; String(t || '').replace(/(\d{1,2}):(\d{2})/g, (m0, h, mm) => { out.push(+h * 60 + +mm); return m0; }); return out; };
+  const hmAll = t => bxHMAll(t);
   if (rtSec) rtSec.querySelectorAll(':scope > .rt-card[data-rid]').forEach((el, i) => {
-    const meta = el.querySelector('.rt-h .rt-meta'), m = /(\d{1,2}:\d{2})\s*[–~-]\s*(\d{1,2}:\d{2})/.exec(meta ? meta.textContent : '');
+    const meta = el.querySelector('.rt-h .rt-meta'), mt = bxHMAll(meta ? meta.textContent : ''), m = mt.length >= 2 ? mt : null;
     if (m && !el.querySelector('.bx-tl-t')) {
-      const s = document.createElement('span'); s.className = 'row-time bx-tl-t'; s.innerHTML = '<span class="bx-tl-s">' + m[1] + '</span><small>' + m[2] + '</small>';
+      const s = document.createElement('span'); s.className = 'row-time bx-tl-t'; s.innerHTML = '<span class="bx-tl-s">' + bxT(fromMin(m[0] % 1440)) + '</span><small>' + bxT(fromMin(m[1] % 1440)) + '</small>';
       const ic = el.querySelector('.rt-h .bx-ic'); if (ic) ic.after(s); else el.querySelector('.rt-h').prepend(s);
       el.classList.add('bx-tl-rt');
     }
@@ -213,9 +214,9 @@ function bxTimeline(){
     '.bx-app .bx-tl-rt .rt-h .rt-meta{display:none}',
     '.bx-app .bx-tl .bx-tl-rt .rt-h{flex-wrap:nowrap;column-gap:14px}',
     '.bx-app .bx-tl-rt .rt-h .bx-ic{flex:none}',
-    '.bx-app .bx-tl-rt .rt-h b{flex:1 1 0;min-width:0;font-size:15.5px}',
-    '.bx-app .bx-tl-rt .bx-tl-t .bx-tl-s{font-size:15px;font-weight:500;color:var(--ink)}',
-    '.bx-app .bx-tl-rt .bx-tl-t small{font-size:12.5px;color:var(--ink-3)}',
+    '.bx-app .bx-tl-rt .rt-h b{flex:1 1 0;min-width:0;font-size:16px}',
+    '.bx-app .bx-tl-rt .bx-tl-t .bx-tl-s{font-size:16px;font-weight:500;color:var(--ink)}',
+    '.bx-app .bx-tl-rt .bx-tl-t small{font-size:13px;color:var(--ink-3)}',
     '.bx-app .bx-tl-rt .rt-note{padding-left:98px;margin-top:2px}',
     '.bx-app .bx-tl-rt .rt-steps{margin-left:98px}',
     // 지난 일 한 줄(접힘): 표시 칸에 꺾쇠, 글자는 시각 칸에서 시작
@@ -228,7 +229,7 @@ function bxTimeline(){
     '.bx-app .bx-todo .row.bx-now{background:var(--accent-soft)}',
     '.bx-app .bx-todo .rt-card.bx-now,.bx-app .bx-todo .rt-card.bx-next{background:var(--accent-soft);border-radius:14px;margin:0 -10px!important;padding:10px 10px 8px!important;border-bottom-color:transparent}',
     '.bx-app .bx-todo .row.bx-next-soft{background:none}',
-    '.bx-app .bx-next-tag{color:var(--accent);font-weight:700}',
+    '.bx-app .bx-next-tag{color:var(--accent-text);font-weight:700}',
     '.bx-app .bx-tl-done{margin:10px 0 4px;color:var(--ink-3);font-size:14px;padding-left:58px}',
     '.bx-app .bx-tl .now-line{margin:0;border-bottom:0}',
     // 줄마다 같은 칸(대표 지적 11/2: 아이콘 크기·새로 붙은 항목 때문에 정렬이 흐트러짐): 표시 24px(가운데 32px) · 시각 58px · 제목 118px
@@ -319,7 +320,7 @@ document.addEventListener('click', ev => {
     '.bx-app .bx-rem-adv{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}',
     // 켜기·끄기 줄: 이름은 왼쪽, 스위치는 오른쪽. 켰을 때만 아래에 고르는 칸
     '.bx-app .bx-swrow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px}',
-    '.bx-app .bx-swrow > span{font-size:14.5px;font-weight:700;color:var(--ink)}',
+    '.bx-app .bx-swrow > span{font-size:14px;font-weight:700;color:var(--ink)}',
     '.bx-app .bx-swrow + .picks,.bx-app .bx-swrow + .tt-pills{margin-top:10px}',
     // 시간을 정하지 않은 일정의 '출발·준비': 안내 한 줄과 단추를 가운데에(어느 칩에서 눌러도 눈이 가운데로, 대표 11/2)
     '.bx-app #f-go:has(> [data-fpanel="time"]){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:100%;text-align:center}',

@@ -23,7 +23,7 @@ module.exports = async function () {
   try {
     const p = app.page;
     const s = await p.evaluate(() => ({
-      order: Array.from(document.querySelectorAll('.bx-tl > *')).map(e => e.classList.contains('now-line') ? '지금' : (e.querySelector('.row-title, .rt-h > b, .row-main') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 8)),
+      order: Array.from(document.querySelectorAll('.bx-tl > *')).map(e => e.classList.contains('now-line') ? '지금' : (e.querySelector('.row-title, .rt-h > b, .row-main') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 12)),
       heads: Array.from(document.querySelectorAll('#tcard2 h2')).map(h => h.textContent.trim())
     }));
     c.eq(s.heads, ['오늘 할 일'], "홈에는 '오늘 할 일' 제목 하나(루틴·일정·수업 칸 제목 없음)");
@@ -107,7 +107,7 @@ module.exports = async function () {
     await p.click('[data-bxrep="1"]'); await p.waitForTimeout(500);
     const chip = await rect(p, '.bx-tchip:has(#bx-rep-t)');
     c.ok(chip && Math.abs(chip.r - seg.r) < 6 && chip.y > seg.y && chip.y - (seg.y + seg.h) < 70, '아침 일정 시각: 켜기 바로 아래 오른쪽 ' + JSON.stringify({ seg, chip }));
-    c.eq(await p.evaluate(() => document.querySelector('.bx-tchip:has(#bx-rep-t) .bx-tchip-v').textContent), '07:30', '시각은 24시간으로 보인다');
+    c.eq(await p.evaluate(() => document.querySelector('.bx-tchip:has(#bx-rep-t) .bx-tchip-v').textContent), '오전 7:30', '시각은 오전 · 오후로 보인다(시험판 51)');
     await p.evaluate(() => { const i = document.getElementById('bx-rep-t'); i.value = '06:45'; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); });
     await p.waitForTimeout(400);
     const rep = await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxReport);

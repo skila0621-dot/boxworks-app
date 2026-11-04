@@ -124,7 +124,7 @@ setTimeout(() => {
     // 왼쪽 아래 일 · 주 · 월(작게). + 단추(60px, 아래에서 16px)와 가운데를 맞춘다
     'html.bx-app .bx-vsw{position:fixed;left:max(18px,env(safe-area-inset-left,0px));bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 24px);z-index:41;display:none;align-items:center;gap:2px;height:44px;padding:3px;border-radius:22px;background:color-mix(in srgb,var(--bg) 90%,var(--ink) 10%);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.1)}',
     'html.bx-app.bx-vsw-on .bx-vsw{display:flex}',
-    'html.bx-app .bx-vsw button{display:flex;align-items:center;justify-content:center;width:40px;height:36px;padding:0;border:0;border-radius:18px;background:transparent;color:var(--ink-2);font:inherit;font-size:14.5px;font-weight:800;text-align:center}',
+    'html.bx-app .bx-vsw button{display:flex;align-items:center;justify-content:center;width:40px;height:36px;padding:0;border:0;border-radius:18px;background:transparent;color:var(--ink-2);font:inherit;font-size:14px;font-weight:800;text-align:center}',
     'html.bx-app .bx-vsw button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}',
     // 위 줄이 빠진 머리: '‹ 11월 ›'이 맨 위, '오늘'은 그 줄 오른쪽 끝
     'html.bx-app .bx-ch-mid{position:relative;margin-top:0}',

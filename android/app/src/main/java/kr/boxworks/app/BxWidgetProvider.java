@@ -129,7 +129,7 @@ public class BxWidgetProvider extends AppWidgetProvider {
     }
 
     static String hm(long ms) {
-        return new SimpleDateFormat("HH:mm", Locale.KOREA).format(new Date(ms));
+        return new SimpleDateFormat("a h:mm", Locale.KOREA).format(new Date(ms));
     }
 
     static long dayStart(long ms) {

@@ -79,7 +79,7 @@ module.exports = async function () {
     // (3) 알림은 첫날만, 알림 글은 '10:00 시작 · ~11/13 (금) 15:00'
     const plan = await p.evaluate(() => window.BX_alarmPlan(21));
     const a7 = plan.filter(a => a.kind === 'item' && /^i_it_7_/.test(a.id)), a4 = plan.filter(a => a.kind === 'item' && /^i_it_4_/.test(a.id));
-    c.ok(a7.length === 1 && new Date(a7[0].at).toISOString() === '2026-11-12T00:00:00.000Z' && /10:00 시작 · ~11\/13 \(금\) 15:00/.test(a7[0].sub), '출장: 첫날 한 시간 전 한 번 ' + JSON.stringify(a7.map(a => [a.at, a.sub])));
+    c.ok(a7.length === 1 && new Date(a7[0].at).toISOString() === '2026-11-12T00:00:00.000Z' && /오전 10:00 시작 · ~11\/13 \(금\) 오후 3:00/.test(a7[0].sub), '출장: 첫날 한 시간 전 한 번 ' + JSON.stringify(a7.map(a => [a.at, a.sub])));
     c.ok(a4.length === 1 && new Date(a4[0].at).toISOString() === '2026-11-05T11:00:00.000Z' && /종일 · ~11\/8 \(일\)/.test(a4[0].sub), '부산 여행: 전날 저녁 한 번 ' + JSON.stringify(a4.map(a => [a.at, a.sub])));
     // 위젯: 날마다 한 줄, 병원(홈에서 뺌)은 빼고 놓친 것(약 타기)은 그대로
     const wd = await p.evaluate(() => window.BX_widgetData());

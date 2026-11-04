@@ -136,15 +136,15 @@ function ttHtml(){
   h1 = Math.min(24, Math.max(h1, h0 + 4));
   const PX = TT_PX, H = (h1 - h0) * PX;
   const todayDow = M.now.getDay(), nowM = M.now.getHours() * 60 + M.now.getMinutes();
-  let head = '<div class="tt-h tt-tc"></div>' + cols.map(d => '<div class="tt-h' + (d === todayDow ? ' today' : '') + (d === 0 ? ' sun' : d === 6 ? ' sat' : '') + '">' + WD[d] + '</div>').join('');
+  let head = '<div class="tt-h tt-tc"><small class="bx-tt-ap">' + (h0 < 12 ? '오전' : '오후') + '</small></div>' + cols.map(d => '<div class="tt-h' + (d === todayDow ? ' today' : '') + (d === 0 ? ' sun' : d === 6 ? ' sat' : '') + '">' + WD[d] + '</div>').join('');
   let lines = '';
-  for (let h = h0; h <= h1; h++) lines += '<div class="tt-line" style="top:' + ((h - h0) * PX) + 'px"><span>' + (h === 24 ? 0 : h) + '</span></div>';
+  for (let h = h0; h <= h1; h++) lines += '<div class="tt-line" style="top:' + ((h - h0) * PX) + 'px"><span>' + ((h % 24 === 12 || h === 24) && h !== h0 ? '<small>' + (h === 24 ? '오전' : '오후') + '</small>' : '') + ((h % 12) || 12) + '</span></div>';
   const colsHtml = cols.map(d => {
     const blocks = list.filter(e => e.on !== false && e.days.includes(d)).map(e => {
       const a = toMin(e.start), b = Math.max(toMin(e.end || e.start), a + 20);
       const top = (a - h0 * 60) / 60 * PX, ht = Math.max(22, (b - a) / 60 * PX - 2);
       const sel = TTSEL && TTSEL.id === e.id && TTSEL.d === d, linked = ttLinked(e, list), off = ttSkipped(e, ttNextDate(d));
-      return '<button type="button" class="tt-b' + (sel ? ' sel' : '') + (linked ? ' lk' : '') + (off ? ' off' : '') + '" data-act="tt-edit" data-id="' + esc(e.id) + '" data-d="' + d + '" data-h0="' + h0 + '" style="top:' + top.toFixed(1) + 'px;height:' + ht.toFixed(1) + 'px;--c:' + (e.color || TT_COLORS[0]) + '" aria-label="' + esc(WD[d] + '요일 ' + e.start + ' ' + e.name + (e.place ? ' ' + e.place : '')) + '">' +
+      return '<button type="button" class="tt-b' + (sel ? ' sel' : '') + (linked ? ' lk' : '') + (off ? ' off' : '') + '" data-act="tt-edit" data-id="' + esc(e.id) + '" data-d="' + d + '" data-h0="' + h0 + '" style="top:' + top.toFixed(1) + 'px;height:' + ht.toFixed(1) + 'px;--c:' + (e.color || TT_COLORS[0]) + '" aria-label="' + esc(WD[d] + '요일 ' + bxT(e.start) + ' ' + e.name + (e.place ? ' ' + e.place : '')) + '">' +
         '<b>' + esc(e.name) + '</b>' + (off ? '<small class="tt-offtag">' + ttMD(ttNextDate(d)) + ' 휴강</small>' : e.place && ht > 34 ? '<small>' + esc(e.place) + '</small>' : '') +
         (linked ? '<span class="tt-lk" aria-hidden="true">' + TT_CLIP + '</span>' : '') +
         '<span class="tt-hd s" data-tt-rs="s" aria-hidden="true"></span><span class="tt-hd e" data-tt-rs="e" aria-hidden="true"></span></button>';
@@ -156,7 +156,7 @@ function ttHtml(){
     bxMic('tt-in', '예) 월수 10시 반부터 12시까지 경영학원론 301호') + '<button type="button" class="btn primary" data-act="tt-add">추가</button></div></div>';
   // 앱: 시간표 칸이 바로 보이게 머리는 제목만, 넣기·보기 설정·수업 추가는 아래 메뉴 위 툴바로(대표 요청 10/31)
   if (window.BX_APP) {
-    const rangeTxt = String(h0).padStart(2, '0') + '–' + String(h1).padStart(2, '0') + '시 · ' + (cols.length === 7 ? '월–일' : cols.length === 5 ? '월–금' : '월–금·' + cols.slice(5).map(d => WD[d]).join('·'));
+    const rangeTxt = bxHR(h0, h1) + ' · ' + (cols.length === 7 ? '월–일' : cols.length === 5 ? '월–금' : '월–금·' + cols.slice(5).map(d => WD[d]).join('·'));
     const emptyA = list.length ? '' : '<p class="empty tt-empty">매주 반복되는 수업·알바·학원을 아래 ‘빠른 추가’로 넣어 보세요. 시작 10분 전에 알람이 울려요.</p>';
     return '<div class="page-head bx-tt-head"><div class="ph-t"><h1>시간표</h1><p><span class="nw">' + (list.length ? '<b>' + list.length + '</b>개 · ' : '') + '매주 반복 · ' + rangeTxt + '</span></p></div></div>' + (typeof bxTtChipsHtml === 'function' ? bxTtChipsHtml() + bxTtNoteHtml() : '') + emptyA +
       (TTSEL ? '<p class="p small tt-tip">' + TT_TIP1 + '</p>' : '') +
@@ -190,14 +190,14 @@ function ttTodayHtml(ds, inner){
   const multi = typeof bxTtSets === 'function' && bxTtSets().length > 1;
   const rows = list.map(e => {
     if (ttSkipped(e, ds)) return '<div class="row tt-row bx-off"><span class="tt-dot" style="--c:' + (e.color || TT_COLORS[0]) + '"></span>' +
-      '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + e.start + '</b>' + (e.end ? '<small>' + e.end + '</small>' : '') + '</span>' +
+      '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + bxT(e.start) + '</b>' + (e.end ? '<small>' + bxT(e.end) + '</small>' : '') + '</span>' +
       '<span class="row-body"><span class="row-title">' + esc(e.name) + '</span><span class="row-meta"><span class="meta bx-off-tag">휴강 · 알람 쉼</span></span></span></button></div>';
     const past = ds < M.today || (ds === M.today && toMin(e.end || e.start) < nowM);
     const rem = e.remind === '' || e.remind == null ? '' : fromMin(Math.max(0, toMin(e.start) - (+e.remind || 0)));
     return '<div class="row tt-row' + (past ? ' done' : '') + '"><span class="tt-dot" style="--c:' + (e.color || TT_COLORS[0]) + '"></span>' +
-      '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + e.start + '</b>' + (e.end ? '<small>' + e.end + '</small>' : '') + '</span>' +
+      '<button type="button" class="row-main" data-act="tt-edit" data-id="' + esc(e.id) + '"><span class="row-time"><b>' + bxT(e.start) + '</b>' + (e.end ? '<small>' + bxT(e.end) + '</small>' : '') + '</span>' +
       '<span class="row-body"><span class="row-title">' + esc(e.name) + '</span><span class="row-meta">' + (multi ? '<span class="meta bx-tts-m"><i class="dot" style="--c:' + bxTtColor(bxTtSetOf(e)) + '"></i>' + esc(bxTtSetDoc(bxTtSetOf(e)).name) + '</span>' : '') + (e.place ? '<span class="meta">' + ICON.pin + esc(e.place) + '</span>' : '') +
-      (rem && !past ? '<span class="meta bx-rem">' + ICON.bell + rem + '</span>' : '') + '</span></span></button></div>';
+      (rem && !past ? '<span class="meta bx-rem">' + ICON.bell + bxT(rem) + '</span>' : '') + '</span></span></button></div>';
   }).join('');
   const offN = list.filter(e => ttSkipped(e, ds)).length;
   const hd = '<div class="sec-h"><h2 id="h-tt-today">' + (inner ? '수업' : '오늘 시간표') + '</h2><span class="sec-sub">' + (list.length - offN) + '개' + (offN ? ' · 휴강 ' + offN : '') + '</span><span class="sp"></span>' +
@@ -284,7 +284,7 @@ function ttAddFromText(text){
     if (SH && $('#tt-in')) closeSheet();
     const id = ttSave(o);
     const inp = $('#tt-in'); if (inp) inp.value = '';
-    toast('시간표에 넣었어요 · ' + ttDaysText(p.days) + ' ' + p.start + '–' + p.end, [['되돌리기', () => removeDoc(id)]]);
+    toast('시간표에 넣었어요 · ' + ttDaysText(p.days) + ' ' + bxTR(p.start, p.end), [['되돌리기', () => removeDoc(id)]]);
     return;
   }
   o.hint = !p.days.length ? '요일을 알아듣지 못했어요. 아래에서 골라 주세요.' : !p.start ? '시각을 알아듣지 못했어요. 아래에서 적어 주세요.' : '이름을 적어 주세요.';
@@ -352,7 +352,7 @@ if (lsGet('bx:weekMode') === 'tt') { lsSet('bx:weekMode', ''); }
 
 /* 표시 시간 범위 고르기 */
 function ttRangeOpen(){
-  const rg = ttRange(), opt = (a, b, cur) => Array.from({length: b - a + 1}, (_, i) => a + i).map(h => '<option value="' + h + '"' + (h === cur ? ' selected' : '') + '>' + h + '시</option>').join('');
+  const rg = ttRange(), opt = (a, b, cur) => Array.from({length: b - a + 1}, (_, i) => a + i).map(h => '<option value="' + h + '"' + (h === cur ? ' selected' : '') + '>' + bxH(h) + '</option>').join('');
   openSheet({title: '시간표 보기 설정', draw: () => setSheet(
     '<span class="tt-l" style="display:block">표시 시간</span><p class="p small" style="margin:4px 0 0">이른 아침·늦은 밤 수업이 있으면 넓혀 주세요. 범위 밖에 넣은 수업은 저절로 넓혀서 보여요.</p>' +
     '<div class="tt-times" style="margin-top:10px"><select id="tt-rg-f" class="inp" aria-label="시작">' + opt(0, 12, rg.from) + '</select><span>–</span><select id="tt-rg-t" class="inp" aria-label="끝">' + opt(12, 24, rg.to) + '</select></div>' +
@@ -370,7 +370,7 @@ const TT_OFF = '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17
 function ttNameKey(n){ return String(n || '').replace(/\s+/g, '').toLowerCase(); }
 function ttGroupOf(e, list){ list = list || ttList(); return e.link ? list.filter(x => x.link === e.link) : [e]; }
 function ttLinked(e, list){ return e.days.length > 1 || (!!e.link && ttGroupOf(e, list).length > 1); }
-function ttFmtRange(a, b){ return fromMin(a) + '–' + fromMin(b); }
+function ttFmtRange(a, b){ return bxTR(fromMin(a), fromMin(b)); }
 const TT_TIP0 = '블록을 길게 누르면 옮기거나 길이를 바꿀 수 있어요. 클립으로 연결한 수업은 함께 움직여요.';
 const TT_TIP1 = '블록을 끌어 시간·요일을 옮기고, 위·아래 끝을 끌어 길이를 바꿔요. 다 됐으면 완료를 누르세요.';
 // 화면을 다시 그리지 않고 편집을 마친다(입력 칸에 적던 글·포커스를 지키려고)

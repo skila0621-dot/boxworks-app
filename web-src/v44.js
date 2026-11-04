@@ -25,7 +25,7 @@
     'html.bx-app .bx-vsw button::after{content:"";position:absolute;left:0;right:0;top:-10px;bottom:-10px}',
     // 캘린더 칩: 높이 34 → 28, 글자 13.5 → 12.5, 고른 칩만 굵게
     'html.bx-app .bx-cchips{gap:6px}',
-    'html.bx-app .bx-cchip{height:28px;padding:0 11px;border-radius:14px;font-size:12.5px;font-weight:500;gap:5px}',
+    'html.bx-app .bx-cchip{height:28px;padding:0 11px;border-radius:14px;font-size:13px;font-weight:500;gap:5px}',
     'html.bx-app .bx-cchip[aria-pressed="true"]{font-weight:700}',
     'html.bx-app .bx-cchip .dot{width:7px;height:7px}'
   ].join('\n');
@@ -53,7 +53,7 @@ function bxEdList(){
   const t0 = F.timed && isHM(F.start) ? F.start : '', t1 = F.timed && isHM(F.end) ? F.end : '';
   const col = (ds, t, end) => '<div class="bx-edt-c">' +
     '<button type="button" class="bx-edt-d" data-fpanel="date" aria-label="' + (end ? '끝나는 날 ' : '날짜 ') + esc(bxEdDay(ds)) + '">' + esc(bxEdDay(ds)) + '</button>' +
-    (F.timed ? '<button type="button" class="bx-edt-t' + (t ? '' : ' ph') + '" data-fpanel="time" aria-label="' + (end ? '끝 시각 ' : '시작 시각 ') + (t || '없음') + '">' + (t || (end ? '끝 시각 없음' : '시각')) + '</button>' : '') + '</div>';
+    (F.timed ? '<button type="button" class="bx-edt-t' + (t ? '' : ' ph') + '" data-fpanel="time" aria-label="' + (end ? '끝 시각 ' : '시작 시각 ') + (t ? bxT(t) : '없음') + '">' + (t ? bxT(t) : (end ? '끝 시각 없음' : '시각')) + '</button>' : '') + '</div>';
   const cat = F.categoryId ? M.catMap.get(F.categoryId) : null;
   const catDot = cat ? '<i class="dot" style="--c:' + (F.color || catColor(cat.id)) + '"></i>' : '';
   const note = (F.note || '').split('\n').map(s => s.trim()).filter(Boolean)[0] || '';
@@ -267,8 +267,8 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-edt-c{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}',
     'html.bx-app .bx-edt-c button{max-width:100%;min-height:40px;padding:6px 8px;border:0;border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-size:16px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     'html.bx-app .bx-edt-c button:active{background:color-mix(in srgb,var(--ink) 6%,transparent)}',
-    'html.bx-app .bx-edt-c .bx-edt-t{font-size:17px;font-weight:500}',
-    'html.bx-app .bx-edt-c .ph{color:var(--ink-3);font-size:15px;font-weight:400}',
+    'html.bx-app .bx-edt-c .bx-edt-t{font-size:16px;font-weight:500}',
+    'html.bx-app .bx-edt-c .ph{color:var(--ink-3);font-size:16px;font-weight:400}',
     'html.bx-app .bx-edt-arr{display:flex;justify-content:center;color:var(--ink-3)}html.bx-app .bx-edt-arr svg.i{width:18px;height:18px}',
     'html.bx-app .bx-esheet #f-panel[hidden]{display:none!important}',
     // 페이지(일정 창 위를 덮음): ‹ 이름 · 완료
@@ -277,7 +277,7 @@ document.addEventListener('click', ev => {
     '@media (prefers-reduced-motion:reduce){html.bx-app .bx-ep{animation:none}}',
     'html.bx-app .bx-ep-h{flex:none;display:flex;align-items:center;gap:2px;height:60px;padding:0 8px 0 6px}',
     'html.bx-app .bx-ep-h h2{flex:1;min-width:0;margin:0;font-size:20px;font-weight:700;color:var(--ink)}',
-    'html.bx-app .bx-ep-ok{flex:none;height:44px;padding:0 16px;border:0;border-radius:22px;background:transparent;color:var(--accent);font:inherit;font-size:16px;font-weight:700}',
+    'html.bx-app .bx-ep-ok{flex:none;height:44px;padding:0 16px;border:0;border-radius:22px;background:transparent;color:var(--accent-text);font:inherit;font-size:16px;font-weight:700}',
     'html.bx-app .bx-ep-ok:active{background:var(--accent-soft)}',
     'html.bx-app .bx-ep-b{flex:1;overflow-y:auto;padding:4px 12px 32px;-webkit-overflow-scrolling:touch;--sunk:var(--bx-card-in,var(--sunk))}',
     // 넓은 화면(가로로 편 폴드 · 태블릿): 페이지 내용은 일정 창 너비(560)만큼 가운데에
@@ -298,12 +298,12 @@ document.addEventListener('click', ev => {
     // 동그라미(알림 · 준비 루틴). 고른 것은 파란 동그라미, '직접 입력'은 +
     'html.bx-app .bx-ep .bx-rem-q .pick::before,html.bx-app .bx-ep #f-go > .picks:has([data-fprep]) .pick::before{content:"";flex:none;width:20px;height:20px;box-sizing:border-box;border:2px solid var(--ink-3);border-radius:50%}',
     'html.bx-app .bx-ep .bx-rem-q .pick[aria-pressed="true"]::before,html.bx-app .bx-ep #f-go > .picks:has([data-fprep]) .pick[aria-pressed="true"]::before{border:6px solid var(--accent)}',
-    'html.bx-app .bx-ep .bx-rem-q .pick[data-bx-rem="adv"][aria-pressed="false"]::before{content:"+";border:0;color:var(--accent);font-size:24px;font-weight:400;line-height:19px;text-align:center}',
+    'html.bx-app .bx-ep .bx-rem-q .pick[data-bx-rem="adv"][aria-pressed="false"]::before{content:"+";border:0;color:var(--accent-text);font-size:1.5em;font-weight:400;line-height:19px;text-align:center}',
     // 캘린더: 색 점 · 이름(길면 줄을 바꿔 다 보임) · 고른 것은 ✓
     'html.bx-app .bx-ep #f-cat > .picks .pick i.dot{flex:none;width:14px;height:14px;margin:0 3px}',
     'html.bx-app .bx-ep #f-cat > .picks .pick[data-fcat=""]{padding-left:36px;color:var(--ink-2)!important}',
     'html.bx-app .bx-ep #f-cat > .picks .pick[aria-pressed="true"]{font-weight:700}',
-    'html.bx-app .bx-ep #f-cat > .picks .pick[aria-pressed="true"]::after{content:"";flex:none;margin-left:auto;width:20px;height:20px;background:var(--accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%272.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M5 12.5l4.5 4.5L19 7.5%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%272.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M5 12.5l4.5 4.5L19 7.5%27/%3E%3C/svg%3E") center/contain no-repeat}',
+    'html.bx-app .bx-ep #f-cat > .picks .pick[aria-pressed="true"]::after{content:"";flex:none;margin-left:auto;width:20px;height:20px;background:var(--accent-text);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%272.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M5 12.5l4.5 4.5L19 7.5%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%272.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M5 12.5l4.5 4.5L19 7.5%27/%3E%3C/svg%3E") center/contain no-repeat}',
     'html.bx-app .bx-ep .bx-fcol{display:flex;flex-direction:column;gap:14px;margin:0;padding:0;border:0}',
     'html.bx-app .bx-ep .bx-fcol > .fg-l{margin:6px 20px -6px}',
     'html.bx-app .bx-ep .bx-fcol-row{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr));justify-items:center;align-items:center;row-gap:12px;margin:0;padding:16px 14px}',
@@ -311,9 +311,9 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-ep .bx-fcol-row .bx-fcol-def{grid-column:1/-1;justify-self:start;margin-left:6px}',
     // 알림 스위치 줄 · 여러 날 스위치 줄 = 상자 한 줄
     'html.bx-app .bx-ep .bx-swrow,html.bx-app .bx-ep .bx-fmulti{margin:0;' + box + '}',
-    'html.bx-app .bx-ep .bx-swrow{display:flex;align-items:center;justify-content:space-between;min-height:60px;font-size:16.5px;font-weight:500}',
-    'html.bx-app .bx-ep .bx-swrow.on > span{color:var(--accent)}',
-    'html.bx-app .bx-ep .bx-fmulti .set-row{min-height:60px;padding:0;font-size:16.5px;font-weight:500}',
+    'html.bx-app .bx-ep .bx-swrow{display:flex;align-items:center;justify-content:space-between;min-height:60px;font-size:16px;font-weight:500}',
+    'html.bx-app .bx-ep .bx-swrow.on > span{color:var(--accent-text)}',
+    'html.bx-app .bx-ep .bx-fmulti .set-row{min-height:60px;padding:0;font-size:16px;font-weight:500}',
     'html.bx-app .bx-ep .bx-fend{padding:0 0 16px}',
     // 알림 '직접 입력'(여러 개 · 정한 시각)
     'html.bx-app .bx-ep #f-rem > .rem-picks,html.bx-app .bx-ep #f-rem > .rem-ctl{margin:0;' + box + ';padding:16px 20px}',
@@ -321,7 +321,7 @@ document.addEventListener('click', ev => {
     // 날짜: 오늘 · 내일 · 모레 · 다음 주 월을 4칸(이름 위 · 날짜 아래), 달력에서 고르기는 상자 한 줄
     'html.bx-app .bx-ep #f-date > .picks,html.bx-app .bx-ep .bx-fspan{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0}',
     'html.bx-app .bx-ep .bx-fspan{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px}',
-    'html.bx-app .bx-ep #f-date > .picks .pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:auto;height:auto;min-height:68px;margin:0;padding:10px 4px;border:0;border-radius:18px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:15px;font-weight:700;white-space:nowrap}',
+    'html.bx-app .bx-ep #f-date > .picks .pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:auto;height:auto;min-height:68px;margin:0;padding:10px 4px;border:0;border-radius:18px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:16px;font-weight:700;white-space:nowrap}',
     'html.bx-app .bx-ep #f-date > .picks .pick small{margin:0;font-size:13px;font-weight:500;color:var(--ink-2)}',
     'html.bx-app .bx-ep #f-date > .picks .pick[aria-pressed="true"],html.bx-app .bx-ep #f-go > .picks:has([data-ftv]) .pick[aria-pressed="true"]{background:var(--accent-soft)!important;box-shadow:inset 0 0 0 2px var(--accent)!important}',
     'html.bx-app .bx-ep #f-date > .inline{display:flex;align-items:center;gap:12px;min-height:60px;margin:0!important;' + box + '}',
@@ -330,14 +330,14 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-ep #f-time > .fgrid,html.bx-app .bx-ep #f-time > p{margin:0;' + box + ';padding:18px 20px}',
     // 출발·준비: 이동 시간 4칸, 직접 · 준비 루틴은 상자
     'html.bx-app .bx-ep #f-go > .picks:has([data-ftv]){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0}',
-    'html.bx-app .bx-ep #f-go > .picks:has([data-ftv]) .pick{width:auto;min-height:48px;margin:0;border:0;border-radius:16px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:15px;font-weight:600;white-space:nowrap;justify-content:center}',
+    'html.bx-app .bx-ep #f-go > .picks:has([data-ftv]) .pick{width:auto;min-height:48px;margin:0;border:0;border-radius:16px;background:var(--card-bg)!important;color:var(--ink)!important;font-size:16px;font-weight:600;white-space:nowrap;justify-content:center}',
     'html.bx-app .bx-ep #f-go > .tv-cus{display:flex;align-items:center;gap:12px;min-height:60px;margin:0;' + box + '}',
     'html.bx-app .bx-ep #f-go > .tv-line{margin:0;' + box + ';padding:16px 20px}',
     // 장소 · 메모: 같은 칸을 반씩(장소 페이지는 장소만, 메모 페이지는 메모만)
     'html.bx-app .bx-ep[data-k="loc"] #f-extra > .fld:has(#f-note),html.bx-app .bx-ep[data-k="note"] #f-extra > .fld:has(#f-loc),html.bx-app .bx-ep[data-k="note"] #bx-ep-places{display:none}',
     'html.bx-app .bx-ep #f-extra > .fld{margin:0!important;' + box + ';padding:6px 20px}',
     'html.bx-app .bx-ep #f-extra .fld-l{display:none}',
-    'html.bx-app .bx-ep #f-extra .inp{width:100%;min-height:52px;border:0;background:transparent;box-shadow:none;padding:0;font-size:17px;color:var(--ink)}',
+    'html.bx-app .bx-ep #f-extra .inp{width:100%;min-height:52px;border:0;background:transparent;box-shadow:none;padding:0;font-size:16px;color:var(--ink)}',
     'html.bx-app .bx-ep #f-extra textarea.inp{min-height:180px;padding:12px 0;line-height:1.55;resize:none}',
     'html.bx-app .bx-ep #bx-ep-places{display:flex;flex-direction:column;gap:14px}',
     // 사진 · 파일: 단추 3칸은 그대로, 사진 칸은 상자 없이
@@ -501,17 +501,17 @@ setTimeout(() => {
     'html.bx-app .bx-med-row{display:flex;align-items:center;gap:12px;width:100%;min-height:62px;margin-top:16px;padding:10px 0;border:0;border-top:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:left}',
     'html.bx-app .bx-med-row > svg.i{flex:none;width:18px;height:18px;color:var(--ink-3)}',
     'html.bx-app .bx-mp .bx-mp-sw{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;border-bottom:1px solid var(--line);font-size:16px}',
-    'html.bx-app .bx-mp .bx-mp-sw.on > span{color:var(--accent);font-weight:500}',
+    'html.bx-app .bx-mp .bx-mp-sw.on > span{color:var(--accent-text);font-weight:500}',
     'html.bx-app .bx-mp .bx-ep-box > :last-child{border-bottom:0}',
     'html.bx-app .bx-mp .bx-mp-r{display:flex;align-items:center;justify-content:flex-start;gap:14px;width:100%;height:auto;min-height:54px;margin:0;padding:0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent!important;box-shadow:none!important;color:var(--ink)!important;font:inherit;font-size:16px;font-weight:400;text-align:left}',
     'html.bx-app .bx-mp .bx-bowl-picks,html.bx-app .bx-mp .bx-bg-picks{display:flex;flex-direction:column;gap:0;margin:0}',
     'html.bx-app .bx-mp .bx-bg-picks .bx-mp-r:last-child{border-bottom:0}',
-    'html.bx-app .bx-mp .bx-bg-only .bx-ep-row.btn{height:auto;min-height:56px;padding:0;justify-content:flex-start;border-radius:0;background:transparent;color:var(--accent);font-weight:600;box-shadow:none}',
+    'html.bx-app .bx-mp .bx-bg-only .bx-ep-row.btn{height:auto;min-height:56px;padding:0;justify-content:flex-start;border-radius:0;background:transparent;color:var(--accent-text);font-weight:600;box-shadow:none}',
     'html.bx-app .bx-med-row .bx-mm-t b{font-size:16px;font-weight:600;color:var(--ink)}',
-    'html.bx-app .bx-med-row .bx-mm-t small{font-size:13.5px;font-weight:400;color:var(--accent);line-height:1.35}',
+    'html.bx-app .bx-med-row .bx-mm-t small{font-size:14px;font-weight:400;color:var(--accent-text);line-height:1.35}',
     'html.bx-app .bx-mp .bx-mp-r::before{content:"";flex:none;width:20px;height:20px;box-sizing:border-box;border:2px solid var(--ink-3);border-radius:50%}',
     'html.bx-app .bx-mp .bx-mp-r[aria-pressed="true"]::before{border:6px solid var(--accent)}',
-    'html.bx-app .bx-mp .bx-mp-vol{display:flex;align-items:center;gap:14px;min-height:58px;border-bottom:1px solid var(--line);font-size:15px;color:var(--ink-2)}',
+    'html.bx-app .bx-mp .bx-mp-vol{display:flex;align-items:center;gap:14px;min-height:58px;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink-2)}',
     'html.bx-app .bx-mp .bx-mp-vol input{flex:1;min-width:0;accent-color:var(--accent);height:28px}',
     'html.bx-app .bx-mp .bx-mp-vol b{flex:none;width:44px;text-align:right;font-size:14px;font-weight:700;color:var(--ink)}',
     'html.bx-app .bx-mp .bx-mp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:6px 0 16px;border-bottom:1px solid var(--line)}',

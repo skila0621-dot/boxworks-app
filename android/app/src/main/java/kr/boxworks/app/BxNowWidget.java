@@ -53,7 +53,7 @@ public class BxNowWidget extends AppWidgetProvider {
     }
 
     private static String hm(long ms) {
-        return new SimpleDateFormat("H:mm", Locale.KOREA).format(new Date(ms));
+        return new SimpleDateFormat("a h:mm", Locale.KOREA).format(new Date(ms));
     }
 
     private static long dayStart(long ms) {

@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 50;
+const BX_TRIAL = 51;
 
 /* 설정(앱): 첫 화면은 묶음 목록(화면 · 휴대폰 캘린더 · 알림 · 분류·데이터), 누르면 그 묶음만 보이는 화면.
    뒤로 가기(‹ 또는 휴대폰 뒤로)로 목록에 돌아온다. 휴대폰 설정과 같은 방식(대표 결정 11/3: 한 페이지가 너무 길어 메뉴를 다시 찾기 불편).
@@ -18,7 +18,7 @@ function bxSetGroups(){
   const preT = pre == null ? '미리 알림 끔' : pre === 0 ? '정시에' : pre % 1440 === 0 ? pre / 1440 + '일 전' : pre % 60 === 0 ? pre / 60 + '시간 전' : pre + '분 전';
   const g = [['view', BX_SET_PHONE, '화면', '다크 모드 ' + (th === 'dark' ? '켬' : th === 'light' ? '끔' : '자동') + ' · ' + (+st.weekStart === 0 ? '일요일' : '월요일') + ' 시작']];
   if (pcPlug()) g.push(['pcal', ICON.cal, '휴대폰 캘린더', pcCfg().on ? '함께 보기' : '꺼짐']);
-  g.push(['alarm', ICON.bell, '알림', (rep.on ? '아침 ' + rep.at : '아침 일정 꺼짐') + ' · ' + preT]);
+  g.push(['alarm', ICON.bell, '알림', (rep.on ? '아침 요약 ' + bxT(rep.at) : '아침 요약 꺼짐') + ' · ' + preT]);
   g.push(['data', ICON.save, '캘린더·데이터', '캘린더 ' + M.cats.length + '개 · 휴지통 ' + M.trash.length + '개']);
   return g;
 }
@@ -66,7 +66,7 @@ function bxSetGroupHtml(k){
     const lv = kk => ({alarm: '알람', notice: '알림', quiet: '조용히'})[bxLevel(kk)];
     const lock = (BX_LOCK.find(o => o[0] === bxLockMode()) || BX_LOCK[0])[1];
     return box('알람 테스트', bxSetLine('알람 테스트', '10초 뒤 울려요', {act: 'bx-alarm-test'})) +
-      box('알림', bxSetLineSw('아침 요약', rep.on ? '매일 ' + rep.at + ' · 오늘 할 일 한눈에' : '꺼짐', bxSwitch('data-bxrep', rep.on, '아침 요약'), 'alarm/rep') +
+      box('알림', bxSetLineSw('아침 요약', rep.on ? '매일 ' + bxT(rep.at) + ' · 오늘 할 일 한눈에' : '꺼짐', bxSwitch('data-bxrep', rep.on, '아침 요약'), 'alarm/rep') +
         bxSetLine('울리는 방식', '루틴 ' + lv('routine') + ' · 일정 ' + lv('item') + ' · 시간표 ' + lv('tt'), {go: 'alarm/lv'}) +
         bxSetLine('일정 알림 기본값', '시간 있는 일정 ' + preT + ' · 종일 일정 ' + (dayA ? hmText(dayA.t) : '꺼짐'), {go: 'alarm/rem'}) +
         bxSetLine('잠금 화면 표시', lock, {go: 'alarm/lock'}));

@@ -41,7 +41,7 @@ module.exports = async function () {
     await p.click('#bx-pg [data-bxpg="done"]'); await p.waitForTimeout(500);
     const a1 = await doc(p, 'it_a');
     c.eq([a1.date, a1.start, a1.end, a1.origDate], ['2026-11-04', '17:00', '18:00', '2026-11-01'], '완료: 11월 4일 17:00–18:00으로 옮김(걸리는 시간 그대로)');
-    c.ok(await p.evaluate(() => /11월 4일 17:00로 옮겼어요/.test(document.body.textContent)), "알림 글 '11월 4일 17:00로 옮겼어요'");
+    c.ok(await p.evaluate(() => /11월 4일 오후 5:00로 옮겼어요/.test(document.body.textContent)), "알림 글 '11월 4일 오후 5:00로 옮겼어요'");
     // 시각 없는 일정: 날짜만
     await p.click('#sheet-b [data-bx-late="pick"][data-id="it_b"]'); await p.waitForTimeout(400);
     c.eq(await p.evaluate(() => document.getElementById('bx-lc-time').value), '', '시각 없는 일정: 시각 줄은 비어 있음');

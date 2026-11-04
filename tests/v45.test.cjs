@@ -138,7 +138,7 @@ module.exports = async function () {
     await p.click('#bx-pg [data-pcprep="rt_1"]'); await p.waitForTimeout(250);
     const go = await p.evaluate(() => ({ t: document.getElementById('bx-pg-t').textContent, line: !!document.querySelector('#bx-pg .tv-line'), row: document.querySelector('[data-bxpc45="go"]').textContent.trim(),
       cols: getComputedStyle(document.querySelector('#bx-pg .bx-pc45-tv')).gridTemplateColumns.split(' ').length }));
-    c.eq(go, { t: '출발·준비', line: true, row: '12:40 출발', cols: 4 }, '출발·준비 페이지: 이동 시간 4칸 · 준비 루틴 · 시각 줄, 창 줄은 12:40 출발');
+    c.eq(go, { t: '출발·준비', line: true, row: '오후 12:40 출발', cols: 4 }, '출발·준비 페이지: 이동 시간 4칸 · 준비 루틴 · 시각 줄, 창 줄은 오후 12:40 출발');
     await pgBack(p);
     const k2 = await p.evaluate(() => (window.BX_T.docs().find(([id]) => id.startsWith('px_78')) || [0, {}])[1]);
     const mem = await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'travelmem') || [0, null])[1]);
@@ -155,7 +155,7 @@ module.exports = async function () {
     const rr = await p.evaluate(() => ({ title: document.getElementById('r-name').classList.contains('title-in'),
       rows: Array.from(document.querySelectorAll('#bx-rt45 > *, #bx-rt45 #r-timebox > *')).filter(e => e.id !== 'r-timebox').map(e => e.classList.contains('bx-rt45-days') ? 'DAYS:' + document.getElementById('bx-rt45-dsum').textContent : e.textContent.replace(/\s+/g, ' ').trim().slice(0, 24)),
       det: document.querySelectorAll('#sheet-b details').length, rep: Array.from(document.querySelectorAll('#sheet-b #bx-rrep, #sheet-b #bx-rbowl, #sheet-b .bx-lockset')).filter(e => e.getBoundingClientRect().height > 0).length }));
-    c.eq(rr.rows, ['알림 방식알람 · 5분마다 6번 더', 'DAYS:평일', '공휴일 제외공휴일에도 울려요', '기준시작 시각부터', '시작 시각'], '루틴 창 줄: 알림 방식 → 요일 → 공휴일 제외 → 기준 → 시작 시각');
+    c.eq(rr.rows, ['알림 방식알람 · 5분마다 6번 더', 'DAYS:평일', '공휴일 제외공휴일에도 울려요', '기준시작 시각부터', '시작 시각오전 7:00'], '루틴 창 줄: 알림 방식 → 요일 → 공휴일 제외 → 기준 → 시작 시각(칸 위에 오전 · 오후 글)');
     c.ok(rr.title && rr.det === 0 && rr.rep === 0, '이름은 제목 칸, 펼치는 칸(details · 간격 · 횟수 · 종소리)을 창에 두지 않음 ' + JSON.stringify(rr));
     // 알림 방식 페이지: 싱잉볼로 바꿨다가 ‹ → 그대로
     await p.click('[data-bxrt45="ntf"]'); await p.waitForTimeout(300);

@@ -36,7 +36,7 @@
             android:maxLines="1"
             android:text="오늘 · 11월 3일 (화)"
             android:textColor="@color/bx_w_ink"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
         <FrameLayout
             
@@ -82,12 +82,12 @@
             android:paddingLeft="8dp"
             android:paddingRight="8dp">
             <TextView
-                android:layout_width="46dp"
+                android:layout_width="72dp"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:textColor="@color/bx_w_dim"
-                android:text="08:30"
-                android:textSize="13.5sp"
+                android:text="오전 8:30"
+                android:textSize="14sp"
                 android:textStyle="bold" />
             <FrameLayout
                 android:layout_width="3dp"
@@ -103,7 +103,7 @@
                 android:maxLines="1"
                 android:textColor="@color/bx_w_dim"
                 android:text="출근 준비"
-                android:textSize="14.5sp" />
+                android:textSize="14sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -114,7 +114,7 @@
                 android:maxWidth="130dp"
                 android:textColor="@color/bx_w_ink2"
                 android:text=""
-                android:textSize="12.5sp" />
+                android:textSize="13sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -127,12 +127,12 @@
             android:paddingLeft="8dp"
             android:paddingRight="8dp">
             <TextView
-                android:layout_width="46dp"
+                android:layout_width="72dp"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:textColor="@color/bx_w_accent"
-                android:text="10:00"
-                android:textSize="13.5sp"
+                android:text="오전 10:00"
+                android:textSize="14sp"
                 android:textStyle="bold" />
             <FrameLayout
                 android:layout_width="3dp"
@@ -148,7 +148,7 @@
                 android:maxLines="1"
                 android:textColor="@color/bx_w_ink"
                 android:text="팀 회의"
-                android:textSize="14.5sp" />
+                android:textSize="14sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -159,7 +159,7 @@
                 android:maxWidth="130dp"
                 android:textColor="@color/bx_w_accent"
                 android:text="지금"
-                android:textSize="12.5sp" />
+                android:textSize="13sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -172,12 +172,12 @@
             android:paddingLeft="8dp"
             android:paddingRight="8dp">
             <TextView
-                android:layout_width="46dp"
+                android:layout_width="72dp"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:textColor="@color/bx_w_ink"
-                android:text="12:30"
-                android:textSize="13.5sp"
+                android:text="오후 12:30"
+                android:textSize="14sp"
                 android:textStyle="bold" />
             <FrameLayout
                 android:layout_width="3dp"
@@ -193,7 +193,7 @@
                 android:maxLines="1"
                 android:textColor="@color/bx_w_ink"
                 android:text="점심 약속"
-                android:textSize="14.5sp" />
+                android:textSize="14sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -204,7 +204,7 @@
                 android:maxWidth="130dp"
                 android:textColor="@color/bx_w_ink2"
                 android:text=""
-                android:textSize="12.5sp" />
+                android:textSize="13sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -217,12 +217,12 @@
             android:paddingLeft="8dp"
             android:paddingRight="8dp">
             <TextView
-                android:layout_width="46dp"
+                android:layout_width="72dp"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:textColor="@color/bx_w_ink"
-                android:text="15:00"
-                android:textSize="13.5sp"
+                android:text="오후 3:00"
+                android:textSize="14sp"
                 android:textStyle="bold" />
             <FrameLayout
                 android:layout_width="3dp"
@@ -238,7 +238,7 @@
                 android:maxLines="1"
                 android:textColor="@color/bx_w_ink"
                 android:text="치과"
-                android:textSize="14.5sp" />
+                android:textSize="14sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -249,7 +249,7 @@
                 android:maxWidth="130dp"
                 android:textColor="@color/bx_w_ink2"
                 android:text=""
-                android:textSize="12.5sp" />
+                android:textSize="13sp" />
         </LinearLayout>
 
                 </LinearLayout>

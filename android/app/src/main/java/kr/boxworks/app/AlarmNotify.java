@@ -379,7 +379,7 @@ final class AlarmNotify {
             // 위에서 내려오는 작은 알림이라도 눈에 띄게 파란 바탕(서비스 알림만 색을 입힐 수 있다, 대표 지적 11/3 '알람이 너무 작다').
             // 알림을 밀어 지우면 소리도 멈춘다
             b.setColorized(true)
-                .setColor(0xFF3555D8)
+                .setColor(0xFF7C3AED)
                 .setDeleteIntent(actionPi(c, "ring-off", o));
         }
         if (!all) {

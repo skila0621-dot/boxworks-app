@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:maxLines="1"
         android:textColor="@color/bx_w_ink2"
-        android:textSize="12sp"
+        android:textSize="13sp"
         android:textStyle="bold" />
     <FrameLayout
         android:layout_width="0dp"

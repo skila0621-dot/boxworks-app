@@ -114,7 +114,7 @@ function pcDraw(id){
   const pick = (attr, v, cur, label) => '<button type="button" class="pick" ' + attr + '="' + esc(v) + '" aria-pressed="' + (cur === v) + '">' + label + '</button>';
   let body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcColor(e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
     '<h3 class="pc-title">' + esc(it.title) + '</h3>' +
-    '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(it.start) + ' 시작' + (it.end ? ' · ' + esc(it.end) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(it.start) + (it.end ? '–' + esc(it.end) : '') : '종일')) + '</p>' +
+    '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(bxT(it.start)) + ' 시작' + (it.end ? ' · ' + esc(bxT(it.end)) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(bxTR(it.start, it.end)) : '종일')) + '</p>' +
     (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +
     (it.note ? '<p class="pc-note">' + esc(it.note.slice(0, 300)) + (it.note.length > 300 ? '…' : '') + '</p>' : '') +
     '<div class="fg-l tv-h">알림</div><div class="picks">' + remOpts.map(o => pick('data-pcrem', o[0], remCur, o[1])).join('') + '</div>';
@@ -150,7 +150,7 @@ function pcSetHtml(){
         const on = c => !cfg.ids || cfg.ids.includes(String(c.id));
         h += '<div class="set-sub">보여 줄 캘린더</div><div class="pc-cals">' + PC.cals.map(c => '<button type="button" class="pc-calb" data-pc-cal="' + esc(String(c.id)) + '" aria-pressed="' + on(c) + '"><i class="dot" style="--c:' + pcColor(c.color) + '"></i><span>' + esc(c.name || '이름 없음') + (c.account && c.account !== c.name ? '<small>' + esc(c.account) + '</small>' : '') + '</span>' + ICON.check + '</button>').join('') + '</div>';
       }
-      h += '<div class="set-menu"><button type="button" class="menu-row" data-act="pc-refresh"><span class="mi">' + ICON.loop + '</span><span class="ml">지금 다시 읽기</span><span class="mv">' + (PC.at ? esc(hm(new Date(PC.at))) + ' · ' + (PC.events ? PC.events.length : 0) + '개' : '') + ICON.chevR + '</span></button></div>';
+      h += '<div class="set-menu"><button type="button" class="menu-row" data-act="pc-refresh"><span class="mi">' + ICON.loop + '</span><span class="ml">지금 다시 읽기</span><span class="mv">' + (PC.at ? esc(bxT(new Date(PC.at))) + ' · ' + (PC.events ? PC.events.length : 0) + '개' : '') + ICON.chevR + '</span></button></div>';
     }
   }
   return h + '</section>';

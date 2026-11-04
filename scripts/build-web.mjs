@@ -21,6 +21,7 @@ import v40 from './patches-v40.mjs';
 import v41 from './patches-v41.mjs';
 import v42 from './patches-v42.mjs';
 import v43 from './patches-v43.mjs';
+import v51 from './patches-v51.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -171,7 +172,7 @@ window.BX_alarmPlan = function(days){
           const a = {id: base + (j ? '_r' + j : ''), at: t, kind: 'routine', group: rt.name || '루틴', icon: r.leave ? 'car' : bxIconFor(r.name) || bxRtIconKey(rt),
             title: r.leave ? '출발할 시간' : r.name, sub, body: (rt.name || '루틴') + (sub ? ' · ' + sub : ''),
             from: addMin(day, p.start).getTime(), to: p.leave != null ? addMin(day, p.leave).getTime() : 0,
-            next: nx ? hmOf(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
+            next: nx ? bxT(hmOf(nx.at)) + ' ' + (nx.leave ? '출발' : nx.name) : ''};
           // series: 이 단계의 알람 묶음. 휴대폰에서 '확인'을 누르면 남은 다시 알림을 지우고, 앱에 '했어요'로 옮긴다
           a.series = base;
           a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴'; a.lv = lvR;
@@ -204,7 +205,7 @@ window.BX_alarmPlan = function(days){
       const t = addMin(day, toMin(e.start) - before).getTime(); if (t <= now || t > until) continue;
       const lead = before ? before + '분 뒤 시작' : '지금 시작';
       const at2 = {id: 'tt_' + e.id + '_' + ds, at: t, kind: 'item', group: '시간표', icon: bxIconFor(e.name) || 'school', title: e.name,
-        sub: (e.place ? e.place + ' · ' : '') + lead, body: e.start + (e.end ? '–' + e.end : '') + (e.place ? ' · ' + e.place : '') + ' · ' + lead,
+        sub: (e.place ? e.place + ' · ' : '') + lead, body: bxTR(e.start, e.end) + (e.place ? ' · ' + e.place : '') + ' · ' + lead,
         pt: '시간표 알림', ps: lead + ' · 잠금을 풀면 보여요', pg: '시간표', lv: lvT};
       out.push(at2); if (lvT === 'notice') nagOf(at2);
     }
@@ -263,7 +264,7 @@ boot();
   {
     name: '월간 달력 칸의 일정 칩에 분류 색과 시각 표시 자리를 달아 휴대폰에서도 제목이 보이게(스타일은 app-shim.js)',
     find: "'<span class=\"c-chip' + (i.done ? ' done' : '') + (lt ? ' late' : '') + '\" data-item=\"' + esc(i.id) + '\" title=\"두 번 누르면 수정\"><i class=\"dot\" style=\"--c:' + (lt ? 'var(--warn)' : i.done ? 'var(--done)' : catColor(i.categoryId)) + '\"></i><span>' + (i.start ? i.start + ' ' : '')",
-    replace: "'<span class=\"c-chip' + (i.done ? ' done' : '') + (lt ? ' late' : '') + '\" style=\"--c:' + (lt ? 'var(--warn)' : i.done ? 'var(--done)' : catColor(i.categoryId)) + '\" data-item=\"' + esc(i.id) + '\" title=\"두 번 누르면 수정\"><i class=\"dot\" style=\"--c:' + (lt ? 'var(--warn)' : i.done ? 'var(--done)' : catColor(i.categoryId)) + '\"></i><span>' + (i.start ? '<b class=\"c-t\">' + i.start + ' </b>' : '')"
+    replace: "'<span class=\"c-chip' + (i.done ? ' done' : '') + (lt ? ' late' : '') + '\" style=\"--c:' + (lt ? 'var(--warn)' : i.done ? 'var(--done)' : catColor(i.categoryId)) + '\" data-item=\"' + esc(i.id) + '\" title=\"두 번 누르면 수정\"><i class=\"dot\" style=\"--c:' + (lt ? 'var(--warn)' : i.done ? 'var(--done)' : catColor(i.categoryId)) + '\"></i><span>' + (i.start ? '<b class=\"c-t\">' + bxT(i.start) + ' </b>' : '')"
   },
   {
     name: '└ 휴대폰 폭에서는 칸마다 일정 2개 + "+N"',
@@ -328,7 +329,7 @@ boot();
   {
     name: '시간표(D-06) 코드 넣기: web-src/timetable.js',
     find: '\nwindow.BX_back = function(){',
-    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'setall.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v38.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v39.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v40.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v41.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v42.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v43.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v44.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v45.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v46.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v48.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v49.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v50.js'), 'utf8') + '\nwindow.BX_back = function(){'
+    replace: '\n' + readFileSync(join(root, 'web-src', 'timetable.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'travel.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'calendar.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'home.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'brief.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'icons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'rticons.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'meditation.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'start.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'flow.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'tidy.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v30.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v31.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v32.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v36.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'space.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'motion.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'setall.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v38.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v39.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v40.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v41.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v42.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v43.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v44.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v45.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v46.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v48.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v49.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v50.js'), 'utf8') + '\n' + readFileSync(join(root, 'web-src', 'v51.js'), 'utf8') + '\nwindow.BX_back = function(){'
   },
   {
     name: '└ 시간표 탭(아래 메뉴): 화면 그리기',
@@ -407,7 +408,7 @@ function parseQuick0(text, now){
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
   }
 ];
-patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words, ...v37, ...v38, ...v39, ...v40, ...v41, ...v42, ...v43);
+patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words, ...v37, ...v38, ...v39, ...v40, ...v41, ...v42, ...v43, ...v51);
 
 for (const p of patches) {
   const count = html.split(p.find).length - 1;
@@ -425,6 +426,14 @@ for (const p of patches) {
   console.log(`적용: ${p.name}`);
 }
 
+// 시험판 51(대표 11/4 디자인 가이드 '6단계로 줄이기'): 글자 크기는 28 · 20 · 16 · 14 · 13 · 11.5만 쓴다.
+// 원본 · 패치 · 모듈 어디에서 온 font-size든 가장 가까운 단계로 맞춘다. 명상 타이머 숫자만 따로(50 · 38). 0(글자 숨김)은 그대로
+{
+  const step = v => v === 0 ? 0 : v <= 11.5 ? 11.5 : v <= 13 ? 13 : v <= 14.5 ? 14 : v <= 17 ? 16 : v <= 24 ? 20 : v <= 34 ? 28 : v <= 44 ? 38 : 50;
+  let n = 0;
+  html = html.replace(/font-size:(\s*)(\d+(?:\.\d+)?)px/g, (m0, sp, v) => { const s = step(+v); if (s !== +v) n++; return 'font-size:' + sp + s + 'px'; });
+  console.log(`글자 크기 6단계: ${n}곳을 가까운 단계로`);
+}
 // 바꾼 뒤 자바스크립트 문법이 깨지지 않았는지 확인(깨진 채로 www를 만들지 않음)
 {
   const vm = await import('node:vm');

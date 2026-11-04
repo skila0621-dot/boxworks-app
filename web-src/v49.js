@@ -10,8 +10,8 @@
 function bxR49Go(it){
   if (!it || it.done || !it.start || isLate(it) || typeof tvPlan !== 'function') return null;
   const p = tvPlan(it); if (!p) return null;
-  if (p.travel && p.leave) return {t: hm(p.leave), s: '출발'};
-  if (p.rt && p.start) return {t: hm(p.start), s: '준비'};
+  if (p.travel && p.leave) return {t: bxT(p.leave), s: '출발'};
+  if (p.rt && p.start) return {t: bxT(p.start), s: '준비'};
   return null;
 }
 // 줄 정리: 남길 것만(날짜 · 여러 날 · 지남 · 진행 중 · 곧 시작 · 장소 · 📎 첨부 수), 장소는 글자만
@@ -201,7 +201,7 @@ document.addEventListener('click', ev => {
     'html.bx-app .row.bx-r49 .bx-next-tag{display:none}',
     'html.bx-app .row.bx-r49 .row-body{min-width:0}',
     'html.bx-app .bx-r49-go{flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:58px;height:46px;margin:0 0 0 10px;padding:0 6px;border-radius:14px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line)}',
-    'html.bx-app .bx-r49-go b{font-size:15px;font-weight:800;line-height:18px;color:var(--accent)}',
+    'html.bx-app .bx-r49-go b{font-size:16px;font-weight:800;line-height:18px;color:var(--accent-text)}',
     'html.bx-app .bx-r49-go small{font-size:11.5px;font-weight:700;line-height:14px;color:var(--ink-2)}',
     'html.bx-app .row.bx-next .bx-r49-go{background:var(--accent);box-shadow:none}',
     'html.bx-app .row.bx-next .bx-r49-go b,html.bx-app .row.bx-next .bx-r49-go small{color:var(--accent-ink)}',
@@ -212,14 +212,14 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-ep #f-date .bx-fend{padding:0 0 14px}html.bx-app .bx-ep #f-date .bx-fspan{margin-top:2px}',
     'html.bx-app .bx-dcal{background:var(--card-bg);border-radius:26px;padding:6px 14px 12px}',
     'html.bx-app .bx-dcal-h{display:flex;align-items:center;justify-content:space-between;height:50px}',
-    'html.bx-app .bx-dcal-h b{font-size:17px;font-weight:700;color:var(--ink)}',
+    'html.bx-app .bx-dcal-h b{font-size:16px;font-weight:700;color:var(--ink)}',
     'html.bx-app .bx-dcal-h .icon-btn{width:44px;height:44px}',
     'html.bx-app .bx-dcal-w,html.bx-app .bx-dcal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}',
-    'html.bx-app .bx-dcal-w span{height:28px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:var(--ink-3)}',
-    'html.bx-app .bx-dcal-w .sun{color:var(--danger,#d93025)}html.bx-app .bx-dcal-w .sat{color:var(--accent)}',
-    'html.bx-app .bx-dc{position:relative;height:44px;margin:0;padding:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:15.5px;font-weight:500;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}',
+    'html.bx-app .bx-dcal-w span{height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink-3)}',
+    'html.bx-app .bx-dcal-w .sun{color:var(--danger,#d93025)}html.bx-app .bx-dcal-w .sat{color:var(--accent-text)}',
+    'html.bx-app .bx-dc{position:relative;height:44px;margin:0;padding:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}',
     'html.bx-app .bx-dc span{position:relative;z-index:1;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-variant-numeric:tabular-nums}',
-    'html.bx-app .bx-dc.sun{color:var(--danger,#d93025)}html.bx-app .bx-dc.sat{color:var(--accent)}',
+    'html.bx-app .bx-dc.sun{color:var(--danger,#d93025)}html.bx-app .bx-dc.sat{color:var(--accent-text)}',
     'html.bx-app .bx-dc.other{opacity:.38}',
     'html.bx-app .bx-dc.today span{box-shadow:inset 0 0 0 1.5px var(--ink-2)}',
     'html.bx-app .bx-dc.in{background:var(--accent-soft)}',
@@ -236,9 +236,9 @@ document.addEventListener('click', ev => {
     'html.bx-app .bx-esheet .sheet-f.bx-f49 > :not(.bx-pill49){display:none!important}',
     'html.bx-app .bx-pill49{display:flex;align-items:center;height:56px;padding:0 6px;border-radius:28px;background:var(--card-bg);box-shadow:0 6px 20px rgba(0,0,0,.16),0 0 0 1px var(--line)}',
     'html.bx-app .bx-pill49 > i{width:1px;height:20px;background:var(--line-2,var(--line))}',
-    'html.bx-app .bx-pill49 .bx-pl-b{min-width:104px;height:48px;margin:0;padding:0 20px;border:0;border-radius:24px;background:transparent;color:var(--ink);font:inherit;font-size:16.5px;font-weight:700;box-shadow:none}',
+    'html.bx-app .bx-pill49 .bx-pl-b{min-width:104px;height:48px;margin:0;padding:0 20px;border:0;border-radius:24px;background:transparent;color:var(--ink);font:inherit;font-size:16px;font-weight:700;box-shadow:none}',
     'html.bx-app .bx-pill49 .bx-pl-b:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}',
-    'html.bx-app .bx-pill49 .bx-pl-save{color:var(--accent)}',
+    'html.bx-app .bx-pill49 .bx-pl-save{color:var(--accent-text)}',
     'html.bx-app .bx-pill49 .bx-pl-save svg{display:none}',
     'html.bx-app #f-chips .bx-er-del .bx-er-ic,html.bx-app #f-chips .bx-er-del .bx-er-t{color:var(--danger,#d93025)}'
   ].join('\n');

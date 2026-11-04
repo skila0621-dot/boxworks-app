@@ -24,7 +24,7 @@ function bxRtMenu(rid){
   const rt = M.routines.find(r => r.id === rid); if (!rt) return;
   const p = rtPlan(rt);
   const row = (act, icon, label, sub, warn) => '<button type="button" class="menu-row' + (warn ? ' bx-im-del' : '') + '" data-bx-rm="' + act + '"><span class="mi">' + icon + '</span><span class="ml">' + label + '</span>' + (sub ? '<span class="mv">' + esc(sub) + '</span>' : '') + '</button>';
-  openSheet({title: rt.name || '루틴', draw: () => setSheet('<p class="p small" style="margin:-6px 0 10px">' + esc(rtWhenText(rt) + (p.bad ? '' : ' · ' + mm(p.start) + ' 시작')) + '</p><div class="menu">' +
+  openSheet({title: rt.name || '루틴', draw: () => setSheet('<p class="p small" style="margin:-6px 0 10px">' + esc(rtWhenText(rt) + (p.bad ? '' : ' · ' + bxT(mm(p.start)) + ' 시작')) + '</p><div class="menu">' +
     row('edit', ICON.edit, '수정', '') + row('del', ICON.trash, '삭제', '삭제해도 되돌릴 수 있어요', true) + '</div>', '')});
   SH.bxRm = rid;
 }
@@ -84,12 +84,12 @@ document.addEventListener('click', ev => {
     '.bx-app .bx-rs-note{margin:2px 0 8px}',
     // 내가 쓸 기능: 줄마다 한 줄 설명, 아침 일정은 켜면 아래에 언제 오는지와 단추 둘
     '.bx-app .bx-ft-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}',
-    '.bx-app .bx-ft-t small{font-size:12.5px;font-weight:400;color:var(--ink-3)}',
+    '.bx-app .bx-ft-t small{font-size:13px;font-weight:400;color:var(--ink-3)}',
     '.bx-app .bx-ft-more{margin:-2px 0 4px;padding:10px 12px;border-radius:12px;background:var(--sunk)}',
     '.bx-app .bx-ft-more .p{margin:0 0 8px}',
     '.bx-app .bx-ft-acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}',
     // 명상 시작 전 5초: 원 가운데에 큰 숫자, 아래 안내 두 줄까지
-    '.bx-app .bx-med-run.lead .bx-med-left{font-size:44px}',
+    '.bx-app .bx-med-run.lead .bx-med-left{font-size:38px}',
     '.bx-app .bx-med-run.lead .bx-med-cue{max-width:150px;text-align:center;word-break:keep-all;line-height:1.35}'
   ].join('');
   (document.head || document.documentElement).appendChild(st);
