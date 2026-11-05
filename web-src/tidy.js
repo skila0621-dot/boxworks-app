@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 62;
+const BX_TRIAL = 63;
 
 /* 설정(앱): 첫 화면은 묶음 목록(화면 · 휴대폰 캘린더 · 알림 · 분류·데이터), 누르면 그 묶음만 보이는 화면.
    뒤로 가기(‹ 또는 휴대폰 뒤로)로 목록에 돌아온다. 휴대폰 설정과 같은 방식(대표 결정 11/3: 한 페이지가 너무 길어 메뉴를 다시 찾기 불편).
@@ -160,5 +160,7 @@ window.BX_T = {
     // 시험판 59: 날짜 · 시각이 없거나 깨졌을 때 글('미지정' · '--:--')
     md: (s, wd) => fmtMD(s, wd), edDay: s => bxEdDay(s), bxMD: s => bxMD(s), range: (a, b) => bxRangeLabel(a, b), rel: s => relDay(s, M.today),
     // 시험판 62: 아래 메뉴 · 일정 창 값(바퀴 · 출발·준비)
-    dock: () => bxDockKeys(), form: () => F ? JSON.parse(JSON.stringify(F)) : null}
+    dock: () => bxDockKeys(), form: () => F ? JSON.parse(JSON.stringify(F)) : null,
+    // 시험판 63: 색 막대 글자색(명암 대비)
+    onColor: c => bxOnColor(c), hexOf: c => bxHexOf(c)}
 };

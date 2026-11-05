@@ -9,6 +9,8 @@
 //  + mid(목록 줄의 체크 · 확인 필요 아이콘이 그 줄 글 묶음의 세로 가운데에 있는지 — 대표 메모 11/5 '그 일정에 중앙 정렬', 시험판 57)
 //  + lab(같은 상자 안 이름표가 같은 줄에서 시작하는지 — 시간 페이지 '소요 시간'이 '시간'보다 20 안쪽, 시험판 58)
 //  + time12(24시간 표시일 때 오전 · 오후가 붙은 시각 — 시각 표시 설정을 따르지 않는 글, 시험판 58)
+//  + low(명암 대비: 글자 4.5:1 · 큰 글자 3:1, 카드 위 카드처럼 겹친 바탕까지 섞어서, 시험판 63)
+//  + big(휴대폰 글꼴 1.3배에서 잘림 · 겹침 — run.cjs가 폭 360 · 라이트에서 글자를 키워 한 번 더 잰다, 시험판 63)
 // 결과: [{k, p(자리), t(글), ...}] — 하나라도 있으면 시험판을 내지 않는다
 module.exports = function audit(opts){
   opts = opts || {};
@@ -121,7 +123,7 @@ module.exports = function audit(opts){
     const s = cs(e), ps = getComputedStyle(e, '::placeholder');
     cv.font = ps.fontWeight + ' ' + ps.fontSize + ' ' + ps.fontFamily;
     const need = cv.measureText(e.placeholder).width + (parseFloat(ps.letterSpacing) || 0) * e.placeholder.length, room = e.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
-    if (need > room + 1) out.push({k: 'cut', why: '안내 글', p: path(e), t: e.placeholder, w: Math.round(room), need: Math.round(need)});
+    if (need > room + 1 && s.textOverflow !== 'ellipsis') out.push({k: 'cut', why: '안내 글', p: path(e), t: e.placeholder, w: Math.round(room), need: Math.round(need)});
   }
   // fit: 시각 글자가 든 고정 칸(줄을 바꾸지 않는 칸)은 지금 보이는 시각이 아니라 가장 넓은 시각으로 잰다(시험판 55: 캘린더 목록 '오전 10:00'이
   // 76px 칸을 넘음 — 개발 쪽에선 1.4px라 통과, CI 글자 그리기에선 2px 넘게). 휴대폰마다 글자 폭이 조금씩 달라 2px 남아야 통과.
@@ -283,6 +285,24 @@ module.exports = function audit(opts){
     const b = bgOf(e), mix = {r: c.r * c.a + b.r * (1 - c.a), g: c.g * c.a + b.g * (1 - c.a), b: c.b * c.a + b.b * (1 - c.a)};
     const l1 = lum(mix), l2 = lum(b), ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
     if (ratio < 1.6) out.push({k: 'ink', p: path(e), t: txt(e), ratio: Math.round(ratio * 100) / 100});
+  }
+  // + 명암 대비(시험판 63, 자료집 R-대비 · 앞선 결정 '흐린 글자 4.5:1 이상'): 글자 4.5:1, 큰 글자(24 이상 · 18.66 이상 굵게) 3:1.
+  //   바탕은 위로 올라가며 반투명 상자 바탕을 겹쳐 섞고(카드 위 카드), 글자 · 조상의 투명도도 곱한다. 쓸 수 없는 단추(disabled)는 뺀다(WCAG 예외)
+  const bgMix = e => { const layers = []; for (let x = e; x; x = x.parentElement) { const s = cs(x); if (/gradient|url/.test(s.backgroundImage)) return null; const c = rgb(s.backgroundColor); if (c && c.a > 0) { layers.push(c); if (c.a >= 0.99) break; } if (x === document.documentElement) break; }
+    let b = {r: 255, g: 255, b: 255}; const root = rgb(cs(document.documentElement).backgroundColor), bd = rgb(cs(document.body).backgroundColor);
+    if (root && root.a > 0.5) b = root; if (bd && bd.a > 0.5) b = bd;
+    for (let i = layers.length - 1; i >= 0; i--) { const c = layers[i]; b = {r: c.r * c.a + b.r * (1 - c.a), g: c.g * c.a + b.g * (1 - c.a), b: c.b * c.a + b.b * (1 - c.a)}; } return b; };
+  const off = e => !!e.closest('button:disabled,[aria-disabled="true"],fieldset:disabled,input:disabled,select:disabled');
+  for (const e of all) {
+    if (!ownText(e) || srOnly(e) || e.closest('input,textarea,select') || off(e)) continue;
+    const s = cs(e), c = rgb(s.color); if (!c) continue;
+    let a = c.a; for (let x = e; x && x !== document.body; x = x.parentElement) a *= +cs(x).opacity;
+    if (a < 0.2) continue;
+    const b = bgMix(e); if (!b) continue;
+    const mix = {r: c.r * a + b.r * (1 - a), g: c.g * a + b.g * (1 - a), b: c.b * a + b.b * (1 - a)};
+    const l1 = lum(mix), l2 = lum(b), ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    const fz = parseFloat(s.fontSize), fw = +s.fontWeight || 400, need = fz >= 24 || (fz >= 18.66 && fw >= 700) ? 3 : 4.5;
+    if (ratio < need - 0.005) out.push({k: 'low', p: path(e), t: txt(e), ratio: Math.round(ratio * 100) / 100, need, c: s.color});
   }
   // + 낱말 가운데 줄바꿈('주소 / 는')
   const word = ch => /[가-힣A-Za-z0-9:]/.test(ch);

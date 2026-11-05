@@ -57,10 +57,27 @@ function bxItemHex(it){
   if (it.color && !it.pc) return it.color;
   const c = M.catMap.get(it.categoryId); return c ? c.color : (typeof PC !== 'undefined' && PC.colors.get(it.categoryId)) || '';
 }
-// 막대 글자색: 밝은 색(노랑)은 진한 글자
-function bxInkOn(hex){
-  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '')); if (!m) return '#fff';
-  const n = parseInt(m[1], 16); return (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) > 160 ? '#1d2127' : '#fff';
+// 색 막대 위 글자(시험판 63, 명암 대비 4.5:1): 지금 테마에서 실제로 보이는 색으로 흰 글자 · 진한 글자 중 대비가 큰 쪽.
+// 둘 다 4.5가 안 되는 중간 밝기 색(파랑 · 빨강 · 회색 일부)은 바탕을 같은 색 그대로 조금씩 어둡게 해서 흰 글자 → {bg, on}
+function bxHexOf(c){
+  c = String(c || '').trim();
+  const v = /^var\((--[\w-]+)\)$/.exec(c);
+  if (v) c = getComputedStyle(document.documentElement).getPropertyValue(v[1]).trim();
+  if (/^#[0-9a-f]{3}$/i.test(c)) c = '#' + c.slice(1).split('').map(x => x + x).join('');
+  return /^#[0-9a-f]{6}$/i.test(c) ? c.toLowerCase() : '';
+}
+function bxLum(hex){ const n = parseInt(hex.slice(1), 16), f = x => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; return 0.2126 * f(n >> 16 & 255) + 0.7152 * f(n >> 8 & 255) + 0.0722 * f(n & 255); }
+function bxOnColor(c){
+  const hex = bxHexOf(c); if (!hex) return {bg: c, on: '#fff'};
+  const DARK = '#1d2127', ld = bxLum(DARK), L = bxLum(hex), cw = 1.05 / (L + 0.05), cd = (L + 0.05) / (ld + 0.05);
+  if (cd >= 4.5 && cd >= cw) return {bg: c, on: DARK};
+  if (cw >= 4.5) return {bg: c, on: '#fff'};
+  const n = parseInt(hex.slice(1), 16), rgb = [n >> 16 & 255, n >> 8 & 255, n & 255];
+  for (let t = 0.04; t < 0.6; t += 0.04) {
+    const h = '#' + rgb.map(x => Math.round(x * (1 - t)).toString(16).padStart(2, '0')).join('');
+    if (1.05 / (bxLum(h) + 0.05) >= 4.6) return {bg: h, on: '#fff'};
+  }
+  return {bg: '#3a3f47', on: '#fff'};
 }
 
 /* ---------- 캘린더 ---------- */
@@ -103,8 +120,8 @@ function bxChipHtml(i){
   return '<span class="c-chip' + (i.done ? ' done' : '') + (lt ? ' late' : '') + '" style="--c:' + c + '" data-item="' + esc(i.id) + '" title="두 번 누르면 수정"><i class="dot" style="--c:' + c + '"></i><span>' + (i.start ? '<b class="c-t">' + bxT(i.start) + ' </b>' : '') + (esc(i.title) || '(제목 없음)') + '</span></span>';
 }
 function bxBarHtml(g){
-  const it = g.it, n = g.e - g.s + 1;
-  return '<span class="c-bar' + (g.head ? ' h' : '') + (g.tail ? ' t' : '') + (it.pc ? ' pc' : '') + (it.done ? ' done' : '') + '" style="--c:' + (it.done ? 'var(--done)' : bxItemColor(it)) + ';--n:' + n + ';--on:' + (it.done ? '#fff' : bxInkOn(bxItemHex(it))) + '" data-item="' + esc(it.id) + '"><span>' + (g.head ? '' : '↳ ') + (esc(it.title) || '(제목 없음)') + '</span></span>';
+  const it = g.it, n = g.e - g.s + 1, oc = it.done ? null : bxOnColor(bxItemColor(it));
+  return '<span class="c-bar' + (g.head ? ' h' : '') + (g.tail ? ' t' : '') + (it.pc ? ' pc' : '') + (it.done ? ' done' : '') + '" style="--c:' + (it.done ? 'var(--sunk)' : oc.bg) + ';--n:' + n + ';--on:' + (it.done ? 'var(--ink-3)' : oc.on) + '" data-item="' + esc(it.id) + '"><span>' + (g.head ? '' : '↳ ') + (esc(it.title) || '(제목 없음)') + '</span></span>';
 }
 function bxMonthCellsHtml(y, m){
   // 시험판 43: 칸 높이에 맞춰 2~4줄(web-src/v43.js bxCalFit이 잰 값). 넓은 화면은 3줄

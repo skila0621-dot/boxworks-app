@@ -65,13 +65,7 @@ function collect(){
   }
   return res;
 }
-// 글자 크기를 z배로(휴대폰 글꼴 크기 설정을 흉내: 글자 크기 · px 줄 높이를 함께). 되돌리는 함수를 돌려준다
-function zoomText(z){
-  const els = Array.from(document.body.querySelectorAll('*')).filter(e => !e.closest('svg,script,style,template'));
-  const was = els.map(e => [e, e.style.getPropertyValue('font-size'), e.style.getPropertyPriority('font-size'), e.style.getPropertyValue('line-height'), e.style.getPropertyPriority('line-height'), getComputedStyle(e).fontSize, getComputedStyle(e).lineHeight]);
-  for (const [e, , , , , fz, lh] of was) { e.style.setProperty('font-size', parseFloat(fz) * z + 'px', 'important'); if (/px$/.test(lh)) e.style.setProperty('line-height', parseFloat(lh) * z + 'px', 'important'); }
-  window.__bxUnzoom = () => { for (const [e, f, fp, l, lp] of was) { if (f) e.style.setProperty('font-size', f, fp); else e.style.removeProperty('font-size'); if (l) e.style.setProperty('line-height', l, lp); else e.style.removeProperty('line-height'); } };
-}
+const zoomText = require('./zoom.cjs');
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });

@@ -130,6 +130,16 @@ cd android && ./gradlew assembleDebug
 - 시간 페이지 바퀴: `web-src/v44.js`의 `bxWheelHtml` · `bxWheelMount`(공통 부품, 칸 40 · 다섯 줄)와 `bxTwHtml` · `bxTwPick`. 원본 `drawFTime`의 시각 칸은 빌드가 바꾼다(`scripts/build-web.mjs` '시간 페이지: 시작 · 끝 칸과 바퀴'). 칸이 페이지로 옮겨지면 밀린 자리가 0이 되므로 `bxEpSync`가 다시 맞춘다
 - 출발·준비 줄: `web-src/travel.js`의 `tvLineHtml(p, start, title, ed)` · `tvLineApply` · `tvSaveToRoutine`. 이 일정만 바꾼 값은 일정의 `prepMin`(단계 id → 분) · `prepRing`(단계 id · `leave` · `pre` → 0 끔 · 1 켬), 휴대폰 캘린더 일정은 `px_` 문서의 같은 이름. `tvPlan`이 읽어 알람 계획(`tvAlarms`)까지 쓴다
 
+## 명암 대비 · 큰 글자 (시험판 63)
+
+- **대비**: 글자 4.5:1, 큰 글자(24 이상 · 18.66 이상 굵게) 3:1 — 카드 위 카드처럼 겹친 반투명 바탕까지 섞어서, 다크에서도. 정렬 점검 `low`(tests/layout/checks.js)가 잡는다
+  - 흐린 글자 `--ink-3`(라이트 #5F6672 · 다크 #959CA6). 쓸 수 없는 단추 글자는 `--ink-off`(WCAG 예외라 따로, 단추 견본 기준 사진 그대로)
+  - 주황 · 빨강 바탕 위 글자: `--warn-bg` + `--on-warn`, `--danger` + `--on-danger`(다크는 밝은 바탕에 진한 글자). 주황 점 · 테처럼 글자가 없는 곳만 `--warn`
+  - 색 막대 글자: `bxOnColor(색)`(web-src/v39.js) — 지금 테마에서 보이는 색으로 흰 · 진한 글자 중 대비가 큰 쪽, 둘 다 모자라면 바탕을 조금 어둡게
+  - 흐리게 할 때 투명도를 쓰지 말 것(글자까지 옅어져 대비가 떨어짐): 다른 달 날짜 · 끝낸 줄 · 지난 일 · 확인 필요 줄은 글자색으로, 체크 · 아이콘만 투명도
+- **큰 글자**: 안드로이드 웹뷰는 휴대폰 글꼴 크기만큼 모든 글자(px 포함)를 키운다. 글이 드는 칸의 폭은 px가 아니라 rem · em으로(목록 시각 칸 `--row-tw` 5rem · 24시간 3.5rem, 루틴 단계 창 `--rt-tw`). 정렬 점검 `big`이 폭 360 · 라이트에서 글자를 1.3배로 키워(tests/layout/zoom.cjs) 잘림 · 겹침을 한 번 더 잰다
+- 자료집(앱디자인 패턴 규정) 기준으로 화면마다 세기: `node tests/layout/rules.cjs`(간격 토큰 · 글자 역할 · 누르는 영역 · 대비 · 글자 1.3 · 2배, 시험판을 막지 않음)
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.

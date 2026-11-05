@@ -10,11 +10,14 @@ const fs = require('fs');
 const path = require('path');
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const OUT = path.resolve(arg('out', path.join(__dirname, 'out')));
-const GATE = ['tap', 'cover', 'cut', 'col', 'colx', 'nan', 'icon', 'gap', 'ink', 'midword', 'time24', 'time12', 'comp', 'fit', 'mid', 'lab', 'error'];
+const GATE = ['tap', 'cover', 'cut', 'col', 'colx', 'nan', 'icon', 'gap', 'ink', 'low', 'big', 'midword', 'time24', 'time12', 'comp', 'fit', 'mid', 'lab', 'error'];
+// 큰 글자(시험판 63): 휴대폰 글꼴 크기를 키운 사람(1.3배)도 잘림 · 겹침 없이. 폭이 가장 좁은 360 · 라이트에서만 한 번 더 잰다(두 시각 표시 모두)
+const BIG = 1.3;
 
 if (process.argv[2] === '--worker') {
   const W = +process.argv[3], theme = process.argv[4], clock = process.argv[5] === '24' ? '24' : '12', snapDir = arg('snap', ''), only = arg('only', ''), shots = arg('shots', '1') === '1';
-  const audit = require('./checks.js'), scenario = require('./scenario.cjs');
+  const audit = require('./checks.js'), scenario = require('./scenario.cjs'), zoomText = require('./zoom.cjs');
+  const big = arg('big', W === 360 && theme === 'light' ? String(BIG) : '0');
   const sub = W + '-' + theme + (clock === '24' ? '-24' : '');
   const dir = snapDir ? path.join(snapDir, sub) : path.join(OUT, sub);
   fs.mkdirSync(dir, { recursive: true });
@@ -60,6 +63,12 @@ if (process.argv[2] === '--worker') {
     if (snapDir) await p.evaluate(() => document.querySelectorAll('.bx-set-foot').forEach(e => { e.textContent = e.textContent.replace(/시험판 \d+/, '시험판 N'); }));
     if (snapDir) { rec.top = await digest(p); await p.screenshot({ path: path.join(dir, nm + '.png') }); }
     else { add(await run(p, { top: true }), '위'); if (shots) await p.screenshot({ path: path.join(dir, nm + '.png') }); }
+    if (!snapDir && +big > 1) {
+      await p.evaluate('(' + zoomText.toString() + ')(' + big + ')'); await p.waitForTimeout(150);
+      add((await run(p, { top: true })).filter(x => x.k === 'cut' || x.k === 'tap').map(x => Object.assign({}, x, { k: 'big', why: '글자 ' + big + '배 · ' + (x.k === 'tap' ? '겹침' : '잘림') + (x.why ? ' · ' + x.why : '') })), '글자 ' + big + '배');
+      if (shots) await p.screenshot({ path: path.join(dir, nm + '__big.png') });
+      await p.evaluate(() => window.__bxUnzoom && window.__bxUnzoom()); await p.waitForTimeout(100);
+    }
     // 내려 보며 아래쪽까지, 맨 아래에서 떠 있는 것이 가리는지
     const n = await scrollers(p);
     if (n) {

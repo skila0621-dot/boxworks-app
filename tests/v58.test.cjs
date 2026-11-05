@@ -75,7 +75,7 @@ module.exports = async function () {
     await dock('today'); await p.waitForTimeout(400);
     const h24 = await p.evaluate(() => {
       const r = document.querySelector('#tcard2 .row-main[data-id="it_t"]'), row = r && r.closest('.row');
-      const tw = getComputedStyle(document.documentElement).getPropertyValue('--row-tw').trim();
+      const tw = row ? row.querySelector('.row-time').getBoundingClientRect().width + 'px' : null;   // 시험판 63: 3.5rem = 56px
       const txt = document.querySelector('#screen').innerText;
       return { t: row ? row.querySelector('.row-time').textContent.trim() : null, tw, ampm: /(오전|오후)\s?\d{1,2}:\d{2}/.test(txt) };
     });

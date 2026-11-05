@@ -77,9 +77,11 @@ module.exports = async function () {
   const q = app2.page;
   try {
     await q.waitForTimeout(700);
-    c.eq(await q.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--row-tw').trim()), '80px', '목록 시각 칸 폭은 공통 값 하나(--row-tw 80)');
+    // 시험판 63: 칸 폭은 rem(5rem = 글꼴 1배에서 80px, 휴대폰 글꼴을 키우면 함께 커짐) — 값 대신 그 값으로 그린 폭을 잰다
+    const tw = () => q.evaluate(() => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;top:0;left:0;height:1px;width:var(--row-tw)'; document.body.appendChild(d); const w = d.getBoundingClientRect().width; d.remove(); return w; });
+    c.eq([await q.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--row-tw').trim()), await tw()], ['5rem', 80], '목록 시각 칸 폭은 공통 값 하나(--row-tw 5rem = 80)');
     // 가장 넓은 시각을 굵기 800으로 넣어도 2px 남음
-    const room = await q.evaluate(() => { const b = document.createElement('b'); b.style.cssText = 'position:fixed;top:0;left:0;white-space:nowrap;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:var(--ls-body)'; b.textContent = '오후 12:59'; document.body.appendChild(b); const w = b.getBoundingClientRect().width; b.remove(); return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-tw')) - w; });
+    const room = await q.evaluate(() => { const b = document.createElement('b'); b.style.cssText = 'position:fixed;top:0;left:0;white-space:nowrap;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:var(--ls-body)'; b.textContent = '오후 12:59'; document.body.appendChild(b); const w = b.getBoundingClientRect().width; b.remove(); const d = document.createElement('div'); d.style.cssText = 'position:fixed;top:0;left:0;height:1px;width:var(--row-tw)'; document.body.appendChild(d); const tw = d.getBoundingClientRect().width; d.remove(); return tw - w; });
     c.ok(room >= 2, "가장 넓은 시각('오후 12:59' · 굵기 800)이 시각 칸에 2px 넘게 남음 " + room.toFixed(2));
     // 확인 필요: 미루는 단추는 아이콘 없이 글만(span) · 두 칸은 글이 다 들어가는 폭 아래로 안 줄어듦
     await q.click('[data-act="bx-late-open"]'); await q.waitForTimeout(600);

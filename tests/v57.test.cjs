@@ -34,15 +34,17 @@ module.exports = async function () {
       const tt = document.querySelector('#tcard2 .row[data-kind="tt"]'), rt = document.querySelector('#tcard2 .row[data-rid="rt_w"]');
       const w = l && l.querySelector(':scope > .rc-warn'), lc = l && l.querySelector(':scope > .chk');
       return {
-        done: d ? { op: getComputedStyle(d).opacity, t: deco(d.querySelector('.row-time b')), n: deco(d.querySelector('.row-title')), warn: !!d.querySelector('.rc-warn') } : null,
-        late: l && w && lc ? { svg: norm(w.innerHTML) === norm(S.alertc), left: box(w).r <= box(lc).l, anim: getComputedStyle(w).animationName, main: getComputedStyle(l.querySelector(':scope > .row-main')).opacity,
+        done: d ? { op: getComputedStyle(d).opacity, t: deco(d.querySelector('.row-time b')), n: deco(d.querySelector('.row-title')), warn: !!d.querySelector('.rc-warn'),
+          nc: getComputedStyle(d.querySelector('.row-title')).color, ck: getComputedStyle(d.querySelector(':scope > .chk')).opacity } : null,
+        late: l && w && lc ? { svg: norm(w.innerHTML) === norm(S.alertc), left: box(w).r <= box(lc).l, anim: getComputedStyle(w).animationName, main: getComputedStyle(l.querySelector(':scope > .row-main')).opacity, nc: getComputedStyle(l.querySelector('.row-title')).color,
           sub: (l.querySelector('.rc-sub') || {}).textContent || '', cy: Math.abs(box(lc).cy - box(l).cy), wcy: Math.abs(box(w).cy - box(l).cy), two: !!l.querySelector('.rc-sub'), deco: deco(l.querySelector('.row-title')) } : null,
         tt: tt ? { warn: !!tt.querySelector('.rc-warn'), past: tt.classList.contains('past') } : null,
         rt: rt ? { warn: !!rt.querySelector(':scope > .rc-warn'), sub: (rt.querySelector('.rc-sub') || {}).textContent || '' } : null
       };
     });
-    c.ok(info.done && info.done.op === '0.5' && /line-through/.test(info.done.t) && /line-through/.test(info.done.n) && !info.done.warn, '체크한 일정: 시각 · 이름 가로줄 + 줄 반쯤 흐리게 ' + JSON.stringify(info.done));
-    c.ok(info.late && info.late.svg && info.late.left && info.late.anim === 'bxWarnBlink' && info.late.main === '0.72' && /지남/.test(info.late.sub) && !/line-through/.test(info.late.deco),
+    // 시험판 63(명암 대비 4.5:1): 줄 투명도 대신 글자색으로 흐리게(흐린 글자 ink-3), 체크만 반쯤 투명
+    c.ok(info.done && info.done.op === '1' && info.done.nc === 'rgb(95, 102, 114)' && info.done.ck === '0.5' && /line-through/.test(info.done.t) && /line-through/.test(info.done.n) && !info.done.warn, '체크한 일정: 시각 · 이름 가로줄 + 흐린 글자 · 체크 반쯤 흐리게 ' + JSON.stringify(info.done));
+    c.ok(info.late && info.late.svg && info.late.left && info.late.anim === 'bxWarnBlink' && info.late.main === '1' && info.late.nc === 'rgb(74, 81, 91)' && /지남/.test(info.late.sub) && !/line-through/.test(info.late.deco),
       '시간이 지났는데 체크 안 한 일정: 조금 연하게 + 체크 왼쪽에 확인 필요 아이콘(세트 안의 것, 깜박임), 가로줄 없음 ' + JSON.stringify(info.late));
     c.ok(info.late && info.late.two && info.late.cy <= 1.5 && info.late.wcy <= 1.5, '두 줄인 줄에서도 체크 · 확인 필요 아이콘이 줄 세로 가운데 ' + JSON.stringify(info.late && [info.late.cy, info.late.wcy]));
     // 한 줄짜리 줄(홈 줄 높이 60보다 낮음)도 글 묶음과 체크가 같은 세로 가운데(글이 위에 붙고 체크만 내려가지 않게)
