@@ -47,9 +47,9 @@ function hero(m, now) {
     k = '<i class="go"></i>지금 출발'; big = '지금'; sub = late ? '나가도 ' + late + '분 늦어요' : '나가면 ' + hm(now + e.travel * MIN) + ' 도착';
     acts = '<button class="btn pri" type="button" data-left="' + esc(e.key) + '">나갔어요</button>' + (sn && !late ? '<button class="btn sec" type="button" data-snooze="' + esc(e.key) + '" data-kind="leave">' + sn + '분만</button>' : '<button class="btn sec" type="button" data-late="' + esc(e.key) + '">늦는다고 알리기</button>');
   } else {
-    const left = Math.max(0, Math.round((e.leaveAt - now) / MIN));
-    const late = lateIfLeaveNow(e, now);
-    k = '<i class="go"></i>출발까지'; big = left ? mins(left) : '지금'; sub = hm(e.leaveAt) + ' 출발';
+    const left = Math.max(0, Math.round((e.leaveAt - now) / MIN)), late = lateIfLeaveNow(e, now);
+    k = '<i class="go"></i>출발까지'; big = left ? mins(left) : '지금';
+    sub = left ? hm(e.leaveAt) + ' 출발' : late ? '나가도 ' + late + '분 늦어요' : '나가면 ' + hm(now + e.travel * MIN) + ' 도착';
     acts = '<button class="btn pri" type="button" data-left="' + esc(e.key) + '">나갔어요</button><button class="btn sec" type="button" data-late="' + esc(e.key) + '">' + (late ? '늦는다고 알리기' : '도착 시각 알리기') + '</button>';
   }
   return '<section class="hero" aria-label="다음 할 일"><div class="k">' + k + '</div><div class="big">' + big + '</div><div class="rel">' + esc(sub) + '</div><div class="what">' + what(e) + '</div>' + track(e) +

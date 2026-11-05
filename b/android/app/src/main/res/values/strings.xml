@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">B 스케줄러</string>
+    <string name="title_activity_main">B 스케줄러</string>
+    <string name="package_name">kr.boxworks.b</string>
+    <string name="custom_url_scheme">kr.boxworks.b</string>
+</resources>
