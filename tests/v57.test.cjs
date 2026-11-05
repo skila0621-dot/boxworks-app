@@ -44,6 +44,14 @@ module.exports = async function () {
     c.ok(info.late && info.late.svg && info.late.left && info.late.anim === 'bxWarnBlink' && info.late.main === '0.72' && /지남/.test(info.late.sub) && !/line-through/.test(info.late.deco),
       '시간이 지났는데 체크 안 한 일정: 조금 연하게 + 체크 왼쪽에 확인 필요 아이콘(세트 안의 것, 깜박임), 가로줄 없음 ' + JSON.stringify(info.late));
     c.ok(info.late && info.late.two && info.late.cy <= 1.5 && info.late.wcy <= 1.5, '두 줄인 줄에서도 체크 · 확인 필요 아이콘이 줄 세로 가운데 ' + JSON.stringify(info.late && [info.late.cy, info.late.wcy]));
+    // 한 줄짜리 줄(홈 줄 높이 60보다 낮음)도 글 묶음과 체크가 같은 세로 가운데(글이 위에 붙고 체크만 내려가지 않게)
+    const mids = await p.evaluate(() => Array.from(document.querySelectorAll('#tcard2 .row.rowc')).filter(r => r.getBoundingClientRect().height > 0).map(r => {
+      const ps = Array.from(r.querySelectorAll(':scope > .row-main :is(.rc-ic, .row-time b, .row-time small, .row-title, .rc-sub)')).map(x => x.getBoundingClientRect()).filter(b => b.height > 0);
+      const k = r.querySelector(':scope > .chk:not(.chk-sp)'); if (!ps.length || !k) return null;
+      const cy = (Math.min(...ps.map(b => b.top)) + Math.max(...ps.map(b => b.bottom))) / 2, q = k.getBoundingClientRect();
+      return Math.round(Math.abs((q.top + q.bottom) / 2 - cy) * 10) / 10;
+    }).filter(x => x != null));
+    c.ok(mids.length >= 4 && mids.every(d => d <= 1.5), '모든 줄(한 줄 · 두 줄)에서 체크가 글 묶음의 세로 가운데 ' + JSON.stringify(mids));
     c.ok(info.tt && !info.tt.warn && info.tt.past, '끝난 수업은 확인 필요 아이콘 없이 흐리게만 ' + JSON.stringify(info.tt));
     c.ok(info.rt && info.rt.warn && /먹었는지 확인/.test(info.rt.sub), '약을 확인하지 않은 루틴도 확인 필요 아이콘 ' + JSON.stringify(info.rt));
     // 움직임 줄이기: 깜박이지 않음

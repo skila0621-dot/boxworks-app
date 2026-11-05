@@ -6,6 +6,7 @@
 //  ⑤ icon   같은 목록 안 아이콘: 한 세트 · 같은 크기 · 같은 굵기
 //  + midword(낱말 가운데 줄바꿈) · time24(오전 · 오후 없는 시각, 12시간 표시일 때) · comp(공통 부품과 다른 모양, 시험판 55)
 //  + fit(시각이 든 고정 칸에 가장 넓은 시각을 넣어도 2px 남는지 — 데이터 · 휴대폰 글자 그리기에 따라 넓어짐, 시험판 55 CI)
+//  + mid(목록 줄의 체크 · 확인 필요 아이콘이 그 줄 글 묶음의 세로 가운데에 있는지 — 대표 메모 11/5 '그 일정에 중앙 정렬', 시험판 57)
 // 결과: [{k, p(자리), t(글), ...}] — 하나라도 있으면 시험판을 내지 않는다
 module.exports = function audit(opts){
   opts = opts || {};
@@ -305,6 +306,21 @@ module.exports = function audit(opts){
       if (c.fs && s.fontSize !== c.fs) why.push('글자 ' + s.fontSize + '≠' + c.fs);
       if (c.fw && s.fontWeight !== c.fw) why.push('굵기 ' + s.fontWeight + '≠' + c.fw);
       if (why.length) out.push({k: 'comp', p: path(e), t: c.n + ' · ' + txt(e), why: why.join(' · ')});
+    }
+  }
+  // mid: 목록 줄(목록 줄 C)의 체크 · 확인 필요 아이콘이 그 줄 글 묶음(종류 아이콘 · 시각 · 이름 · 둘째 줄)의 세로 가운데에서 2px 안
+  //   (시험판 57: 홈 줄 높이 60보다 낮은 한 줄짜리 줄은 글이 위에 붙고 체크만 가운데로 내려가 6px 어긋났던 것)
+  for (const row of document.querySelectorAll('.row.rowc')) {
+    if (!vis(row)) continue;
+    // 화면 가장자리에 걸쳐 일부만 보이는 줄도 있으니, 보이는지(vis)가 아니라 그려진 자리(높이 · 숨김 아님)로 잰다
+    const drawn = x => { const q = cs(x); return x.getBoundingClientRect().height > 0 && q.visibility !== 'hidden' && q.display !== 'none'; };
+    const parts = Array.from(row.querySelectorAll(':scope > .row-main :is(.rc-ic, .row-time b, .row-time small, .row-title, .rc-sub)')).filter(drawn);
+    if (!parts.length) continue;
+    const t = Math.min(...parts.map(x => x.getBoundingClientRect().top)), b = Math.max(...parts.map(x => x.getBoundingClientRect().bottom)), cy = (t + b) / 2;
+    for (const x of row.querySelectorAll(':scope > .chk:not(.chk-sp), :scope > .rc-warn')) {
+      if (!drawn(x)) continue;
+      const q = x.getBoundingClientRect(), d = (q.top + q.bottom) / 2 - cy;
+      if (Math.abs(d) > 2) out.push({k: 'mid', p: path(x), t: txt(row).slice(0, 20), d: Math.round(d * 10) / 10});
     }
   }
   return out;

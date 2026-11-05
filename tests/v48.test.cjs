@@ -20,12 +20,15 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.click('.dock [data-view="med"]'); await p.waitForTimeout(500);
+    // 기다리는 시간이 아니라 그려진 것을 기다린다(전체 시험에서 컴퓨터가 바쁘면 400ms 안에 안 그려져 멈추던 것, 시험판 57)
+    await p.waitForSelector('.bx-med-row .bx-mm-t', { timeout: 5000 });
     // '소리와 호흡' 줄: 글자 칸이 줄을 채우고 › 는 오른쪽 끝
     const row = await p.evaluate(() => { const r = document.querySelector('.bx-med-row'), t = r.querySelector('.bx-mm-t'), ch = r.querySelector(':scope > svg.i');
       return { grow: getComputedStyle(t).flexGrow, fs: getComputedStyle(t.querySelector('b')).fontSize, gap: Math.round(r.getBoundingClientRect().right - ch.getBoundingClientRect().right) }; });
     c.eq(row, { grow: '1', fs: '16px', gap: 0 }, "'소리와 호흡' 줄: 글자 칸이 줄을 채우고 › 는 오른쪽 끝");
     c.eq(await p.evaluate(() => document.querySelectorAll('.bx-med-dial.idle .bx-med-fl i').length), 6, '고르는 화면: 원 뒤 꽃잎 여섯 장');
     await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(400);
+    await p.waitForSelector('.bx-med-run', { timeout: 5000 }); await p.waitForSelector('.bx-med-fl i', { timeout: 5000 });
     const st = await p.evaluate(() => ({ mo: window.__mo || [], bg: window.__bg.map(x => x[0]), lead: document.querySelector('.bx-med-dial').style.getPropertyValue('--bx-bd'),
       cls: document.querySelector('.bx-med-run').className, anim: getComputedStyle(document.querySelector('.bx-med-fl i')).animationName }));
     c.ok(st.mo.length === 1 && st.mo[0].min === 10 && st.mo[0].bell === true && st.mo[0].endAt - st.mo[0].startAt === 600000, '시작: 휴대폰 명상 알림(10분 · 종소리) ' + JSON.stringify(st.mo));
