@@ -218,6 +218,15 @@ module.exports = function audit(opts){
       }
     }
   }
+  // nan(시험판 59, 대표 11/5 21:25 'NaN월 NaN일 (u…'): 화면 글에 NaN · undefined · Invalid Date · [object 가 보이면 걸린다. 없는 값은 '미지정' · '--:--'
+  {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let x;
+    while ((x = w.nextNode())) {
+      const t = x.textContent; if (!/NaN|undefined|Invalid Date|\[object /.test(t)) continue;
+      const pe = x.parentElement; if (!pe || pe.closest('script,style,noscript') || !vis(pe)) continue;
+      out.push({k: 'nan', p: path(pe), t: t.trim().slice(0, 40)});
+    }
+  }
   // colx: 한 화면에서 상자가 달라도 목록 줄 C(.row.rowc)는 시각 칸 · 이름 칸이 같은 자리(대표 11/5 20:28 '시간 미지정 상자도 아이콘 · 시간 미지정 · 일정 내용으로')
   //   같은 폭의 줄끼리(창 안 · 화면 따로) 이름 칸 시작이 2 넘게 다르거나, 한쪽만 시각 칸이 없으면 걸린다
   {

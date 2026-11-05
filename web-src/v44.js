@@ -16,7 +16,7 @@
 /* 2) 일정 창 줄 목록 */
 const BX_EP_T = {date: '날짜', time: '시간', rem: '알림', cat: '캘린더', go: '출발·준비', att: '사진·파일', loc: '장소', note: '메모'};
 const BX_ARROW = '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-function bxEdDay(ds){ const d = parseYmd(ds); return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + WD[d.getDay()] + ')'; }
+function bxEdDay(ds){ if (!isDate(ds)) return '날짜 미지정'; const d = parseYmd(ds); return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + WD[d.getDay()] + ')'; }
 function bxEdRow(k, icon, text, set, label, sub){
   return '<button type="button" class="bx-er" data-fpanel="' + k + '"' + (sub ? ' data-bxsub="' + sub + '"' : '') + ' aria-label="' + esc(label + ', ' + text) + '">' +
     '<span class="bx-er-ic" aria-hidden="true">' + icon + '</span><span class="bx-er-t' + (set ? '' : ' ph') + '">' + esc(text) + '</span></button>';

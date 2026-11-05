@@ -35,7 +35,7 @@ function bxTtOf(id){ return ttList().filter(e => bxTtSetOf(e) === id); }
 // 'now' 쓰는 중 · 'ended' 끝남 · 'before' 시작 전 · '' 기간 없음
 function bxTtState(s, ds){ ds = ds || M.today; if (!s || (!s.from && !s.to)) return ''; if (s.to && ds > s.to) return 'ended'; if (s.from && ds < s.from) return 'before'; return 'now'; }
 function bxTtPeriodText(s){
-  const st = bxTtState(s), md = d => (parseYmd(d).getMonth() + 1) + '월 ' + parseYmd(d).getDate() + '일';
+  const st = bxTtState(s), md = d => isDate(d) ? (parseYmd(d).getMonth() + 1) + '월 ' + parseYmd(d).getDate() + '일' : '미지정';
   if (!st) return '기간 없음 · 계속 반복';
   const rng = s.from && s.to ? md(s.from) + ' ~ ' + md(s.to) : s.to ? md(s.to) + '까지' : md(s.from) + '부터';
   return st === 'ended' ? '끝남 · ' + rng : st === 'before' ? (s.from ? md(s.from) + '부터 시작' : rng) : rng;

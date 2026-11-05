@@ -156,5 +156,7 @@ window.BX_T = {
   banner: () => { const b = document.getElementById('banner'); return b && !b.hidden ? b.textContent : ''; },
   // 시험판 58: 시각 글자 · 루틴 아이콘 규칙 · 휴대폰 캘린더 상태를 시험에서 본다
   fn: {bxT: v => bxT(v), bxTR: (a, b) => bxTR(a, b), bxH: h => bxH(h), bxHR: (a, b) => bxHR(a, b), hmText: v => hmText(v), icon: n => bxIconFor(n),
-    pcTitles: ds => M.items.filter(i => i.pc && i.date === ds).map(i => i.title).sort(), calSel: () => bxCalSel, alarms: d => window.BX_alarmPlan(d)}
+    pcTitles: ds => M.items.filter(i => i.pc && i.date === ds).map(i => i.title).sort(), calSel: () => bxCalSel, alarms: d => window.BX_alarmPlan(d),
+    // 시험판 59: 날짜 · 시각이 없거나 깨졌을 때 글('미지정' · '--:--')
+    md: (s, wd) => fmtMD(s, wd), edDay: s => bxEdDay(s), bxMD: s => bxMD(s), range: (a, b) => bxRangeLabel(a, b), rel: s => relDay(s, M.today)}
 };

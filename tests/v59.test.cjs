@@ -65,6 +65,9 @@ module.exports = async function () {
         const r = await p.evaluate(t => { const r = window.BX_parseAt(t, new Date()); return [r.date || null, r.start || null, r.title]; }, t);
         c.eq(r, [d, s, title], "'" + t + "'");
       }
+      // 날짜 · 시각이 없거나 깨졌을 때(대표 11/5 21:25 'NaN월 NaN일 (u…' → '미지정 혹은 --:--')
+      c.eq(await p.evaluate(() => { const f = window.BX_T.fn; return [f.md(undefined), f.md('bad'), f.edDay(undefined), f.bxMD(''), f.range('2026-11-05', undefined), f.rel(undefined), f.bxT(new Date('x')), f.bxT('NaN:NaN'), f.hmText(undefined), f.md('2026-11-06')]; }),
+        ['미지정', '미지정', '날짜 미지정', '미지정', '11월 5일 ~ 미지정', '미지정', '--:--', '--:--', '--:--', '11월 6일 (금)'], "없는 날짜는 '미지정', 없는 시각은 '--:--'");
       // '할머니 · 할인'처럼 '할'로 시작하는 낱말은 그대로
       c.eq(await p.evaluate(() => window.BX_titleTail('할인 쿠폰 챙기기')), '할인 쿠폰 챙기기', "'할인'은 그대로");
     } finally { await app.close(); }
@@ -72,6 +75,7 @@ module.exports = async function () {
 
   // ── (3) 시간 미지정 줄 칸 · (4) 길게 누르기 ──
   const data = clock => [['settings', settings({ bxDock: ['routines', 'month', 'tt', 'memo'], bxDockMig: 1, bxDockMemo: 1, clock })],
+    ['tt_a', { type: 'tt', name: '경영학원론', days: [4], start: '16:00', end: '17:30', place: '301호', color: '#2a78d6', on: true, createdAt: old, updatedAt: old }],
     ['it_n', { type: 'item', title: '노동부', date: '2026-11-05', start: '14:00', end: '15:00', createdAt: old, updatedAt: old }],
     ['it_d', { type: 'item', title: '장보기', date: '2026-11-05', createdAt: old, updatedAt: old }],
     ['mm_1', { type: 'memo', date: '2026-11-05', text: '은행 서류 사본 두 장 챙기기', at: '06:20', createdAt: old, updatedAt: old }],
@@ -102,7 +106,9 @@ module.exports = async function () {
     ['홈 일정 줄', '#tcard2 .row .row-main[data-id="it_n"]', 'opts'],
     ['홈 루틴 줄', '#tcard2 .row[data-rid] .row-main', 'none'],
     ['홈 메모 줄', '#bx-mm-card .bx-mm-row', 'none'],
-    ['홈 시간 미지정 줄', '#tcard-ut .row .row-main[data-id="it_d"]', 'opts']
+    ['홈 시간 미지정 줄', '#tcard-ut .row .row-main[data-id="it_d"]', 'opts'],
+    // 수업 줄도 data-id를 달고 있어 일정 옵션('(제목 없음)' 완료 · 삭제)이 떴다 — 수업에는 일정 옵션을 띄우지 않는다
+    ['홈 수업 줄', '#tcard2 .row.tt-row .row-main', 'none']
   ];
   for (const [name, sel, want] of cases) {
     const app = await openApp({ width: 384, height: 900, now: '2026-11-05T12:20:00+09:00', data: data('') });

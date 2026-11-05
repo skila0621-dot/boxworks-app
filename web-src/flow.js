@@ -151,7 +151,7 @@ function bxLateTarget(it){
 }
 // 시각 뒤 조사: 00분이면 '시'로 끝나 '로'(18:00로), 아니면 '분'으로 끝나 '으로'(17:40으로)
 function bxRo(t){ return /:00$/.test(t) ? '로' : '으로'; }
-function bxMD(d){ const x = parseYmd(d); return (x.getMonth() + 1) + '월 ' + x.getDate() + '일'; }
+function bxMD(d){ if (!isDate(d)) return '미지정'; const x = parseYmd(d); return (x.getMonth() + 1) + '월 ' + x.getDate() + '일'; }
 function bxLateLabel(it, tg){
   if (!tg.start) return '오늘로';
   const pre = tg.date === M.today ? (it.date < M.today ? '오늘 ' : '') : '내일 ';
@@ -385,6 +385,8 @@ let bxIlp = null, bxIlpAt = 0;
 function bxItemOf(id){ return getDoc(id) || M.items.find(i => i.id === id) || null; }
 function bxItemMenu(id, el){
   const it = bxItemOf(id); if (!it) return;
+  // 시험판 59: 일정 옵션은 일정에만. 홈 · 캘린더의 수업 줄도 data-id를 달고 있어, 길게 누르면 '(제목 없음)' 일정 옵션(완료 · 내일로 미루기 · 삭제)이 수업에 떴다
+  if (it.type && it.type !== 'item') return;
   const pc = !!it.pc || /^pc_/.test(id);
   const row = (act, icon, label, sub, warn) => '<button type="button" class="menu-row' + (warn ? ' bx-im-del' : '') + '" data-bx-im="' + act + '"><span class="mi">' + icon + '</span><span class="ml">' + label + '</span>' + (sub ? '<span class="mv">' + esc(sub) + '</span>' : '') + '</button>';
   const when = (isDate(it.date) ? relDay(it.date, M.today) + ' ' : '') + timeText(it);

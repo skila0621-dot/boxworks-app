@@ -32,6 +32,7 @@ function bxSpanLabel(it, ds){
 }
 // '11월 6일 ~ 8일', 달이 다르면 '11월 30일 ~ 12월 2일'
 function bxRangeLabel(a, b){
+  if (!isDate(a) || !isDate(b)) return isDate(a) ? fmtMD(a, false) + ' ~ 미지정' : '미지정';
   const x = parseYmd(a), y = parseYmd(b), now = new Date();
   return (x.getFullYear() !== now.getFullYear() ? x.getFullYear() + '년 ' : '') + (x.getMonth() + 1) + '월 ' + x.getDate() + '일 ~ ' +
     (y.getFullYear() !== x.getFullYear() ? y.getFullYear() + '년 ' + (y.getMonth() + 1) + '월 ' : y.getMonth() !== x.getMonth() ? (y.getMonth() + 1) + '월 ' : '') + y.getDate() + '일';

@@ -44,7 +44,7 @@ function bxDayOnlyTag(r){
 // 새 일정 창: 제목 아래 해석 결과 밑에 한 줄(다음 달로 넣었음 · 지난 날짜). 단추로 이번 달 ↔ 다음 달을 오간다
 function bxDateNote(p){
   if (!F || F.mode !== 'new' || !isDate(F.date)) return '';
-  const today = ymd(new Date()), md = d => (parseYmd(d).getMonth() + 1) + '월 ' + parseYmd(d).getDate() + '일';
+  const today = ymd(new Date()), md = d => isDate(d) ? (parseYmd(d).getMonth() + 1) + '월 ' + parseYmd(d).getDate() + '일' : '미지정';
   const btn = d => '<button type="button" class="btn sm" data-act="bx-date-alt" data-d="' + esc(d) + '">' + md(d) + '로</button>';
   const a = p && p.alt ? {next: p.date, past: p.alt, day: p.altDay} : null;
   if (a && F.date === a.next) return '<div class="hint bx-dn">' + ICON.cal + '<span>' + a.day + '일은 지나서 ' + (parseYmd(a.next).getMonth() + 1) + '월로 넣었어요</span>' + btn(a.past) + '</div>';

@@ -1147,7 +1147,8 @@ const isHM = s => typeof s === 'string' && /^\d{2}:\d{2}$/.test(s) && +s.slice(0
 function lsGet(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v){ try { localStorage.setItem(k, v); } catch (e) {} }
 function stable(o){ if (o === null || typeof o !== 'object') return JSON.stringify(o); if (Array.isArray(o)) return '[' + o.map(stable).join(',') + ']'; return '{' + Object.keys(o).filter(k => o[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + stable(o[k])).join(',') + '}'; }
-function fmtMD(s, wd){ const d = parseYmd(s); const y = d.getFullYear() !== new Date().getFullYear() ? d.getFullYear() + '년 ' : ''; return y + (d.getMonth() + 1) + '월 ' + d.getDate() + '일' + (wd === false ? '' : ' (' + WD[d.getDay()] + ')'); }
+// 시험판 59(대표 11/5 21:25 'NaN월 NaN일 (u…' → "미지정 혹은 --:-- 이런식으로"): 날짜가 없거나 깨졌으면 '미지정', 시각은 '--:--'
+function fmtMD(s, wd){ if (!isDate(s)) return '미지정'; const d = parseYmd(s); const y = d.getFullYear() !== new Date().getFullYear() ? d.getFullYear() + '년 ' : ''; return y + (d.getMonth() + 1) + '월 ' + d.getDate() + '일' + (wd === false ? '' : ' (' + WD[d.getDay()] + ')'); }
 function relDay(s, today){ const n = diffDays(s, today); if (n === 0) return '오늘'; if (n === 1) return '내일'; if (n === 2) return '모레'; if (n === -1) return '어제'; return fmtMD(s); }
 function untilText(ms){ const m = Math.max(1, Math.round(ms / 60000)); if (m < 60) return m + '분 뒤'; const h = Math.floor(m / 60), r = m % 60; if (h < 24) return h + '시간' + (r ? ' ' + r + '분' : '') + ' 뒤'; return Math.round(h / 24) + '일 뒤'; }
 function agoText(ms){ const m = Math.max(1, Math.floor(ms / 60000)); if (m < 60) return m + '분 지남'; const h = Math.floor(m / 60); if (h < 24) return h + '시간' + (m % 60 ? ' ' + (m % 60) + '분' : '') + ' 지남'; return Math.floor(h / 24) + '일 지남'; }
@@ -1223,9 +1224,9 @@ function remNorm(v, timed, start){
    앱 화면 · 알림 · 잠금 화면 알람 · 위젯이 이 규칙 하나를 따른다(휴대폰 쪽은 알람 · 위젯 자료와 함께 받는 h24) */
 function bxClock24(){ try { return !!(M && M.settings && M.settings.clock === '24'); } catch (e) { return false; } }
 window.BX_clock24 = bxClock24;
-function hmText(hm){ if (bxClock24()) return hm.slice(0, 5); const h = +hm.slice(0, 2); return (h < 12 ? '오전 ' : '오후 ') + ((h % 12) || 12) + ':' + hm.slice(3); }
+function hmText(hm){ if (!isHM(String(hm == null ? '' : hm).slice(0, 5))) return '--:--'; if (bxClock24()) return hm.slice(0, 5); const h = +hm.slice(0, 2); return (h < 12 ? '오전 ' : '오후 ') + ((h % 12) || 12) + ':' + hm.slice(3); }
 /* 시험판 51(대표 11/4 '모두 오전 · 오후'): 화면 · 알림에 보이는 시각은 '오후 3:00'. 저장하는 값은 그대로 'HH:MM' */
-function bxT(v){ if (v instanceof Date) v = hm(v); return isHM(v) ? hmText(v) : String(v == null ? '' : v); }
+function bxT(v){ if (v instanceof Date) { if (isNaN(v)) return '--:--'; v = hm(v); } return isHM(v) ? hmText(v) : /NaN|undefined/.test(String(v)) ? '--:--' : String(v == null ? '' : v); }
 // 이어지는 두 시각: 오전 · 오후가 같으면 뒤는 줄인다('오후 3:00–4:00'), 다르면 둘 다('오전 11:00–오후 1:00')
 function bxTR(a, b, sep){
   if (a instanceof Date) a = hm(a); if (b instanceof Date) b = hm(b);
