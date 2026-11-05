@@ -120,6 +120,7 @@ public class AlarmActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        BxTime.load(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
@@ -183,9 +184,9 @@ public class AlarmActivity extends Activity {
         return lp;
     }
 
-    // 시험판 51(대표 11/4): 시각은 '오후 3:00'
+    // 시험판 51(대표 11/4): 시각은 '오후 3:00'. 시험판 58: 설정이 24시간이면 '15:00'(BxTime)
     private static String hm(long ms) {
-        return new SimpleDateFormat("a h:mm", Locale.KOREA).format(new Date(ms));
+        return BxTime.hm(ms);
     }
 
     // 큰 시계: '오후'는 작게(숫자 옆), 숫자는 크게 — 화면 너비를 넘지 않게

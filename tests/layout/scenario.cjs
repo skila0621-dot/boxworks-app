@@ -4,8 +4,10 @@ const H = require('../harness.cjs');
 
 const old = '2026-10-29T00:00:00.000Z';
 const day = n => { const d = new Date(Date.parse('2026-11-02T12:00:00+09:00') + n * 864e5); return d.toISOString().slice(0, 10); };
+// 시각 표시(시험판 58): 정렬 점검은 오전 · 오후와 24시간 두 번 돈다(run.cjs --clocks). 24시간이면 모든 자료의 설정에 clock '24'
+let CLOCK = '';
 function data(extra = {}) {
-  const S = H.settings(Object.assign({ bxDock: ['routines', 'month', 'tt', 'memo'], bxDockMig: 1, bxDockMemo: 1, bxReport: { on: true, at: '07:30' } }, extra));
+  const S = H.settings(Object.assign({ bxDock: ['routines', 'month', 'tt', 'memo'], bxDockMig: 1, bxDockMemo: 1, bxReport: { on: true, at: '07:30' } }, CLOCK ? { clock: CLOCK } : {}, extra));
   return [
     ['settings', S],
     ['c_w', { type: 'category', name: '회사 · 프로젝트 일정 (팀 공유)', color: '#2a78d6', order: 0, createdAt: old }],
@@ -33,7 +35,8 @@ function data(extra = {}) {
 }
 
 // W: 폭 · theme: 'light' | 'dark' · state(이름, page): 그 화면을 잰다 · fail(이름, 오류)
-module.exports = async function scenario({ W, theme, state, fail, only }) {
+module.exports = async function scenario({ W, theme, state, fail, only, clock }) {
+  CLOCK = clock === '24' ? '24' : '';
   let app, p;
   // 폭마다 흔한 휴대폰 높이(360×780 · 384×832 대표 S25+ · 412×915), 위 상태 막대 32 · 아래 버튼 막대 48
   const HT = { 360: 780, 384: 832, 412: 915 }[W] || 844;
@@ -86,6 +89,17 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
     await p.click('#bx-vsw [data-bxvsw="month"]'); await p.waitForTimeout(400);
     await p.click('.cal .cell[data-date="2026-11-02"]'); await snap('날짜 창'); await closeAll();
     if (await tap('[data-act="bx-cals"]')) { await snap('캘린더 목록'); if (await tap('#sheet-root [data-bxcal]')) await snap('캘린더 자세히'); await closeAll(); }
+    // 시험판 58: 칩을 길게 누르면 '색 바꾸기 · 이 캘린더 빼기', 뺀 캘린더는 캘린더 목록 맨 아래 '뺀 캘린더'
+    if (await longPress('.page-head .bx-cchip[data-bxcsel="c_p"]')) {
+      await snap('캘린더 칩 길게 누름');
+      if (await tap('#sheet-root [data-act="bx-ccm-out"]')) {
+        await p.waitForTimeout(500);
+        if (await tap('.page-head [data-act="bx-cals"]')) { await snap('캘린더 목록 · 뺀 캘린더'); await tap('#sheet-root [data-act="bx-cal-back"][data-id="c_p"]'); await p.waitForTimeout(300); }
+      }
+      await closeAll();
+      // 빼기 · 다시 넣기 알림 글은 그 화면에서 잠깐 뜨는 것 — 다음 화면(시간표)을 잴 때 남아 있지 않게 사라질 때까지 기다린다
+      await p.waitForFunction(() => !document.querySelector('#toasts .toast'), null, { timeout: 12000 }).catch(() => {});
+    }
   });
   await tryDo('시간표', async () => {
     await dock('tt'); await snap('시간표');

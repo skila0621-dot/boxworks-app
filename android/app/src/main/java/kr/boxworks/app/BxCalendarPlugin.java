@@ -96,7 +96,7 @@ public class BxCalendarPlugin extends Plugin {
 
     /**
      * from~to(밀리초) 사이의 일정. 반복 일정은 한 번씩 펼쳐서 준다(Instances).
-     * ids를 주면 그 캘린더만, 안 주면 휴대폰에서 보이게 켜 둔 캘린더 전부. 취소된 일정과 거절한 초대는 뺀다.
+     * 휴대폰에서 보이게 켜 둔 캘린더만. ids를 주면 그 가운데 그 캘린더만. 취소된 일정과 거절한 초대는 뺀다.
      */
     @PluginMethod
     public void events(PluginCall call) {
@@ -129,9 +129,10 @@ public class BxCalendarPlugin extends Plugin {
                 args.add(ids.optString(i, "0"));
             }
             sel.append(")");
-        } else {
-            sel.append(" AND ").append(CalendarContract.Instances.VISIBLE).append(" = 1");
         }
+        // 휴대폰 캘린더 앱에서 끈(숨긴) 캘린더는 고른 캘린더 안에 있어도 읽지 않는다(시험판 58, 대표 11/4 '휴대폰 캘린더를 꺼도 일정이 보인다').
+        // 전에는 고른 캘린더(ids)가 있으면 이 조건을 빼서, 끈 캘린더 일정이 계속 보였다
+        sel.append(" AND ").append(CalendarContract.Instances.VISIBLE).append(" = 1");
 
         String[] proj = {
             CalendarContract.Instances.EVENT_ID,

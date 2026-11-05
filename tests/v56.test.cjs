@@ -27,7 +27,9 @@ module.exports = async function () {
         x: [x(r.querySelector('.rc-ic')), x(r.querySelector('.row-time')), x(r.querySelector('.row-title')), x(r.lastElementChild)],
         title: r.querySelector('.row-title') ? r.querySelector('.row-title').textContent : '', sub: r.querySelector('.rc-sub') ? r.querySelector('.rc-sub').textContent : '' };
     }));
-    c.ok(rows.length >= 5 && rows.every(r => r.rowc && /chk/.test(r.last)), '홈 목록의 일정 · 루틴 · 수업 줄이 모두 목록 줄 C(체크가 맨 오른쪽) ' + JSON.stringify(rows.map(r => r.kind + ':' + r.title)));
+    c.ok(rows.length >= 4 && rows.every(r => r.rowc && /chk/.test(r.last)), '홈 목록의 일정 · 루틴 · 수업 줄이 모두 목록 줄 C(체크가 맨 오른쪽) ' + JSON.stringify(rows.map(r => r.kind + ':' + r.title)));
+    // 시험판 58: 시각 없는 '원두 주문'은 아래 '시간 미지정 일정' 상자(같은 목록 줄 C, 시각 칸 없음)
+    c.ok(await p.evaluate(() => { const r = document.querySelector('#tcard-ut .bx-ut-list .row'); return !!r && r.classList.contains('rowc') && /chk/.test(r.lastElementChild.className) && r.querySelector('.row-title').textContent === '원두 주문'; }), "시각 없는 일정은 '시간 미지정 일정' 상자에서도 목록 줄 C");
     c.ok(new Set(rows.map(r => r.x.join(','))).size === 1, '모든 줄이 같은 칸(아이콘 · 시각 · 이름 · 체크 시작 위치) ' + JSON.stringify(rows.map(r => r.x)));
     const byT = t => rows.find(r => r.title === t) || {};
     c.ok(new Set(['it', 'rt', 'tt'].map(k => (rows.find(r => r.kind === k) || {}).ic)).size === 3, '종류 아이콘 셋(일정 · 루틴 · 수업)이 서로 다름');

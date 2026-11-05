@@ -80,15 +80,17 @@
       var widget = plugin('BxWidget');
       if (widget && typeof window.BX_widgetData === 'function') {
         var wd = window.BX_widgetData(list.filter(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; }));
-        var wsig = wd ? JSON.stringify({ i: wd.items, r: wd.routines, l: wd.late, li: wd.lateI, o: wd.only }) : null;
+        var wsig = wd ? JSON.stringify({ i: wd.items, r: wd.routines, l: wd.late, li: wd.lateI, o: wd.only, h: wd.h24 }) : null;
         if (wd && wsig !== lastWidget) { lastWidget = wsig; widget.update({ data: wd }).catch(function () { lastWidget = null; }); }
       }
       // 잠금 화면에 보여 줄 것(설정): alarm(기본) | title | none
       var lock = typeof window.BX_lockMode === 'function' ? window.BX_lockMode() : 'alarm';
-      var sig = lock + JSON.stringify(list);
+      // 시각 표시(시험판 58): 잠금 화면 알람 · 루틴 진행 알림도 앱과 같은 표시로
+      var h24 = typeof window.BX_clock24 === 'function' && !!window.BX_clock24();
+      var sig = lock + (h24 ? '|24|' : '|12|') + JSON.stringify(list);
       if (sig === lastSig) return;
       lastSig = sig;
-      try { await alarm.sync({ alarms: list, lock: lock }); } catch (e) { lastSig = null; }
+      try { await alarm.sync({ alarms: list, lock: lock, h24: h24 }); } catch (e) { lastSig = null; }
       // 처음 알람이 생길 때 알람 허락 화면(전체 흐름 와이어프레임 6). 빠진 허락이 있을 때 한 번만
       // 아침 보고만 있을 때는 묻지 않는다(사용자가 만든 첫 알람이 생길 때)
       if (!checked && list.some(function (a) { return a.kind !== 'report' && a.id !== 'bx_renew'; })) { checked = true; permFirst(list); }

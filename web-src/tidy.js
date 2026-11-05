@@ -4,7 +4,7 @@
    웹 시절 화면 위에 앱 화면을 얹어 온 것을 치운다. 기능마다 자리는 한 곳(+ 바로가기 한 곳). 목록은 프로젝트 문서 개편_검토 7절 */
 
 // 설정 › 정보의 앱 버전: 대표에게 알리는 시험판 번호(빌드할 때 함께 올린다)
-const BX_TRIAL = 57;
+const BX_TRIAL = 58;
 
 /* 설정(앱): 첫 화면은 묶음 목록(화면 · 휴대폰 캘린더 · 알림 · 분류·데이터), 누르면 그 묶음만 보이는 화면.
    뒤로 가기(‹ 또는 휴대폰 뒤로)로 목록에 돌아온다. 휴대폰 설정과 같은 방식(대표 결정 11/3: 한 페이지가 너무 길어 메뉴를 다시 찾기 불편).
@@ -55,6 +55,7 @@ function bxSetGroupHtml(k){
   if (k === 'view') {
     const th = lsGet('bx:theme') || '', w = window.BX_WPLACED || {}, nw = (w.now ? 1 : 0) + (w.list ? 1 : 0);
     return box('화면', bxSetLine('다크 모드', th === 'dark' ? '켬' : th === 'light' ? '끔' : '자동 · 휴대폰 설정을 따라요', {go: 'view/theme'}) +
+        bxSetLine('시각 표시', bxClock24() ? '24시간 (15:00)' : '오전 · 오후 (오후 3:00)', {go: 'view/clock'}) +
         bxSetLine('한 주 시작 요일', +st.weekStart === 0 ? '일요일' : '월요일', {go: 'view/wk'})) +
       box('위젯', bxSetLine('위젯 추가', nw ? nw + '개 추가됨' : '앱을 열지 않아도 홈 화면에서 봐요', {act: 'bx-widget-open'}));
   }
@@ -81,6 +82,9 @@ function bxSetGroupHtml(k){
 function bxSetDetail(k, sub){
   const st = M.settings, card = (html, note) => '<section class="set-sec">' + html + '</section>' + (note ? '<p class="p small bx-setd-note">' + note + '</p>' : '');
   if (k === 'view' && sub === 'theme') return {title: '다크 모드', html: card(setRow('다크 모드', segHtml('data-theme-set', [['', '자동'], ['light', '끔'], ['dark', '켬']], lsGet('bx:theme') || '', '다크 모드', 240)), '자동은 휴대폰의 다크 모드를 따라요. ⋯ 메뉴의 다크 모드 스위치는 켬 · 끔만 바꿔요.')};
+  // 시험판 58(대표 11/4 22:20): 오전 · 오후(기본) | 24시간. 앱 · 알림 · 잠금 화면 · 위젯이 같이 바뀐다
+  if (k === 'view' && sub === 'clock') return {title: '시각 표시', html: card(setRow('시각 표시', segHtml('data-clock-set', [['', '오전 · 오후'], ['24', '24시간']], bxClock24() ? '24' : '', '시각 표시', 240)),
+    '앱 화면 · 알림 · 잠금 화면 알람 · 위젯의 시각이 함께 바뀌어요. 오전 · 오후는 ‘오후 3시’, 24시간은 ‘15시’처럼 보여요. 시각 칸을 누르면 열리는 휴대폰 시계 창은 휴대폰 설정을 따라요.')};
   if (k === 'view' && sub === 'wk') return {title: '한 주 시작 요일', html: card(setRow('시작 요일', segHtml('data-wk', [['1', '월요일'], ['0', '일요일']], +st.weekStart === 0 ? '0' : '1', '주 시작 요일')), '캘린더 · 주간 · 시간표의 첫 요일이에요.')};
   if (k === 'alarm' && sub === 'rep') return {title: '아침 요약', html: card(bxReportSetHtml(), '켜 두면 매일 아침 오늘 일정이 휴대폰 알림창으로 와요.')};
   if (k === 'alarm' && sub === 'lv') return {title: '울리는 방식', html: card(bxLevelSetHtml())};
@@ -110,6 +114,8 @@ document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;
   const b = ev.target.closest('[data-bxset]');
   if (b) { ev.preventDefault(); ev.stopPropagation(); if (SH) closeSheet(); bxSetOpen(b.dataset.bxset); return; }
+  const ck = ev.target.closest('[data-clock-set]');
+  if (ck) { ev.preventDefault(); ev.stopPropagation(); saveSettings({clock: ck.dataset.clockSet === '24' ? '24' : ''}); render(); return; }
   // ⋯ 메뉴에서 설정을 열면 늘 목록부터
   if (ev.target.closest('[data-menu="prefs"]')) BX_SET = null;
 }, true);
@@ -147,5 +153,8 @@ window.BX_T = {
   write: (id, doc) => writeDoc(id, doc),
   reset: kind => doReset(kind || 'all'),
   day: ds => openDay(ds),
-  banner: () => { const b = document.getElementById('banner'); return b && !b.hidden ? b.textContent : ''; }
+  banner: () => { const b = document.getElementById('banner'); return b && !b.hidden ? b.textContent : ''; },
+  // 시험판 58: 시각 글자 · 루틴 아이콘 규칙 · 휴대폰 캘린더 상태를 시험에서 본다
+  fn: {bxT: v => bxT(v), bxTR: (a, b) => bxTR(a, b), bxH: h => bxH(h), bxHR: (a, b) => bxHR(a, b), hmText: v => hmText(v), icon: n => bxIconFor(n),
+    pcTitles: ds => M.items.filter(i => i.pc && i.date === ds).map(i => i.title).sort(), calSel: () => bxCalSel, alarms: d => window.BX_alarmPlan(d)}
 };

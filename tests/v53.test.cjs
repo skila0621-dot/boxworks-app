@@ -42,8 +42,9 @@ function midword(){
 module.exports = async function () {
   const c = checker('시험판 53 · 전체 정렬 점검(낱말 줄 바꿈 · … 잘림 · › 자리 · 안내 글 · 알림 카드 여백 · 오전 · 오후)');
   const html = fs.readFileSync(path.join(__dirname, '..', 'www', 'index.html'), 'utf8');
-  c.ok(html.includes('처음엔 오전 7:30') && !html.includes('처음엔 7:30'), "처음 실행 아침 요약: '처음엔 오전 7:30'");
-  c.ok(html.includes('치과 · 오후 2:30 출발') && !html.includes('치과 · 14:30 출발'), "잠금 화면 알람 설명 예: '치과 · 오후 2:30 출발'");
+  // 시험판 58: 예시 글도 시각 규칙(bxT)으로 — 오전 · 오후 표시면 '오전 7:30' · '오후 2:30', 24시간이면 '07:30' · '14:30'(tests/v58)
+  c.ok(html.includes("처음엔 ' + bxT('07:30') + '") && !html.includes('처음엔 7:30'), "처음 실행 아침 요약: '처음엔 오전 7:30'(시각 규칙)");
+  c.ok(html.includes("치과 · ' + bxT('14:30') + ' 출발") && !html.includes('치과 · 14:30 출발'), "잠금 화면 알람 설명 예: '치과 · 오후 2:30 출발'(시각 규칙)");
 
   let app = await openApp({ now: '2026-11-02T07:40:00+09:00', data: data() });
   try {

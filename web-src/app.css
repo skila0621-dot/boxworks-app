@@ -26,6 +26,8 @@
   --c-on-bg:var(--accent-soft); --c-on-fg:var(--accent-text); --c-on-bd:var(--accent-text); --c-on-bw:2px; --c-day:36px;
   /* 목록 줄 시각 칸: 가장 넓은 시각('오후 12:59', 16px · 굵기 800 · 숫자 폭 같게 77.4px) + 휴대폰 글자 그리기 차이 여유. 76이던 것이 캘린더 목록에서 넘침(시험판 55 CI) */
   --row-tw:80px;
+  /* 루틴 단계 창 시각 칸('오후 12:59' + 앞의 점 자리) */
+  --rt-tw:90px;
   /* 나눔 단추 D '떨어진 칸' — 칸마다 회색 테 · 고르면 연보라 바탕에 보라 테 · 높이 40 */
   --sg-bg:transparent; --sg-pad:0px; --sg-gap:8px; --sg-r:0px; --sg-ir:12px; --sg-h:40px; --sg-fs:14px; --sg-fw:700; --sg-fg:var(--ink-2);
   --sg-on-bg:var(--accent-soft); --sg-on-fg:var(--accent-text); --sg-on-sh:inset 0 0 0 1.5px var(--accent-text); --sg-it-bw:1px; --sg-it-bd:var(--line-2); --sg-track:none;
@@ -42,6 +44,8 @@
   --lh-title:40.6px; --lh-heading:29px; --lh-body:23.2px; --lh-sub:20.3px; --lh-note:18.85px; --lh-cap:16.7px;
   --ls-title:0px; --ls-heading:0px; --ls-body:-.16px; --ls-sub:-.16px; --ls-note:-.16px; --ls-cap:-.16px;
 }
+/* 시각 표시 24시간(시험판 58, 설정 › 화면 › 시각 표시): 시각 칸 폭만 바꾼다. '15:00'(16px · 굵기 700 · 숫자 폭 같게 약 43px) + 앞의 '~'까지 */
+html.bx-h24{--row-tw:56px;--rt-tw:64px}
 /* 글자 크기를 정하지 않은 글은 본문 값을 물려받는다 */
 html.bx-app body{line-height:var(--lh-body);letter-spacing:var(--ls-body)}
 
@@ -147,6 +151,9 @@ html.bx-app :where(.tog[aria-checked="true"] i){transform:translateX(20px)}
    만드는 곳: v49.js(일정 · 수업) · home.js(루틴). 둘째 줄 색: 출발 · 진행 중 · 남은 시간은 보라, 지남 · 확인할 약은 주황 글자 */
 html.bx-app :where(.row.rowc){gap:12px}
 html.bx-app :where(.row.rowc > .row-main){display:grid;grid-template-columns:24px var(--row-tw) minmax(0,1fr);column-gap:12px;align-items:start;align-self:stretch;align-content:center}
+/* 시간 미지정 일정 상자(시험판 58): 이 목록은 시각 칸 없이 [종류 아이콘 | 이름 + 둘째 줄 | 체크] */
+html.bx-app :where(.bx-ut-list .row.rowc > .row-main){grid-template-columns:24px minmax(0,1fr)}
+html.bx-app :where(.bx-ut-list .row.rowc .row-time){display:none}
 html.bx-app :where(.row.rowc .rc-ic){display:flex;align-items:center;justify-content:center;width:24px;height:22px;color:var(--ink-2)}
 html.bx-app :where(.row.rowc .rc-ic) svg.i{width:21px;height:21px}
 html.bx-app :where(.row.rowc .row-time){width:auto;min-width:0}
@@ -360,9 +367,9 @@ html.bx-app :where(.row.rowc > .rc-warn) svg.i{width:20px;height:20px}
 .bx-app .bx-sumcard .tc-head{padding:6px 0 2px}
 /* 홈 '오늘 할 일' · '오늘의 메모'의 제목은 상자 밖 위(대표 11/5 03:48 · 가이드 '묶음 이름은 상자 밖 위'): 제목 줄 40, 상자는 그 아래 8부터(::before), 상자 안 첫 줄은 상자 위 끝에서 12 */
 .bx-app .bx-todo .bx-todo-h{height:40px;margin:0 0 20px!important}
-.bx-app .screen.today .tcard:is(.bx-todo,.bx-mm-card){position:relative;isolation:isolate;background:none;box-shadow:none}
-.bx-app .screen.today .tcard:is(.bx-todo,.bx-mm-card)::before{content:"";position:absolute;inset:48px 0 0;z-index:-1;border-radius:24px;background:var(--card-bg);box-shadow:var(--card-sh)}
-.bx-app .screen.today .bx-mm-card .bx-mm-h{height:40px;margin:0 0 20px;align-items:center}
+.bx-app .screen.today .tcard:is(.bx-todo,.bx-mm-card,.bx-ut){position:relative;isolation:isolate;background:none;box-shadow:none}
+.bx-app .screen.today .tcard:is(.bx-todo,.bx-mm-card,.bx-ut)::before{content:"";position:absolute;inset:48px 0 0;z-index:-1;border-radius:24px;background:var(--card-bg);box-shadow:var(--card-sh)}
+.bx-app .screen.today :is(.bx-mm-card .bx-mm-h,.bx-ut .bx-ut-h){height:40px;margin:0 0 20px;align-items:center}
 .bx-app .screen.today .bx-todo .rt-sec .sec-h h2,.bx-app .screen.today .bx-todo .bx-sub .sec-h h2{font-size:13px!important;font-weight:500;color:var(--ink-2);letter-spacing:0}
 .bx-app .bx-todo .rt-sec .sec-h .sec-sub,.bx-app .bx-todo .bx-sub .sec-h .sec-sub{font-size:13px}
 .bx-app .screen.today .bx-todo .grp-h.warn{background:transparent;padding:6px 0 2px;margin:0;font-size:13px;font-weight:500}
@@ -936,8 +943,8 @@ html.bx-fab-on #toasts{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0p
 .bx-app .bx-tl{margin-top:4px;border-top:0}
 /* 일정 · 루틴 · 수업 사이 연한 회색 가로줄(대표 11/4 22:46 '시간대별로 파악할 수 있어야 하고 일정이 딱딱 구분되어 보여야'):
    원본 홈 규칙(.screen.today .tcard .row{border-bottom:0})이 줄을 지우고 있어 한 단계 세게 */
-.screen.today .tcard .bx-tl > .row,.screen.today .tcard .bx-tl > .rt-card,.screen.today .tcard .bx-past > .row,.screen.today .tcard .bx-past > .rt-card{border-bottom:1px solid var(--line)}
-.screen.today .tcard .bx-tl > :last-child,.screen.today .tcard .bx-tl > .row:has(+ .now-line),.screen.today .tcard .bx-tl > .rt-card:has(+ .now-line),.screen.today .tcard .bx-past > :last-child{border-bottom:0}
+.screen.today .tcard .bx-tl > .row,.screen.today .tcard .bx-tl > .rt-card,.screen.today .tcard .bx-past > .row,.screen.today .tcard .bx-past > .rt-card,.screen.today .tcard .bx-ut-list > .row{border-bottom:1px solid var(--line)}
+.screen.today .tcard .bx-tl > :last-child,.screen.today .tcard .bx-tl > .row:has(+ .now-line),.screen.today .tcard .bx-tl > .rt-card:has(+ .now-line),.screen.today .tcard .bx-past > :last-child,.screen.today .tcard .bx-ut-list > :last-child{border-bottom:0}
 /* 지난 일 한 줄(접힘): 표시 칸에 꺾쇠, 글자는 시각 칸에서 시작 */
 .bx-app .bx-past-tog{display:flex;align-items:center;gap:14px;width:100%;min-height:44px;padding:0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink-3);font:inherit;font-size:14px;font-weight:600;text-align:left}
 .bx-app .bx-pt-i{width:24px;display:inline-flex;justify-content:center;flex:none}
@@ -1219,12 +1226,14 @@ html.bx-app .bx-ttper{display:grid;grid-template-columns:1fr 1fr;gap:10px;paddin
 html.bx-app .bx-ttper .inp{width:100%;min-width:0}
 
 /* ━━ 시험판 41(v41.js) ━━ */
-.bx-mm-card{margin-top:14px}
+.bx-mm-card,.bx-ut{margin-top:14px}
 .bx-mm-card .tc-body{padding-top:0;padding-bottom:14px}
-.bx-app .bx-mm-h{display:flex;align-items:baseline;gap:8px;margin:0 0 2px}
-.bx-app .bx-mm-h h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em}
+/* 시간 미지정 일정 상자는 목록 상자라 마지막 줄 아래가 '오늘 할 일'과 같게(상자 아래 끝까지 28) */
+.bx-ut .tc-body{padding-top:0;padding-bottom:8px}
+.bx-app :is(.bx-mm-h,.bx-ut-h){display:flex;align-items:baseline;gap:8px;margin:0 0 2px}
+.bx-app :is(.bx-mm-h,.bx-ut-h) h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em}
 .bx-app .bx-mm-sec .bx-mm-h h2{font-size:16px}
-.bx-app .bx-mm-h .n{font-size:13px;font-weight:700;color:var(--ink-3)}
+.bx-app :is(.bx-mm-h,.bx-ut-h) .n{font-size:13px;font-weight:700;color:var(--ink-3)}
 html.bx-app .bx-mm-row{display:flex;gap:12px;width:100%;padding:11px 0;border-bottom:1px solid var(--line);align-items:flex-start;text-align:left;color:var(--ink)}
 html.bx-app .bx-mm-t{flex:none;min-width:44px;font-size:13px;font-weight:700;color:var(--ink-3);line-height:22px}
 .bx-app .bx-mm-x{flex:1;min-width:0;font-size:16px;line-height:22px;font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -1418,7 +1427,8 @@ html.bx-app .bx-ep #f-date > .inline{display:flex;align-items:center;gap:12px;mi
 .bx-ep #f-time > .seg{margin:0 0 14px}
 .bx-ep #f-time > .fgrid,.bx-ep #f-time > p{margin:0;background:var(--card-bg);border-radius:26px;padding:0 20px;padding:18px 20px}
 .bx-ep #f-time > .fgrid{row-gap:12px}
-.bx-ep #f-time > .fgrid > .fg-l{margin:0}
+/* 상자 안 이름표는 상자 안쪽 여백(20)에서 시작. '소요 시간'처럼 이름표 줄(.fg-lr) 안에 든 것도(시험판 58: 20 더 들어가 있었음) */
+.bx-ep #f-time > .fgrid .fg-l{margin:0}
 /* 출발·준비: 이동 시간 4칸, 직접 · 준비 루틴은 상자 */
 html.bx-app .bx-ep #f-go > .picks:has([data-ftv]){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0}
 .bx-app .bx-ep #f-go > .picks:has([data-ftv]) .pick{width:auto;min-height:48px;margin:0;border:0;border-radius:16px;background:var(--card-bg);color:var(--ink);font-size:16px;font-weight:600;white-space:nowrap;justify-content:center}
@@ -1848,13 +1858,13 @@ input{text-overflow:ellipsis}
 @media (prefers-reduced-motion: reduce){.bx-app #f-chips .bx-er-more > .bx-er-ic svg.i{transition:none}}
 
 /* 루틴 단계 창(홈 루틴 줄을 누르면, 시험판 56): 전에 홈 카드를 펼치면 보이던 단계 목록 모양 그대로(시험판 54 '줄 목록 하나').
-   목록 전체가 같은 칸 — 시각 90 | 아이콘 26 | 이름 | 체크 32. '지금' 상자는 단계 줄에 테두리로 보이니 숨긴다 */
+   목록 전체가 같은 칸 — 시각 90(24시간 64) | 아이콘 26 | 이름 | 체크 32. '지금' 상자는 단계 줄에 테두리로 보이니 숨긴다 */
 .bx-rtpage .rt-card{margin:0}
 .bx-rtpage .rt-card.bx-open > .rt-now{display:none}
 /* 단계 창 제목이 루틴 이름이라 카드 머리의 이름은 뺀다(같은 이름이 두 번 · 시각 글에 밀려 '출근 …'으로 잘리던 것). 아이콘 · 시각 · 도착은 그대로 */
 .bx-rtpage .rt-card.bx-open > .rt-h > b{display:none}
 .bx-rtpage .rt-steps{margin-left:0}
-.bx-rtpage .rt-steps li{grid-template-columns:90px 26px minmax(0,1fr) 32px;column-gap:0;min-height:48px;padding:6px 0}
+.bx-rtpage .rt-steps li{grid-template-columns:var(--rt-tw) 26px minmax(0,1fr) 32px;column-gap:0;min-height:48px;padding:6px 0}
 .bx-rtpage .rt-steps li .rt-t{white-space:nowrap}
 .bx-rtpage .rt-steps li > .bx-ic.st{width:18px;height:18px;margin:0;display:flex;align-items:center;justify-content:center}
 .bx-rtpage .rt-steps li .rt-n{display:flex;flex-direction:column;align-items:flex-start;gap:2px;white-space:normal;overflow:visible}
@@ -1863,7 +1873,7 @@ input{text-overflow:ellipsis}
 .bx-rtpage .rt-steps li > .rt-chk,.bx-rtpage .rt-steps li > .rt-chk-sp{grid-column:4;justify-self:end;margin:0}
 .bx-rtpage .rt-steps li.cur{margin:2px -10px;padding:8px 10px;border-radius:14px;border-top-color:transparent;background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
 .bx-rtpage .rt-steps li.cur + li{border-top-color:transparent}
-.bx-rtpage .rt-steps li.arr{grid-template-columns:90px 26px minmax(0,1fr) 32px}
+.bx-rtpage .rt-steps li.arr{grid-template-columns:var(--rt-tw) 26px minmax(0,1fr) 32px}
 .bx-rtpage .rt-steps li.arr .rt-s,.bx-rtpage .rt-steps li.arr .rt-chk-sp{display:none}
 .bx-rtpage .rt-steps li.arr .rt-n{grid-column:3/5}
 .bx-rtpage .rt-steps li.arr .rt-nm{white-space:normal;overflow:visible}

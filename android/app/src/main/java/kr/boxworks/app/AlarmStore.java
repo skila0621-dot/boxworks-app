@@ -86,6 +86,15 @@ public final class AlarmStore {
         prefs(c).edit().putString("lock", m).apply();
     }
 
+    /** 시각 표시(시험판 58): true = 24시간. BxTime이 읽는다 */
+    static boolean h24(Context c) {
+        return prefs(c).getBoolean("h24", false);
+    }
+
+    static void setH24(Context c, boolean v) {
+        if (prefs(c).getBoolean("h24", false) != v) prefs(c).edit().putBoolean("h24", v).apply();
+    }
+
     private static synchronized void save(Context c, JSONArray list) {
         prefs(c).edit().putString(KEY, list.toString()).apply();
     }

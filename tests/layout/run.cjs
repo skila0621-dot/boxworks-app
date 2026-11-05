@@ -3,20 +3,22 @@
 //   node tests/layout/run.cjs                      폭 360 · 384 · 412 × 라이트 · 다크, 모든 화면
 //   node tests/layout/run.cjs --only 홈 --widths 384 --themes light
 //   node tests/layout/run.cjs --snap DIR           (덧칠 정리용) 화면마다 사진 · 계산된 모양을 DIR에 남긴다. 비교: compare.cjs A B
+//   --clocks 12,24(기본): 시각 표시 오전 · 오후와 24시간 둘 다(시험판 58). 24시간 결과는 <폭>-<테마>-24/
 // 걸린 것: tests/layout/out/report.json · 사진 tests/layout/out/<폭>-<테마>/
 const { fork } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const OUT = path.resolve(arg('out', path.join(__dirname, 'out')));
-const GATE = ['tap', 'cover', 'cut', 'col', 'icon', 'gap', 'ink', 'midword', 'time24', 'comp', 'fit', 'mid', 'error'];
+const GATE = ['tap', 'cover', 'cut', 'col', 'icon', 'gap', 'ink', 'midword', 'time24', 'time12', 'comp', 'fit', 'mid', 'lab', 'error'];
 
 if (process.argv[2] === '--worker') {
-  const W = +process.argv[3], theme = process.argv[4], snapDir = arg('snap', ''), only = arg('only', ''), shots = arg('shots', '1') === '1';
+  const W = +process.argv[3], theme = process.argv[4], clock = process.argv[5] === '24' ? '24' : '12', snapDir = arg('snap', ''), only = arg('only', ''), shots = arg('shots', '1') === '1';
   const audit = require('./checks.js'), scenario = require('./scenario.cjs');
-  const dir = snapDir ? path.join(snapDir, W + '-' + theme) : path.join(OUT, W + '-' + theme);
+  const sub = W + '-' + theme + (clock === '24' ? '-24' : '');
+  const dir = snapDir ? path.join(snapDir, sub) : path.join(OUT, sub);
   fs.mkdirSync(dir, { recursive: true });
-  const res = { W, theme, states: {}, fails: [] };
+  const res = { W, theme, clock, states: {}, fails: [] };
   let idx = 0;
   const run = (p, o) => p.evaluate('(' + audit.toString() + ')(' + JSON.stringify(o || {}) + ')');
   // 계산된 모양(덧칠 정리 전후 비교용): 보이는 요소마다 자리 · 크기 · 글자 · 색
@@ -73,32 +75,38 @@ if (process.argv[2] === '--worker') {
     await p.waitForTimeout(150);
   };
   const fail = (label, msg) => { res.fails.push({ label, msg }); };
-  scenario({ W, theme, state, fail, only }).then(errs => {
+  scenario({ W, theme, state, fail, only, clock }).then(errs => {
     res.errors = errs || [];
     fs.writeFileSync(path.join(dir, 'result.json'), JSON.stringify(res));
     process.exit(0);
   }).catch(e => { res.fails.push({ label: '시나리오', msg: String(e && e.stack || e).slice(0, 400) }); fs.writeFileSync(path.join(dir, 'result.json'), JSON.stringify(res)); process.exit(0); });
 } else {
   const widths = arg('widths', '360,384,412').split(',').map(Number), themes = arg('themes', 'light,dark').split(','), snap = arg('snap', '');
-  const combos = []; widths.forEach(w => themes.forEach(t => combos.push([w, t])));
+  // 덧칠 정리 사진(--snap)은 오전 · 오후만. 점검은 둘 다(시각 칸 폭 · 오전 · 오후가 남은 글을 24시간에서도 잰다)
+  const clocks = arg('clocks', snap ? '12' : '12,24').split(',').filter(x => x === '12' || x === '24');
+  const combos = []; clocks.forEach(k => widths.forEach(w => themes.forEach(t => combos.push([w, t, k]))));
   const t0 = Date.now();
   if (!snap) fs.rmSync(OUT, { recursive: true, force: true });
-  const pass = process.argv.slice(2).filter((x, i, a) => !['--widths', '--themes'].includes(a[i - 1]) && !['--widths', '--themes'].includes(x));
-  Promise.all(combos.map(([w, t]) => new Promise(ok => { const c = fork(__filename, ['--worker', String(w), t].concat(pass), { stdio: 'inherit' }); c.on('exit', ok); }))).then(() => {
+  const flags = ['--widths', '--themes', '--clocks'];
+  const pass = process.argv.slice(2).filter((x, i, a) => !flags.includes(a[i - 1]) && !flags.includes(x));
+  const runOne = ([w, t, k]) => new Promise(ok => { const c = fork(__filename, ['--worker', String(w), t, k].concat(pass), { stdio: 'inherit' }); c.on('exit', ok); });
+  // 시각 표시마다 한 묶음씩(한꺼번에 12개를 띄우면 CI가 느려져 흔들림)
+  clocks.reduce((q, k) => q.then(() => Promise.all(combos.filter(x => x[2] === k).map(runOne))), Promise.resolve()).then(() => {
     if (snap) { console.log('사진 · 모양을 남김: ' + snap + ' (' + Math.round((Date.now() - t0) / 1000) + '초)'); return; }
     const allow = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'allow.json'), 'utf8')); } catch (e) { return []; } })();
     const ok = x => allow.some(a => a.k === x.k && (!a.p || new RegExp(a.p).test(x.p || '')) && (!a.t || new RegExp(a.t).test(x.t || '')));
     const uniq = new Map(); let screens = 0;
-    for (const [w, t] of combos) {
-      let r; try { r = JSON.parse(fs.readFileSync(path.join(OUT, w + '-' + t, 'result.json'), 'utf8')); } catch (e) { r = { states: {}, fails: [{ label: '결과 없음', msg: '' }] }; }
-      for (const f of r.fails) uniq.set('error|' + f.label, { k: 'error', p: f.label, t: f.msg, where: [w + t[0]] });
-      (r.errors || []).forEach(m => uniq.set('error|js|' + m, { k: 'error', p: '화면 오류', t: m, where: [w + t[0]] }));
+    for (const [w, t, k] of combos) {
+      const sub = w + '-' + t + (k === '24' ? '-24' : ''), wt = w + t[0] + (k === '24' ? '·24' : '');
+      let r; try { r = JSON.parse(fs.readFileSync(path.join(OUT, sub, 'result.json'), 'utf8')); } catch (e) { r = { states: {}, fails: [{ label: '결과 없음', msg: '' }] }; }
+      for (const f of r.fails) uniq.set('error|' + f.label, { k: 'error', p: f.label, t: f.msg, where: [wt] });
+      (r.errors || []).forEach(m => uniq.set('error|js|' + m, { k: 'error', p: '화면 오류', t: m, where: [wt] }));
       for (const [nm, s] of Object.entries(r.states)) {
         screens++;
         for (const x of s.issues) {
           if (!GATE.includes(x.k) || ok(x)) continue;
           const key = x.k + '|' + x.p + '|' + (x.why || '') + '|' + x.t;
-          const e = uniq.get(key) || Object.assign({}, x, { where: [] }); const tag = w + t[0] + ' ' + nm.slice(0, 2);
+          const e = uniq.get(key) || Object.assign({}, x, { where: [] }); const tag = wt + ' ' + nm.slice(0, 2);
           if (!e.where.includes(tag)) e.where.push(tag); uniq.set(key, e);
         }
       }
@@ -107,7 +115,7 @@ if (process.argv[2] === '--worker') {
     const cnt = {}; list.forEach(x => { cnt[x.k] = (cnt[x.k] || 0) + 1; });
     fs.mkdirSync(OUT, { recursive: true });
     fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ at: new Date().toISOString(), combos, screens, count: cnt, issues: list }, null, 1));
-    console.log('화면 ' + screens + '장(폭 ' + widths.join(' · ') + ' × ' + themes.join(' · ') + ') · ' + Math.round((Date.now() - t0) / 1000) + '초');
+    console.log('화면 ' + screens + '장(폭 ' + widths.join(' · ') + ' × ' + themes.join(' · ') + ' × 시각 ' + clocks.map(k => k === '24' ? '24시간' : '오전 · 오후').join(' · ') + ') · ' + Math.round((Date.now() - t0) / 1000) + '초');
     if (!list.length) { console.log('통과: 걸린 것 없음'); process.exit(0); }
     console.log('걸린 것 ' + list.length + '가지 ' + JSON.stringify(cnt));
     list.slice(0, 80).forEach(x => console.log(' · ' + x.k + (x.why ? '(' + x.why + ')' : '') + '  ' + String(x.t || '').slice(0, 40) + '  — ' + String(x.p || '').slice(-80) + '  [' + x.where.slice(0, 4).join(', ') + (x.where.length > 4 ? ' 외 ' + (x.where.length - 4) : '') + ']'));

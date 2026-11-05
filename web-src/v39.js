@@ -10,7 +10,12 @@
       - 일정 색은 캘린더 색이 기본이고, 새 일정 창의 캘린더 칸에서 그 일정만 다른 색으로 바꿀 수 있다.
    3) '홈에 보이기'(대표 21:51 "별도 동작이지요?"): 끄면 홈 · 위젯 · 아침 요약의 그날 목록에서만 빠진다.
       캘린더 화면 · 알림 · 놓친 일정(확인 필요)은 그대로.
-   4) 캘린더 화면 위 칩: [전체] [캘린더…] [휴대폰 캘린더…] [＋]. 하나를 누르면 그 캘린더만 보인다. 앱을 다시 열면 전체. */
+   4) 캘린더 화면 위 칩: [전체] [캘린더…] [휴대폰 캘린더…] [＋]. 하나를 누르면 그 캘린더만 보인다. 앱을 다시 열면 전체.
+   5) 시험판 58(대표 11/4): 칩을 길게 누르면 '색 바꾸기 · 이 캘린더 빼기'(휴대폰 캘린더도).
+      - 색: 캘린더는 그 캘린더 색, 휴대폰 캘린더는 이 휴대폰의 스케줄러에서만 보이는 색(휴대폰 캘린더 앱의 색은 그대로).
+      - 빼기: 캘린더는 캘린더 화면 · 홈 · 위젯 · 아침 요약에서 빠진다(알림은 울리고, 놓친 일정은 확인 필요에 그대로).
+        휴대폰 캘린더는 읽지 않는다(설정 › 휴대폰 캘린더의 '보여 줄 캘린더'에서 끈 것과 같음).
+      - 뺀 캘린더는 캘린더 목록 맨 아래 '뺀 캘린더'에서 다시 넣는다. 빼면 되돌리기도 뜬다. */
 
 var bxCalSel = '';
 
@@ -62,26 +67,31 @@ function bxPcHomeOff(){ return typeof pcCfg === 'function' ? (pcCfg().homeOff ||
 function bxCalHome(id){
   if (!id) return true;
   if (/^pcc_/.test(id)) return !bxPcHomeOff().includes(String(id).slice(4));
-  const c = M.catMap.get(id); return !c || c.home !== false;
+  const c = M.catMap.get(id); return !c || (c.home !== false && !c.hidden);
 }
+// 뺀 캘린더(시험판 58): 캘린더 화면 · 칩 · 홈 · 위젯에서 빠짐
+function bxCalHidden(id){ const c = id && M.catMap.get(id); return !!(c && c.hidden); }
 // 홈 · 위젯 · 아침 요약에 넣을지. 놓친 일정은 늘 보인다
 function bxHomeOk(it){ return !it || bxCalHome(it.categoryId) || isLate(it); }
 function bxHomeItems(list){ return list.filter(bxHomeOk); }
 function bxCalOk(it){ return !bxCalSel || (it.categoryId || '') === bxCalSel; }
-function bxCalFilter(list){ return bxCalSel && (S.view === 'month' || S.view === 'week' || S.view === 'day') ? list.filter(bxCalOk) : list; }
+function bxCalFilter(list){
+  list = list.filter(i => !bxCalHidden(i.categoryId));
+  return bxCalSel && (S.view === 'month' || S.view === 'week' || S.view === 'day') ? list.filter(bxCalOk) : list;
+}
 // 읽고 있는 휴대폰 캘린더(칩 · 캘린더 목록). 고른 캘린더 목록이 있으면 그것, 없으면 읽은 일정에서
 function bxPcCals(){
   if (typeof pcCfg !== 'function' || !pcCfg().on) return [];
   const cfg = pcCfg(), map = new Map();
-  (PC.cals || []).forEach(c => { if (cfg.ids && !cfg.ids.includes(String(c.id))) return; const id = 'pcc_' + c.id; map.set(id, {id, name: c.name || '휴대폰 캘린더', color: pcColor(c.color)}); });
-  M.items.forEach(i => { if (!i.pc || map.has(i.categoryId)) return; const e = i.pcEv || {}; map.set(i.categoryId, {id: i.categoryId, name: e.calendar || '휴대폰 캘린더', color: PC.colors.get(i.categoryId) || pcColor(e.color)}); });
+  (PC.cals || []).forEach(c => { if (!pcShown(c.id, cfg)) return; const id = 'pcc_' + c.id; map.set(id, {id, name: c.name || '휴대폰 캘린더', color: pcCalColor(c.id, c.color)}); });
+  M.items.forEach(i => { if (!i.pc || map.has(i.categoryId)) return; const e = i.pcEv || {}; map.set(i.categoryId, {id: i.categoryId, name: e.calendar || '휴대폰 캘린더', color: pcCalColor(e.calendarId, e.color)}); });
   return Array.from(map.values());
 }
 function bxCalName(id){ const c = M.catMap.get(id); if (c) return c.name; const p = bxPcCals().find(x => x.id === id); return p ? p.name : ''; }
 // 새 일정의 캘린더: 캘린더 화면에서 칩을 골라 두었으면 그 캘린더, 아니면 '새 일정의 기본', 그것도 없으면 캘린더 없음(전과 같음)
 function bxDefCal(){
   if (bxCalSel && M.catMap.has(bxCalSel) && (S.view === 'month' || S.view === 'week' || S.view === 'day')) return bxCalSel;
-  const d = M.settings.defCal; return d && M.catMap.has(d) ? d : null;
+  const d = M.settings.defCal; return d && M.catMap.has(d) && !bxCalHidden(d) ? d : null;
 }
 
 /* ---------- 월간 칸: 여러 날 막대 + 하루 일정 ----------
@@ -130,15 +140,15 @@ function bxMonthCellsHtml(y, m){
   return out.join('');
 }
 // 월간 위 개수 줄도 고른 캘린더만
-function bxMonthPick(i){ return !bxCalSel || S.view !== 'month' || bxCalOk(i); }
+function bxMonthPick(i){ return !bxCalHidden(i.categoryId) && (!bxCalSel || S.view !== 'month' || bxCalOk(i)); }
 
 /* ---------- 캘린더 화면 위 칩 ---------- */
 function bxCalChipsHtml(){
   const pcs = bxPcCals();
-  if (bxCalSel && !M.catMap.has(bxCalSel) && !pcs.some(p => p.id === bxCalSel)) bxCalSel = '';
+  if (bxCalSel && (!M.catMap.has(bxCalSel) || bxCalHidden(bxCalSel)) && !pcs.some(p => p.id === bxCalSel)) bxCalSel = '';
   const chip = (id, color, label, cls) => '<button type="button" class="bx-cchip' + (cls || '') + '" data-bxcsel="' + esc(id) + '" aria-pressed="' + (bxCalSel === id) + '">' + (color ? '<i class="bx-cdot" style="--c:' + color + '"></i>' : '') + '<span>' + esc(label) + '</span></button>';
   return '<div class="bx-cchips" role="group" aria-label="캘린더 고르기">' + chip('', '', '전체') +
-    M.cats.map(c => chip(c.id, catColorRaw(c.id), c.name)).join('') + pcs.map(p => chip(p.id, p.color, p.name, ' pc')).join('') +
+    M.cats.filter(c => !c.hidden).map(c => chip(c.id, catColorRaw(c.id), c.name)).join('') + pcs.map(p => chip(p.id, p.color, p.name, ' pc')).join('') +
     '<button type="button" class="bx-cchip bx-cchip-add" data-act="bx-cals" aria-label="캘린더 만들기 · 관리">' + ICON.plus + '<span>캘린더</span></button></div>';
 }
 // 날짜 창(캘린더 화면에서 연 것)도 고른 캘린더만. 맨 위에 한 줄로 알린다
@@ -159,7 +169,7 @@ function bxCalRowHtml(id, color, name, sub, home, attr, ro){
 function bxCalsOpen(back){ openSheet({title: '캘린더', back: back || null, draw: bxCalsDraw, refresh: bxCalsDraw}); }
 function bxCalsDraw(){
   const def = M.settings.defCal;
-  let h = '<div class="bx-grp bx-cals">' + M.cats.map(c => bxCalRowHtml(c.id, catColorRaw(c.id), c.name, '일정 ' + bxCalCount(c.id) + '개' + (def === c.id ? ' · 새 일정의 기본' : ''), c.home !== false, 'data-bxcalhome')).join('') +
+  let h = '<div class="bx-grp bx-cals">' + M.cats.filter(c => !c.hidden).map(c => bxCalRowHtml(c.id, catColorRaw(c.id), c.name, '일정 ' + bxCalCount(c.id) + '개' + (def === c.id ? ' · 새 일정의 기본' : ''), c.home !== false, 'data-bxcalhome')).join('') +
     '<button type="button" class="bx-cal-add" data-act="bx-cal-add">' + ICON.plus + '<span>캘린더 만들기</span></button></div>' +
     '<p class="p small bx-cal-note">홈에 보이기를 끄면 홈 · 위젯 · 아침 요약의 그날 목록에서만 빠져요. 캘린더 화면 · 알림 · 놓친 일정은 그대로예요.</p>';
   // 시험판 40: 시간표도 같은 목록에(캘린더 보완 안 ③ '캘린더 · 시간표 목록 · 홈에 보이기')
@@ -167,7 +177,19 @@ function bxCalsDraw(){
   const pcs = bxPcCals();
   if (pcs.length) h += '<h3 class="bx-ft-hd">휴대폰 캘린더</h3><div class="bx-grp bx-cals">' + pcs.map(p => bxCalRowHtml(p.id, p.color, p.name, '읽기만 · 일정 ' + bxCalCount(p.id) + '개', bxCalHome(p.id), 'data-bxpchome', true)).join('') + '</div>' +
     '<p class="p small bx-cal-note">어느 휴대폰 캘린더를 읽을지는 설정 › 휴대폰 캘린더에서 골라요.</p>';
+  const out = bxCalOutList();
+  if (out.length) h += '<h3 class="bx-ft-hd">뺀 캘린더</h3><div class="bx-grp bx-cals">' + out.map(o => '<div class="bx-arow bx-calrow bx-calout" data-cal="' + esc(o.id) + '"><span class="bx-at"><b><i class="bx-cdot" style="--c:' + o.color + '"></i>' + esc(o.name) + '</b><small>' + esc(o.sub) + '</small></span>' +
+    '<button type="button" class="btn sm" data-act="bx-cal-back" data-id="' + esc(o.id) + '" aria-label="' + esc(o.name) + ' 다시 넣기">다시 넣기</button></div>').join('') + '</div>';
   setSheet(h, '');
+}
+// 뺀 캘린더: 뺀 캘린더 + 읽지 않는 휴대폰 캘린더(휴대폰에서 보이게 켜 둔 것만)
+function bxCalOutList(){
+  const out = M.cats.filter(c => c.hidden).map(c => ({id: c.id, name: c.name, color: catColorRaw(c.id), sub: '일정 ' + bxCalCount(c.id) + '개 · 캘린더 · 홈 · 위젯에서 뺐어요'}));
+  if (typeof pcCfg === 'function' && pcCfg().on && PC.cals) {
+    const cfg = pcCfg();
+    PC.cals.forEach(c => { if (cfg.ids && !cfg.ids.includes(String(c.id))) out.push({id: 'pcc_' + c.id, name: c.name || '휴대폰 캘린더', color: pcCalColor(c.id, c.color), sub: '휴대폰 캘린더 · 읽지 않아요'}); });
+  }
+  return out;
 }
 function bxCalOpen(id, focus){
   openSheet({title: '캘린더', back: () => bxCalsOpen(), draw: () => bxCalDraw(id)});
@@ -216,6 +238,72 @@ function bxCalAdd(){
   M = buildModel();
   bxCalOpen(id, true);
 }
+
+/* ---------- 칩 길게 누르기(시험판 58, 대표 11/4): 색 바꾸기 · 이 캘린더 빼기. 휴대폰 캘린더도 ---------- */
+let bxCcLp = null;
+function bxCalChipMenu(id){
+  const pc = /^pcc_/.test(id), p = pc ? bxPcCals().find(x => x.id === id) : null, c = pc ? null : M.catMap.get(id);
+  if (!p && !c) return;
+  openSheet({title: pc ? p.name : c.name, draw: () => bxCalChipDraw(id)});
+  SH.bxCcm = id;
+}
+function bxCalChipDraw(id){
+  const pc = /^pcc_/.test(id), c = pc ? null : M.catMap.get(id);
+  if (!pc && !c) { closeSheet(); return; }
+  const ov = pc ? String(pcCfg().colors[id.slice(4)] || '').toLowerCase() : '', cur = pc ? ov : String(c.color).toLowerCase();
+  // 휴대폰 캘린더는 맨 앞에 휴대폰 캘린더 앱의 색(누르면 고른 색을 지우고 그 색으로)
+  const raw = pc ? ((PC.cals || []).find(x => 'pcc_' + x.id === id) || {}).color : null;
+  const first = pc && raw != null ? '<button type="button" class="swatch" style="--c:' + pcColor(raw) + '" data-bxccol="" aria-label="휴대폰 캘린더 색" aria-pressed="' + !ov + '"></button>' : '';
+  const sw = first + COLORS.map(x => '<button type="button" class="swatch" style="--c:var(' + x[1] + ')" data-bxccol="' + x[0] + '" aria-label="' + x[2] + '" aria-pressed="' + (cur === x[0]) + '"></button>').join('');
+  setSheet('<div class="bx-grp bx-cald"><div class="fld"><span class="fld-l">색 바꾸기</span><div class="swatches" role="group" aria-label="캘린더 색">' + sw + '</div></div></div>' +
+    (pc ? '<p class="p small bx-cal-note">이 휴대폰의 스케줄러에서만 바뀌어요. 휴대폰 캘린더 앱의 색은 그대로예요.</p>' : '') +
+    '<div class="bx-grp bx-cals"><button type="button" class="bx-arow" data-act="bx-ccm-out"><span class="bx-at"><b>이 캘린더 빼기</b><small>' +
+      (pc ? '이 캘린더 일정을 읽지 않아요' : '캘린더 · 홈 · 위젯에서 빠져요 · 알림은 울려요') + '</small></span></button></div>' +
+    '<p class="p small bx-cal-note">뺀 캘린더는 캘린더 목록 맨 아래에서 다시 넣어요.</p>', '');
+}
+function bxCalOut(id){
+  const name = bxCalName(id) || '캘린더';
+  if (/^pcc_/.test(id)) {
+    const cfg = pcCfg(), cid = id.slice(4), prev = cfg.ids ? cfg.ids.slice() : null;
+    // 다 읽던 중(ids 없음)이면 휴대폰에서 보이는 캘린더 전부에서 이것만 뺀다
+    const base = cfg.ids || (PC.cals && PC.cals.length ? PC.cals.map(c => String(c.id)) : bxPcCals().map(p => p.id.slice(4)));
+    pcSetCfg({ids: base.filter(x => x !== cid)});
+    if (bxCalSel === id) bxCalSel = '';
+    closeSheet(); M = buildModel(); scheduleRender(); pcRefresh(true);
+    toast('‘' + name + '’ 캘린더를 뺐어요 · 일정을 읽지 않아요', [['되돌리기', () => { pcSetCfg({ids: prev}); M = buildModel(); scheduleRender(); pcRefresh(true); }]]);
+    return;
+  }
+  const c = M.catMap.get(id); if (!c) return;
+  const def = M.settings.defCal === id;
+  record([id].concat(def ? ['settings'] : []));
+  patchDoc(id, {hidden: true}); if (def) saveSettings({defCal: null});
+  if (bxCalSel === id) bxCalSel = '';
+  closeSheet(); M = buildModel(); scheduleRender();
+  toast('‘' + c.name + '’ 캘린더를 뺐어요 · 알림은 울려요', [['되돌리기', doUndo]]);
+}
+function bxCalBack(id){
+  const name = /^pcc_/.test(id) ? ((PC.cals || []).find(x => 'pcc_' + x.id === id) || {}).name || '휴대폰 캘린더' : bxCalName(id);
+  if (/^pcc_/.test(id)) {
+    const cfg = pcCfg(), cid = id.slice(4);
+    pcSetCfg({ids: (cfg.ids || []).filter(x => x !== cid).concat([cid])});
+    M = buildModel(); bxCalsDraw(); scheduleRender(); pcRefresh(true);
+  } else { if (!M.catMap.has(id)) return; patchDoc(id, {hidden: false}); M = buildModel(); bxCalsDraw(); scheduleRender(); }
+  toast('‘' + name + '’ 캘린더를 다시 넣었어요');
+}
+document.addEventListener('pointerdown', ev => {
+  if (!window.BX_APP || (ev.button != null && ev.button > 0) || !ev.target.closest) return;
+  const ch = ev.target.closest('.bx-cchip[data-bxcsel]'); if (!ch || !ch.dataset.bxcsel) return;
+  if (bxCcLp) clearTimeout(bxCcLp.t);
+  const id = ch.dataset.bxcsel;
+  bxCcLp = {x: ev.clientX, y: ev.clientY, t: setTimeout(() => {
+    bxCcLp = null; bxIlpAt = Date.now();   // 손을 떼며 생기는 누르기(칩 고르기)는 flow.js가 삼킨다
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) { /* 진동 없음 */ }
+    bxCalChipMenu(id);
+  }, 480)};
+}, true);
+document.addEventListener('pointermove', ev => { if (bxCcLp && (Math.abs(ev.clientX - bxCcLp.x) > 10 || Math.abs(ev.clientY - bxCcLp.y) > 10)) { clearTimeout(bxCcLp.t); bxCcLp = null; } }, true);
+['pointerup', 'pointercancel'].forEach(k => document.addEventListener(k, () => { if (bxCcLp) { clearTimeout(bxCcLp.t); bxCcLp = null; } }, true));
+document.addEventListener('contextmenu', ev => { if (window.BX_APP && ev.target.closest && ev.target.closest('.bx-cchip')) ev.preventDefault(); }, true);
 
 /* ---------- 새 일정 창: 여러 날 · 캘린더 · 이 일정 색 ---------- */
 function bxFMulti(){ return !!(F && F.multi && isDate(F.endDate) && F.endDate > F.date); }
@@ -273,7 +361,8 @@ drawFCat = function(){
   drawFChips();
   const el = document.getElementById('f-cat'); if (!el) return;
   const cal = F.categoryId ? M.catMap.get(F.categoryId) : null;
-  el.innerHTML = '<div class="picks" role="group" aria-label="캘린더">' + M.cats.map(c => '<button type="button" class="pick" data-fcat="' + esc(c.id) + '" aria-pressed="' + (F.categoryId === c.id) + '"><i class="dot" style="--c:' + catColorRaw(c.id) + '"></i>' + esc(c.name) + '</button>').join('') +
+  // 뺀 캘린더(시험판 58)는 이 일정이 그 캘린더일 때만 보인다
+  el.innerHTML = '<div class="picks" role="group" aria-label="캘린더">' + M.cats.filter(c => !c.hidden || F.categoryId === c.id).map(c => '<button type="button" class="pick" data-fcat="' + esc(c.id) + '" aria-pressed="' + (F.categoryId === c.id) + '"><i class="dot" style="--c:' + catColorRaw(c.id) + '"></i>' + esc(c.name) + '</button>').join('') +
       '<button type="button" class="pick" data-fcat="" aria-pressed="' + !F.categoryId + '">없음</button></div>' +
     '<div class="bx-fcol"><span class="fg-l">이 일정 색</span><div class="bx-fcol-row" role="group" aria-label="이 일정 색">' +
       '<button type="button" class="pick bx-fcol-def" data-fcolor="" aria-pressed="' + !F.color + '"><i class="dot" style="--c:' + (cal ? catColorRaw(cal.id) : 'var(--ink-3)') + '"></i>캘린더 색</button>' +
@@ -338,6 +427,17 @@ document.addEventListener('click', ev => {
   if (cs) { ev.preventDefault(); ev.stopPropagation(); bxCalSel = cs.dataset.bxcsel || ''; render(); return; }
   if (t.closest('[data-act="bx-cals"]')) { ev.preventDefault(); ev.stopPropagation(); bxCalsOpen(); return; }
   if (!SH) return;
+  const ccol = t.closest('[data-bxccol]');
+  if (ccol && SH.bxCcm) {
+    ev.preventDefault(); ev.stopPropagation();
+    const id = SH.bxCcm, v = ccol.dataset.bxccol;
+    if (/^pcc_/.test(id)) { const cols = Object.assign({}, pcCfg().colors); if (v) cols[id.slice(4)] = v; else delete cols[id.slice(4)]; pcSetCfg({colors: cols}); }
+    else if (v) patchDoc(id, {color: v});
+    M = buildModel(); bxCalChipDraw(id); scheduleRender(); return;
+  }
+  if (t.closest('[data-act="bx-ccm-out"]') && SH.bxCcm) { ev.preventDefault(); ev.stopPropagation(); bxCalOut(SH.bxCcm); return; }
+  const cb = t.closest('[data-act="bx-cal-back"]');
+  if (cb) { ev.preventDefault(); ev.stopPropagation(); bxCalBack(cb.dataset.id); return; }
   const fm = t.closest('[data-fmulti]');
   if (fm && F) { ev.preventDefault(); ev.stopPropagation(); F.multi = fm.dataset.fmulti === '1'; F.touchedDate = true; F.multiParsed = false; if (!F.multi) { F.endDate = ''; F.spanN = 0; } drawFDate(); drawFHint(); if (F.timed) drawFTime(); return; }
   const fs = t.closest('[data-fspan]');

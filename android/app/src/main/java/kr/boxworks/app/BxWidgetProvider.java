@@ -14,6 +14,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
 import java.text.SimpleDateFormat;
@@ -132,7 +133,7 @@ public class BxWidgetProvider extends AppWidgetProvider {
     }
 
     static String hm(long ms) {
-        return new SimpleDateFormat("a h:mm", Locale.KOREA).format(new Date(ms));
+        return BxTime.hm(ms);
     }
 
     static long dayStart(long ms) {
@@ -255,6 +256,8 @@ public class BxWidgetProvider extends AppWidgetProvider {
         // 체크한 일정: 시각 · 이름 가로줄 + 흐리게(선택실 3 '다'). 시간이 지났는데 체크 안 한 일정은 조금 연하게만(가로줄 없음)
         if (done) { tCs = strike(tCs); nCs = strike(nCs); }
         v.setTextViewText(R.id.wr_t, tCs);
+        // 시각 칸: 오전 · 오후 80dp, 24시간 52dp(앱 목록 시각 칸과 같은 비율, 시험판 58). 안드로이드 12 아래는 80 그대로
+        if (Build.VERSION.SDK_INT >= 31) v.setViewLayoutWidth(R.id.wr_t, BxTime.is24() ? 52f : 80f, TypedValue.COMPLEX_UNIT_DIP);
         v.setTextViewText(R.id.wr_n, nCs);
         v.setTextViewText(R.id.wr_m, rightCs);
         v.setTextColor(R.id.wr_t, done ? faint : gone ? dim : (live || (next && bg)) ? accent : ink);
@@ -282,6 +285,7 @@ public class BxWidgetProvider extends AppWidgetProvider {
     static void render(Context c, AppWidgetManager m, int[] ids) {
         long now = System.currentTimeMillis();
         long today = dayStart(now);
+        BxTime.load(c);
         JSONObject d = load(c);
         for (int wid : ids) {
             try {

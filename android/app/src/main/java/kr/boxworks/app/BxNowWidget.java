@@ -9,10 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 import android.widget.RemoteViews;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -53,7 +50,7 @@ public class BxNowWidget extends AppWidgetProvider {
     }
 
     private static String hm(long ms) {
-        return new SimpleDateFormat("a h:mm", Locale.KOREA).format(new Date(ms));
+        return BxTime.hm(ms);
     }
 
     private static long dayStart(long ms) {
@@ -84,6 +81,7 @@ public class BxNowWidget extends AppWidgetProvider {
 
     static void render(Context c, AppWidgetManager m, int[] ids) {
         long now = System.currentTimeMillis();
+        BxTime.load(c);
         JSONObject d = BxWidgetProvider.load(c);
         JSONArray rts = d.optJSONArray("routines");
         JSONObject active = null, upcoming = null;

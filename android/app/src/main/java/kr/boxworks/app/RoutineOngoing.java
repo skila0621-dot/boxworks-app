@@ -10,9 +10,6 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -35,7 +32,7 @@ final class RoutineOngoing {
     }
 
     private static String hm(long ms) {
-        return new SimpleDateFormat("a h:mm", Locale.KOREA).format(new Date(ms));
+        return BxTime.hm(ms);
     }
 
     /** 루틴 단계 알람이 울렸을 때. 단계가 둘 이상인 루틴만 띄운다 */
@@ -107,6 +104,7 @@ final class RoutineOngoing {
 
     static void post(Context c) {
         long now = System.currentTimeMillis();
+        BxTime.load(c);
         JSONObject p = active(c, now);
         if (p == null) {
             NotificationManagerCompat.from(c).cancel(NOTIF_ID);

@@ -76,6 +76,20 @@ document.addEventListener('click', ev => {
   b.setAttribute('aria-expanded', String(bxPastOpen));
   const box = b.nextElementSibling; if (box && box.classList.contains('bx-past')) box.hidden = !bxPastOpen;
 }, true);
+// 시간 미지정 일정 상자: '오늘 할 일' 바로 아래(오늘의 메모 위). 줄은 같은 목록 줄 부품 그대로, 이 목록은 시각 칸 없이 [종류 아이콘 | 이름 | 체크].
+// 안 한 것이 먼저, 한 것은 아래(가로줄 + 흐리게). 없으면 상자도 없다
+function bxUntimedBox(list){
+  const card = document.getElementById('tcard2'); if (!card || !list.length) return;
+  const sec = document.createElement('section'); sec.className = 'tcard bx-ut'; sec.id = 'tcard-ut'; sec.setAttribute('aria-labelledby', 'h-ut');
+  sec.innerHTML = '<div class="tc-body"><div class="bx-ut-h"><h2 id="h-ut">시간 미지정 일정</h2><span class="n">' + list.length + '</span></div><div class="list bx-ut-list"></div></div>';
+  const box = sec.querySelector('.bx-ut-list');
+  list.slice().sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.i - b.i).forEach(e => box.append(e.el));
+  card.after(sec);
+}
+function bxTlDoneText(ents, ut){
+  if (!ents.length && ut.length) return '시간을 정한 일정이 없어요';
+  return ut.some(e => !e.done) ? '시간을 정한 남은 일은 없어요' : '오늘 남은 일은 없어요';
+}
 function bxTimeline(){
   if (!window.BX_APP || S.view !== 'today') return;
   const body = document.querySelector('#tcard2 .tc-body'); if (!body || body.querySelector('.bx-tl')) return;
@@ -97,12 +111,16 @@ function bxTimeline(){
       let t = b && /종일/.test(b.textContent) ? -1 : hm(b && b.textContent), te = it && isHM(it.end) ? toMin(it.end) : t;
       // 여러 날 일정(시험판 39): 시간이 있으면 첫날은 그 시각 자리(그날 끝까지 '지금'), 다른 날은 맨 위 줄
       if (it && typeof bxSpan === 'function' && bxSpan(it)) { if (it.start && it.date === homeViewDate()) te = 24 * 60; else t = te = -1; }
-      ents.push({el, t, te, k: 0, i, late: !!(ll && ll.contains(el))});
+      // 시간 미지정 일정(시험판 58, 대표 11/4 22:25 · 22:46 ② '오늘 할 일 아래 따로 상자'): 그날 하루 일정 가운데 시각이 없는 것. 여러 날 일정 · 어제까지 못 한 일은 그대로
+      const ut = !!(it && !it.start && !(typeof bxSpan === 'function' && bxSpan(it)) && !(ll && ll.contains(el)));
+      ents.push({el, t, te, k: 0, i, late: !!(ll && ll.contains(el)), ut, done: !!(it && it.done)});
     });
     nowLine = itSub.querySelector('.now-line');
   }
   if (ttSub) ttSub.querySelectorAll('.row').forEach((el, i) => { const ts = hmAll((el.querySelector('.row-main') || el).textContent); ents.push({el, t: ts[0] == null ? null : ts[0], te: ts[1] == null ? ts[0] : ts[1], k: 1, i}); });
   ents.sort((a, b) => (a.t == null ? -1 : a.t) - (b.t == null ? -1 : b.t) || a.k - b.k || a.i - b.i);
+  const utEnts = ents.filter(e => e.ut);
+  for (let q = ents.length - 1; q >= 0; q--) if (ents[q].ut) ents.splice(q, 1);
   // rt-sec: 루틴 카드의 접기·펼치기 모양과 누르기를 그대로 쓰려고
   const tl = document.createElement('div'); tl.className = 'list bx-tl rt-sec';
   const first = rtSec || itSub || ttSub; first.before(tl);
@@ -110,7 +128,10 @@ function bxTimeline(){
   // 다음 일정 표시는 여기서 다시 단다(루틴·수업도 다음이 될 수 있어서)
   tl.ownerDocument.querySelectorAll('#tcard2 .bx-next').forEach(r => r.classList.remove('bx-next'));
   tl.ownerDocument.querySelectorAll('#tcard2 .bx-next-tag').forEach(t => t.remove());
-  if (!today) { ents.forEach(e => tl.append(e.el)); if (nowLine) nowLine.remove(); }
+  if (!today) {
+    ents.forEach(e => tl.append(e.el)); if (nowLine) nowLine.remove();
+    if (!ents.length && utEnts.length) { const p = document.createElement('p'); p.className = 'bx-tl-done'; p.textContent = '시간을 정한 일정이 없어요'; tl.append(p); }
+  }
   else {
     /* 오늘은 '지금'부터(대표 요청 11/2: 들어온 시각의 일정과 다음 일정을 먼저). 끝난 일과 어제까지 못 한 일은 맨 위 한 줄로 접는다.
        확인이 필요한 지난 일은 맨 위 '확인 필요' 숫자에서도 본다 */
@@ -145,8 +166,10 @@ function bxTimeline(){
       }
       tl.append(e.el);
     });
-    if (!cur.length && !tagged) { const p = document.createElement('p'); p.className = 'bx-tl-done'; p.textContent = '오늘 남은 일은 없어요'; tl.append(p); }
+    // 시간 미지정 일정은 아래 상자에 있으니, 남은 것이 그것뿐이면 '시간을 정한 남은 일은 없어요'
+    if (!cur.length && !tagged) { const p = document.createElement('p'); p.className = 'bx-tl-done'; p.textContent = bxTlDoneText(ents, utEnts); tl.append(p); }
   }
+  bxUntimedBox(utEnts);
   [rtSec, itSub, ttSub].forEach(x => { if (!x) return; x.querySelectorAll(':scope > :not(.sec-h):not(.list):not(.grp-h)').forEach(o => tl.after(o)); x.remove(); });
   // 칸별 접기는 쓰지 않는다(접어 둔 것이 있었으면 풀어 보인다)
   document.documentElement.classList.remove('bx-f-rt', 'bx-f-today', 'bx-f-tt');

@@ -13,7 +13,9 @@ function pcPlug(){ return (window.Capacitor && Capacitor.Plugins && Capacitor.Pl
 function pcCfg(){
   let o = {}; try { o = JSON.parse(lsGet(PC_CFG) || '{}') || {}; } catch (e) { o = {}; }
   // homeOff: '홈에 보이기'를 끈 휴대폰 캘린더(시험판 39). 읽기는 그대로 하고 홈 · 위젯 · 아침 요약의 그날 목록에서만 뺀다
-  return {on: !!o.on, ids: Array.isArray(o.ids) ? o.ids.map(String) : null, alarm: o.alarm !== false, homeOff: Array.isArray(o.homeOff) ? o.homeOff.map(String) : []};
+  // colors: 칩을 길게 눌러 고른 색(시험판 58, 이 휴대폰에서만. 휴대폰 캘린더 앱의 색은 그대로)
+  return {on: !!o.on, ids: Array.isArray(o.ids) ? o.ids.map(String) : null, alarm: o.alarm !== false, homeOff: Array.isArray(o.homeOff) ? o.homeOff.map(String) : [],
+    colors: o.colors && typeof o.colors === 'object' && !Array.isArray(o.colors) ? o.colors : {}};
 }
 function pcSetCfg(o){ lsSet(PC_CFG, JSON.stringify(Object.assign(pcCfg(), o))); }
 function pcLoadCache(){
@@ -21,24 +23,41 @@ function pcLoadCache(){
   try { const c = JSON.parse(lsGet(PC_CACHE) || 'null'); if (c && Array.isArray(c.events)) { PC.events = c.events; PC.at = c.at || 0; } } catch (e) { /* 사본이 없거나 깨짐 */ }
 }
 function pcColor(n){ return '#' + ((+n || 0) >>> 0 & 0xffffff).toString(16).padStart(6, '0'); }
+function pcCalColor(calId, raw){ const c = pcCfg().colors[String(calId)]; return /^#[0-9a-f]{6}$/i.test(String(c || '')) ? c : pcColor(raw); }
+// 읽을 캘린더인지(시험판 58, 대표 11/4 '휴대폰 캘린더를 꺼도 일정이 보인다'): 고른 캘린더(ids)에 있고, 휴대폰 캘린더 앱에서 끄지 않은 것.
+// PC.cals는 휴대폰에서 보이게 켜 둔 캘린더만 담는다. 전에는 고른 캘린더가 있으면 휴대폰에서 끈 캘린더도 읽었고, 읽어 둔 사본은 고르기를 바꿔도 그대로 보였다
+function pcShown(calId, cfg){
+  const id = String(calId); cfg = cfg || pcCfg();
+  if (cfg.ids && !cfg.ids.includes(id)) return false;
+  return !(PC.cals && PC.cals.length && !PC.cals.some(c => String(c.id) === id));
+}
 async function pcRefresh(force){
   const cfg = pcCfg(), pl = pcPlug();
-  if (!cfg.on || !pl || PC.busy) return;
+  if (!cfg.on || !pl) return;
+  // 읽는 중에 고르기를 바꾸면 끝난 뒤 한 번 더 읽는다(전에는 그 읽기를 건너뛰어 뺀 캘린더 일정이 10분 동안 남았음)
+  if (PC.busy) { if (force) PC.again = true; return; }
   if (!force && Date.now() - PC.at < 60000) return;
   PC.busy = true;
   try {
     const st = await pl.status(); PC.granted = !!(st && st.granted);
     if (!PC.granted) { pcForget(); scheduleRender(); return; }
+    // 캘린더 목록도 읽는다: 휴대폰 캘린더 앱에서 끈 캘린더는 빼려고. 못 읽으면 전 목록 그대로
+    try { const rc = await pl.calendars(); if (rc && Array.isArray(rc.calendars)) PC.cals = rc.calendars.filter(c => c.visible !== false); } catch (e) { /* 전 목록 */ }
+    const c2 = pcCfg(), ids = c2.ids ? c2.ids.filter(id => pcShown(id, c2)) : null;
     const t0 = addDays(sod(new Date()), -14).getTime(), t1 = addDays(sod(new Date()), 63).getTime();
-    const r = cfg.ids && !cfg.ids.length ? {events: []} : await pl.events(Object.assign({from: t0, to: t1}, cfg.ids ? {ids: cfg.ids} : {}));
-    PC.events = ((r && r.events) || []).map(e => Object.assign({}, e, {description: String(e.description || '').slice(0, 600)}));
+    const r = ids && !ids.length ? {events: []} : await pl.events(Object.assign({from: t0, to: t1}, ids ? {ids} : {}));
+    const c3 = pcCfg();
+    PC.events = ((r && r.events) || []).filter(e => pcShown(e.calendarId, c3)).map(e => Object.assign({}, e, {description: String(e.description || '').slice(0, 600)}));
     PC.at = Date.now();
     try { lsSet(PC_CACHE, JSON.stringify({at: PC.at, events: PC.events})); } catch (e) { /* 저장 공간 부족: 사본 없이 씀 */ }
     pcCleanup();
     scheduleRender();
   } catch (e) {
     console.warn('휴대폰 캘린더 읽기 실패', e);
-  } finally { PC.busy = false; }
+  } finally {
+    PC.busy = false;
+    if (PC.again) { PC.again = false; setTimeout(() => pcRefresh(true), 0); }
+  }
 }
 async function pcLoadCals(){
   const pl = pcPlug(); if (!pl || PC.calBusy) return;
@@ -68,6 +87,7 @@ function pcItems(settings){
   pcLoadCache(); if (!PC.events) return [];
   const out = [];
   PC.events.forEach(e => {
+    if (!pcShown(e.calendarId, cfg)) return;
     const key = pcKey(e), ov = getDoc('px_' + key) || {};
     // 시험판 39: 여러 날 일정은 날마다 조각내지 않고 하나로(첫날 date ~ 끝나는 날 endDate). 달력에서 이어진 막대로 그린다
     let date, endDate = null;
@@ -87,7 +107,7 @@ function pcItems(settings){
       if (end && start && !endDate && end <= start) end = null;
       const travel = !timed ? 0 : ov.travel != null ? ov.travel : pcTravel(e) || (tvRecall(e.title, e.location) || {}).min || 0;
       const pf = timed && ov.prep === undefined ? pcPrepFromText(e) : null;
-      const cid = 'pcc_' + e.calendarId; if (!PC.colors.has(cid)) PC.colors.set(cid, pcColor(e.color));
+      const cid = 'pcc_' + e.calendarId; PC.colors.set(cid, pcCalColor(e.calendarId, e.color));
       out.push({id: 'pc_' + key, type: 'item', pc: true, pcKey: key, pcEv: e, title: e.title || '(제목 없음)', date, endDate, start, end,
         location: e.location || '', note: e.description || '', categoryId: cid,
         remind: ov.remind != null ? ov.remind : !cfg.alarm ? '' : timed ? remNorm(settings.defaultRemind, true, start) : remNorm(settings.defaultRemindDay, false),
@@ -96,7 +116,7 @@ function pcItems(settings){
   });
   return out;
 }
-function pcMeta(it){ const e = it.pcEv || {}; return '<span class="meta bx-pc"><i class="dot" style="--c:' + pcColor(e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</span>'; }
+function pcMeta(it){ const e = it.pcEv || {}; return '<span class="meta bx-pc"><i class="dot" style="--c:' + pcCalColor(e.calendarId, e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</span>'; }
 function pcSetOv(key, patch){
   const id = 'px_' + key, cur = getDoc(id) || {type: 'pcx', key, createdAt: nowIso()};
   writeDoc(id, Object.assign({}, cur, patch, {updatedAt: nowIso()}));
@@ -112,7 +132,7 @@ function pcDraw(id){
   const remOpts = (timed ? REMIND_TIMED : REMIND_DAY).slice(0, timed ? 6 : 5);
   if (remCur && !remOpts.some(o => o[0] === remCur)) remOpts.push([remCur, remLabel(remCur)]);
   const pick = (attr, v, cur, label) => '<button type="button" class="pick" ' + attr + '="' + esc(v) + '" aria-pressed="' + (cur === v) + '">' + label + '</button>';
-  let body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcColor(e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
+  let body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcCalColor(e.calendarId, e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
     '<h3 class="pc-title">' + esc(it.title) + '</h3>' +
     '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(bxT(it.start)) + ' 시작' + (it.end ? ' · ' + esc(bxT(it.end)) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(bxTR(it.start, it.end)) : '종일')) + '</p>' +
     (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +
@@ -148,7 +168,7 @@ function pcSetHtml(){
         '<p class="p small pc-set-note">켜 두면 위 알림 설정의 사전 알림이 휴대폰 캘린더 일정에도 걸려요. 캘린더 앱 알림과 겹쳐서 번거로우면 끄세요. 일정마다 따로 바꿀 수도 있어요.</p>';
       if (PC.cals && PC.cals.length) {
         const on = c => !cfg.ids || cfg.ids.includes(String(c.id));
-        h += '<div class="set-sub">보여 줄 캘린더</div><div class="pc-cals">' + PC.cals.map(c => '<button type="button" class="pc-calb" data-pc-cal="' + esc(String(c.id)) + '" aria-pressed="' + on(c) + '"><i class="dot" style="--c:' + pcColor(c.color) + '"></i><span>' + esc(c.name || '이름 없음') + (c.account && c.account !== c.name ? '<small>' + esc(c.account) + '</small>' : '') + '</span>' + ICON.check + '</button>').join('') + '</div>';
+        h += '<div class="set-sub">보여 줄 캘린더</div><div class="pc-cals">' + PC.cals.map(c => '<button type="button" class="pc-calb" data-pc-cal="' + esc(String(c.id)) + '" aria-pressed="' + on(c) + '"><i class="dot" style="--c:' + pcCalColor(c.id, c.color) + '"></i><span>' + esc(c.name || '이름 없음') + (c.account && c.account !== c.name ? '<small>' + esc(c.account) + '</small>' : '') + '</span>' + ICON.check + '</button>').join('') + '</div>';
       }
       h += '<div class="set-menu"><button type="button" class="menu-row" data-act="pc-refresh"><span class="mi">' + ICON.loop + '</span><span class="ml">지금 다시 읽기</span><span class="mv">' + (PC.at ? esc(bxT(new Date(PC.at))) + ' · ' + (PC.events ? PC.events.length : 0) + '개' : '') + ICON.chevR + '</span></button></div>';
     }
@@ -207,7 +227,8 @@ document.addEventListener('click', ev => {
     const cfg = pcCfg(), id = cb.dataset.pcCal;
     let ids = cfg.ids || (PC.cals || []).map(c => String(c.id));
     ids = ids.includes(id) ? ids.filter(x => x !== id) : ids.concat([id]);
-    pcSetCfg({ids}); pcRefresh(true); scheduleRender(); return;
+    // 고르기를 바꾸면 읽어 둔 일정에서도 바로 빼고(pcShown), 다시 읽는다
+    pcSetCfg({ids}); M = buildModel(); scheduleRender(); pcRefresh(true); return;
   }
   const act = t.closest('[data-act="pc-refresh"],[data-act="pc-perm"]');
   if (act) {

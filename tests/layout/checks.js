@@ -7,6 +7,8 @@
 //  + midword(낱말 가운데 줄바꿈) · time24(오전 · 오후 없는 시각, 12시간 표시일 때) · comp(공통 부품과 다른 모양, 시험판 55)
 //  + fit(시각이 든 고정 칸에 가장 넓은 시각을 넣어도 2px 남는지 — 데이터 · 휴대폰 글자 그리기에 따라 넓어짐, 시험판 55 CI)
 //  + mid(목록 줄의 체크 · 확인 필요 아이콘이 그 줄 글 묶음의 세로 가운데에 있는지 — 대표 메모 11/5 '그 일정에 중앙 정렬', 시험판 57)
+//  + lab(같은 상자 안 이름표가 같은 줄에서 시작하는지 — 시간 페이지 '소요 시간'이 '시간'보다 20 안쪽, 시험판 58)
+//  + time12(24시간 표시일 때 오전 · 오후가 붙은 시각 — 시각 표시 설정을 따르지 않는 글, 시험판 58)
 // 결과: [{k, p(자리), t(글), ...}] — 하나라도 있으면 시험판을 내지 않는다
 module.exports = function audit(opts){
   opts = opts || {};
@@ -267,6 +269,27 @@ module.exports = function audit(opts){
         if (ww <= pe.getBoundingClientRect().width + 1) { const key = path(pe) + t.slice(a, b); if (!seen.has(key)) { seen.add(key); out.push({k: 'midword', p: path(pe), t: t.slice(Math.max(0, i - 8), i) + ' / ' + t.slice(i, i + 8)}); } }
       }
       prev = rr[0].top;
+    }
+  }
+  // + lab: 같은 상자 안 이름표(작은 회색 글 .fg-l · .bx-ep-gl · .fld-l)는 같은 줄에서 시작. 나란히 놓인 칸(40px 넘게 떨어짐)은 다른 열이라 넘어간다
+  {
+    const L = Array.from(document.querySelectorAll('.fg-l, .bx-ep-gl, .fld-l')).filter(e => all.includes(e) && !srOnly(e) && e.textContent.trim());
+    const boxOf = e => e.closest('.fgrid, .bx-ep-box, .set-sec, .bx-grp, .card, .tcard, .bx-ep-b, #sheet-b, .screen') || document.body;
+    const left = e => { const r = document.createRange(); r.selectNodeContents(e); const q = Array.from(r.getClientRects()).find(x => x.width > 0) || e.getBoundingClientRect(); return q.left; };
+    const groups = new Map();
+    for (const e of L) { const b = boxOf(e); if (!groups.has(b)) groups.set(b, []); groups.get(b).push({e, x: left(e)}); }
+    for (const es of groups.values()) {
+      if (es.length < 2) continue;
+      const mn = Math.min(...es.map(o => o.x));
+      es.forEach(o => { const d = o.x - mn; if (d > 1.5 && d < 40) out.push({k: 'lab', p: path(o.e), t: txt(o.e).slice(0, 16), d: Math.round(d)}); });
+    }
+  }
+  // + time12: 24시간 표시일 때 '오후 3:00'처럼 오전 · 오후가 붙은 시각(시각 표시 설정을 따르지 않는 글)
+  if (typeof window.BX_clock24 === 'function' && window.BX_clock24()) {
+    const tw3 = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n3;
+    while ((n3 = tw3.nextNode())) {
+      const pe = n3.parentElement; if (!pe || !all.includes(pe) || pe.closest('input,textarea,svg')) continue;
+      const m = /(오전|오후)\s?\d{1,2}:\d{2}/.exec(n3.textContent); if (m) out.push({k: 'time12', p: path(pe), t: n3.textContent.slice(Math.max(0, m.index - 6), m.index + 12)});
     }
   }
   // + 오전 · 오후 없는 시각(12시간 표시일 때. 명상 남은 시간 · 시간표 시 칸은 시각이 아님)

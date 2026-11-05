@@ -51,13 +51,13 @@ function bxReportSetHtml(){
     (cfg.on ? '<div class="bx-setsub"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span>' + bxTimeChip('bx-rep-t', cfg.at, '아침에 일정 받는 시각') + '</div>' : '');
 }
 /* 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게) */
-const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목', '“치과 · 오후 2:30 출발”처럼 제목도 보여요'], ['none', '표시 안 함', '알람도 “' + window.BX_NAME + ' 알람”으로만 보여요']];
+const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목', () => '“치과 · ' + bxT('14:30') + ' 출발”처럼 제목도 보여요'], ['none', '표시 안 함', '알람도 “' + window.BX_NAME + ' 알람”으로만 보여요']];
 function bxLockMode(){ const m = M && M.settings && M.settings.bxLock; return m === 'title' || m === 'none' ? m : 'alarm'; }
 window.BX_lockMode = bxLockMode;
 function bxLockSetHtml(){
   const cur = bxLockMode();
   return '<div class="bx-lockset" role="radiogroup" aria-label="잠금 화면 표시"><b class="bx-lock-h">잠금 화면 표시</b>' +
-    BX_LOCK.map(o => '<button type="button" class="bx-lock-o" role="radio" aria-checked="' + (o[0] === cur) + '" data-bxlock="' + o[0] + '"><i aria-hidden="true"></i><span><b>' + o[1] + (o[0] === 'alarm' ? ' <small>기본</small>' : '') + '</b><small>' + o[2] + '</small></span></button>').join('') +
+    BX_LOCK.map(o => '<button type="button" class="bx-lock-o" role="radio" aria-checked="' + (o[0] === cur) + '" data-bxlock="' + o[0] + '"><i aria-hidden="true"></i><span><b>' + o[1] + (o[0] === 'alarm' ? ' <small>기본</small>' : '') + '</b><small>' + (typeof o[2] === 'function' ? o[2]() : o[2]) + '</small></span></button>').join('') +
     '<p class="p small">아침에 오늘 일정 알림과 루틴 진행 알림은 늘 잠금을 풀어야 보여요.</p></div>';
 }
 document.addEventListener('click', ev => {
@@ -91,7 +91,8 @@ window.BX_widgetData = function(plan){
     if (typeof bxHomeOk === 'function' && !bxHomeOk(i)) return;
     // 여러 날 일정: 날마다 한 줄 '부산 여행 · 2/3일째'. 시간이 있으면 첫날은 그 시각부터
     if (typeof bxSpan === 'function' && bxSpan(i)) {
-      const n = bxSpanN(i), cat = M.catMap.get(i.categoryId), hex = i.color && !i.pc ? i.color : cat ? cat.color : '';
+      // 색: 일정 색 → 캘린더 색 → 휴대폰 캘린더 색(시험판 58: 휴대폰 캘린더 일정도 위젯에 색 막대 · 칩을 길게 눌러 고른 색)
+      const n = bxSpanN(i), hex = bxItemHex(i);
       for (let k = 0; k < n; k++) {
         const d0 = addDays(parseYmd(i.date), k).getTime(); if (d0 + 864e5 <= t0 || d0 >= until) continue;
         const timed = k === 0 && !!i.start, at0 = timed ? at(i.date, i.start).getTime() : d0;
@@ -103,16 +104,15 @@ window.BX_widgetData = function(plan){
     if (!i.start) {
       const d0 = parseYmd(i.date).getTime();
       if (d0 < t0 || d0 >= until) return;
-      const cat = M.catMap.get(i.categoryId);
       list.push({at: d0, end: d0 + 864e5 - 1, allDay: true, title: i.title || '(제목 없음)', place: i.location || '', go: 0,
-        c: M.settings.catColors !== false && (i.color || cat) ? bxHex(i.color && !i.pc ? i.color : cat.color) : '', k: 'item', id: i.id, done: !!i.done});
+        c: M.settings.catColors !== false ? bxHex(bxItemHex(i)) : '', k: 'item', id: i.id, done: !!i.done});
       return;
     }
     const s = at(i.date, i.start).getTime(), e = i.end ? at(i.date, i.end).getTime() : s + 3600e3;
     if (e < t0 || s >= until) return;
-    const p = tvPlan(i), cat = M.catMap.get(i.categoryId);
+    const p = tvPlan(i);
     list.push({at: s, end: e, title: i.title || '(제목 없음)', place: i.location || '', go: p && p.travel ? p.leave.getTime() : 0,
-      c: M.settings.catColors !== false && (i.color || cat) ? bxHex(i.color && !i.pc ? i.color : cat.color) : '', k: 'item', id: i.id, done: !!i.done});
+      c: M.settings.catColors !== false ? bxHex(bxItemHex(i)) : '', k: 'item', id: i.id, done: !!i.done});
   });
   const routines = [];
   for (let k = -BACK; k <= AHEAD; k++) {
@@ -145,7 +145,8 @@ window.BX_widgetData = function(plan){
   const lateI = M.items.filter(isLate).length, late = lateI + bxRtMissed().length;
   // only: 위젯에서 루틴을 뺄지(앱 ⋯ › 위젯 추가의 '루틴도 보기' 스위치)
   // memo: 위젯 ✎ 단추를 보일지(시험판 41, '기능 · 메뉴 편집'에서 메모를 끄면 숨김)
-  return {items: list.slice(0, 300), routines, late, lateI, made: now, back: BACK, ahead: AHEAD, only: M.settings.bxWidgetRt === false, memo: typeof bxMemoOn !== 'function' || bxMemoOn()};
+  // h24: 시각 표시(시험판 58, 설정 › 화면 › 시각 표시). 위젯이 '15:00'으로 쓰고 시각 칸을 줄인다
+  return {items: list.slice(0, 300), routines, late, lateI, made: now, back: BACK, ahead: AHEAD, only: M.settings.bxWidgetRt === false, memo: typeof bxMemoOn !== 'function' || bxMemoOn(), h24: bxClock24()};
 };
 
 /* ---------- 루틴 단계를 확인하지 않았을 때(대표 요청) ----------

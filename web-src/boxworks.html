@@ -1219,7 +1219,11 @@ function remNorm(v, timed, start){
   });
   return out.sort((a, b) => key(a) - key(b)).slice(0, REM_MAX).join(',');
 }
-function hmText(hm){ const h = +hm.slice(0, 2); return (h < 12 ? '오전 ' : '오후 ') + ((h % 12) || 12) + ':' + hm.slice(3); }
+/* 시험판 58(대표 11/4 22:20): 설정 › 화면 › 시각 표시 — 오전 · 오후(기본, D-24 '오후 3:00') | 24시간('15:00').
+   앱 화면 · 알림 · 잠금 화면 알람 · 위젯이 이 규칙 하나를 따른다(휴대폰 쪽은 알람 · 위젯 자료와 함께 받는 h24) */
+function bxClock24(){ try { return !!(M && M.settings && M.settings.clock === '24'); } catch (e) { return false; } }
+window.BX_clock24 = bxClock24;
+function hmText(hm){ if (bxClock24()) return hm.slice(0, 5); const h = +hm.slice(0, 2); return (h < 12 ? '오전 ' : '오후 ') + ((h % 12) || 12) + ':' + hm.slice(3); }
 /* 시험판 51(대표 11/4 '모두 오전 · 오후'): 화면 · 알림에 보이는 시각은 '오후 3:00'. 저장하는 값은 그대로 'HH:MM' */
 function bxT(v){ if (v instanceof Date) v = hm(v); return isHM(v) ? hmText(v) : String(v == null ? '' : v); }
 // 이어지는 두 시각: 오전 · 오후가 같으면 뒤는 줄인다('오후 3:00–4:00'), 다르면 둘 다('오전 11:00–오후 1:00')
@@ -1227,12 +1231,13 @@ function bxTR(a, b, sep){
   if (a instanceof Date) a = hm(a); if (b instanceof Date) b = hm(b);
   if (!isHM(a)) return isHM(b) ? '~' + hmText(b) : '';
   if (!isHM(b)) return hmText(a);
+  if (bxClock24()) return hmText(a) + (sep == null ? '–' : sep) + hmText(b);
   return hmText(a) + (sep == null ? '–' : sep) + ((+a.slice(0, 2) < 12) === (+b.slice(0, 2) < 12) ? hmText(b).slice(3) : hmText(b));
 }
 // 화면 글자에서 시각 읽기('15:00' · '오후 3:00' · '오후 3:00–4:00'의 뒤는 앞의 오전 · 오후를 이어받음) → 하루 안의 분 목록
 // 시(時) 하나: 9 → '오전 9시', 12 → '오후 12시', 0 → '오전 12시', 24 → '자정'. 두 시는 오전 · 오후가 같으면 뒤를 줄인다('오전 9시–11시')
-function bxH(h){ h = +h; if (h === 24) return '자정'; return (h < 12 ? '오전 ' : '오후 ') + ((h % 12) || 12) + '시'; }
-function bxHR(a, b){ const A = bxH(a), B = bxH(b); return A + '–' + (+b !== 24 && (+a < 12) === (+b < 12) ? B.slice(3) : B); }
+function bxH(h){ h = +h; if (h === 24) return '자정'; if (bxClock24()) return h + '시'; return (h < 12 ? '오전 ' : '오후 ') + ((h % 12) || 12) + '시'; }
+function bxHR(a, b){ const A = bxH(a), B = bxH(b); return A + '–' + (!bxClock24() && +b !== 24 && (+a < 12) === (+b < 12) ? B.slice(3) : B); }
 function bxHMAll(t){
   const out = []; let ap = '';
   String(t == null ? '' : t).replace(/(오전|오후)?\s*(\d{1,2}):(\d{2})/g, (m0, a, h, mi) => { if (a) ap = a; h = +h; if (ap) h = h % 12 + (ap === '오후' ? 12 : 0); out.push(h * 60 + +mi); return m0; });
@@ -1597,6 +1602,7 @@ let rq = false;
 function scheduleRender(){ if (rq) return; rq = true; requestAnimationFrame(() => { rq = false; render(); }); }
 function render(){
   M = buildModel();
+  document.documentElement.classList.toggle('bx-h24', bxClock24());
   const el = $('#screen');
   const cls = 'screen ' + S.view + (S.view === 'today' ? '' : ' page');
   if (el.className !== cls) el.className = cls;

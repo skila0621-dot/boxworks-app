@@ -40,6 +40,7 @@ public class BxWidgetService extends RemoteViewsService {
         @Override
         public void onDataSetChanged() {
             now = System.currentTimeMillis();
+            BxTime.load(c);
             try {
                 JSONObject d = BxWidgetProvider.load(c);
                 long day = BxWidgetProvider.dayOf(c, id, now);

@@ -114,6 +114,7 @@ cd android && ./gradlew assembleDebug
 - **줄 바꿈**: 앱 전체 `word-break: keep-all` + `overflow-wrap: break-word`(web-src/v53.js). 한국어는 낱말 단위로 꺾고, 칸보다 긴 낱말만 쪼갠다
 - **… 잘림**: `text-overflow: ellipsis`는 flex · grid 상자 안 글에는 듣지 않아 글자가 반쯤 잘린다. … 이 필요한 글은 `display: block` 칸이나 글만 담은 `span`(설정 첫 화면 값 `.bx-mvt`)에 둔다. 입력칸 안내 글도 `text-overflow: ellipsis`
 - **오전 · 오후**: 화면 글에 시각을 쓸 때는 늘 `bxT`(D-24). 예시 글 · 단추 글(루틴 도우미 · 처음 실행 · 잠금 화면 알람 설명 · '오늘 오전 11:00로')도 같다
+- **시각 표시(시험판 58, D-32)**: 설정 › 화면 › 시각 표시가 24시간이면 `bxT` · `bxTR` · `bxH`가 '15:00' · '13시'로 쓴다(`bxClock24`, `html.bx-h24`가 시각 칸 폭을 줄임). 휴대폰 쪽은 `BxAlarm.sync` · `BxWidget.update`의 `h24`를 받아 `BxTime`으로 쓴다. 손으로 시각을 적지 말 것 — 정렬 점검이 두 표시로 돌며 오전 · 오후 없는 시각(time24)과 24시간인데 오전 · 오후가 남은 시각(time12)을 잡는다(`tests/layout/run.cjs --clocks 12,24`, 기본값)
 
 ## 앱 이름 바꾸기
 

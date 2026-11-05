@@ -150,6 +150,8 @@ public class BxWidgetPlugin extends Plugin {
             call.reject("위젯 자료가 없어요");
             return;
         }
+        // 시각 표시(시험판 58): 위젯 자료와 함께 온다(알람 목록보다 먼저 올 수 있어서 여기서도 받는다)
+        if (d.has("h24")) BxTime.set(getContext(), d.optBoolean("h24", false));
         BxWidgetProvider.save(getContext(), d.toString());
         call.resolve();
     }

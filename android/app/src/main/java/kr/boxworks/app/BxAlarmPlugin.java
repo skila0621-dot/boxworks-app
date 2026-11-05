@@ -33,6 +33,9 @@ public class BxAlarmPlugin extends Plugin {
         JSArray list = call.getArray("alarms", new JSArray());
         // 잠금 화면에 보여 줄 것: alarm(기본) | title | none
         AlarmStore.setLockMode(getContext(), call.getString("lock", null));
+        // 시각 표시(시험판 58): 잠금 화면 알람 · 루틴 진행 알림 · 위젯이 같은 표시를 쓴다
+        Boolean h24 = call.getBoolean("h24", null);
+        if (h24 != null) BxTime.set(getContext(), h24);
         try {
             int n = AlarmStore.replaceAll(getContext(), new JSONArray(list.toString()));
             JSObject r = new JSObject();

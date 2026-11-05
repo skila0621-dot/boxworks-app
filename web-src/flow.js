@@ -70,7 +70,8 @@ window.BX_openShared = function(text){
 function bxSayTime(hmS){
   if (!isHM(hmS)) return '';
   const [h, m] = hmS.split(':').map(Number);
-  return (h < 12 ? '오전 ' : '오후 ') + (h % 12 || 12) + '시' + (m ? (m === 30 ? ' 반' : ' ' + m + '분') : '');
+  // 시험판 58: 24시간 표시면 '15시 30분'
+  return (bxClock24() ? h : (h < 12 ? '오전 ' : '오후 ') + (h % 12 || 12)) + '시' + (m ? (m === 30 ? ' 반' : ' ' + m + '분') : '');
 }
 function bxFreq(){
   const since = ymd(addDays(sod(new Date()), -120)), map = new Map();

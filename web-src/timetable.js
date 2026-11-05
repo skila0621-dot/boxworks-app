@@ -136,9 +136,11 @@ function ttHtml(){
   h1 = Math.min(24, Math.max(h1, h0 + 4));
   const PX = TT_PX, H = (h1 - h0) * PX;
   const todayDow = M.now.getDay(), nowM = M.now.getHours() * 60 + M.now.getMinutes();
-  let head = '<div class="tt-h tt-tc"><small class="bx-tt-ap">' + (h0 < 12 ? '오전' : '오후') + '</small></div>' + cols.map(d => '<div class="tt-h' + (d === todayDow ? ' today' : '') + (d === 0 ? ' sun' : d === 6 ? ' sat' : '') + '">' + WD[d] + '</div>').join('');
+  // 시험판 58: 24시간 표시면 시 칸은 0~24, 오전 · 오후 글자는 없다
+  const c24 = typeof bxClock24 === 'function' && bxClock24();
+  let head = '<div class="tt-h tt-tc">' + (c24 ? '' : '<small class="bx-tt-ap">' + (h0 < 12 ? '오전' : '오후') + '</small>') + '</div>' + cols.map(d => '<div class="tt-h' + (d === todayDow ? ' today' : '') + (d === 0 ? ' sun' : d === 6 ? ' sat' : '') + '">' + WD[d] + '</div>').join('');
   let lines = '';
-  for (let h = h0; h <= h1; h++) lines += '<div class="tt-line" style="top:' + ((h - h0) * PX) + 'px"><span>' + ((h % 24 === 12 || h === 24) && h !== h0 ? '<small>' + (h === 24 ? '오전' : '오후') + '</small>' : '') + ((h % 12) || 12) + '</span></div>';
+  for (let h = h0; h <= h1; h++) lines += '<div class="tt-line" style="top:' + ((h - h0) * PX) + 'px"><span>' + (!c24 && (h % 24 === 12 || h === 24) && h !== h0 ? '<small>' + (h === 24 ? '오전' : '오후') + '</small>' : '') + (c24 ? h : ((h % 12) || 12)) + '</span></div>';
   const colsHtml = cols.map(d => {
     const blocks = list.filter(e => e.on !== false && e.days.includes(d)).map(e => {
       const a = toMin(e.start), b = Math.max(toMin(e.end || e.start), a + 20);

@@ -11,8 +11,8 @@
   const btnSet = cls => '<div class="sp-grid">' +
     fig('<button type="button" class="btn ' + cls + '"><span>저장</span></button>', '짧은 글') +
     fig('<button type="button" class="btn ' + cls + '">' + I('plus') + '<span>새 루틴</span></button>', '아이콘') +
-    fig('<button type="button" class="btn block ' + cls + '"><span>오후 3:00 · 10분 전 출발 알림 켜기</span></button>', '한글 + 숫자', 1) +
-    fig('<button type="button" class="btn block ' + cls + '"><span>오늘 할 일 모두 보기 · 남은 일 3개 · 다음 일정 오후 3:00 치과</span></button>', '긴 글(넘치면 …)', 1) +
+    fig('<button type="button" class="btn block ' + cls + '"><span>' + bxT('15:00') + ' · 10분 전 출발 알림 켜기</span></button>', '한글 + 숫자', 1) +
+    fig('<button type="button" class="btn block ' + cls + '"><span>오늘 할 일 모두 보기 · 남은 일 3개 · 다음 일정 ' + bxT('15:00') + ' 치과</span></button>', '긴 글(넘치면 …)', 1) +
     fig('<button type="button" class="btn ' + cls + '" disabled><span>저장</span></button>', '못 누름') +
     fig('<button type="button" class="btn is-busy ' + cls + '" aria-busy="true"><span>저장</span>' + spin + '</button>', '처리 중(크기 그대로)') +
     fig('<div class="sp-row"><button type="button" class="btn sm ' + cls + '"><span>추가</span></button><button type="button" class="btn sm ' + cls + '">' + I('check') + '<span>완료</span></button><button type="button" class="btn sm ' + cls + '" disabled><span>이전</span></button></div>', '작은 단추 · 못 누름', 1) +
@@ -34,15 +34,16 @@
     '<button type="button" class="tog" role="switch" aria-checked="false" aria-label="끔"><i></i></button><button type="button" class="tog" role="switch" aria-checked="true" aria-label="켬"><i></i></button></div>' +
     '<div class="bx-grp sp-box"><button type="button" class="bx-lock-o" role="radio" aria-checked="true"><i></i><span><b>도착 시각에 맞추기</b><small>도착할 시각에서 거꾸로 빼서 시작해요</small></span></button>' +
     '<button type="button" class="bx-lock-o" role="radio" aria-checked="false"><i></i><span><b>시작 시각부터</b><small>정한 시각에 첫 단계를 시작해요</small></span></button></div>';
-  const type = '<div class="sp-type"><p class="sp-t28">오늘</p><p class="sp-t20">오늘 할 일</p><p class="sp-t16">치과 정기 검진과 스케일링 예약 — 진료 전에 문진표 쓰기</p>' +
-    '<p class="sp-t14">11월 2일 (월) · 일정 3개 · 다음 일정 오후 3:00</p><p class="sp-t13">오른쪽 아래 + 를 눌러 “내일 3시 치과”처럼 적거나 말해 보세요. 말하면 날짜와 시각을 알아서 넣어요.</p><p class="sp-t11">루틴 · 캘린더 · 홈 · 시간표 · 메모</p></div>';
+  // 글자 역할: 시각이 든 글은 그릴 때 시각 규칙으로(시험판 58 — 불러올 때 만들면 24시간 표시에서도 '오후 3:00'으로 남음)
+  const type = () => '<div class="sp-type"><p class="sp-t28">오늘</p><p class="sp-t20">오늘 할 일</p><p class="sp-t16">치과 정기 검진과 스케일링 예약 — 진료 전에 문진표 쓰기</p>' +
+    '<p class="sp-t14">11월 2일 (월) · 일정 3개 · 다음 일정 ' + bxT('15:00') + '</p><p class="sp-t13">오른쪽 아래 + 를 눌러 “내일 3시 치과”처럼 적거나 말해 보세요. 말하면 날짜와 시각을 알아서 넣어요.</p><p class="sp-t11">루틴 · 캘린더 · 홈 · 시간표 · 메모</p></div>';
   window.BX_specimen = function(){
     let pg = document.getElementById('bx-spec'); if (pg) pg.remove();
     pg = document.createElement('div'); pg.id = 'bx-spec'; pg.className = 'bx-spec'; pg.setAttribute('role', 'dialog'); pg.setAttribute('aria-label', '단추 견본');
     pg.innerHTML = '<h1 class="sp-title">단추 견본</h1>' +
       sec('주 단추', btnSet('primary')) +
       sec('보조 단추', btnSet('') + '<div class="bx-grp sp-box"><div class="sp-row"><button type="button" class="btn grow"><span>한 번 더</span></button><button type="button" class="btn primary grow"><span>닫기</span></button></div></div>') +
-      sec('칩 · 요일', chips) + sec('나눔 단추', segs) + sec('글자 단추', links) + sec('아이콘 단추', icons) + sec('체크 · 스위치 · 고르기 동그라미', checks) + sec('글자 역할', type);
+      sec('칩 · 요일', chips) + sec('나눔 단추', segs) + sec('글자 단추', links) + sec('아이콘 단추', icons) + sec('체크 · 스위치 · 고르기 동그라미', checks) + sec('글자 역할', type());
     document.body.appendChild(pg);
     return pg;
   };

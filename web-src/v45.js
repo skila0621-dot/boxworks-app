@@ -216,7 +216,7 @@ pcDraw = function(id){
   const it = M.items.find(i => i.id === id); if (!it) { bxPgClose(false); closeSheet(); return; }
   const e = it.pcEv || {}, timed = !!it.start, rem = bxPc45Rem(it), go = timed ? bxPc45Go(it) : '';
   const row = (k, icon, text, set, label) => '<button type="button" class="bx-er" data-bxpc45="' + k + '" aria-label="' + esc(label + ', ' + (set ? text : '없음')) + '"><span class="bx-er-ic" aria-hidden="true">' + icon + '</span><span class="bx-er-t' + (set ? '' : ' ph') + '">' + esc(text) + '</span></button>';
-  const body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcColor(e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
+  const body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcCalColor(e.calendarId, e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
     '<h3 class="pc-title">' + esc(it.title) + '</h3>' +
     '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(bxT(it.start)) + ' 시작' + (it.end ? ' · ' + esc(bxT(it.end)) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(bxTR(it.start, it.end)) : '종일')) + '</p>' +
     (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +

@@ -47,7 +47,7 @@ function bxStartDraw(){
   const cards = [];
   if (BXS.sel.routines) cards.push(card('loop', '루틴', pos('routines'), '아침 준비·약 먹기처럼 반복하는 일을 단계로 나눠, 단계가 바뀔 때마다 짧게 알려 줘요. 기상 · 약 · 출발만 확인을 받아요. 처음 들어가면 몇 가지만 물어볼게요.'));
   cards.push(card('home', '일정 · 캘린더', '오른쪽 아래 +', '“내일 3시 치과”처럼 말하거나 적으면 날짜·시간이 알아서 들어가요. 삼성 캘린더 같은 휴대폰 캘린더 일정도 함께 볼 수 있어요. 달력은 ' + (pos('month') || '⋯ 메뉴') + '.'));
-  if (BXS.sel.report) cards.push(card('sun', '아침 요약', '', '매일 아침 알림 하나로 오늘 할 일을 보여 줘요. 처음엔 오전 7:30, 아침 루틴을 만들면 그 시각에 맞춰요.'));
+  if (BXS.sel.report) cards.push(card('sun', '아침 요약', '', '매일 아침 알림 하나로 오늘 할 일을 보여 줘요. 처음엔 ' + bxT('07:30') + ', 아침 루틴을 만들면 그 시각에 맞춰요.'));
   if (BXS.sel.tt) cards.push(card('school', '시간표', pos('tt'), '“월수 10시 반 경영학원론”처럼 말하면 채워지고, 수업 전에 알려 줘요.'));
   if (BXS.sel.memo) cards.push(card('note', '메모', pos('memo'), '떠오른 것을 바로 적거나 말해 두면 그날에 쌓여요. 휴대폰 홈 화면 위젯의 ✎ 단추로도 바로 적어요.'));
   if (BXS.sel.med) cards.push(card('lotus', '명상', pos('med') || '⋯ 더보기', '시간을 고르면 싱잉볼 소리로 시작과 끝을 알려 줘요. 배경 소리도 고를 수 있어요.'));
@@ -91,7 +91,7 @@ function bxRtHelpDraw(){
       '<button type="button" class="btn primary bxs-go" data-bxr-nav="next"' + (n ? '' : ' disabled') + '>만들기</button>');
     return;
   }
-  const opt = o => '<button type="button" class="bxs-big' + (cur === o[0] ? ' on' : '') + '" aria-pressed="' + (cur === o[0]) + '" data-bxr="' + o[0] + '">' + o[1] + '</button>';
+  const opt = o => '<button type="button" class="bxs-big' + (cur === o[0] ? ' on' : '') + '" aria-pressed="' + (cur === o[0]) + '" data-bxr="' + o[0] + '">' + (isHM(o[0]) ? bxT(o[0]) : o[1]) + '</button>';
   bxStartOverlay(top +
     '<div class="bxs-grid' + (Q.wide ? ' wide' : '') + '">' + Q.opts.map(opt).join('') + '</div>' +
     '<button type="button" class="bxs-cust' + (isCust ? ' on' : '') + '" aria-pressed="' + isCust + '" data-bxr="custom">' + ICON.edit + '직접 입력</button>' +
