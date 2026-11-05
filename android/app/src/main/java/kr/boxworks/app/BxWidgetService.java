@@ -25,6 +25,7 @@ public class BxWidgetService extends RemoteViewsService {
         private final Context c;
         private final int id;
         private List<JSONObject> rows = new ArrayList<>();
+        private int[] marks = new int[0];
         private long now = System.currentTimeMillis();
 
         Rows(Context c, int id) {
@@ -41,9 +42,12 @@ public class BxWidgetService extends RemoteViewsService {
             now = System.currentTimeMillis();
             try {
                 JSONObject d = BxWidgetProvider.load(c);
-                rows = BxWidgetProvider.rows(d, BxWidgetProvider.onlyItems(d), BxWidgetProvider.dayOf(c, id, now));
+                long day = BxWidgetProvider.dayOf(c, id, now);
+                rows = BxWidgetProvider.rows(d, BxWidgetProvider.onlyItems(d), day);
+                marks = BxWidgetProvider.marks(rows, day, now);
             } catch (Exception e) {
                 rows = new ArrayList<>();
+                marks = new int[0];
             }
         }
 
@@ -60,7 +64,7 @@ public class BxWidgetService extends RemoteViewsService {
         @Override
         public RemoteViews getViewAt(int pos) {
             if (pos < 0 || pos >= rows.size()) return BxWidgetProvider.divider(c, "");
-            return BxWidgetProvider.row(c, rows.get(pos), now);
+            return BxWidgetProvider.row(c, rows.get(pos), now, pos < marks.length ? marks[pos] : 0);
         }
 
         /** 불러오는 동안 보이는 줄(없으면 휴대폰이 영어 'Loading…'을 띄움) */

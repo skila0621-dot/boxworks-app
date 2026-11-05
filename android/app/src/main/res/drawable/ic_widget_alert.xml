@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 확인 필요(동그라미 안 느낌표). 앱 아이콘 세트의 alertc와 같은 그림(24칸 · 원 8.5), 시험판 57 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#00000000" android:strokeColor="@color/bx_w_warn_ic" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M20.5,12a8.5,8.5 0 1,1 -17,0a8.5,8.5 0 1,1 17,0z" />
+    <path android:fillColor="#00000000" android:strokeColor="@color/bx_w_warn_ic" android:strokeWidth="2.2" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M12,7.6v5.2M12,16.4h0.01" />
+</vector>

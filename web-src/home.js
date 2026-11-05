@@ -150,10 +150,10 @@ function bxRtRowHtml(rt){
   const off = hol || s.skip;
   const chk = off ? '<span class="chk chk-sp" aria-hidden="true"></span>'
     : '<button type="button" class="chk" data-act="bx-rt-check" data-rid="' + rid + '" aria-pressed="' + !!s.finished + '" aria-label="' + (s.finished ? '다 했어요 취소: ' : '오늘 다 했어요: ') + esc(rt.name) + '">' + ICON.check + '</button>';
-  return '<div class="row rowc' + (s.finished && !off ? ' done' : '') + (off ? ' bx-off' : '') + ((s.cur || s.waiting) && !off ? ' live' : '') + '" data-kind="rt" data-rid="' + rid + '" data-t="' + Math.round(p.start) + '" data-te="' + Math.round(p.end) + '">' +
+  return '<div class="row rowc' + (s.finished && !off ? ' done' : '') + (off ? ' bx-off' : '') + ((s.cur || s.waiting) && !off ? ' live' : '') + (miss.length ? ' bx-ckw' : '') + '" data-kind="rt" data-rid="' + rid + '" data-t="' + Math.round(p.start) + '" data-te="' + Math.round(p.end) + '">' +
     '<button type="button" class="row-main" data-act="bx-rt-open" data-rid="' + rid + '"><span class="rc-ic" aria-hidden="true">' + bxRcIcon('rt') + '</span>' +
     '<span class="row-time"><b>' + bxT(mm(p.start)) + '</b><small>' + bxT(mm(p.end)) + '</small></span>' +
-    '<span class="row-body"><span class="row-title">' + esc(rt.name) + '</span>' + (sub ? '<span class="row-meta"><span class="meta rc-sub' + (cls ? ' ' + cls : '') + '">' + sub + '</span></span>' : '') + '</span></button>' + chk + '</div>';
+    '<span class="row-body"><span class="row-title">' + esc(rt.name) + '</span>' + (sub ? '<span class="row-meta"><span class="meta rc-sub' + (cls ? ' ' + cls : '') + '">' + sub + '</span></span>' : '') + '</span></button>' + (miss.length ? bxRcWarnHtml() : '') + chk + '</div>';
 }
 // 루틴 단계 창: 전에 홈 카드를 펼치면 보이던 것 그대로(지금 할 단계 · 단계마다 체크 · 오늘 쉬기 · 오늘은 하기)
 function bxRtSheetOpen(rid){

@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -49,6 +50,8 @@ public class BxWidgetProvider extends AppWidgetProvider {
     private static final long DAY_MS = 24 * 3600 * 1000L;
     private static final long BACK_MS = 10 * 60 * 1000L;
     private static final long TICK_MS = 15 * 60 * 1000L;
+    /** 줄 표시(시험판 57, 대표 11/5 선택실 3): 위 가는 선 · 연보라 바탕 · 곧 시작(오른쪽 남은 시간) */
+    static final int M_LINE = 1, M_BG = 2, M_NEXT = 4;
 
     @Override
     public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
@@ -186,33 +189,81 @@ public class BxWidgetProvider extends AppWidgetProvider {
         return Math.max(0, rows.size() - 3);
     }
 
-    /** 목록의 한 줄: 시각 | 색 막대 | 제목 | 오른쪽(지금 · 끝 시각 / 출발 시각 / 장소 / 완료) */
-    static RemoteViews row(Context c, JSONObject r, long now) {
+    /**
+     * 줄마다 표시(시험판 57, 대표 11/5 선택실 3 'A' · '다' · 메모).
+     * - 바탕(연보라): 하는 중인 일정. 하는 중인 일정이 없으면 곧 시작할 일정 한 줄(앱 홈 목록과 같은 규칙)
+     * - 곧 시작: 오늘 아직 시작 안 한 첫 일정. 오른쪽에 남은 시간('16분 뒤')
+     * - 위 가는 선: 첫 줄이 아니고, 이 줄과 바로 위 줄에 바탕이 없을 때(바탕이 줄을 나눠 준다)
+     */
+    static int[] marks(List<JSONObject> rows, long day, long now) {
+        int n = rows.size();
+        int[] m = new int[n];
+        boolean today = day == dayStart(now), anyLive = false;
+        int next = -1;
+        for (int i = 0; i < n; i++) {
+            JSONObject o = rows.get(i);
+            if (o.optBoolean("allDay", false) || o.optBoolean("done", false)) continue;
+            long at = o.optLong("at", 0), end = o.optLong("end", at + 3600000L);
+            if (at <= now && end > now) { m[i] |= M_BG; anyLive = true; }
+            else if (today && at > now && next < 0) next = i;
+        }
+        if (next >= 0) { m[next] |= M_NEXT; if (!anyLive) m[next] |= M_BG; }
+        for (int i = 1; i < n; i++) if ((m[i] & M_BG) == 0 && (m[i - 1] & M_BG) == 0) m[i] |= M_LINE;
+        return m;
+    }
+
+    /** 남은 시간: 앱의 untilText와 같은 말('16분 뒤' · '1시간 20분 뒤') */
+    static String until(long ms) {
+        long m = Math.max(1, Math.round(ms / 60000.0));
+        if (m < 60) return m + "분 뒤";
+        long h = m / 60, r = m % 60;
+        return h + "시간" + (r > 0 ? " " + r + "분" : "") + " 뒤";
+    }
+
+    private static CharSequence strike(CharSequence t) {
+        SpannableString sp = new SpannableString(t);
+        sp.setSpan(new StrikethroughSpan(), 0, sp.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return sp;
+    }
+
+    /** 목록의 한 줄: 시각 | 색 막대 | 제목 | (확인 필요) | 오른쪽(지금 · 남은 시간 · 완료). mk = marks()의 값 */
+    static RemoteViews row(Context c, JSONObject r, long now, int mk) {
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.bx_widget_row);
         long at = r.optLong("at", 0), end = r.optLong("end", at + 3600000L);
-        boolean done = r.optBoolean("done", false), gone = done || end <= now, live = !gone && at <= now;
+        boolean allDay = r.optBoolean("allDay", false), done = r.optBoolean("done", false);
+        // 끝남: 종일 일정은 그날이 지나면, 시간 있는 일정은 끝 시각이 지나면
+        boolean ended = allDay ? dayStart(at) < dayStart(now) : end <= now;
+        boolean gone = done || ended, live = !gone && !allDay && at <= now;
+        boolean bg = (mk & M_BG) != 0, next = (mk & M_NEXT) != 0;
+        // 확인 필요(동그라미 안 느낌표): 시간이 지났는데 체크하지 않은 일정, 먹었는지 확인하지 않은 약 단계가 있는 루틴. 수업은 확인 필요에 들지 않는다(앱과 같게)
+        String k = r.optString("k", "item");
+        boolean warn = !done && (("item".equals(k) && ended) || ("routine".equals(k) && r.optBoolean("miss", false)));
         int ink = c.getResources().getColor(R.color.bx_w_ink, null);
         int ink2 = c.getResources().getColor(R.color.bx_w_ink2, null);
         int dim = c.getResources().getColor(R.color.bx_w_dim, null);
+        int faint = c.getResources().getColor(R.color.bx_w_faint, null);
         int accent = c.getResources().getColor(R.color.bx_w_accent, null);
-        boolean allDay = r.optBoolean("allDay", false);
-        if (allDay) { gone = done; live = false; }
-        // 위젯은 작아서 짧게(대표 11/3): 하는 중이면 '지금', 끝낸 일은 '완료'. 장소 · 출발 시각은 앱에서
-        String right = done ? "완료" : live ? "지금" : "";
+        // 오른쪽: 끝낸 일 '완료' · 하는 중 '지금' · 곧 시작 남은 시간(위젯은 작아서 짧게, 대표 11/3). 장소 · 출발 시각은 앱에서
+        String right = warn ? "" : done ? "완료" : live ? "지금" : next ? until(at - now) : "";
         CharSequence rightCs = right;
-        if (live) {
+        if (live || next) {
             SpannableString sp = new SpannableString(right);
             sp.setSpan(new StyleSpan(Typeface.BOLD), 0, sp.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             rightCs = sp;
         }
-        v.setTextViewText(R.id.wr_t, allDay ? "종일" : hm(at));
-        v.setTextViewText(R.id.wr_n, r.optString("title", ""));
+        CharSequence tCs = allDay ? "종일" : hm(at), nCs = r.optString("title", "");
+        // 체크한 일정: 시각 · 이름 가로줄 + 흐리게(선택실 3 '다'). 시간이 지났는데 체크 안 한 일정은 조금 연하게만(가로줄 없음)
+        if (done) { tCs = strike(tCs); nCs = strike(nCs); }
+        v.setTextViewText(R.id.wr_t, tCs);
+        v.setTextViewText(R.id.wr_n, nCs);
         v.setTextViewText(R.id.wr_m, rightCs);
-        v.setTextColor(R.id.wr_t, gone ? dim : live ? accent : ink);
-        v.setTextColor(R.id.wr_n, gone ? dim : ink);
-        v.setTextColor(R.id.wr_m, live ? accent : gone ? dim : ink2);
-        v.setInt(R.id.wr_c, "setBackgroundColor", gone ? 0xFFC9CED6 : color(r.optString("c"), accent));
-        v.setInt(R.id.wr_root, "setBackgroundResource", live ? R.drawable.bx_widget_live : 0);
+        v.setTextColor(R.id.wr_t, done ? faint : gone ? dim : (live || (next && bg)) ? accent : ink);
+        v.setTextColor(R.id.wr_n, done ? faint : gone ? dim : ink);
+        v.setTextColor(R.id.wr_m, done ? faint : (live || next) ? accent : gone ? dim : ink2);
+        v.setInt(R.id.wr_c, "setBackgroundColor", done ? c.getResources().getColor(R.color.bx_w_faintbar, null) : gone ? 0xFFC9CED6 : color(r.optString("c"), accent));
+        v.setInt(R.id.wr_root, "setBackgroundResource", bg ? R.drawable.bx_widget_live : 0);
+        v.setViewVisibility(R.id.wr_line, (mk & M_LINE) != 0 ? View.VISIBLE : View.GONE);
+        v.setViewVisibility(R.id.wr_w, warn ? View.VISIBLE : View.GONE);
         // 누르면 앱에서 그 일정(위젯의 줄 누르기 틀 BxWidgetProvider.build의 setPendingIntentTemplate에 채움)
         Intent fill = new Intent();
         fill.putExtra("k", r.optString("k", "item"));
@@ -246,6 +297,7 @@ public class BxWidgetProvider extends AppWidgetProvider {
 
         // 다음에 다시 그릴 때: 15분 뒤, 또는 그보다 먼저 오는 일정 시작·끝·출발, 자정
         long next = now + TICK_MS;
+        boolean cd = false;
         JSONArray items = d.optJSONArray("items");
         if (items != null) {
             for (int i = 0; i < items.length(); i++) {
@@ -255,8 +307,11 @@ public class BxWidgetProvider extends AppWidgetProvider {
                 if (at > now && at < next) next = at;
                 if (end > now && end < next) next = end;
                 if (go > now && go < next) next = go;
+                if (at > now && at < today + DAY_MS && !o.optBoolean("allDay", false) && !o.optBoolean("done", false)) cd = true;
             }
         }
+        // 시험판 57: 곧 시작할 일정의 남은 시간('16분 뒤')을 1분마다 고친다(깨우지 않는 RTC라 화면이 꺼져 있으면 쉰다)
+        if (cd) { long nm = (now / 60000L + 1) * 60000L; if (nm < next) next = nm; }
         long midnight = today + 24 * 3600 * 1000L;
         if (midnight < next) next = midnight;
         // ‹ ›로 다른 날을 보고 있는 위젯은 10분 뒤 오늘로 돌아가게 그때 한 번 더

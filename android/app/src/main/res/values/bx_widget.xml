@@ -9,6 +9,10 @@
     <color name="bx_w_chip">#F0F1F4</color>
     <color name="bx_w_btn">#7C3AED</color>
     <color name="bx_w_dim">#8A909B</color>
+    <!-- 시험판 57(대표 11/5 선택실 3 '다'): 체크한 일정의 흐린 글자 · 흐린 색 막대(앱 목록 줄의 반쯤 흐리게와 같은 밝기), 확인 필요 아이콘 -->
+    <color name="bx_w_faint">#C4C7CD</color>
+    <color name="bx_w_faintbar">#E4E7EB</color>
+    <color name="bx_w_warn_ic">#E8710A</color>
     <color name="bx_w_warn">#A4500B</color>
     <color name="bx_w_warn_bg">#FFF4E8</color>
     <!-- 위젯 이름에는 앱 이름을 넣지 않는다(위젯 목록에서 앱 이름 아래에 묶여 보임) -->

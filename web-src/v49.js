@@ -12,7 +12,9 @@
    - 종류 아이콘 한 세트: 일정 달력 · 루틴 되풀이 · 수업 책. 같은 크기 · 굵기
    - 둘째 줄은 하나만. 때를 놓치지 않게 상태(지남 · 쉼 · 진행 중 · 곧 시작 · 여러 날)가 있으면 그것, 없으면 출발 → 장소 → 남은 시간(다음 일정)
    - 오른쪽은 늘 체크(하면 이름에 가로줄). '자세히 ⌄' · 오른쪽 출발 칸 · '확인' 단추는 없다. 줄을 누르면 열린다
-   - 다음 일정 하나만 연보라 바탕(v30.js) · 모양은 app.css '목록 줄' 한 곳 */
+   - 다음 일정 하나만 연보라 바탕(v30.js) · 모양은 app.css '목록 줄' 한 곳
+   시험판 57(대표 11/5 선택실 3 '다' · 메모): 체크한 일정은 시각 · 이름 가로줄 + 줄 흐리게. 시간이 지났는데 체크하지 않은 일정(확인 필요)은
+   조금 연하게 + 체크 왼쪽에 확인 필요 아이콘(동그라미 안 느낌표, 깜박임). 체크 · 아이콘은 줄 세로 가운데 */
 function bxRcIcon(kind){ return kind === 'rt' ? ICON.loop : kind === 'tt' ? BX_ICONS.book : ICON.cal; }
 function bxR49Go(it){
   if (!it || it.done || !it.start || isLate(it) || typeof tvPlan !== 'function') return null;
@@ -21,13 +23,17 @@ function bxR49Go(it){
   if (p.rt && p.start) return {t: bxT(p.start), s: '준비'};
   return null;
 }
-// 줄을 C 모양으로: 아이콘은 누르는 칸 맨 앞, 체크는 맨 뒤, 둘째 줄은 하나(sub: 이미 이스케이프한 글)
-function bxRcShape(row, kind, sub, subCls, tail){
+// 확인 필요 아이콘(체크 왼쪽). 앱 아이콘 세트의 alertc
+function bxRcWarnHtml(){ return '<span class="rc-warn" role="img" aria-label="확인 필요">' + ICON.alertc + '</span>'; }
+// 줄을 C 모양으로: 아이콘은 누르는 칸 맨 앞, 체크는 맨 뒤, 둘째 줄은 하나(sub: 이미 이스케이프한 글). warn = 확인 필요
+function bxRcShape(row, kind, sub, subCls, tail, warn){
   row.classList.add('rowc'); row.dataset.kind = kind;
   const main = row.querySelector(':scope > .row-main'); if (!main) return;
   if (!main.querySelector(':scope > .rc-ic')) main.insertAdjacentHTML('afterbegin', '<span class="rc-ic" aria-hidden="true">' + bxRcIcon(kind) + '</span>');
   row.querySelectorAll(':scope > .lamp, :scope > .tt-dot').forEach(x => x.remove());
   const chk = row.querySelector(':scope > .chk'); if (chk) row.appendChild(chk);
+  row.classList.toggle('bx-ckw', !!warn);
+  if (warn && !row.querySelector(':scope > .rc-warn')) (chk ? chk : main).insertAdjacentHTML(chk ? 'beforebegin' : 'afterend', bxRcWarnHtml());
   const body = main.querySelector('.row-body'); if (!body) return;
   const old = body.querySelector(':scope > .row-meta'); if (old) old.remove();
   if (sub || tail) body.insertAdjacentHTML('beforeend', '<span class="row-meta"><span class="meta rc-sub' + (subCls ? ' ' + subCls : '') + '">' + (sub || '') + '</span>' + (tail || '') + '</span>');
@@ -49,7 +55,7 @@ function bxRcItem(row, it, o){
   else if (span) { sub = esc(txt(span)); }
   else if (it.location) { sub = esc(String(it.location).trim()); }
   if (date) sub = esc(date) + (sub ? ' · ' + sub : '');
-  bxRcShape(row, 'it', sub, cls, att ? '<span class="meta rc-att bx-att-m">' + att.innerHTML + '</span>' : '');
+  bxRcShape(row, 'it', sub, cls, att ? '<span class="meta rc-att bx-att-m">' + att.innerHTML + '</span>' : '', !!late && !it.done);
 }
 const bxRowHtml49 = rowHtml;
 rowHtml = function(it, o){

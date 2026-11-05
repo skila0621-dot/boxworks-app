@@ -120,7 +120,8 @@ window.BX_widgetData = function(plan){
     if (bxModOn('tt')) ttList().forEach(e => {
       if (!ttOn(e, ds) || !isHM(e.start) || (typeof bxTtHome === 'function' && !bxTtHome(e))) return;
       const s = addMin(day, toMin(e.start)).getTime(), en = isHM(e.end) ? addMin(day, toMin(e.end)).getTime() : s + 3600e3;
-      if (en >= t0 && s <= until) list.push({at: s, end: en, title: e.name, place: e.place || '', go: 0, c: bxHex(e.color), k: 'tt'});
+      // 시험판 57: 그날 다녀왔어요(수업 체크, doneOn)도 위젯에 — 끝난 일정 모양이 앱과 같게
+      if (en >= t0 && s <= until) list.push({at: s, end: en, title: e.name, place: e.place || '', go: 0, c: bxHex(e.color), k: 'tt', done: !!(e.doneOn && e.doneOn[ds])});
     });
     if (bxModOn('routines')) M.routines.forEach(rt => {
       if (!rtActiveOn(rt, ds) || rt.sound === 'bowl') return;
@@ -131,7 +132,8 @@ window.BX_widgetData = function(plan){
       const last = rows[rows.length - 1], end = leave || addMin(day, last.at + (last.min || 5)).getTime();
       // 시험판 52: 꼭 울림 단계(기상 · 약 · 출발)는 확인, 짧게 한 번 단계는 시각이 지나면 끝난 것으로 본다
       const allDone = rows.every(r => done[r.id] || (r.ring !== 'must' && addMin(day, r.at + (r.min || 0)).getTime() <= now));
-      list.push({at: from, end, title: rt.name || '루틴', place: '', go: 0, c: '#7C3AED', k: 'routine', done: allDone});
+      // miss: 오늘 먹었는지 확인하지 않은 약 단계(확인 필요). 위젯은 그 줄에 확인 필요 아이콘(시험판 57)
+      list.push({at: from, end, title: rt.name || '루틴', place: '', go: 0, c: '#7C3AED', k: 'routine', done: allDone, miss: k === 0 && typeof bxRtMissedOf === 'function' && bxRtMissedOf(rt).length > 0});
       if (rows.length >= 2 && k >= 0 && k <= 3) routines.push({rid: rt.id, ds, name: rt.name || '루틴', from, leave,
         // r: 세기(m 꼭 울림 · s 짧게 한 번 · w 소리 없이). '지금 단계' 위젯의 확인 단추는 꼭 울림 단계에만(BX_alarmPlan 단계표와 같게)
         steps: p.rows.map(r => Object.assign({at: addMin(day, r.at).getTime(), n: r.leave ? '출발' : r.name, s: 'r_' + rt.id + '_' + ds + '_' + r.id, min: r.min || 0, d: !!done[r.id],

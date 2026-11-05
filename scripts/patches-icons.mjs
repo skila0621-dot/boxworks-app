@@ -1,6 +1,12 @@
 // 루틴 아이콘(대표 요청 2026-10-31). 코드는 web-src/icons.js(생성)·web-src/rticons.js
 export default [
   {
+    // 시험판 57(대표 11/5 14:10 선택실 3 메모 '확인 필요 아이콘(동그라미 안에 느낌표)'): 앱 아이콘 세트(ICON)에 더해 한 세트로 쓴다
+    name: '앱 아이콘 세트에 확인 필요(동그라미 안 느낌표)',
+    find: "const ICON = {\n  gear: '",
+    replace: "const ICON = {\n  alertc: '<svg class=\"i\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.6v5.2M12 16.4h.01\"/></svg>',\n  gear: '"
+  },
+  {
     name: '루틴 아이콘: 직접 고른 아이콘을 루틴에 저장',
     find: `reason: o.reason ? String(o.reason).slice(0, 200) : null};`,
     replace: `reason: o.reason ? String(o.reason).slice(0, 200) : null, icon: typeof o.icon === 'string' && o.icon ? o.icon.slice(0, 20) : null};`

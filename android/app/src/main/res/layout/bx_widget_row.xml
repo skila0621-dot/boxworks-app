@@ -1,48 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- '오늘 일정' 위젯의 한 줄(시험판 36, 위젯 시안 A): 시각 | 색 막대 | 제목 | 오른쪽(지금 · 끝 시각, 출발 시각, 장소, 완료).
-     하는 중인 줄은 연한 파란 띠(bx_widget_live). 시각 · 제목 · 오른쪽 글자는 글자 바닥선을 맞추고, 색 막대는 줄 가운데 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- '오늘 일정' 위젯의 한 줄(시험판 36, 위젯 시안 A): 시각 | 색 막대 | 제목 | 오른쪽(지금 · 남은 시간 · 완료).
+     시험판 57(대표 11/5 선택실 3): 줄 높이 40 · 줄 사이 가는 선(줄 전체. 바탕이 있는 줄의 위아래는 긋지 않음, BxWidgetProvider.marks) ·
+     시각 칸 72 → 80(시각과 색 막대 사이를 넓힘) · 곧 시작할 일정은 연보라 바탕 + 오른쪽 남은 시간 ·
+     체크한 일정은 시각 · 이름 가로줄 + 흐리게 · 시간이 지났는데 체크 안 한 일정은 확인 필요 아이콘.
+     시각 · 제목 · 오른쪽 글자는 글자 바닥선을 맞추고, 색 막대와 아이콘은 줄 가운데 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/wr_root"
     android:layout_width="match_parent"
-    android:layout_height="36dp"
-    android:baselineAligned="true"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingLeft="8dp"
-    android:paddingRight="8dp">
-    <TextView
-        android:id="@+id/wr_t"
-        android:layout_width="72dp"
-        android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:textColor="@color/bx_w_ink"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+    android:layout_height="40dp">
     <FrameLayout
-        android:id="@+id/wr_c"
-        android:layout_width="3dp"
-        android:layout_height="18dp"
-        android:layout_gravity="center_vertical"
-        android:background="@color/bx_w_accent" />
-    <TextView
-        android:id="@+id/wr_n"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="12dp"
-        android:layout_weight="1"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="@color/bx_w_ink"
-        android:textSize="14sp" />
-    <TextView
-        android:id="@+id/wr_m"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:ellipsize="end"
-        android:gravity="end"
-        android:maxLines="1"
-        android:maxWidth="130dp"
-        android:textColor="@color/bx_w_ink2"
-        android:textSize="13sp" />
-</LinearLayout>
+        android:id="@+id/wr_line"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="top"
+        android:background="@color/bx_w_line"
+        android:visibility="gone" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:baselineAligned="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp">
+        <TextView
+            android:id="@+id/wr_t"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textColor="@color/bx_w_ink"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+        <FrameLayout
+            android:id="@+id/wr_c"
+            android:layout_width="3dp"
+            android:layout_height="18dp"
+            android:layout_gravity="center_vertical"
+            android:background="@color/bx_w_accent" />
+        <TextView
+            android:id="@+id/wr_n"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/bx_w_ink"
+            android:textSize="14sp" />
+        <ImageView
+            android:id="@+id/wr_w"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="8dp"
+            android:contentDescription="확인 필요"
+            android:src="@drawable/ic_widget_alert"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/wr_m"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:ellipsize="end"
+            android:gravity="end"
+            android:maxLines="1"
+            android:maxWidth="130dp"
+            android:textColor="@color/bx_w_ink2"
+            android:textSize="13sp" />
+    </LinearLayout>
+</FrameLayout>
