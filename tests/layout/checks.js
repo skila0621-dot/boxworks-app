@@ -25,9 +25,12 @@ module.exports = function audit(opts){
   let all = Array.from(document.body.querySelectorAll('*')).filter(e => !e.closest('svg,script,style,#bx-splash,template') && vis(e) && !hidden(e));
   // 화면을 덮는 층(창 · 페이지 · 처음 화면)이 열려 있으면 그 밑은 누를 수 없다 → 맨 위 층 안만 잰다(알림 글처럼 그 위에 뜬 것은 함께)
   const big = all.filter(e => { const q = cs(e).position; if (q !== 'fixed' && q !== 'absolute') return false; const r = e.getBoundingClientRect(); return r.width * r.height >= W * H * 0.45; });
-  const tp = document.elementFromPoint(W / 2, H * 0.6);
-  const modal = big.filter(m => tp && (m === tp || m.contains(tp))).sort((a, b) => (a.contains(b) ? 1 : b.contains(a) ? -1 : 0))[0] || null;
-  if (modal) all = all.filter(e => modal.contains(e) || (/fixed/.test(cs(e).position) && !big.includes(e) && !e.contains(modal) && +cs(e).zIndex >= +cs(modal).zIndex));
+  // 맨 위 층: 가운데 아래(높이 60%) 점에 겹친 요소들 가운데 가장 위에 있는 큰 층(작은 떠 있는 막대가 그 점을 덮어도 그 밑의 덮개를 찾는다, 시험판 64 '듣는 중' 막대)
+  const stack = document.elementsFromPoint ? document.elementsFromPoint(W / 2, H * 0.6) : [document.elementFromPoint(W / 2, H * 0.6)].filter(Boolean);
+  const at = m => stack.findIndex(x => m === x || m.contains(x));
+  const modal = big.filter(m => at(m) >= 0).sort((a, b) => (a.contains(b) ? 1 : b.contains(a) ? -1 : 0) || at(a) - at(b))[0] || null;
+  // 그 위에 뜬 고정 층(알림 글 · 듣는 중 막대)은 안의 글 · 단추까지 함께 잰다
+  if (modal) { const tops = all.filter(e => /fixed/.test(cs(e).position) && !big.includes(e) && !e.contains(modal) && +cs(e).zIndex >= +cs(modal).zIndex); all = all.filter(e => modal.contains(e) || tops.some(t => t === e || t.contains(e))); }
   const ownText = e => Array.from(e.childNodes).some(c => c.nodeType === 3 && c.textContent.trim());
   const isTap = e => e.matches('button,a[href],input:not([type=hidden]),select,textarea,[role=button],[role=switch],[role=checkbox],[role=radio],[role=tab],label[for]') && !e.disabled && cs(e).pointerEvents !== 'none';
   const inter = (a, b) => { const x = Math.min(a.right, b.right) - Math.max(a.left, b.left), y = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return x > 0 && y > 0 ? {x, y, cx: (Math.max(a.left, b.left) + Math.min(a.right, b.right)) / 2, cy: (Math.max(a.top, b.top) + Math.min(a.bottom, b.bottom)) / 2} : null; };

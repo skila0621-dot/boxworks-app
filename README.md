@@ -140,6 +140,12 @@ cd android && ./gradlew assembleDebug
 - **큰 글자**: 안드로이드 웹뷰는 휴대폰 글꼴 크기만큼 모든 글자(px 포함)를 키운다. 글이 드는 칸의 폭은 px가 아니라 rem · em으로(목록 시각 칸 `--row-tw` 5rem · 24시간 3.5rem, 루틴 단계 창 `--rt-tw`). 정렬 점검 `big`이 폭 360 · 라이트에서 글자를 1.3배로 키워(tests/layout/zoom.cjs) 잘림 · 겹침을 한 번 더 잰다
 - 자료집(앱디자인 패턴 규정) 기준으로 화면마다 세기: `node tests/layout/rules.cjs`(간격 토큰 · 글자 역할 · 누르는 영역 · 대비 · 글자 1.3 · 2배, 시험판을 막지 않음)
 
+## 말하기 마이크 고리 (시험판 64)
+
+- '듣는 중' 막대(`web-src/app-shim.js`의 `listenLongUi`): 보라 마이크(앱 아이콘 세트의 `mic`) 둘레 고리가 소리 크기만큼 커진다(선택실 6 B). 휴대폰 쪽 `BxSpeechPlugin`이 `onRmsChanged`의 rmsdB(−2~10)를 0~1로 바꿔 1초에 열 번쯤 `level`로 알린다
+- 듣는 동안 뒤 화면은 덮개(`.bx-listen-scrim`)로 어둡게 · 누르지 않게, 바깥을 누르면 '끝'과 같다
+- 정렬 점검 장면 '말하기 듣는 중'. 맨 위 층은 가운데 아래 점에 겹친 요소들 가운데 가장 위의 큰 층으로 찾고(`elementsFromPoint`), 그 위에 뜬 고정 층은 안의 글 · 단추까지 잰다
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.

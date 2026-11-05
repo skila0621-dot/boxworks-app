@@ -41,7 +41,7 @@ public class BxSpeechPlugin extends Plugin {
     private PluginCall longCall;
     private final StringBuilder said = new StringBuilder();
     private String partial = "";
-    private long started, lastVoice;
+    private long started, lastVoice, lastLevel;
     private boolean stopping;
 
     @PluginMethod
@@ -228,7 +228,17 @@ public class BxSpeechPlugin extends Plugin {
     private final RecognitionListener listener = new RecognitionListener() {
         @Override public void onReadyForSpeech(Bundle params) {}
         @Override public void onBeginningOfSpeech() { lastVoice = System.currentTimeMillis(); }
-        @Override public void onRmsChanged(float rmsdB) { if (rmsdB > 4f) lastVoice = System.currentTimeMillis(); }
+        @Override public void onRmsChanged(float rmsdB) {
+            long now = System.currentTimeMillis();
+            if (rmsdB > 4f) lastVoice = now;
+            // 듣는 중 마이크 고리(시험판 64, 선택실 6 B): 소리 크기를 0~1로 1초에 열 번쯤 앱에 알린다(rmsdB는 대개 -2 ~ 10)
+            if (now - lastLevel >= 90) {
+                lastLevel = now;
+                JSObject o = new JSObject();
+                o.put("v", Math.max(0f, Math.min(1f, (rmsdB + 2f) / 12f)));
+                notifyListeners("level", o);
+            }
+        }
         @Override public void onBufferReceived(byte[] buffer) {}
         @Override public void onEndOfSpeech() {}
         @Override public void onEvent(int eventType, Bundle params) {}

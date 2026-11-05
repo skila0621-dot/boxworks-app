@@ -377,8 +377,13 @@ kbd{font-family:var(--f);font-size:12.5px;font-weight:700;border:1px solid var(-
 
 /* sheets */
 .scrim{position:fixed;inset:0;z-index:80;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;animation:fade .16s ease-out}
-.sheet{background:var(--bg);width:100%;max-width:560px;max-height:92vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column;box-shadow:var(--shadow);animation:up .24s cubic-bezier(.2,.8,.2,1);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-@supports (max-height:92dvh){.sheet{max-height:92dvh}}
+.sheet{background:var(--bg);width:100%;max-width:560px;max-height:calc(100vh - env(safe-area-inset-top,0px) - 64px);border-radius:22px 22px 0 0;display:flex;flex-direction:column;box-shadow:var(--shadow);animation:up .24s cubic-bezier(.2,.8,.2,1);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+/* 창 위에는 상태 막대 + 알림 글(높이 48 + 여백) 자리를 비워 둔다: 창이 열린 동안 알림 글은 위에 뜨는데, 키가 큰 창이면 창 머리의 × · 완료를 가렸다(시험판 64 정렬 점검, 폭 360) */
+@supports (max-height:100dvh){.sheet{max-height:calc(100dvh - env(safe-area-inset-top,0px) - 64px)}}
+/* 아래에 '취소 | 저장'이 떠 있는 일정 창은 전 높이 그대로(92%): 창 머리에 × 없이 제목이 아래쪽(창 위 + 39)에 있어 한 줄 알림 글과 겹치지 않고,
+   창을 줄이면 맨 위에서 본 화면의 마지막 줄이 떠 있는 '취소 | 저장' 자리에서 잘려 보인다(정렬 점검 cover · 경계 없음) */
+.sheet.bx-esheet{max-height:92vh}
+@supports (max-height:92dvh){.sheet.bx-esheet{max-height:92dvh}}
 .sheet-grab{width:40px;height:5px;border-radius:3px;background:var(--line-2);margin:8px auto 0;flex:none}
 .sheet-h{display:flex;align-items:center;gap:4px;min-height:54px;padding:4px 10px 4px 22px;flex:none}
 .sheet-h.has-back{padding-left:10px}

@@ -79,6 +79,18 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
   const moreOpen = async () => { await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.waitForTimeout(250); };
   const edPages = async label => { await moreOpen(); await snap(label + ' · 자세히 펼침'); await clickAll('#sheet-root .bx-er[data-fpanel], #sheet-root [data-fpanel="date"], #sheet-root [data-fpanel="time"], #sheet-root [data-bxrem3="own"]', '#bx-ep [data-bxep="back"]', label); };
   await tryDo('새 일정', async () => { await closeAll(); await p.click('.bx-fab'); await snap('새 일정 창'); await edPages('새 일정'); await closeAll(); });
+  // 시험판 64(선택실 6 B): 말하는 동안 '듣는 중' 막대 — 마이크 고리 · 들은 글 · 예문 · 끝(휴대폰이 듣기를 끝내지 않는 동안, 소리 크기 0.6)
+  await tryDo('말하기 듣는 중', async () => { await closeAll(); await p.click('.bx-fab'); await p.waitForTimeout(400);
+    await p.evaluate(() => { const sp = window.Capacitor.Plugins.BxSpeech; if (!sp) return; window.__spL = {}; window.__spWas = [sp.addListener, sp.listenLong];
+      sp.addListener = (ev, cb) => { (window.__spL[ev] = window.__spL[ev] || []).push(cb); return { remove() {} }; };
+      sp.listenLong = () => new Promise(ok => { window.__spEnd = () => ok({ text: '' }); }); });
+    if (await tap('#sheet-root [data-act="bx-mic"]')) {
+      await p.waitForTimeout(300);
+      await p.evaluate(() => { (window.__spL.partial || []).forEach(cb => cb({ text: '내일 오후 3시 강남역 치과' })); (window.__spL.level || []).forEach(cb => cb({ v: 0.6 })); });
+      await snap('말하기 듣는 중');
+      await p.evaluate(() => { if (window.__spEnd) window.__spEnd(); const sp = window.Capacitor.Plugins.BxSpeech; if (sp && window.__spWas) { sp.addListener = window.__spWas[0]; sp.listenLong = window.__spWas[1]; } }); await p.waitForTimeout(300);
+    }
+    await closeAll(); });
   await tryDo('일정 수정', async () => { await closeAll(); await p.click('#tcard2 .row-main[data-id="it_1"]'); await snap('일정 수정 창'); await edPages('일정 수정'); await closeAll(); });
   // 고른 칸 안의 작은 글(대표 11/4 23:07 '외출 준비 새로'가 안 보임): 출발·준비에서 새 루틴을 골라 본다
   await tryDo('출발·준비 새 루틴', async () => { await closeAll(); await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500); await moreOpen(); await p.click('#sheet-root .bx-er[data-fpanel="go"]'); await p.waitForTimeout(500);

@@ -897,17 +897,18 @@ html.bx-fab-on #toasts{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0p
 .bx-listen{position:fixed;left:0;right:0;bottom:0;z-index:300;display:flex;flex-direction:column;gap:8px;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--bg);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.14);border-radius:20px 20px 0 0}
 .bx-ls-top{display:flex;align-items:center;gap:8px;font-size:16px}
 .bx-ls-hint{margin-left:auto;font-size:13px;color:var(--ink-3)}
-.bx-ls-dot{width:10px;height:10px;border-radius:50%;background:var(--danger);animation:bxLs 1s ease-in-out infinite}
-@keyframes bxLs{
-  50%{opacity:.25}}
+.bx-listen-scrim{position:fixed;inset:0;z-index:299;background:var(--scrim)}
+/* 듣는 중: 마이크 고리(시험판 64, 선택실 6 B) — 보라 마이크(28) 둘레가 소리만큼 1.75배까지 커짐, 조용하면 마이크 크기로 */
+.bx-ls-mic{position:relative;flex:none;width:28px;height:28px}
+.bx-ls-ring{position:absolute;inset:0;border-radius:50%;background:var(--accent);opacity:.2;transform:scale(calc(1 + var(--lv, 0) * .75))}
+.bx-ls-core{position:absolute;inset:0;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.bx-ls-core svg.i{width:16px;height:16px}
 .bx-ls-text{margin:0;min-height:48px;font-size:20px;line-height:1.4;color:var(--ink);word-break:keep-all}
 .bx-ls-text.ph{color:var(--ink-3)}
 .bx-ls-stop{height:48px;font-size:16px}
 .bx-ls-ex{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--sunk)}
 .bx-ls-ex span{font-size:13px;color:var(--ink-3);font-weight:600}
 .bx-ls-ex b{font-size:16px;font-weight:600;color:var(--ink-2)}
-@media (prefers-reduced-motion:reduce){
-  .bx-ls-dot{animation:none}}
 /* 휴대폰 캘린더(D-05): 설정 칸, 캘린더 고르기, 일정 창 */
 .bx-app .pc-set-note{margin:2px 0 10px;color:var(--ink-3)}
 .bx-app .pc-cals{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}

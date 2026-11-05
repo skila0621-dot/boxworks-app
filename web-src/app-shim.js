@@ -288,22 +288,38 @@
     var bar = document.createElement('div');
     bar.className = 'bx-listen';
     bar.setAttribute('role', 'status');
-    bar.innerHTML = '<div class="bx-ls-top"><i class="bx-ls-dot"></i><b>듣는 중</b><span class="bx-ls-hint">말을 3초쯤 멈추면 끝나요</span></div><p class="bx-ls-text"></p>' +
+    // 듣는 중 표시: 마이크 고리(시험판 64, 선택실 6 B) — 보라 마이크 둘레가 소리만큼 커진다(앱 아이콘 세트의 마이크)
+    var MIC = (window.BX_ICONSRC && window.BX_ICONSRC.app && window.BX_ICONSRC.app.mic) || '';
+    bar.innerHTML = '<div class="bx-ls-top"><span class="bx-ls-mic" aria-hidden="true"><span class="bx-ls-ring"></span><span class="bx-ls-core">' + MIC + '</span></span><b>듣는 중</b><span class="bx-ls-hint">말을 3초쯤 멈추면 끝나요</span></div><p class="bx-ls-text"></p>' +
       // 새 일정: 듣는 동안 예문 두 개(대표 결정 11/2 밤: 말하기를 누르면 설명이 뜨는 창)
       (ex ? '<div class="bx-ls-ex"><span>이렇게 말해 보세요</span>' + String(ex).split('|').slice(0, 2).map(function (x) { return '<b>“' + x.replace(/[<>&]/g, '') + '”</b>'; }).join('') + '</div>' : '') +
       '<button type="button" class="btn primary bx-ls-stop">끝</button>';
     bar.querySelector('.bx-ls-text').textContent = prompt;
     bar.querySelector('.bx-ls-text').classList.add('ph');
+    // 듣는 동안 뒤 화면은 어둡게 덮고 누르지 않게(창의 '저장'을 잘못 누르지 않게, 시험판 64 정렬 점검). 바깥을 누르면 '끝'과 같음
+    var scrim = document.createElement('div');
+    scrim.className = 'bx-listen-scrim';
+    scrim.addEventListener('click', function (ev) { ev.stopPropagation(); speech.stop().catch(function () {}); });
+    document.body.appendChild(scrim);
     document.body.appendChild(bar);
-    var sub = null;
+    var sub = null, subLv = null, ring = bar.querySelector('.bx-ls-mic'), lvT = 0, lvS = 0, lvAt = 0, raf = 0;
     if (speech.addListener) {
       Promise.resolve(speech.addListener('partial', function (d) {
         var t = bar.querySelector('.bx-ls-text');
         if (d && d.text) { t.textContent = d.text; t.classList.remove('ph'); }
       })).then(function (h) { sub = h; });
+      // 소리 크기(휴대폰이 1초에 열 번쯤): 빨리 커지고 천천히 줄게. 알림이 끊기면(듣기를 다시 시작하는 사이) 줄어든다
+      Promise.resolve(speech.addListener('level', function (d) { var v = d ? +d.v : 0; if (v >= 0) { lvT = Math.min(1, v); lvAt = Date.now(); } })).then(function (h) { subLv = h; });
     }
+    var tickLv = function () {
+      if (Date.now() - lvAt > 300) lvT = 0;
+      lvS += (lvT - lvS) * (lvT > lvS ? 0.5 : 0.18);
+      ring.style.setProperty('--lv', lvS.toFixed(3));
+      raf = requestAnimationFrame(tickLv);
+    };
+    raf = requestAnimationFrame(tickLv);
     bar.querySelector('.bx-ls-stop').addEventListener('click', function (ev) { ev.stopPropagation(); speech.stop().catch(function () {}); });
-    var done = function () { if (sub && sub.remove) sub.remove(); bar.remove(); };
+    var done = function () { cancelAnimationFrame(raf); if (sub && sub.remove) sub.remove(); if (subLv && subLv.remove) subLv.remove(); bar.remove(); scrim.remove(); };
     return speech.listenLong({ prompt: prompt }).then(function (r) { done(); return r; }, function (e) { done(); throw e; });
   };
   if (speech) {
