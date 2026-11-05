@@ -39,6 +39,8 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
   const HT = { 360: 780, 384: 832, 412: 915 }[W] || 844;
   const open = async (o = {}) => { app = await H.openApp(Object.assign({ width: W, height: HT, colorScheme: theme, insets: { top: 32, bottom: 48 } }, o)); p = app.page; await p.waitForTimeout(o.wait || 1300); };
   const snap = async label => { if (only && !label.includes(only)) return; await p.waitForTimeout(450); await state(label, p); };
+  // 누르기: 미리 찾아 둔 요소가 아니라 누를 때 다시 찾는다(창이 다시 그려져 요소가 바뀌어도 '붙어 있지 않음'으로 걸리지 않게, 시험판 56)
+  const tap = async sel => { const l = p.locator(sel).first(); if (!(await l.count())) return false; await l.click(); return true; };
   const tryDo = async (label, fn) => { try { await fn(); } catch (e) { fail(label, String(e && e.message || e).slice(0, 200)); } };
   const closeAll = async () => { for (let i = 0; i < 6; i++) { const has = await p.evaluate(() => !!(document.querySelector('#bx-pg:not([hidden]), #bx-ep:not([hidden]), #bx-mp:not([hidden]), #bx-mmn, #bx-att-view') || (document.querySelector('#sheet-root') && !document.querySelector('#sheet-root').hidden && document.querySelector('#sheet-root .sheet')))); if (!has) break; await p.evaluate(() => window.BX_back && window.BX_back()); await p.waitForTimeout(350); } };
   const dock = async v => { await closeAll(); await p.click('.dock [data-view="' + v + '"]'); await p.waitForTimeout(600); };
@@ -64,9 +66,9 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
   await tryDo('단추 견본', async () => { await p.evaluate(() => window.BX_specimen()); await snap('단추 견본'); await p.evaluate(() => { const e = document.getElementById('bx-spec'); if (e) e.remove(); }); });
   // 시험판 56(목록 줄 C): 루틴 줄을 누르면 단계 창(전: 카드 '자세히'로 그 자리에 펼침)
   await tryDo('홈 루틴 단계 창', async () => { await p.click('#tcard2 .row[data-rid="rt_w"] .row-main'); await snap('홈 루틴 단계 창'); await closeAll(); });
-  await tryDo('홈 지난 일', async () => { const b = await p.$('[data-act="bx-past"]'); if (b) { await b.click(); await snap('홈 지난 일 펼침'); await b.click(); } });
+  await tryDo('홈 지난 일', async () => { if (await tap('[data-act="bx-past"]')) { await snap('홈 지난 일 펼침'); await tap('[data-act="bx-past"]'); } });
   await tryDo('홈 다음 날', async () => { await p.click('.bx-sum-nav[data-d="1"]'); await snap('홈 다음 날'); await p.click('[data-act="home-day"][data-d="0"]').catch(() => {}); });
-  await tryDo('확인 필요', async () => { await p.click('[data-act="bx-late-open"]'); await snap('확인 필요'); const dc = await p.$('#sheet-root [data-act="bx-late-date"], #sheet-root [data-bxlate="date"]'); if (dc) { await dc.click(); await p.waitForTimeout(500); await snap('확인 필요 날짜 변경'); } await closeAll(); });
+  await tryDo('확인 필요', async () => { await p.click('[data-act="bx-late-open"]'); await snap('확인 필요'); if (await tap('#sheet-root [data-act="bx-late-date"], #sheet-root [data-bxlate="date"]')) { await p.waitForTimeout(500); await snap('확인 필요 날짜 변경'); } await closeAll(); });
   // 일정 창의 줄 · 날짜 · 시간 페이지(날짜 · 시간 칸은 처음 것 하나씩)
   // 시험판 56(일정 넣기 나): 맨 아래 '자세히'를 펼쳐 출발·준비 · 캘린더 · 메모 · 사진·파일 페이지까지 모두 연다
   const moreOpen = async () => { await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.waitForTimeout(250); };
@@ -83,11 +85,11 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
     await p.click('#bx-vsw [data-bxvsw="day"]'); await snap('캘린더 일');
     await p.click('#bx-vsw [data-bxvsw="month"]'); await p.waitForTimeout(400);
     await p.click('.cal .cell[data-date="2026-11-02"]'); await snap('날짜 창'); await closeAll();
-    const cb = await p.$('[data-act="bx-cals"]'); if (cb) { await cb.click(); await snap('캘린더 목록'); const nm = await p.$('#sheet-root [data-bxcal]'); if (nm) { await nm.click(); await snap('캘린더 자세히'); } await closeAll(); }
+    if (await tap('[data-act="bx-cals"]')) { await snap('캘린더 목록'); if (await tap('#sheet-root [data-bxcal]')) await snap('캘린더 자세히'); await closeAll(); }
   });
   await tryDo('시간표', async () => {
     await dock('tt'); await snap('시간표');
-    const nb = await p.$('[data-act="tt-new"]'); if (nb) { await nb.click(); await snap('수업 추가 창'); await clickAll('#sheet-root .bx-er[data-bxtt45]', '#bx-pg [data-bxpg="back"]', '수업 추가'); await closeAll(); }
+    if (await tap('[data-act="tt-new"]')) { await snap('수업 추가 창'); await clickAll('#sheet-root .bx-er[data-bxtt45]', '#bx-pg [data-bxpg="back"]', '수업 추가'); await closeAll(); }
     if (await p.$('.tt-b[data-id="tt_a"]')) { await p.click('.tt-b[data-id="tt_a"]'); await snap('수업 수정 창'); await closeAll(); }
     if (await p.$('[data-act="bx-ttsets"]')) { await p.click('[data-act="bx-ttsets"]'); await snap('시간표 보기 설정'); await closeAll(); }
     for (let k = 0; k < 2; k++) { await p.evaluate(() => { const c = Array.from(document.querySelectorAll('[data-bxtts]')).find(e => e.getBoundingClientRect().height > 0); if (c) c.click(); }); await p.waitForTimeout(400); }
@@ -97,9 +99,9 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
     await dock('routines'); await snap('루틴 목록');
     await p.click('[data-act="rt-edit"][data-rid="rt_w"]'); await snap('루틴 고치기');
     await clickAll('#sheet-root .bx-er[data-bxrt45]', '#bx-pg [data-bxpg="back"]', '루틴 고치기');
-    const ic = await p.$('#bx-icsum'); if (ic) { await ic.click(); await snap('루틴 아이콘 페이지'); await p.evaluate(() => { const x = document.querySelector('#bx-pg [data-bxpg="back"]'); if (x) x.click(); }); }
+    if (await tap('#bx-icsum')) { await snap('루틴 아이콘 페이지'); await p.evaluate(() => { const x = document.querySelector('#bx-pg [data-bxpg="back"]'); if (x) x.click(); }); }
     await closeAll();
-    const nr = await p.$('[data-act="bx-rt-new"]'); if (nr) { await nr.click(); await snap('새 루틴'); await closeAll(); }
+    if (await tap('[data-act="bx-rt-new"]')) { await snap('새 루틴'); await closeAll(); }
   });
   await tryDo('메모', async () => {
     await dock('memo'); await snap('메모 화면');
@@ -113,7 +115,7 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
   });
   await tryDo('명상', async () => {
     await more(); await p.click('#sheet-root [data-act="bx-go"][data-view="med"], #sheet-root .bx-go'); await p.waitForTimeout(600); await snap('명상');
-    const s = await p.$('[data-act="bx-med-sound"]'); if (s) { await s.click(); await snap('명상 소리와 호흡'); await closeAll(); }
+    if (await tap('[data-act="bx-med-sound"]')) { await snap('명상 소리와 호흡'); await closeAll(); }
     await p.click('[data-act="bx-med-start"]'); await p.waitForTimeout(6500); await snap('명상 진행 중');
     if (await p.evaluate(() => { const b = document.querySelector('[data-act="bx-med-stop"]'); if (b) b.click(); return !!b; })) { await p.waitForTimeout(500); await snap('명상 끝'); }
   });
@@ -135,8 +137,8 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
 
   await tryDo('처음 실행', async () => {
     await open({ data: [['settings', { type: 'settings', weekStart: 1 }]], wait: 1200 }); await snap('처음 실행 1');
-    const nx = await p.$('#bx-start .bxs-chip, #bx-start [data-bxs-mod]'); if (nx) await nx.click();
-    const go = await p.$('#bx-start [data-act="bxs-next"], #bx-start .btn.primary'); if (go) { await go.click(); await snap('처음 실행 2'); }
+    await tap('#bx-start .bxs-chip, #bx-start [data-bxs-mod]');
+    if (await tap('#bx-start [data-act="bxs-next"], #bx-start .btn.primary')) await snap('처음 실행 2');
     errs.push(...app.errors); await app.close();
   });
   await tryDo('루틴 도우미', async () => {

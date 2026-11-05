@@ -31,6 +31,8 @@ module.exports = async function () {
     c.ok(new Set(rows.map(r => r.x.join(','))).size === 1, '모든 줄이 같은 칸(아이콘 · 시각 · 이름 · 체크 시작 위치) ' + JSON.stringify(rows.map(r => r.x)));
     const byT = t => rows.find(r => r.title === t) || {};
     c.ok(new Set(['it', 'rt', 'tt'].map(k => (rows.find(r => r.kind === k) || {}).ic)).size === 3, '종류 아이콘 셋(일정 · 루틴 · 수업)이 서로 다름');
+    // 종류 아이콘은 앱 아이콘 한 세트(ICON · 루틴 아이콘)에서만 꺼낸다(따로 그린 아이콘 없음, 정렬 점검 icon과 같은 기준)
+    c.ok(await p.evaluate(() => { const S = window.BX_ICONSRC || {}, set = new Set([].concat(Object.values(S.app || {}), Object.values(S.rt || {})).map(h => { const d = document.createElement('div'); d.innerHTML = String(h); return d.firstElementChild ? d.firstElementChild.outerHTML : ''; })); const ics = Array.from(document.querySelectorAll('.rowc .rc-ic svg')); return ics.length >= 3 && ics.every(s => set.has(s.outerHTML)); }), '종류 아이콘이 모두 앱 아이콘 세트 안의 것(수업 = 루틴 아이콘의 책)');
     c.eq([byT('노동부 방문').sub, byT('경영학 수업').sub, byT('공부 시작').sub], ['오전 10:30 출발', '301호', '17시간 45분 뒤 · 책상 정리부터'], '둘째 줄 하나: 출발 · 장소 · 남은 시간(루틴)');
     c.eq(await p.evaluate(() => document.querySelectorAll('#tcard2 .bx-rt-tog, #tcard2 .bx-r49-go, #tcard2 .lamp, #tcard2 .tt-dot').length), 0, "'자세히 ⌄' · 오른쪽 출발 칸 · '확인' 단추 · 수업 점 없음");
     // 수업 체크 = 그날 다녀왔어요(가로줄), 다시 누르면 취소

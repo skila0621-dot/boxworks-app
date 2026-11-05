@@ -13,8 +13,7 @@
    - 둘째 줄은 하나만. 때를 놓치지 않게 상태(지남 · 쉼 · 진행 중 · 곧 시작 · 여러 날)가 있으면 그것, 없으면 출발 → 장소 → 남은 시간(다음 일정)
    - 오른쪽은 늘 체크(하면 이름에 가로줄). '자세히 ⌄' · 오른쪽 출발 칸 · '확인' 단추는 없다. 줄을 누르면 열린다
    - 다음 일정 하나만 연보라 바탕(v30.js) · 모양은 app.css '목록 줄' 한 곳 */
-const BX_RC_BOOK = '<svg class="i" viewBox="0 0 24 24"><path d="M12 6.5C9.6 5 6.8 4.6 3.5 5.2v13.3c3.3-.6 6.1-.2 8.5 1.3 2.4-1.5 5.2-1.9 8.5-1.3V5.2C17.2 4.6 14.4 5 12 6.5Z"/><path d="M12 6.5v13.3"/></svg>';
-function bxRcIcon(kind){ return kind === 'rt' ? ICON.loop : kind === 'tt' ? BX_RC_BOOK : ICON.cal; }
+function bxRcIcon(kind){ return kind === 'rt' ? ICON.loop : kind === 'tt' ? BX_ICONS.book : ICON.cal; }
 function bxR49Go(it){
   if (!it || it.done || !it.start || isLate(it) || typeof tvPlan !== 'function') return null;
   const p = tvPlan(it); if (!p) return null;
