@@ -300,6 +300,8 @@ final class AlarmNotify {
         if (title.isEmpty()) title = appName(c);
         Intent open = new Intent(c, MainActivity.class);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        // 시험판 61: '시간을 정하지 않은 일정' 확인 알림(open: home)은 누르면 홈 화면(맨 위 종일 줄) — 위젯의 홈 열기와 같은 길(BxWidgetPlugin)
+        if ("home".equals(o.optString("open"))) open.setAction(BxWidgetProvider.ACTION_HOME);
         PendingIntent openPi = PendingIntent.getActivity(c, notifId(id) + 1, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         boolean all = showAllOnLock(c);

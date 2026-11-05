@@ -33,7 +33,7 @@ module.exports = async function () {
   // (1)(2) 줄마다 누른 자리 메뉴
   const cases = [
     ['홈 일정 줄', '#tcard2 .row .row-main[data-id="it_n"]', ['수정', '완료', '내일로 미루기', '삭제'], '#tcard2 .row:has(> .row-main[data-id="it_n"])'],
-    ['홈 시간 미지정 줄', '#tcard-ut .row .row-main[data-id="it_d"]', ['수정', '완료', '내일로 미루기', '삭제'], '#tcard-ut .row'],
+    ['홈 종일 줄', '#tcard2 .row .row-main[data-id="it_d"]', ['수정', '완료', '내일로 미루기', '삭제'], '#tcard2 .row:has(> .row-main[data-id="it_d"])'],
     ['홈 루틴 줄', '#tcard2 .row[data-rid] .row-main', ['수정', '오늘은 쉬기'], '#tcard2 .row[data-rid]'],
     ['홈 수업 줄', '#tcard2 .row.tt-row .row-main', ['수정', '휴강(그날만)'], '#tcard2 .row.tt-row'],
     ['홈 메모 줄', '#bx-mm-card .bx-mm-row', ['수정', '일정으로 만들기', '삭제'], '#bx-mm-card .bx-mm-row']
@@ -161,7 +161,7 @@ module.exports = async function () {
       await p.waitForTimeout(1100);
       const col = await p.evaluate(() => {
         const L = e => e ? Math.round(e.getBoundingClientRect().left) : null;
-        const a = document.querySelector('#tcard-ut .row.rowc'), m = document.querySelector('#bx-mm-card .bx-mm-row');
+        const a = document.querySelector('#tcard2 .row.rowc'), m = document.querySelector('#bx-mm-card .bx-mm-row');
         return { row: [L(a.querySelector('.rc-ic')), L(a.querySelector('.row-time')), L(a.querySelector('.row-body'))], memo: [L(m.querySelector('.rc-ic')), L(m.querySelector('.bx-mm-t')), L(m.querySelector('.bx-mm-x'))],
           icon: !!m.querySelector('.rc-ic svg'), one: Math.round(m.querySelector('.bx-mm-t').getBoundingClientRect().height) };
       });

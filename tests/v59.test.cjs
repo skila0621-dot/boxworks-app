@@ -88,12 +88,13 @@ module.exports = async function () {
       await p.waitForTimeout(1100);
       const col = await p.evaluate(() => {
         const L = e => e ? Math.round(e.getBoundingClientRect().left) : null;
-        const a = document.querySelector('#tcard2 .row.rowc[data-kind], #tcard2 .row.rowc'), b = document.querySelector('#tcard-ut .row.rowc');
+        // 시험판 61: 시간 없는 일정은 '오늘 할 일' 맨 위 '종일' 줄(같은 목록) — 다른 줄과 같은 칸
+        const b = Array.from(document.querySelectorAll('#tcard2 .row.rowc')).find(r => r.querySelector('[data-id="it_d"]')), a = Array.from(document.querySelectorAll('#tcard2 .row.rowc')).find(r => r !== b && r.getBoundingClientRect().width > 0);
         return { t: b && b.querySelector('.row-time').textContent.trim(), a: [L(a && a.querySelector('.row-time')), L(a && a.querySelector('.row-body'))], b: [L(b && b.querySelector('.row-time')), L(b && b.querySelector('.row-body'))],
           wrap: b ? Math.round(b.querySelector('.row-time b').getBoundingClientRect().height) : 0 };
       });
-      c.ok(col.t === '시간 미지정' && JSON.stringify(col.a) === JSON.stringify(col.b), (clock ? '24시간 · 폭 360' : '오전 · 오후 · 폭 384') + ": 시간 미지정 줄도 시각 칸 · 이름 칸이 '오늘 할 일' 줄과 같은 자리 " + JSON.stringify(col));
-      if (clock) c.ok(col.wrap > 30, "24시간 칸(56)에서는 '시간 / 미지정' 두 줄 " + col.wrap);
+      c.ok(col.t === '종일' && JSON.stringify(col.a) === JSON.stringify(col.b), (clock ? '24시간 · 폭 360' : '오전 · 오후 · 폭 384') + ": 종일 줄도 시각 칸 · 이름 칸이 다른 줄과 같은 자리 " + JSON.stringify(col));
+      if (clock) c.ok(col.wrap > 0 && col.wrap < 30, "24시간 칸(56)에서도 '종일'은 한 줄 " + col.wrap);
     } finally { await app.close(); }
   }
   const press = async (p, sel, ms) => {
@@ -107,7 +108,7 @@ module.exports = async function () {
     ['홈 일정 줄', '#tcard2 .row .row-main[data-id="it_n"]', 'opts'],
     ['홈 루틴 줄', '#tcard2 .row[data-rid] .row-main', 'opts', 1],
     ['홈 메모 줄', '#bx-mm-card .bx-mm-row', 'opts', 1],
-    ['홈 시간 미지정 줄', '#tcard-ut .row .row-main[data-id="it_d"]', 'opts'],
+    ['홈 종일 줄', '#tcard2 .row .row-main[data-id="it_d"]', 'opts'],
     // 수업 줄도 data-id를 달고 있어 일정 옵션('(제목 없음)' 완료 · 삭제)이 떴다 — 수업에는 수업 옵션(휴강 · 수정)
     ['홈 수업 줄', '#tcard2 .row.tt-row .row-main', 'opts', 1]
   ];

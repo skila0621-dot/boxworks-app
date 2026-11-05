@@ -249,6 +249,34 @@ window.BX_alarmPlan = function(days){
       out.push(at2); if (lvT === 'notice') nagOf(at2);
     }
   });
+  // 시험판 61(대표 11/5 22:50 "이게 잊기 쉬운 일정인데다 입력 오류가 난 경우가 많아서 … 나중에 알람도 보내줘야 할것같은데 ·
+  // 오늘 일정중에 시간이 배정되지 않은 일정이 몇개가 있습니다. 확인하세요" · "내가 실수로 기입한것도 모르고 지나치는 경우가 너무 많아서"):
+  // 그날 시간을 정하지 않은 종일 일정(여러 날 · 휴대폰 캘린더 · 홈에서 뺀 캘린더 · 다 한 것은 빼고)이 있으면 확인 알림 한 장.
+  // 때는 설정 › 알림의 '종일 일정 알림 시각'(꺼 두었거나 전날로 정했으면 그날 오전 9시). 그 시각이 지난 뒤 오늘 일정을 시간 없이 넣으면 넣은 지 30분 뒤에 한 번 더.
+  // 누르면 홈(맨 위 종일 줄, 휴대폰 쪽 open: 'home'). 잠금 화면에는 개수만(일정 제목은 잠금을 풀면)
+  {
+    const dA = remAbs(remNorm((M.settings || {}).defaultRemindDay, false)), chkT = dA && dA.d === 0 ? dA.t : '09:00';
+    const lvC = lvI === 'quiet' ? 'quiet' : 'notice';
+    const utOf = ds => M.items.filter(it => (!it.type || it.type === 'item') && it.date === ds && !it.start && !it.done && !it.deletedAt && !it.pc && !/^pc_/.test(it.id || '') &&
+      !(typeof bxSpan === 'function' && bxSpan(it)) && (typeof bxHomeOk !== 'function' || bxHomeOk(it)));
+    const chk = (ds, t, list, id) => {
+      const n = list.length, names = list.slice(0, 3).map(it => it.title || '(제목 없음)').join(' · ') + (n > 3 ? ' 외 ' + (n - 3) + '개' : '');
+      const head = relDay(ds, ymd(new Date(t))) + ' 시간이 정해지지 않은 일정이 ' + n + '개 있어요. 확인하세요.';
+      out.push({id, at: t, kind: 'item', group: '일정', icon: 'bell', title: '시간을 정하지 않은 일정', sub: head, body: head + ' ' + names,
+        pt: '확인할 일정', ps: '시간을 정하지 않은 일정이 ' + n + '개 있어요', pg: '일정', lv: lvC, open: 'home'});
+    };
+    for (let k = 0; k <= days; k++) {
+      const day = addDays(sod(new Date(now)), k), ds = ymd(day), list = utOf(ds); if (!list.length) continue;
+      const t = addMin(day, toMin(chkT)).getTime();
+      if (t > now && t <= until) chk(ds, t, list, 'utc_' + ds);
+      // 오늘, 확인 시각이 지난 뒤 시간 없이 넣은 일정: 마지막으로 넣은 지 30분 뒤(그사이 더 넣으면 뒤로 밀림)
+      if (k === 0 && t <= now) {
+        const late = list.filter(it => Date.parse(it.createdAt || '') > t);
+        const last = late.reduce((m, it) => Math.max(m, Date.parse(it.createdAt)), 0), t2 = last + 30 * 60000;
+        if (late.length && t2 > now && t2 <= until) chk(ds, t2, list, 'utc_' + ds + '_' + last);
+      }
+    }
+  }
   // 휴대폰에 거는 알람은 최대 200개(앱 하나가 걸 수 있는 알람은 500개, 명상 종 몫을 남긴다). 고르는 순서(문제점 점검 기술 1):
   // ① 앞으로 48시간의 알람과 다시 알림 ② 그 뒤의 첫 알람(최대 days일) ③ 남는 자리에 앞 7일의 다시 알림
   const CAP = 200, near = now + 2 * 864e5, repEnd = now + 7 * 864e5, byAt = (a, b) => a.at - b.at;

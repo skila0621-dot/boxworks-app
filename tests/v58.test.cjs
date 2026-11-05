@@ -1,6 +1,6 @@
 // 시험판 58(대표 11/4 22:20 · 22:25 · 22:40 · 22:46 ②)
 // (1) 설정 › 화면 › 시각 표시: 오전 · 오후(기본) | 24시간 — 앱 · 알림 글 · 위젯 자료 · 휴대폰 알람(h24)이 같이 바뀐다
-// (2) 시간 미지정 일정: '오늘 할 일' 아래 따로 상자, 안 한 것이 먼저(시험판 59부터 시각 칸에 '시간 미지정')
+// (2) 시간 없는 하루 일정: 시험판 61부터 '종일'로 '오늘 할 일' 맨 위(시험판 58 ~ 60은 '시간 미지정 일정' 상자), 안 한 것이 먼저
 // (3) 캘린더 칩을 길게 누르면 색 바꾸기 · 이 캘린더 빼기(휴대폰 캘린더도). 뺀 캘린더는 캘린더 목록 맨 아래에서 다시 넣기
 // (4) 버그: 휴대폰 캘린더 앱에서 끈 캘린더 · 고르기에서 뺀 캘린더의 일정이 계속 보이던 것
 // (5) '머리 말리기' 아이콘, 시간 페이지 '소요 시간' 글자가 '시간' 글자와 같은 줄
@@ -37,29 +37,24 @@ module.exports = async function () {
     // ── (5) 아이콘 ──
     c.eq(await p.evaluate(() => { const f = window.BX_T.fn; return [f.icon('머리 말리기'), f.icon('머리말리기'), f.icon('드라이'), f.icon('드라이브 가기')]; }), ['drop', 'drop', 'drop', null], "'머리 말리기' · '드라이'는 물방울, '드라이브'는 물방울이 아님");
 
-    // ── (2) 시간 미지정 상자 ──
+    // ── (2) 시간 없는 하루 일정 — 시험판 61부터 '종일'로 '오늘 할 일' 맨 위(대표 11/5 22:48 · 22:50, 시험판 58 ~ 60의 '시간 미지정 일정' 상자는 없앰) ──
     const ut = await p.evaluate(() => {
-      const a = document.getElementById('tcard2'), b = document.getElementById('tcard-ut'), m = document.getElementById('bx-mm-card');
-      if (!b) return null;
-      const rows = Array.from(b.querySelectorAll('.bx-ut-list > .row'));
-      const main = Array.from(a.querySelectorAll('.row-title')).map(e => e.textContent.trim());
-      const tm = rows[0] && rows[0].querySelector('.row-time');
-      return { after: !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING), beforeMemo: !m || !!(b.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING),
-        head: b.querySelector('.bx-ut-h h2').textContent.trim() + ' ' + b.querySelector('.bx-ut-h .n').textContent.trim(), rows: rows.map(r => [r.querySelector('.row-title').textContent.trim(), r.classList.contains('done')]),
-        main, timeShown: tm ? getComputedStyle(tm).display !== 'none' : null, tmText: tm ? tm.textContent.trim() : null,
-        titleX: rows[0] && Math.round(rows[0].querySelector('.row-title').getBoundingClientRect().left), mainX: Math.round((Array.from(a.querySelectorAll('.row.rowc .row-title')).find(e => e.getBoundingClientRect().width > 0) || a).getBoundingClientRect().left) };
+      const a = document.getElementById('tcard2'), tl = a && a.querySelector('.bx-tl');
+      const kids = tl ? Array.from(tl.children) : [], at = id => kids.findIndex(e => e.querySelector && e.querySelector('[data-id="' + id + '"]'));
+      const row = id => kids.find(e => e.querySelector && e.querySelector('[data-id="' + id + '"]'));
+      const tmOf = id => { const r = row(id); const tm = r && r.querySelector('.row-time'); return tm ? tm.textContent.trim() : null; };
+      return { box: !!document.getElementById('tcard-ut'), u2: at('it_u2'), u1: at('it_u1'), s: at('it_s'), now: kids.findIndex(e => e.classList.contains('now-line')), past: kids.findIndex(e => e.classList.contains('bx-past-tog')),
+        tm: [tmOf('it_u2'), tmOf('it_u1')], done: [row('it_u2'), row('it_u1')].map(r => !!r && r.classList.contains('done')) };
     });
-    c.ok(ut && ut.after && ut.beforeMemo, "시간 미지정 상자는 '오늘 할 일' 아래 · 오늘의 메모 위 " + JSON.stringify(ut && [ut.after, ut.beforeMemo]));
-    c.eq(ut && ut.head, '시간 미지정 일정 2', '상자 제목과 개수');
-    c.eq(ut && ut.rows, [['택배 보내기', false], ['원두주문', true]], '안 한 것이 먼저, 한 것은 아래(가로줄 + 흐리게)');
-    c.ok(ut && !ut.main.includes('택배 보내기') && !ut.main.includes('원두주문') && ut.main.includes('부산 출장'), "'오늘 할 일'에는 시각 없는 하루 일정이 없고, 여러 날 일정은 그대로 " + JSON.stringify(ut && ut.main));
-    // 시험판 59(대표 11/5 20:28): 상자 줄도 다른 상자와 같은 칸 [종류 아이콘 | 시각 칸 '시간 미지정' | 이름 | 체크]
-    c.ok(ut && ut.timeShown === true && ut.tmText === '시간 미지정' && ut.titleX === ut.mainX, "상자 줄은 [종류 아이콘 | '시간 미지정' | 이름 | 체크], 이름이 '오늘 할 일' 줄과 같은 자리 " + JSON.stringify(ut && [ut.timeShown, ut.tmText, ut.titleX, ut.mainX]));
-    await p.click('#tcard-ut .row .chk[data-id="it_u2"]'); await p.waitForTimeout(600);
-    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#tcard-ut .bx-ut-list > .row')).map(r => r.classList.contains('done'))), [true, true], '상자에서 체크하면 완료');
-    await p.click('#tcard-ut .row .chk[data-id="it_u2"]'); await p.waitForTimeout(500);
-    // 어제까지 못 한 시각 없는 일정은 상자가 아니라 '지난 일'(확인 필요)
-    c.ok(await p.evaluate(() => !document.querySelector('#tcard-ut [data-id="it_y"]') && !!document.querySelector('#tcard2 [data-id="it_y"]')), "어제까지 못 한 일(은행 서류)은 상자가 아니라 '지난 일'에");
+    c.ok(ut && !ut.box, "'시간 미지정 일정' 상자는 없음(시험판 61)");
+    c.ok(ut && ut.u2 === 0 && ut.u2 < ut.s && ut.s < ut.u1 && ut.u1 < ut.past && ut.past < ut.now, "'오늘 할 일' 맨 위: 안 한 종일(택배 보내기) → 여러 날(부산 출장) → 한 것(원두주문) → 지난 일 → 지금 " + JSON.stringify(ut));
+    c.eq(ut && ut.tm, ['종일', '종일'], "시각 칸은 '종일'");
+    c.eq(ut && ut.done, [false, true], '한 것은 가로줄 + 흐리게');
+    await p.click('#tcard2 .row .chk[data-id="it_u2"]'); await p.waitForTimeout(600);
+    c.ok(await p.evaluate(() => { const r = document.querySelector('#tcard2 .row .chk[data-id="it_u2"]'); return !!r && r.closest('.row').classList.contains('done'); }), '종일 줄에서 체크하면 완료');
+    await p.click('#tcard2 .row .chk[data-id="it_u2"]'); await p.waitForTimeout(500);
+    // 어제까지 못 한 시각 없는 일정은 종일 줄이 아니라 '지난 일'(확인 필요)
+    c.ok(await p.evaluate(() => { const b = document.querySelector('#tcard2 .bx-past'); return !!b && !!b.querySelector('[data-id="it_y"]'); }), "어제까지 못 한 일(은행 서류)은 '지난 일'에");
 
     // ── (1) 시각 표시 ──
     c.eq(await p.evaluate(() => { const f = window.BX_T.fn; return [f.bxT('15:00'), f.bxTR('09:00', '10:30'), f.bxH(13), window.BX_clock24()]; }), ['오후 3:00', '오전 9:00–10:30', '오후 1시', false], '기본은 오전 · 오후');

@@ -18,7 +18,7 @@ const rect = (p, sel) => p.evaluate(s => { const e = document.querySelector(s); 
 module.exports = async function () {
   const c = checker('시험판 30 · 시선 흐름 · 빈 공간');
 
-  // 1) 홈: 한 목록, 시각 순서(07:30 루틴 → 10:30 수업 → 15:00 일정), 칸 제목 없음. 시각 없는 일정(장보기)은 시험판 58부터 아래 '시간 미지정 일정' 상자(D-27 ②)
+  // 1) 홈: 한 목록, 시각 순서(07:30 루틴 → 10:30 수업 → 15:00 일정), 칸 제목 없음. 시각 없는 일정(장보기)은 시험판 61부터 '종일'로 맨 위(D-35)
   let app = await openApp({ data: data() });
   try {
     const p = app.page;
@@ -27,9 +27,9 @@ module.exports = async function () {
       heads: Array.from(document.querySelectorAll('#tcard2 h2')).map(h => h.textContent.trim())
     }));
     c.eq(s.heads, ['오늘 할 일'], "홈에는 '오늘 할 일' 제목 하나(루틴·일정·수업 칸 제목 없음)");
-    const want = ['지금', '아침 준비', '경영학원론', '치과'];
+    const want = ['장보기', '지금', '아침 준비', '경영학원론', '치과'];
     c.ok(s.order.length === want.length && want.every((w, i) => (s.order[i] || '').indexOf(w) >= 0), '시각 순서: ' + JSON.stringify(s.order));
-    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#tcard-ut .row-title')).map(e => e.textContent.trim())), ['장보기'], "시각 없는 일정은 '시간 미지정 일정' 상자에");
+    c.eq(await p.evaluate(() => { const r = document.querySelector('#tcard2 .bx-tl > .row'); return r ? [r.querySelector('.row-title').textContent.trim(), r.querySelector('.row-time').textContent.trim()] : null; }), ['장보기', '종일'], "시각 없는 일정은 맨 위 '종일' 줄");
     // 새 일정 창: 마이크에 '말하기', 칩을 눌러도 칩이 움직이지 않는다
     await p.click('.bx-fab'); await p.waitForTimeout(500);
     // 시험판 60(대표 11/5 22:03 '마이크 아이콘으로만'): 글자는 빼고 이름(화면 읽기)만 '말하기'

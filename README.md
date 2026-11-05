@@ -117,11 +117,12 @@ cd android && ./gradlew assembleDebug
 - **시각 표시(시험판 58, D-32)**: 설정 › 화면 › 시각 표시가 24시간이면 `bxT` · `bxTR` · `bxH`가 '15:00' · '13시'로 쓴다(`bxClock24`, `html.bx-h24`가 시각 칸 폭을 줄임). 휴대폰 쪽은 `BxAlarm.sync` · `BxWidget.update`의 `h24`를 받아 `BxTime`으로 쓴다. 손으로 시각을 적지 말 것 — 정렬 점검이 두 표시로 돌며 오전 · 오후 없는 시각(time24)과 24시간인데 오전 · 오후가 남은 시각(time12)을 잡는다(`tests/layout/run.cjs --clocks 12,24`, 기본값)
 - **말로 넣기 'N분 뒤'(시험판 59)**: `bxQuickPre`가 `bxRelTime`(web-src/v59.js)으로 '30분 뒤 · 한 시간 반 후 · 10분 있다가 · 30분 안에'를 지금 + 그만큼의 날짜 · 시각으로 바꾼 뒤 읽는다. 제목 끝 말끝은 `bxTitleTail`이 정리한다('갈거야' → 장소만, '먹어야 해' → '먹기')
 - **길게 누르기(시험판 59, 대표 11/5 20:35)**: 일정 · 루틴 · 메모 줄, 날짜 칸 같은 '것'을 길게 누르면 상세 옵션 창만 뜨고 다른 페이지로 넘어가지 않는다. 옵션이 아직 없는 것은 손을 떼도 아무 일 없음(v59.js `BX_LP_ITEM`). 단추는 휴대폰 기본처럼 오래 눌러도 누르기. 새로 길게 누르기를 붙일 때는 옵션 창을 열고, 페이지를 열지 말 것
-- **한 화면의 목록 줄 C(시험판 59)**: 상자가 달라도 시각 칸 · 이름 칸이 같은 자리. 시각이 없는 줄은 시각 칸에 '시간 미지정'. 정렬 점검 `colx`가 잡는다
+- **한 화면의 목록 줄 C(시험판 59)**: 상자가 달라도 시각 칸 · 이름 칸이 같은 자리. 정렬 점검 `colx`가 잡는다
+- **종일(시험판 61, 대표 11/5 22:48 · 22:50)**: 시각이 없는 하루 일정은 '종일' — 홈 '오늘 할 일' 맨 위 종일 줄(시각 칸 '종일', `bxAlldayCol`). 그날 종일 일정이 있으면 확인 알림 '오늘 시간이 정해지지 않은 일정이 N개 있어요. 확인하세요.'(`BX_alarmPlan`의 `utc_`, 종일 일정 알림 시각 · 그 뒤 시간 없이 넣으면 30분 뒤, `open: 'home'`이면 휴대폰 쪽이 홈으로 연다)
 - **누른 자리 메뉴(시험판 60, 선택실 5 · 1번 B)**: 길게 누르면 누른 줄 · 칸을 비추고 그 바로 위(자리가 없으면 아래)에 작은 메뉴. 새 메뉴는 `bxCtxMenu(제목, 줄들, 고르면, 누른 것)`, 길게 누르기는 `bxLongPress(선택자, 열기)`(web-src/v60.js). 창(openSheet)을 쓰는 옛 메뉴도 `bxCtxPlace(누른 것)` 한 줄로 같은 모양
 - **메모 줄(시험판 60, 4번 B)**: [메모 아이콘 | 시각 | 글] — 목록 줄 C와 같은 칸(`bxMemoRowHtml`, app.css '메모 줄'). 홈 · 날짜 창 · 메모 화면 · 찾기가 같은 줄. `colx`가 메모 줄도 본다
 - **말하기 단추(시험판 60)**: 어디서나 마이크 아이콘만(이름은 화면 읽기용 '말하기'), 작은 단추 높이의 정사각. 줄 칸의 주 단추면 보라, 옆에 '추가'가 있으면 회색
-- **와이어프레임(실제 화면, 시험판 60~)**: `node tests/layout/run.cjs --widths 384 --themes light --clocks 12 --snap DIR` 뒤 `node tests/layout/wire.cjs --snap DIR --out PAGE`. 화면 모양 지문을 지난 시험판과 비교해 바뀐 화면만 '시험판 N에서 바뀜'(지문은 tests/layout/wire/manifest.json). 통합관리실이 PAGE를 와이어프레임 페이지로 올린다
+- **와이어프레임(실제 화면, 시험판 60~)**: `node tests/layout/run.cjs --widths 384 --themes light --clocks 12 --snap DIR` 뒤 `node tests/layout/wire.cjs --snap DIR --out PAGE`. 화면 모양 지문을 지난 시험판과 비교해 바뀐 화면만 '시험판 N에서 바뀜'(지문은 tests/layout/wire/manifest.json). 통합관리실이 PAGE를 와이어프레임 페이지(https://claude.ai/artifact/HLEcxvt2jVk5DjVCvUbcdx)로 올린다. 사진은 바뀐 화면 것만 새로 올리고(PAGE/upload.json), 전에 올린 사진은 그 페이지에 남아 있다
 
 ## 앱 이름 바꾸기
 

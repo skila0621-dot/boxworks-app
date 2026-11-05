@@ -39,9 +39,10 @@ for (const [nm, rec] of Object.entries(res.states)) {
   const h = st + (scrolls ? '|' + sb : '');
   const key = fileKey(label), cur = man.screens[label];
   if (cur && cur.h === h) { cur.order = Object.keys(res.states).indexOf(nm); continue; }
-  const s = { h, key, since: TRIAL, img: TRIAL, scrolls: !!scrolls, order: Object.keys(res.states).indexOf(nm) };
+  const s = { h, ht: st, hb: scrolls ? sb : null, key, since: TRIAL, img: TRIAL, scrolls: !!scrolls, order: Object.keys(res.states).indexOf(nm) };
   if (SEED) s.seed = true;
-  else if (cur) { s.prev = cur.img; changed++; } else { s.isNew = !!PREV; added++; }
+  // 전후 그림은 바뀐 쪽(위 · 아래까지 내림)을 보여 준다
+  else if (cur) { s.prev = cur.img; s.prevBottom = cur.ht === st && !!cur.hb && scrolls; changed++; } else { s.isNew = !!PREV; added++; }
   man.screens[label] = s;
   for (const [src, dst] of [[nm + '.png', key + '@' + TRIAL + '.jpg']].concat(scrolls ? [[nm + '__bottom.png', key + '@' + TRIAL + '_b.jpg']] : [])) {
     conv.push([path.join(SNAP, SUB, src), path.join(OUT, 'img', dst)]);
@@ -63,7 +64,7 @@ fs.writeFileSync(MAN, JSON.stringify(man, null, 1));
 // ── 페이지 ──
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const AREAS = [['홈', /^홈|^오늘|^지난|^다음 날|^알림 카드|^앱 안/], ['캘린더', /^캘린더|^날짜|^주간|^일 보기|^월간|^짧은 캘린더/], ['루틴', /^루틴|^출근|^새 루틴/], ['시간표', /^시간표|^수업/], ['메모', /^메모/],
-  ['일정 넣기 · 고치기', /^새 일정|^일정|^시간 미지정|^알림 페이지|^출발|^장소|^사진/], ['설정 · 더보기', /^설정|^더보기|^기능|^위젯|^도움말|^찾기|^명상/], ['처음 실행 · 도우미', /^처음|도우미|^알람 허락/]];
+  ['일정 넣기 · 고치기', /^새 일정|^일정|^종일|^시간 미지정|^알림 페이지|^출발|^장소|^사진/], ['설정 · 더보기', /^설정|^더보기|^기능|^위젯|^도움말|^찾기|^명상/], ['처음 실행 · 도우미', /^처음|도우미|^알람 허락/]];
 const areaOf = label => (AREAS.find(([, re]) => re.test(label)) || ['그 밖의 창 · 페이지'])[0];
 const all = Object.entries(man.screens).sort((a, b) => a[1].order - b[1].order);
 const img = (s, b) => 'img/' + s.key + '@' + s.img + (b ? '_b' : '') + '.jpg';
@@ -74,9 +75,9 @@ const card = ([label, s]) => '<li class="sc' + (fresh(s) ? ' new' : '') + '" dat
   '<div class="sc-p"><figure><img src="' + img(s) + '" alt="' + esc(label) + '" loading="lazy" width="384" height="832"><figcaption>위</figcaption></figure>' +
   (s.scrolls ? '<figure><img src="' + img(s, 1) + '" alt="' + esc(label) + ' 아래까지" loading="lazy" width="384" height="832"><figcaption>아래까지 내림</figcaption></figure>' : '') + '</div></li>';
 const changedNow = all.filter(([, s]) => fresh(s) && s.prev != null), addedNow = all.filter(([, s]) => fresh(s) && s.isNew).length;
-const pair = ([label, s]) => '<li class="pr"><div class="sc-h"><b>' + esc(label) + '</b><span class="tg now">시험판 ' + s.prev + ' → ' + TRIAL + '</span></div><div class="sc-p">' +
-  '<figure><img src="' + pimg(s) + '" alt="' + esc(label) + ' 전" loading="lazy" width="384" height="832"><figcaption>전(시험판 ' + s.prev + ')</figcaption></figure>' +
-  '<figure><img src="' + img(s) + '" alt="' + esc(label) + ' 후" loading="lazy" width="384" height="832"><figcaption>후(시험판 ' + TRIAL + ')</figcaption></figure></div></li>';
+const pair = ([label, s]) => { const b = s.prevBottom ? 1 : 0, w = b ? ' · 아래까지 내림' : ''; return '<li class="pr"><div class="sc-h"><b>' + esc(label) + '</b><span class="tg now">시험판 ' + s.prev + ' → ' + TRIAL + '</span></div><div class="sc-p">' +
+  '<figure><img src="' + pimg(s, b) + '" alt="' + esc(label) + ' 전" loading="lazy" width="384" height="832"><figcaption>전(시험판 ' + s.prev + w + ')</figcaption></figure>' +
+  '<figure><img src="' + img(s, b) + '" alt="' + esc(label) + ' 후" loading="lazy" width="384" height="832"><figcaption>후(시험판 ' + TRIAL + w + ')</figcaption></figure></div></li>'; };
 const areas = Array.from(new Set(all.map(([l]) => areaOf(l))));
 const page = `<title>박스웍스 와이어프레임 (실제 화면)</title>
 <style>
@@ -117,7 +118,7 @@ figcaption { font-size: 12px; color: var(--muted); text-align: center; }
 <div class="wrap">
   <header>
     <h1>박스웍스 와이어프레임 (실제 화면)</h1>
-    <p class="lead">시험판마다 정렬 점검이 여는 화면 ${all.length}곳을 폭 384 · 라이트로 찍어 자동으로 바꿔 넣어요. 지난 시험판과 화면 모양(자리 · 크기 · 색 · 글자)이 달라진 화면에만 '시험판 N에서 바뀜'이 붙어요. 지금: 시험판 ${TRIAL}.</p>
+    <p class="lead">시험판마다 정렬 점검이 여는 화면 ${all.length}곳을 폭 384 · 라이트로 찍어 자동으로 바꿔 넣어요. 지난 시험판과 보이는 화면이 달라진 곳에만 '시험판 N에서 바뀜'이 붙어요(같은 일정 · 루틴 · 수업 · 메모로 찍어 서로 비교돼요). 지금: 시험판 ${TRIAL}.</p>
   </header>
   <nav class="bar" aria-label="구역">
     <button type="button" data-f="" aria-pressed="true">전체</button>

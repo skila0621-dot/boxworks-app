@@ -1,17 +1,22 @@
 {
- "trial": 60,
+ "trial": 61,
  "screens": {
   "홈": {
-   "h": "1541a06aa74213da|144f1185a89fa89e",
+   "h": "572dcfefb085a65a|23df02b5b7c7cd38",
+   "ht": "572dcfefb085a65a",
+   "hb": "23df02b5b7c7cd38",
    "key": "s1kr4bnb",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 0,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "단추 견본": {
    "h": "25db0672afc8702b|271457800564a03b",
+   "ht": "25db0672afc8702b",
+   "hb": "271457800564a03b",
    "key": "s15tx5av",
    "since": 59,
    "img": 59,
@@ -20,25 +25,33 @@
    "seed": true
   },
   "홈 루틴 단계 창": {
-   "h": "5986c90f68e6938a|99c58493eb27fbcf",
+   "h": "5986c90f68e6938a|57847452b0949c47",
+   "ht": "5986c90f68e6938a",
+   "hb": "57847452b0949c47",
    "key": "s2f7amg",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 2,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": true
   },
   "홈 지난 일 펼침": {
-   "h": "aba732cdef1f2847|d86658dc70e8fbdb",
+   "h": "6e495d92fbdeb7ca|69c38fcf47d883cb",
+   "ht": "6e495d92fbdeb7ca",
+   "hb": "69c38fcf47d883cb",
    "key": "s1bg32tv",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 3,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "홈 다음 날": {
    "h": "8a883acf19853077|8bb0ea8e438ebe27",
+   "ht": "8a883acf19853077",
+   "hb": "8bb0ea8e438ebe27",
    "key": "s3cxgmd",
    "since": 59,
    "img": 59,
@@ -47,34 +60,45 @@
    "seed": true
   },
   "확인 필요": {
-   "h": "747b57dade1ad8b7|f8b7bd3afcd989ff",
+   "h": "e2d74d9232a1a5a8|bd7704e3fb6f8539",
+   "ht": "e2d74d9232a1a5a8",
+   "hb": "bd7704e3fb6f8539",
    "key": "s1ttrxww",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 5,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "새 일정 창": {
-   "h": "2a33a1b8f9a71001|26a7b0b066d5de0c",
+   "h": "2a33a1b8f9a71001|1834c0b534fdd097",
+   "ht": "2a33a1b8f9a71001",
+   "hb": "1834c0b534fdd097",
    "key": "s91lp8p",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 6,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": true
   },
   "새 일정 자세히 펼침": {
-   "h": "778bcd08b54a272c|e6f82fba24144b82",
+   "h": "778bcd08b54a272c|ed4143029fe8d7de",
+   "ht": "778bcd08b54a272c",
+   "hb": "ed4143029fe8d7de",
    "key": "s68zydm",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 7,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": true
   },
   "새 일정 날짜": {
    "h": "6fd458d3433b787f",
+   "ht": "6fd458d3433b787f",
+   "hb": null,
    "key": "s1c7fg02",
    "since": 59,
    "img": 59,
@@ -84,6 +108,8 @@
   },
   "새 일정 시간": {
    "h": "7ebcc517de0605df",
+   "ht": "7ebcc517de0605df",
+   "hb": null,
    "key": "s5ge846",
    "since": 59,
    "img": 59,
@@ -93,6 +119,8 @@
   },
   "새 일정 장소": {
    "h": "2625cd03f04a2bbf",
+   "ht": "2625cd03f04a2bbf",
+   "hb": null,
    "key": "s1ksextz",
    "since": 59,
    "img": 59,
@@ -102,6 +130,8 @@
   },
   "새 일정 직접": {
    "h": "c800eac055a4640d",
+   "ht": "c800eac055a4640d",
+   "hb": null,
    "key": "sx9da78",
    "since": 59,
    "img": 59,
@@ -111,6 +141,8 @@
   },
   "새 일정 출발 준비": {
    "h": "ba0196c9093ee4e2",
+   "ht": "ba0196c9093ee4e2",
+   "hb": null,
    "key": "s1lzligu",
    "since": 59,
    "img": 59,
@@ -120,6 +152,8 @@
   },
   "새 일정 캘린더": {
    "h": "81f5582cf8396a03",
+   "ht": "81f5582cf8396a03",
+   "hb": null,
    "key": "s1xf6tie",
    "since": 59,
    "img": 59,
@@ -129,6 +163,8 @@
   },
   "새 일정 메모": {
    "h": "ccd2e9575cd9e1ee",
+   "ht": "ccd2e9575cd9e1ee",
+   "hb": null,
    "key": "s1cxfacy",
    "since": 59,
    "img": 59,
@@ -138,6 +174,8 @@
   },
   "새 일정 사진 파일": {
    "h": "93cd114f930d3fd3",
+   "ht": "93cd114f930d3fd3",
+   "hb": null,
    "key": "s17uyswi",
    "since": 59,
    "img": 59,
@@ -146,25 +184,33 @@
    "seed": true
   },
   "일정 수정 창": {
-   "h": "b909e2a85f0e81fa|c19b582d790eaa16",
+   "h": "54b29e3363c165ea|0395569e5d5846f9",
+   "ht": "54b29e3363c165ea",
+   "hb": "0395569e5d5846f9",
    "key": "snece5i",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 16,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "일정 수정 자세히 펼침": {
-   "h": "3feb8f6dc3f51e23|c19b582d790eaa16",
+   "h": "3feb8f6dc3f51e23|0395569e5d5846f9",
+   "ht": "3feb8f6dc3f51e23",
+   "hb": "0395569e5d5846f9",
    "key": "s8knkkz",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 17,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": true
   },
   "일정 수정 날짜": {
    "h": "6fd458d3433b787f",
+   "ht": "6fd458d3433b787f",
+   "hb": null,
    "key": "sgod803",
    "since": 59,
    "img": 59,
@@ -174,6 +220,8 @@
   },
   "일정 수정 시간": {
    "h": "790642ef0d48cd4d",
+   "ht": "790642ef0d48cd4d",
+   "hb": null,
    "key": "s1vndsyv",
    "since": 59,
    "img": 59,
@@ -183,6 +231,8 @@
   },
   "일정 수정 장소": {
    "h": "851f64c96ef57dcd",
+   "ht": "851f64c96ef57dcd",
+   "hb": null,
    "key": "s118rosm",
    "since": 59,
    "img": 59,
@@ -192,6 +242,8 @@
   },
   "일정 수정 직접": {
    "h": "c9415813f4aa8868",
+   "ht": "c9415813f4aa8868",
+   "hb": null,
    "key": "s1kzjggh",
    "since": 59,
    "img": 59,
@@ -201,6 +253,8 @@
   },
   "일정 수정 출발 준비": {
    "h": "973d07ad4fa39e54|1b6021735706fbfa",
+   "ht": "973d07ad4fa39e54",
+   "hb": "1b6021735706fbfa",
    "key": "s1ddb6sp",
    "since": 59,
    "img": 59,
@@ -210,6 +264,8 @@
   },
   "일정 수정 캘린더": {
    "h": "b8297b1baf10b58b",
+   "ht": "b8297b1baf10b58b",
+   "hb": null,
    "key": "srj7ekh",
    "since": 59,
    "img": 59,
@@ -219,6 +275,8 @@
   },
   "일정 수정 메모": {
    "h": "ccd2e9575cd9e1ee",
+   "ht": "ccd2e9575cd9e1ee",
+   "hb": null,
    "key": "s1754ie3",
    "since": 59,
    "img": 59,
@@ -228,6 +286,8 @@
   },
   "일정 수정 사진 파일": {
    "h": "93cd114f930d3fd3",
+   "ht": "93cd114f930d3fd3",
+   "hb": null,
    "key": "s1bsx4f9",
    "since": 59,
    "img": 59,
@@ -237,6 +297,8 @@
   },
   "출발 준비 새 루틴 고름": {
    "h": "e0242b29d6392ffd|f365c6e13e1d9989",
+   "ht": "e0242b29d6392ffd",
+   "hb": "f365c6e13e1d9989",
    "key": "s69d0v7",
    "since": 59,
    "img": 59,
@@ -246,6 +308,8 @@
   },
   "캘린더 월": {
    "h": "0b97e08081e43ab3|0f7b5311bb15aa47",
+   "ht": "0b97e08081e43ab3",
+   "hb": "0f7b5311bb15aa47",
    "key": "s1ro6s7b",
    "since": 59,
    "img": 59,
@@ -255,6 +319,8 @@
   },
   "캘린더 주": {
    "h": "c6b0d4c33a22ebb0|d5dac3a301a10aab",
+   "ht": "c6b0d4c33a22ebb0",
+   "hb": "d5dac3a301a10aab",
    "key": "s1gjrpzj",
    "since": 59,
    "img": 59,
@@ -264,24 +330,32 @@
   },
   "캘린더 일": {
    "h": "1c4550dd20aa9c31|c656ae1db098f003",
+   "ht": "1c4550dd20aa9c31",
+   "hb": "c656ae1db098f003",
    "key": "sh23r9r",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 29,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "날짜 창": {
    "h": "b6eeec3436ad3eb9",
+   "ht": "b6eeec3436ad3eb9",
+   "hb": null,
    "key": "sosbzle",
    "since": 60,
    "img": 60,
    "scrolls": false,
    "order": 30,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "캘린더 목록": {
    "h": "093023d1863cbba5|d5abaf35670b5749",
+   "ht": "093023d1863cbba5",
+   "hb": "d5abaf35670b5749",
    "key": "s1xzt42v",
    "since": 59,
    "img": 59,
@@ -291,6 +365,8 @@
   },
   "캘린더 자세히": {
    "h": "9a638b7a5d92e02a|113c5dfe7f640530",
+   "ht": "9a638b7a5d92e02a",
+   "hb": "113c5dfe7f640530",
    "key": "sxscg83",
    "since": 59,
    "img": 59,
@@ -300,15 +376,20 @@
   },
   "캘린더 칩 길게 누름": {
    "h": "2022a62e540c65d0|637cafd9f6d4e5c4",
+   "ht": "2022a62e540c65d0",
+   "hb": "637cafd9f6d4e5c4",
    "key": "s19egqz0",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 33,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "캘린더 목록 뺀 캘린더": {
    "h": "1f22ce5430946302|5c74a466c4f1af94",
+   "ht": "1f22ce5430946302",
+   "hb": "5c74a466c4f1af94",
    "key": "s1hsqbh7",
    "since": 59,
    "img": 59,
@@ -318,6 +399,8 @@
   },
   "시간표": {
    "h": "ad2a8523c309c5e1|259bb0109613382d",
+   "ht": "ad2a8523c309c5e1",
+   "hb": "259bb0109613382d",
    "key": "s102dj43",
    "since": 59,
    "img": 59,
@@ -327,6 +410,8 @@
   },
   "수업 추가 창": {
    "h": "e41e04e29d300abc|86f2c2b20f049f0a",
+   "ht": "e41e04e29d300abc",
+   "hb": "86f2c2b20f049f0a",
    "key": "szvfqz1",
    "since": 59,
    "img": 59,
@@ -336,6 +421,8 @@
   },
   "수업 추가 장소": {
    "h": "559f14a190a23f58",
+   "ht": "559f14a190a23f58",
+   "hb": null,
    "key": "s1eshv3f",
    "since": 59,
    "img": 59,
@@ -345,6 +432,8 @@
   },
   "수업 추가 알림": {
    "h": "2b5e970f2dda8840",
+   "ht": "2b5e970f2dda8840",
+   "hb": null,
    "key": "s1rqffs2",
    "since": 59,
    "img": 59,
@@ -354,6 +443,8 @@
   },
   "수업 수정 창": {
    "h": "b4e6670f7105899a|e18e808163a6a672",
+   "ht": "b4e6670f7105899a",
+   "hb": "e18e808163a6a672",
    "key": "s4o302i",
    "since": 59,
    "img": 59,
@@ -363,6 +454,8 @@
   },
   "시간표 보기 설정": {
    "h": "76d0134a37ac4f08|8af7c20844c9a511",
+   "ht": "76d0134a37ac4f08",
+   "hb": "8af7c20844c9a511",
    "key": "s50xrq4",
    "since": 59,
    "img": 59,
@@ -372,6 +465,8 @@
   },
   "시간표 설정": {
    "h": "6fec3177f83bca9c|a4677939939a7cae",
+   "ht": "6fec3177f83bca9c",
+   "hb": "a4677939939a7cae",
    "key": "s56gu3a",
    "since": 59,
    "img": 59,
@@ -381,6 +476,8 @@
   },
   "루틴 목록": {
    "h": "68e3abdf547726a4|d9eb518301d4bce9",
+   "ht": "68e3abdf547726a4",
+   "hb": "d9eb518301d4bce9",
    "key": "s1f1vln5",
    "since": 59,
    "img": 59,
@@ -390,6 +487,8 @@
   },
   "루틴 고치기": {
    "h": "76e3a995cd671cad|f120ce8ea1706361",
+   "ht": "76e3a995cd671cad",
+   "hb": "f120ce8ea1706361",
    "key": "soww31t",
    "since": 59,
    "img": 59,
@@ -399,6 +498,8 @@
   },
   "루틴 고치기 알림 방식": {
    "h": "7e61baa7bfd999c6",
+   "ht": "7e61baa7bfd999c6",
+   "hb": null,
    "key": "s1aiv4pz",
    "since": 59,
    "img": 59,
@@ -408,6 +509,8 @@
   },
   "루틴 고치기 기준": {
    "h": "11c039a09c61c745",
+   "ht": "11c039a09c61c745",
+   "hb": null,
    "key": "s1wr0bqj",
    "since": 59,
    "img": 59,
@@ -417,6 +520,8 @@
   },
   "루틴 아이콘 페이지": {
    "h": "dbddc2c96dcf7648",
+   "ht": "dbddc2c96dcf7648",
+   "hb": null,
    "key": "s1v51n2t",
    "since": 59,
    "img": 59,
@@ -426,24 +531,32 @@
   },
   "새 루틴": {
    "h": "0a309e9428666e84|2cbb1d22092214a6",
+   "ht": "0a309e9428666e84",
+   "hb": "2cbb1d22092214a6",
    "key": "spa7cfd",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 47,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "메모 화면": {
    "h": "71c04ed02f46842a|6a538c01a8a4564c",
+   "ht": "71c04ed02f46842a",
+   "hb": "6a538c01a8a4564c",
    "key": "s1dhxxqr",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 48,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "새 메모": {
    "h": "78c0e5fe66320733",
+   "ht": "78c0e5fe66320733",
+   "hb": null,
    "key": "s1efqzep",
    "since": 59,
    "img": 59,
@@ -453,24 +566,32 @@
   },
   "메모 고치기": {
    "h": "f2fcf89b3f630caf|015cef2c88f2cd59",
+   "ht": "f2fcf89b3f630caf",
+   "hb": "015cef2c88f2cd59",
    "key": "s3fb7h5",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 50,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "더보기": {
    "h": "a10e02dbdcd30254|839cc2281fb5b83e",
+   "ht": "a10e02dbdcd30254",
+   "hb": "839cc2281fb5b83e",
    "key": "spp8mrj",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 51,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": true
   },
   "기능 메뉴 편집": {
    "h": "278a9d092c7b36e7|d012945d0deb5d6f",
+   "ht": "278a9d092c7b36e7",
+   "hb": "d012945d0deb5d6f",
    "key": "s5c05jd",
    "since": 59,
    "img": 59,
@@ -480,15 +601,20 @@
   },
   "위젯 추가": {
    "h": "7957a5277bd7e6ac|0b22ef99c10e6bad",
+   "ht": "7957a5277bd7e6ac",
+   "hb": "0b22ef99c10e6bad",
    "key": "s1f179uw",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 53,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "명상": {
    "h": "5cfc06355641299a|c00ba0648c8b61ff",
+   "ht": "5cfc06355641299a",
+   "hb": "c00ba0648c8b61ff",
    "key": "suefnv7",
    "since": 59,
    "img": 59,
@@ -498,6 +624,8 @@
   },
   "명상 소리와 호흡": {
    "h": "704029e4311984c2|4e12b0d0beec9883",
+   "ht": "704029e4311984c2",
+   "hb": "4e12b0d0beec9883",
    "key": "s1t9u72",
    "since": 59,
    "img": 59,
@@ -507,6 +635,8 @@
   },
   "명상 진행 중": {
    "h": "3100ba2c2bbe6db5|8323f9b872dcaad6",
+   "ht": "3100ba2c2bbe6db5",
+   "hb": "8323f9b872dcaad6",
    "key": "s13o57bh",
    "since": 59,
    "img": 59,
@@ -516,6 +646,8 @@
   },
   "명상 끝": {
    "h": "a2bf6d855515f213|32071a219d1fa911",
+   "ht": "a2bf6d855515f213",
+   "hb": "32071a219d1fa911",
    "key": "s1nov20s",
    "since": 59,
    "img": 59,
@@ -525,15 +657,20 @@
   },
   "설정": {
    "h": "9c90a1dfc3473740|b15565d79f441247",
+   "ht": "9c90a1dfc3473740",
+   "hb": "b15565d79f441247",
    "key": "s1338q8i",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 58,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "설정 view": {
    "h": "a8d92d24c82a3f2f|92c5ec93647e3c2f",
+   "ht": "a8d92d24c82a3f2f",
+   "hb": "92c5ec93647e3c2f",
    "key": "s1gqzj8n",
    "since": 59,
    "img": 59,
@@ -543,6 +680,8 @@
   },
   "설정 view theme": {
    "h": "466f7e50d25e0bec|825d68de5a27498e",
+   "ht": "466f7e50d25e0bec",
+   "hb": "825d68de5a27498e",
    "key": "sm3xq9e",
    "since": 59,
    "img": 59,
@@ -552,6 +691,8 @@
   },
   "설정 view clock": {
    "h": "aeeea40bb1ddd723|221e79d892f806c0",
+   "ht": "aeeea40bb1ddd723",
+   "hb": "221e79d892f806c0",
    "key": "s1sjjue5",
    "since": 59,
    "img": 59,
@@ -561,6 +702,8 @@
   },
   "설정 view wk": {
    "h": "c59675fd40bf228a|34bbf88aa407b3ca",
+   "ht": "c59675fd40bf228a",
+   "hb": "34bbf88aa407b3ca",
    "key": "s10v1dwn",
    "since": 59,
    "img": 59,
@@ -570,6 +713,8 @@
   },
   "설정 alarm": {
    "h": "8aee8abc0b902527|9fca9ff93b2dc735",
+   "ht": "8aee8abc0b902527",
+   "hb": "9fca9ff93b2dc735",
    "key": "s12wxnyz",
    "since": 59,
    "img": 59,
@@ -579,6 +724,8 @@
   },
   "설정 alarm rep": {
    "h": "1096571c404163f5|57689462c945d41a",
+   "ht": "1096571c404163f5",
+   "hb": "57689462c945d41a",
    "key": "s11dp8qk",
    "since": 59,
    "img": 59,
@@ -588,6 +735,8 @@
   },
   "설정 alarm lv": {
    "h": "17d208dd5c3ea004|546de52aa25ff878",
+   "ht": "17d208dd5c3ea004",
+   "hb": "546de52aa25ff878",
    "key": "s1qrdwgj",
    "since": 59,
    "img": 59,
@@ -597,6 +746,8 @@
   },
   "설정 alarm rem": {
    "h": "7fce68caa6cb9f13|1680ea8d0e1f5108",
+   "ht": "7fce68caa6cb9f13",
+   "hb": "1680ea8d0e1f5108",
    "key": "sybtm3v",
    "since": 59,
    "img": 59,
@@ -606,6 +757,8 @@
   },
   "설정 alarm lock": {
    "h": "7be0a2352057f1a8|2717f7dc8c146aad",
+   "ht": "7be0a2352057f1a8",
+   "hb": "2717f7dc8c146aad",
    "key": "s1txt4fi",
    "since": 59,
    "img": 59,
@@ -615,6 +768,8 @@
   },
   "설정 data": {
    "h": "f26c766b9f391123|64aa3823aa5a0337",
+   "ht": "f26c766b9f391123",
+   "hb": "64aa3823aa5a0337",
    "key": "s1xa0ql2",
    "since": 59,
    "img": 59,
@@ -624,6 +779,8 @@
   },
   "설정 data reset": {
    "h": "09c7f3778f2f663b|ef1965482a638041",
+   "ht": "09c7f3778f2f663b",
+   "hb": "ef1965482a638041",
    "key": "swvv8s5",
    "since": 59,
    "img": 59,
@@ -632,88 +789,105 @@
    "seed": true
   },
   "찾기": {
-   "h": "3b0f186b55365d49|fdf65f976280d374",
+   "h": "3f6ea036fe9dea5f|f3df3e46881030a7",
+   "ht": "3f6ea036fe9dea5f",
+   "hb": "f3df3e46881030a7",
    "key": "skol683",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 70,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "도움말": {
-   "h": "8b2dfe08abb8e68a|8fe7e16e3834e696",
+   "h": "7e79f5f55f101ad1|e77a843c49b38a43",
+   "ht": "7e79f5f55f101ad1",
+   "hb": "e77a843c49b38a43",
    "key": "s3h0cxn",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 71,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "루틴 꾹 누르기": {
    "h": "92ab074420073067|c28ed87f5065a573",
+   "ht": "92ab074420073067",
+   "hb": "c28ed87f5065a573",
    "key": "s1ut8p4m",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 72,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "일정 꾹 누르기": {
-   "h": "9bf930cf256e1b94|75937f681872de59",
+   "h": "2dda0fb79de3a3b8|32c3cdba544714e4",
+   "ht": "2dda0fb79de3a3b8",
+   "hb": "32c3cdba544714e4",
    "key": "s12vbo19",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 73,
-   "prev": 59
-  },
-  "시간 미지정 줄 꾹 누르기": {
-   "h": "aad7e2f4c7c00248|5431f8b49cce5656",
-   "key": "syhmrtx",
-   "since": 60,
-   "img": 60,
-   "scrolls": true,
-   "order": 74,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "루틴 줄 꾹 누르기": {
-   "h": "a978a2dac44682aa|f1b4f80651e8feb4",
+   "h": "eed8dbb108757422|1f199b1004d49723",
+   "ht": "eed8dbb108757422",
+   "hb": "1f199b1004d49723",
    "key": "sm0ncqi",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 75,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "수업 줄 꾹 누르기": {
-   "h": "e3efe52054bf879c|422d961e44a3c4ba",
+   "h": "b238827da144e212|a1c2f31c16514791",
+   "ht": "b238827da144e212",
+   "hb": "a1c2f31c16514791",
    "key": "s142psvp",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 76,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "메모 줄 꾹 누르기": {
-   "h": "3f1b67f40df847e9|cabcbf4b6db205c6",
+   "h": "a83d6c449ce9b049|6902aebd2a8aa205",
+   "ht": "a83d6c449ce9b049",
+   "hb": "6902aebd2a8aa205",
    "key": "s1kaljia",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 77,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
   },
   "날짜 칸 꾹 누르기": {
    "h": "1a62e29d84773a31|7e08edf3822d2219",
+   "ht": "1a62e29d84773a31",
+   "hb": "7e08edf3822d2219",
    "key": "s1l33pau",
    "since": 60,
    "img": 60,
    "scrolls": true,
    "order": 78,
-   "prev": 59
+   "prev": 59,
+   "prevBottom": false
   },
   "처음 실행 1": {
    "h": "4855c58c37578ac3|008dc1aa727da112",
+   "ht": "4855c58c37578ac3",
+   "hb": "008dc1aa727da112",
    "key": "ssgvsbr",
    "since": 59,
    "img": 59,
@@ -723,6 +897,8 @@
   },
   "처음 실행 2": {
    "h": "4e0cc857ee756b50",
+   "ht": "4e0cc857ee756b50",
+   "hb": null,
    "key": "ssqve0q",
    "since": 59,
    "img": 59,
@@ -732,6 +908,8 @@
   },
   "루틴 도우미": {
    "h": "e340b2774f3ef7ed",
+   "ht": "e340b2774f3ef7ed",
+   "hb": null,
    "key": "s19w3az1",
    "since": 59,
    "img": 59,
@@ -741,6 +919,8 @@
   },
   "시간표 도우미": {
    "h": "c28dc84c9e3d6a64",
+   "ht": "c28dc84c9e3d6a64",
+   "hb": null,
    "key": "s18s5th3",
    "since": 59,
    "img": 59,
@@ -750,6 +930,8 @@
   },
   "알람 꺼짐 줄": {
    "h": "9efa50313ca65691|f43cc4893a548f4a",
+   "ht": "9efa50313ca65691",
+   "hb": "f43cc4893a548f4a",
    "key": "s12wlij3",
    "since": 59,
    "img": 59,
@@ -759,6 +941,8 @@
   },
   "알람 허락 화면": {
    "h": "9efa50313ca65691|f43cc4893a548f4a",
+   "ht": "9efa50313ca65691",
+   "hb": "f43cc4893a548f4a",
    "key": "s472thc",
    "since": 59,
    "img": 59,
@@ -767,16 +951,21 @@
    "seed": true
   },
   "짧은 홈": {
-   "h": "e78761aa11d4235f|5b031a57074fef51",
+   "h": "1432e09b32f0dac9|0839ebdc10ec8db8",
+   "ht": "1432e09b32f0dac9",
+   "hb": "0839ebdc10ec8db8",
    "key": "s14moyii",
-   "since": 59,
-   "img": 59,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 85,
-   "seed": true
+   "prev": 59,
+   "prevBottom": false
   },
   "짧은 캘린더": {
    "h": "2d17c238be54d6b9|08e7ad47c0c3da73",
+   "ht": "2d17c238be54d6b9",
+   "hb": "08e7ad47c0c3da73",
    "key": "s1owzfla",
    "since": 59,
    "img": 59,
@@ -785,15 +974,29 @@
    "seed": true
   },
   "앱 안 알림 카드": {
-   "h": "94218d72ebb48edd|834f558f4fcd0ce1",
+   "h": "c721b45a7f19db89|b8c3f6c008bb7f8e",
+   "ht": "c721b45a7f19db89",
+   "hb": "b8c3f6c008bb7f8e",
    "key": "s1osr3i4",
-   "since": 60,
-   "img": 60,
+   "since": 61,
+   "img": 61,
    "scrolls": true,
    "order": 87,
-   "prev": 59
+   "prev": 60,
+   "prevBottom": false
+  },
+  "종일 줄 꾹 누르기": {
+   "h": "86fabc2df587e3c5|eb6b32710277adad",
+   "ht": "86fabc2df587e3c5",
+   "hb": "eb6b32710277adad",
+   "key": "s1gsr53f",
+   "since": 61,
+   "img": 61,
+   "scrolls": true,
+   "order": 74,
+   "isNew": true
   }
  },
- "trialPrev": 59,
- "at": "2026-11-05T14:04:14.378Z"
+ "trialPrev": 60,
+ "at": "2026-11-05T14:42:08.065Z"
 }

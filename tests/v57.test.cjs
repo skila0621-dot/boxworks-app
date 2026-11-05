@@ -29,8 +29,8 @@ module.exports = async function () {
       const rowOf = sel => { const e = document.querySelector(sel); return e ? e.closest('.row') : null; };
       const box = e => { const r = e.getBoundingClientRect(); return { t: r.top, b: r.bottom, l: r.left, r: r.right, cy: (r.top + r.bottom) / 2 }; };
       const deco = e => e ? getComputedStyle(e).textDecorationLine : '';
-      // 시각 없는 '원두주문'은 시험판 58부터 '시간 미지정 일정' 상자(#tcard-ut)
-      const d = rowOf('#tcard-ut [data-act="edit"][data-id="it_d"]'), l = rowOf('#tcard2 [data-act="edit"][data-id="it_l"]');
+      // 시각 없는 '원두주문'은 시험판 61부터 '오늘 할 일' 맨 위 '종일' 줄
+      const d = rowOf('#tcard2 [data-act="edit"][data-id="it_d"]'), l = rowOf('#tcard2 [data-act="edit"][data-id="it_l"]');
       const tt = document.querySelector('#tcard2 .row[data-kind="tt"]'), rt = document.querySelector('#tcard2 .row[data-rid="rt_w"]');
       const w = l && l.querySelector(':scope > .rc-warn'), lc = l && l.querySelector(':scope > .chk');
       return {
