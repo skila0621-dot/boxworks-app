@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs');
 const serve = require('./serve.cjs');
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
-const WIDTHS = arg('widths', '360,384,412').split(',').map(Number), THEMES = arg('themes', 'light,dark').split(','), CLOCKS = arg('clocks', '12,24').split(','), ONLY = arg('only', ''), SHOTS = arg('shots', '0') === '1';
+const WIDTHS = arg('widths', '360,384,412').split(',').map(Number), THEMES = arg('themes', 'light,dark').split(','), CLOCKS = arg('clocks', '12,24').split(','), ONLY = arg('only', ''), SHOTS = arg('shots', '0') === '1', DSF = +arg('dsf', '1');
 const OUT = path.join(__dirname, 'out', 'gate'); fs.mkdirSync(OUT, { recursive: true });
 
 const D = (h, m = 0, day = 0) => { const d = new Date(2026, 10, 6 + day, h, m); return d.getTime(); };
@@ -118,7 +118,7 @@ function audit(o) {
   const report = { checked: 0, fails: [] };
   const names = Object.keys(SC).filter(n => !ONLY || n.includes(ONLY));
   for (const W of WIDTHS) for (const theme of THEMES) for (const clock of CLOCKS) {
-    const ctx = await b.newContext({ viewport: { width: W, height: 800 }, colorScheme: theme, deviceScaleFactor: 1 });
+    const ctx = await b.newContext({ viewport: { width: W, height: 800 }, colorScheme: theme, deviceScaleFactor: DSF });
     for (const name of names) {
       const sc = SC[name];
       const p = await ctx.newPage(); const errs = [];

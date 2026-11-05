@@ -9,10 +9,10 @@ const tcol = ms => { const [ap, t] = hmParts(ms); return '<span class="t">' + (a
 const PIC = [
   () => '<div class="list"><div class="row">' + tcol(T(13, 50)) + '<span class="m"><b>준비 시작</b><span><i class="dot"></i>지금 시작하면 제시간</span></span><span class="e"></span></div><div class="row">' + tcol(T(14, 20)) + '<span class="m"><b>출발</b><span>이동 30분</span></span><span class="e"></span></div><div class="row">' + tcol(T(15, 0)) + '<span class="m"><b>치과</b><span>캘린더에 있던 약속</span></span><span class="e"></span></div></div>',
   () => '<div class="mock"><span>준비 시작 · 치과</span><b class="num">' + hm(T(13, 50)) + '</b><span>지금 시작하면 ' + hm(T(14, 50)) + ' 도착</span><i>시작했어요</i></div>',
-  () => '<div class="list"><div class="row"><span class="t">설정</span><span class="m"><b>배터리 › 백그라운드 사용 제한</b><span>절전 예외 앱에 B 스케줄러</span></span><span class="e"></span></div></div>'
+  () => '<div class="list"><div class="row"><span class="t">설정</span><span class="m"><b>절전 예외 앱</b><span>배터리 › 백그라운드 사용 제한</span></span><span class="e"></span></div><div class="row"><span class="t"></span><span class="m"><b>B 스케줄러</b><span>재우지 않음</span></span><span class="e"></span></div></div>'
 ];
 const STEPS = [
-  { h: '약속 시간 말고,<br>준비를 시작할 시간을 알려 드려요', p: '휴대폰 캘린더에 있는 약속을 그대로 가져와요. 옮겨 적지 않아도 돼요.', go: '캘린더 함께 보기', kinds: ['calendar'] },
+  { h: '약속 시간 말고,<br>준비 시작 시간을<br>알려 드려요', p: '휴대폰 캘린더에 있는 약속을 그대로 가져와요. 옮겨 적지 않아도 돼요.', go: '캘린더 함께 보기', kinds: ['calendar'] },
   { h: '잠금 화면에서도<br>크게 울리게 해 주세요', p: '"시작했어요"를 누를 때까지 몇 분마다 다시 알려요. 두 번째부터는 소리 내어 읽어 줘요.', go: '알람 허용하기', kinds: ['notif', 'exact', 'fullscreen'] },
   { h: '휴대폰이 앱을<br>재우지 않게 해 주세요', p: '삼성 휴대폰은 한동안 안 쓴 앱을 재워요. 절전 예외에 넣으면 알람이 늦지 않아요.', go: '절전 예외에 넣기', kinds: ['battery'] }
 ];

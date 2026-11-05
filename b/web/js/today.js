@@ -93,7 +93,7 @@ export function renderToday(root) {
   } else if (p.calendar === 'no') {
     h += '<section class="back" aria-label="캘린더"><b>휴대폰 캘린더를 함께 볼까요?</b><p>약속을 옮겨 적지 않아도 준비 시작부터 알려 드려요.</p><button class="btn pri" type="button" data-fix="calendar">캘린더 함께 보기</button></section>';
   } else h += hero(heroModel(E, now), now);
-  if (!alarmOk) h += '<button class="row alert" type="button" data-go="#/settings"><span class="t">' + icon('bellOff') + '</span><span class="m"><b>알람이 울리지 않을 수 있어요</b><span>설정에서 한 번에 점검해요</span></span><span class="e">' + icon('chev') + '</span></button>';
+  if (!alarmOk) h += '<button class="row alert" type="button" data-go="#/settings"><span class="t">' + icon('bellOff') + '</span><span class="m"><b>알람이 안 울릴 수 있어요</b><span>설정에서 한 번에 점검해요</span></span><span class="e">' + icon('chev') + '</span></button>';
   h += '<h2 class="sec">오늘</h2>';
   h += today.length ? '<div class="list">' + today.map(e => row(e, now)).join('') + '</div>' : '<p class="empty">오늘은 일정이 없어요. 휴대폰 캘린더에 넣은 약속도 여기에 떠요.</p>';
   h += '<h2 class="sec">내일</h2>';

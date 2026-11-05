@@ -78,7 +78,7 @@ export default async function run(check) {
     await p.close();
     // 7) 처음 세 장 → 오늘
     p = await open({ now: D(9, 0), events: base, firstRun: true, perms: { calendar: 'no', notif: 'no', exact: 'no', fullscreen: 'no', battery: 'no' } });
-    check.ok((await text(p, '.onb h1')).includes('준비를 시작할 시간'), '처음 1');
+    check.ok((await text(p, '.onb h1')).includes('준비 시작 시간'), '처음 1');
     for (let i = 0; i < 3; i++) { await p.click('[data-go]'); await p.waitForTimeout(200); }
     const perms = await p.evaluate(async () => (await (await import('./js/app.js')).B.state()).perms);
     check.eq([perms.calendar, perms.notif, perms.exact, perms.fullscreen, perms.battery], ['ok', 'ok', 'ok', 'ok', 'ok'], '처음 세 장에서 권한 다섯');
