@@ -412,6 +412,8 @@ boot();
 function bxQuickPre(text, now){
   let s = String(text == null ? '' : text);
   s = s.replace(/내일\\s*모레/g, '모레');
+  // 시험판 56(대표 위젯 사진 11/5 13:44 '12시까지 경영학 수업'): '10시 12시까지' · '10시에서 12시까지'처럼 '부터' 없이 적은 끝 시각도 범위로
+  s = s.replace(new RegExp('(' + TIME + ')\\\\s*(?:에서)?\\\\s*(?=' + TIME + '\\\\s*까지)'), '$1~');
   s = s.replace(/(?:다음|담)\\s*달\\s*(\\d{1,2})\\s*일/g, (m, d) => { const x = new Date(now.getFullYear(), now.getMonth() + 1, 1); return (x.getMonth() + 1) + '월 ' + d + '일'; });
   s = s.replace(/이번\\s*달\\s*(\\d{1,2})\\s*일/g, (m, d) => (now.getMonth() + 1) + '월 ' + d + '일');
   return s;
