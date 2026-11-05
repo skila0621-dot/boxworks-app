@@ -104,9 +104,10 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.waitForTimeout(600);
-    await p.click('.rt-card[data-rid="rt_w"] .bx-rt-tog'); await p.waitForTimeout(300);
+    // 시험판 56(목록 줄 C): 홈 루틴 줄을 누르면 단계 창(전: 카드 '자세히'로 펼침)
+    await p.click('#tcard2 .row[data-rid="rt_w"] .row-main'); await p.waitForTimeout(400);
     const h = await p.evaluate(() => {
-      const card = document.querySelector('.rt-card[data-rid="rt_w"]');
+      const card = document.querySelector('#sheet-root .rt-card[data-rid="rt_w"]');
       const tile = Array.from(document.querySelectorAll('.bx-sum-tile, [data-act="bx-late-open"]')).map(e => e.textContent.replace(/\s+/g, '')).join('|');
       const badge = document.getElementById('dock-badge');
       const lis = Array.from(card.querySelectorAll('.rt-steps li'));
@@ -133,10 +134,14 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.waitForTimeout(600);
-    const h = await p.evaluate(() => ({ line: (document.querySelector('.bx-miss-line span') || {}).textContent, btn: (document.querySelector('.bx-miss-line .btn') || {}).textContent,
+    // 시험판 56(목록 줄 C): 홈 루틴 줄 둘째 줄이 주황 '먹었는지 확인 · 약 먹기', 주의 줄 · '먹었어요'는 줄을 누르면 나오는 단계 창
+    const row = await p.evaluate(() => { const s = document.querySelector('#tcard2 .row[data-rid="rt_w"] .rc-sub'); return s ? [s.textContent, s.classList.contains('warn')] : null; });
+    c.eq(row, ['먹었는지 확인 · 약 먹기', true], "홈 루틴 줄 둘째 줄: 주황 '먹었는지 확인 · 약 먹기'");
+    await p.click('#tcard2 .row[data-rid="rt_w"] .row-main'); await p.waitForTimeout(500);
+    const h = await p.evaluate(() => ({ line: (document.querySelector('#sheet-root .bx-miss-line span') || {}).textContent, btn: (document.querySelector('#sheet-root .bx-miss-line .btn') || {}).textContent,
       badge: (document.getElementById('dock-badge') || {}).textContent }));
-    c.eq([h.line, h.btn, String(h.badge).trim()], ['먹었는지 확인하지 않은 약 · 약 먹기', '먹었어요', '1'], '약 단계만 확인 필요(주의 줄 · 빨간 숫자 1)');
-    await p.click('.bx-miss-line .btn'); await p.waitForTimeout(500);
+    c.eq([h.line, h.btn, String(h.badge).trim()], ['먹었는지 확인하지 않은 약 · 약 먹기', '먹었어요', '1'], '약 단계만 확인 필요(단계 창 주의 줄 · 빨간 숫자 1)');
+    await p.click('#sheet-root .bx-miss-line .btn'); await p.waitForTimeout(500);
     const lg = await p.evaluate(() => (window.BX_T.docs().find(([k]) => k.startsWith('rl_rt_w_')) || [0, {}])[1]);
     c.ok(lg && lg.done && lg.done.s1 && !lg.done.s0, "'먹었어요'는 약 단계만 완료로");
     c.eq(app.errors, [], '화면 오류(약)');
@@ -185,9 +190,10 @@ module.exports = async function () {
     const p = app.page;
     await p.waitForTimeout(800);
     c.eq(await p.evaluate(() => document.querySelectorAll('#alarms .alarm.rt').length), 0, '7:04 스트레칭(짧게 한 번): 앱 안 알림 카드 없음');
-    c.eq(await p.evaluate(() => (document.querySelector('.rt-card[data-rid="rt_w"] .rt-now b') || {}).textContent), '스트레칭', "기상을 확인하면 '지금' 스트레칭");
+    c.eq(await p.evaluate(() => (document.querySelector('#tcard2 .row[data-rid="rt_w"] .rc-sub') || {}).textContent), '지금 · 스트레칭', "기상을 확인하면 홈 루틴 줄 둘째 줄 '지금 · 스트레칭'");
+    await p.click('#tcard2 .row[data-rid="rt_w"] .row-main'); await p.waitForTimeout(400);
     // 시험판 54(대표 11/4 22:46 ② 체크 칸): 확인한 단계는 체크 칸이 채워짐(상태 글자 칸은 없음 — 시각 '07:00'도 없음)
-    c.eq(await p.evaluate(() => { const li = document.querySelector('.rt-card[data-rid="rt_w"] .rt-steps li.done'); return li ? [!!li.querySelector('.chk.rt-chk.on svg'), !li.querySelector('.rt-s'), /\d{2}:\d{2}/.test(li.textContent.replace(/오[전후] \d{1,2}:\d{2}/g, ''))] : null; }), [true, true, false], "확인한 단계는 체크만(24시간 시각 '07:00' 없이)");
+    c.eq(await p.evaluate(() => { const li = document.querySelector('#sheet-root .rt-card[data-rid="rt_w"] .rt-steps li.done'); return li ? [!!li.querySelector('.chk.rt-chk.on svg'), !li.querySelector('.rt-s'), /\d{2}:\d{2}/.test(li.textContent.replace(/오[전후] \d{1,2}:\d{2}/g, ''))] : null; }), [true, true, false], "확인한 단계는 체크만(24시간 시각 '07:00' 없이)");
     c.eq(app.errors, [], '화면 오류(앱 안 알림 카드)');
   } finally { await app.close(); }
 
@@ -198,7 +204,9 @@ module.exports = async function () {
     await p.waitForTimeout(500);
     // 홈 카드는 체크 칸(시험판 54), 확인 글은 앱 안 알림 카드 단추
     c.eq(await p.evaluate(() => (document.querySelector('#alarms .alarm.rt [data-alarm="rt-ok"]') || {}).textContent), '했어요', "'약속 준비'는 '먹었어요'가 아니라 '했어요'");
-    c.ok(await p.evaluate(() => !!document.querySelector('.rt-card[data-rid="rt_k"] .rt-now .chk.rt-chk[data-act="rt-done"]')), "홈 카드 '지금' 상자: '했어요' 단추 대신 체크 칸");
+    await p.click('#tcard2 .row[data-rid="rt_k"] .row-main'); await p.waitForTimeout(400);
+    c.ok(await p.evaluate(() => !!document.querySelector('#sheet-root .rt-card[data-rid="rt_k"] .rt-steps li.cur .chk.rt-chk[data-act="rt-done"], #sheet-root .rt-card[data-rid="rt_k"] .rt-now .chk.rt-chk[data-act="rt-done"]')), "루틴 단계 창: 지금 단계는 '했어요' 단추 대신 체크 칸");
+    await p.evaluate(() => window.BX_back && window.BX_back()); await p.waitForTimeout(300);
     await p.click('.dock [data-view="routines"]'); await p.waitForTimeout(500);
     c.eq(await p.evaluate(() => getComputedStyle(document.querySelector('.rt-item .rt-open > span')).wordBreak), 'keep-all', "루틴 목록 줄은 낱말 단위로 꺾임('오 / 전 9:00' 막기)");
     c.eq(app.errors, [], '화면 오류(단추 글)');

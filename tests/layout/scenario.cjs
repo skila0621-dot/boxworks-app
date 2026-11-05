@@ -62,16 +62,19 @@ module.exports = async function scenario({ W, theme, state, fail, only }) {
   await tryDo('홈', async () => { await snap('홈'); });
   // 단추 견본(시험판 55, 결정 기록 D-28): 공통 부품을 상태마다 한 화면에 — 기준 사진(tests/layout/base.cjs)과 같은 화면
   await tryDo('단추 견본', async () => { await p.evaluate(() => window.BX_specimen()); await snap('단추 견본'); await p.evaluate(() => { const e = document.getElementById('bx-spec'); if (e) e.remove(); }); });
-  await tryDo('홈 루틴 자세히', async () => { await p.click('.rt-card[data-rid="rt_w"] .bx-rt-tog'); await snap('홈 루틴 자세히'); await p.click('.rt-card[data-rid="rt_w"] .bx-rt-tog'); });
+  // 시험판 56(목록 줄 C): 루틴 줄을 누르면 단계 창(전: 카드 '자세히'로 그 자리에 펼침)
+  await tryDo('홈 루틴 단계 창', async () => { await p.click('#tcard2 .row[data-rid="rt_w"] .row-main'); await snap('홈 루틴 단계 창'); await closeAll(); });
   await tryDo('홈 지난 일', async () => { const b = await p.$('[data-act="bx-past"]'); if (b) { await b.click(); await snap('홈 지난 일 펼침'); await b.click(); } });
   await tryDo('홈 다음 날', async () => { await p.click('.bx-sum-nav[data-d="1"]'); await snap('홈 다음 날'); await p.click('[data-act="home-day"][data-d="0"]').catch(() => {}); });
   await tryDo('확인 필요', async () => { await p.click('[data-act="bx-late-open"]'); await snap('확인 필요'); const dc = await p.$('#sheet-root [data-act="bx-late-date"], #sheet-root [data-bxlate="date"]'); if (dc) { await dc.click(); await p.waitForTimeout(500); await snap('확인 필요 날짜 변경'); } await closeAll(); });
   // 일정 창의 줄 · 날짜 · 시간 페이지(날짜 · 시간 칸은 처음 것 하나씩)
-  const edPages = async label => { await clickAll('#sheet-root .bx-er[data-fpanel], #sheet-root [data-fpanel="date"], #sheet-root [data-fpanel="time"]', '#bx-ep [data-bxep="back"]', label); };
+  // 시험판 56(일정 넣기 나): 맨 아래 '자세히'를 펼쳐 출발·준비 · 캘린더 · 메모 · 사진·파일 페이지까지 모두 연다
+  const moreOpen = async () => { await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.waitForTimeout(250); };
+  const edPages = async label => { await moreOpen(); await snap(label + ' · 자세히 펼침'); await clickAll('#sheet-root .bx-er[data-fpanel], #sheet-root [data-fpanel="date"], #sheet-root [data-fpanel="time"], #sheet-root [data-bxrem3="own"]', '#bx-ep [data-bxep="back"]', label); };
   await tryDo('새 일정', async () => { await closeAll(); await p.click('.bx-fab'); await snap('새 일정 창'); await edPages('새 일정'); await closeAll(); });
   await tryDo('일정 수정', async () => { await closeAll(); await p.click('#tcard2 .row-main[data-id="it_1"]'); await snap('일정 수정 창'); await edPages('일정 수정'); await closeAll(); });
   // 고른 칸 안의 작은 글(대표 11/4 23:07 '외출 준비 새로'가 안 보임): 출발·준비에서 새 루틴을 골라 본다
-  await tryDo('출발·준비 새 루틴', async () => { await closeAll(); await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500); await p.click('#sheet-root .bx-er[data-fpanel="go"]'); await p.waitForTimeout(500);
+  await tryDo('출발·준비 새 루틴', async () => { await closeAll(); await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500); await moreOpen(); await p.click('#sheet-root .bx-er[data-fpanel="go"]'); await p.waitForTimeout(500);
     const ok = await p.evaluate(() => { const s = Array.from(document.querySelectorAll('#bx-ep small')).find(s => /새로/.test(s.textContent)); if (s) s.closest('button').click(); return !!s; });
     if (ok) await snap('출발·준비 · 새 루틴 고름'); else fail('출발·준비 새 루틴', "'새로' 칸이 없음"); await closeAll(); });
   await tryDo('캘린더', async () => {

@@ -47,7 +47,7 @@ module.exports = async function () {
     // (2) 첨부가 있는 일정: 줄에 '사진·파일 2개'. 시험판 44부터는 저절로 열지 않고, 줄을 누르면 사진·파일 페이지
     await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500);
     c.ok(await p.evaluate(() => !document.getElementById('bx-ep')), '열 때 사진·파일 페이지를 저절로 열지 않음');
-    await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(300);
+    await p.evaluate(() => { const b = document.querySelector('#f-chips [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(300);
     const ed = await p.evaluate(() => ({
       chip: (document.querySelector('#f-chips [data-fpanel="att"]') || {}).textContent || '',
       open: !!document.querySelector('#bx-ep #f-panel:not([hidden]) #f-att'),
@@ -80,7 +80,7 @@ module.exports = async function () {
     // (6) 새 일정에 사진 고르기 · 찍기
     await p.click('.bx-fab'); await p.waitForTimeout(400);
     await p.fill('#f-title', '내일 3시 치과'); await p.waitForTimeout(200);
-    await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(300);
+    await p.evaluate(() => { const b = document.querySelector('#f-chips [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(300);
     await p.evaluate(x => { window.__attNext = [{ files: x }]; }, [img('b1'), img('b2')]);
     await p.click('#f-att [data-bxatt-add="img"]'); await p.waitForTimeout(400);
     c.eq(await calls(p, 'pickImages'), [{ max: 10 }], '사진 고르기: 남은 자리만큼(10)');
@@ -98,7 +98,7 @@ module.exports = async function () {
     await p.evaluate(id => window.BX_T.day('2026-11-03'), nid); await p.waitForTimeout(400);
     await p.evaluate(id => { const b = document.querySelector('#sheet-root [data-act="edit"][data-id="' + id + '"]'); if (b) b.click(); }, nid); await p.waitForTimeout(500);
     await p.evaluate(x => { window.__attNext = [{ files: x }]; }, Array.from({ length: 8 }, (_, i) => img('d' + i)));
-    await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(300);
+    await p.evaluate(() => { const b = document.querySelector('#f-chips [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(300);
     await p.click('#f-att [data-bxatt-add="img"]'); await p.waitForTimeout(400);
     c.eq((await calls(p, 'pickImages')).slice(-1), [{ max: 7 }], '세 장 있으면 7장까지 고르기');
     const full = await p.evaluate(() => ({ n: document.querySelectorAll('#f-att .bx-att-th').length, dis: Array.from(document.querySelectorAll('#f-att [data-bxatt-add]')).every(b => b.disabled), note: document.querySelector('#f-att .bx-att-note').textContent }));
@@ -111,7 +111,7 @@ module.exports = async function () {
     // (8) '메모 …'로 시작해도 사진을 붙이면 일정으로
     await p.click('.bx-fab'); await p.waitForTimeout(400);
     await p.fill('#f-title', '메모 사진 정리'); await p.waitForTimeout(200);
-    await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(200);
+    await p.evaluate(() => { const b = document.querySelector('#f-chips [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.click('#f-chips [data-fpanel="att"]'); await p.waitForTimeout(200);
     await p.evaluate(x => { window.__attNext = [{ files: x }]; }, [img('e1')]);
     await p.click('#f-att [data-bxatt-add="img"]'); await p.waitForTimeout(400);
     await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);

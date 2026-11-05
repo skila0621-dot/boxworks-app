@@ -58,16 +58,17 @@ module.exports = async function () {
     const L = await col('light'), D = await col('dark');
     c.eq([L.accent, L.ink, L.text, L.fabBg, L.fabFg, L.now], ['#7c3aed', '#ffffff', '#7c3aed', 'rgb(124, 58, 237)', 'rgb(255, 255, 255)', 'rgb(124, 58, 237)'], '라이트: 보라 #7C3AED · 위 글자 흰색 · 지금 줄 보라');
     c.eq([D.accent, D.ink, D.text, D.fabBg, D.fabFg, D.now], ['#7c3aed', '#ffffff', '#a98bfa', 'rgb(124, 58, 237)', 'rgb(255, 255, 255)', 'rgb(169, 139, 250)'], '다크: 채운 보라는 같은 #7C3AED · 위 글자 흰색 · 바탕 위 보라 글자는 밝은 #A98BFA');
-    c.eq(await p.evaluate(() => { const r = document.querySelector('#tcard2 .row.bx-next .bx-r49-go'); return r ? [getComputedStyle(r).backgroundColor, getComputedStyle(r.querySelector('b')).color] : null; }), ['rgb(124, 58, 237)', 'rgb(255, 255, 255)'], '다크: 다음 일정 출발 칸도 보라 위 흰 글자');
+    // 시험판 56(목록 줄 C): 출발은 둘째 줄 보라 글자(다크에서는 밝은 보라)
+    c.eq(await p.evaluate(() => { const r = document.querySelector('#tcard2 .row.bx-next .rc-sub.go'); return r ? getComputedStyle(r).color : null; }), 'rgb(169, 139, 250)', '다크: 다음 일정 출발 글자는 밝은 보라(#A98BFA)');
     await p.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
     // (3) 홈: 시각은 오전 · 오후, 시각 칸에 한 줄
     const home = await p.evaluate(() => ({
       now: document.querySelector('.now-line .tnum').textContent,
-      rows: Array.from(document.querySelectorAll('#tcard2 .row.bx-r49')).filter(r => r.getBoundingClientRect().height).map(r => Array.from(r.querySelectorAll('.row-time > *')).map(e => e.textContent).concat(r.querySelector('.bx-r49-go') ? [r.querySelector('.bx-r49-go b').textContent] : [])),
+      rows: Array.from(document.querySelectorAll('#tcard2 .row.rowc')).filter(r => r.getBoundingClientRect().height).map(r => Array.from(r.querySelectorAll('.row-time > *')).map(e => e.textContent).concat(r.querySelector('.rc-sub.go') ? [r.querySelector('.rc-sub.go').textContent] : [])),
       oneLine: Array.from(document.querySelectorAll('#tcard2 .row-time b')).filter(b => b.getBoundingClientRect().height).every(b => b.getBoundingClientRect().height < 26)
     }));
     c.eq(home.now, '지금 오후 1:55', "'지금' 줄: 지금 오후 1:55");
-    c.ok(home.rows.some(r => JSON.stringify(r) === '["오후 3:00","오후 4:00","오후 2:40"]') && home.rows.some(r => JSON.stringify(r) === '["오후 6:30","오후 8:00"]') && home.oneLine, '홈 줄: 시작 · 끝 · 출발 칸 모두 오전 · 오후, 시작 시각은 한 줄 ' + JSON.stringify(home));
+    c.ok(home.rows.some(r => JSON.stringify(r) === '["오후 3:00","오후 4:00","오후 2:40 출발"]') && home.rows.some(r => JSON.stringify(r) === '["오후 6:30","오후 8:00"]') && home.oneLine, '홈 줄: 시작 · 끝 · 출발 모두 오전 · 오후, 시작 시각은 한 줄 ' + JSON.stringify(home));
     c.eq(await bare24(p), [], '홈: 오전 · 오후 없는 시각 없음');
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('.bx-mm-row > .bx-mm-t')).filter(e => e.getBoundingClientRect().height).map(e => e.textContent)).then(a => a.slice(0, 2)), ['오전 9:05', '오후 1:40'], '오늘의 메모: 적은 시각도 오전 · 오후');
     c.eq(await offScale(p), [], '홈: 글자 크기는 6단계만');
@@ -83,11 +84,12 @@ module.exports = async function () {
     // (5) 일정 창: 시각 칸 · 출발 줄 · 시간 페이지의 입력 칸
     await p.click('.dock [data-view="today"]'); await p.waitForTimeout(500);
     await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(700);
-    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt-t')).map(b => b.textContent)), ['오후 3:00', '오후 4:00'], '일정 창: 시작 · 끝 시각');
+    // 시험판 56(일정 넣기 나): 시간 줄 하나 '오후 3:00 ~ 오후 4:00', 출발·준비는 '자세히' 안(정해져 있어 펼쳐서 열림)
+    c.eq(await p.evaluate(() => document.querySelector('#f-chips [data-fpanel="time"] .bx-er-t').textContent), '오후 3:00 ~ 오후 4:00', '일정 창: 시간 줄 시작 ~ 끝');
     c.ok(await p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-er-t')).some(t => t.textContent === '오후 2:40 출발')), "일정 창: '오후 2:40 출발' 줄");
     c.eq(await p.evaluate(() => { const b = document.querySelector('#sheet-root .bx-pill49'); const m = /rgba?\(([^)]+)\)/.exec(getComputedStyle(b).backgroundColor); const a = m ? m[1].split(',').map(Number) : []; return a.length === 3 || a[3] === 1; }), true, "'취소 | 저장' 바탕은 채운 색(뒤가 비치지 않음)");
     c.eq(await offScale(p), [], '일정 창: 글자 크기는 6단계만');
-    await p.click('#f-chips .bx-edt-t'); await p.waitForTimeout(600);
+    await p.click('#f-chips [data-fpanel="time"]'); await p.waitForTimeout(600);
     const tp = await p.evaluate(() => ['f-start', 'f-end'].map(id => { const i = document.getElementById(id); const w = i && i.parentElement; return w ? [w.classList.contains('bx-t12'), w.querySelector('.bx-t12-v').textContent, getComputedStyle(i).opacity] : null; }));
     c.eq(tp, [[true, '오후 3:00', '0'], [true, '오후 4:00', '0']], '시간 페이지: 입력 칸 위에 오전 · 오후 글(칸은 투명하게 위에)');
     await p.fill('#f-start', '09:30'); await p.waitForTimeout(300);

@@ -12,7 +12,9 @@ function seed() {
     ['it_3', { type: 'item', title: '회의', date: '2026-10-30', start: '10:00', end: '', location: '회사', categoryId: 'c_w', createdAt: old, updatedAt: '2026-10-29T00:00:00.000Z' }]];
 }
 // 시험판 49: 고치기의 '일정 삭제' 줄(맨 아래)은 빼고 센다(v49에서 따로 봄)
-const rows = p => p.evaluate(() => Array.from(document.querySelectorAll('#f-chips > .bx-er:not(.bx-er-del), #f-chips > .bx-edt')).map(r => r.classList.contains('bx-edt') ? 'DT' : r.textContent.trim()));
+// 시험판 56(일정 넣기 나): 날짜 · 시간 · 장소 · 알림(나눔 단추) · 자세히, 펼치면 그 안에 출발·준비 · 캘린더 · 메모 · 사진·파일
+const rows = p => p.evaluate(() => Array.from(document.querySelectorAll('#f-chips > .bx-er:not(.bx-er-del), #f-chips > .bx-more:not([hidden]) > .bx-er')).map(r => r.classList.contains('bx-er-rem') ? 'REM' : r.classList.contains('bx-er-more') ? '자세히' : r.textContent.trim()));
+const remv = p => p.evaluate(() => (document.querySelector('#f-chips .bx-rem3-n') || {}).textContent.trim());
 const row = (p, sel) => p.evaluate(s => { const r = document.querySelector('#f-chips ' + s); if (!r) return null; const t = r.querySelector('.bx-er-t'); return { t: (t || r).textContent.trim(), ph: !!(t && t.classList.contains('ph')) }; }, sel);
 const page = p => p.evaluate(() => { const e = document.getElementById('bx-ep'); return e ? e.querySelector('#bx-ep-t').textContent : null; });
 const done = p => p.click('#bx-ep [data-bxep="done"]').then(() => p.waitForTimeout(250));
@@ -41,12 +43,12 @@ module.exports = async function () {
     // (2) 일정 창: 삼성 순서의 줄 목록, 길면 …, 비어 있으면 회색 이름
     await p.click('.dock [data-view="today"]'); await p.waitForTimeout(500);
     await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500);
-    c.eq(await rows(p), ['하루 종일', 'DT', '서울대학교치과병원 본관 3층 보존과 앞 회의실 옆 보호자 대기실', '회사 · 마케팅팀 공유 캘린더', '10분 전', '출발·준비', '신분증 챙기기', '사진·파일'],
-      '줄 순서: 하루 종일 · 시작 → 끝 · 장소 · 캘린더 · 알림 · 출발·준비 · 메모(첫 줄) · 사진·파일');
+    c.eq(await rows(p), ['11월 2일 (월)', '오후 3:00 ~ 오후 4:00', '서울대학교치과병원 본관 3층 보존과 앞 회의실 옆 보호자 대기실', 'REM', '자세히', '출발·준비', '회사 · 마케팅팀 공유 캘린더', '신분증 챙기기', '사진·파일'],
+      '줄 순서(일정 넣기 나): 날짜 · 시간 · 장소 · 알림 · 자세히(캘린더가 있어 펼침: 출발·준비 · 캘린더 · 메모 첫 줄 · 사진·파일)');
     const ell = await p.evaluate(() => { const t = document.querySelector('#f-chips [data-bxsub="loc"] .bx-er-t'); const s = getComputedStyle(t); return { cut: t.scrollWidth > t.clientWidth, ov: s.textOverflow, ws: s.whiteSpace, h: Math.round(t.closest('.bx-er').getBoundingClientRect().height) }; });
     c.ok(ell.cut && ell.ov === 'ellipsis' && ell.ws === 'nowrap' && ell.h === 56, '긴 장소는 한 줄, 뒤는 …(줄 높이 56) ' + JSON.stringify(ell));
     c.eq(await row(p, '[data-fpanel="go"]'), { t: '출발·준비', ph: true }, '정하지 않은 출발·준비는 회색 이름');
-    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt button')).map(b => b.textContent)), ['11월 2일 (월)', '오후 3:00', '11월 2일 (월)', '오후 4:00'], '시작 → 끝: 날짜 · 시각 두 칸');
+    c.ok(/^기본값 10분 전/.test(await remv(p)), "알림 10분 전 = 기본값 " + await remv(p));
     // (3) 알림 페이지: 고르고 ‹ 이면 되돌림, 완료면 바뀜
     await p.click('#f-chips [data-fpanel="rem"]'); await p.waitForTimeout(400);
     c.eq(await page(p), '알림', '알림 줄 → 알림 페이지');
@@ -54,16 +56,16 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#bx-ep .bx-rem-q .pick')).map(b => [b.textContent.trim(), b.getAttribute('aria-pressed')])), [['정시', 'false'], ['10분 전', 'true'], ['1시간 전', 'false'], ['직접 입력', 'false']], '동그라미 목록 + 직접 입력');
     await p.click('#bx-ep [data-bx-rem="60"]'); await p.waitForTimeout(200);
     await p.click('#bx-ep [data-bxep="back"]'); await p.waitForTimeout(250);
-    c.ok(!(await page(p)) && (await row(p, '[data-fpanel="rem"]')).t === '10분 전', '‹ 를 누르면 바꾼 것을 되돌림(10분 전)');
+    c.ok(!(await page(p)) && /^기본값 10분 전/.test(await remv(p)), '‹ 를 누르면 바꾼 것을 되돌림(10분 전)');
     await p.click('#f-chips [data-fpanel="rem"]'); await p.waitForTimeout(300);
     await p.click('#bx-ep [data-bx-rem="60"]'); await p.waitForTimeout(200);
     await done(p);
-    c.eq((await row(p, '[data-fpanel="rem"]')).t, '1시간 전', "'완료'를 누르면 바뀜(1시간 전)");
+    c.eq(await remv(p), '1시간 전', "'완료'를 누르면 바뀜(1시간 전, 알림 '직접')");
     // (4) 휴대폰 뒤로: 페이지만 닫고 되돌림, 창은 그대로
     await p.click('#f-chips [data-fpanel="rem"]'); await p.waitForTimeout(300);
     await p.click('#bx-ep [data-bx-rem="0"]'); await p.waitForTimeout(200);
     await p.evaluate(() => window.BX_back()); await p.waitForTimeout(250);
-    c.ok(!(await page(p)) && !!(await p.$('#sheet-root #f-chips')) && (await row(p, '[data-fpanel="rem"]')).t === '1시간 전', '뒤로: 페이지만 닫히고 되돌림, 일정 창은 그대로');
+    c.ok(!(await page(p)) && !!(await p.$('#sheet-root #f-chips')) && (await remv(p)) === '1시간 전', '뒤로: 페이지만 닫히고 되돌림, 일정 창은 그대로');
     // (5) 캘린더 페이지: 긴 이름도 다 보이고, 고른 것은 굵게 · ✓
     await p.click('#f-chips [data-fpanel="cat"]'); await p.waitForTimeout(350);
     const cp = await p.evaluate(() => Array.from(document.querySelectorAll('#bx-ep #f-cat > .picks .pick')).map(b => ({ t: b.textContent.trim(), on: b.getAttribute('aria-pressed') === 'true', full: b.scrollWidth <= b.clientWidth + 1, ck: getComputedStyle(b, '::after').content !== 'none' })));
@@ -98,22 +100,26 @@ module.exports = async function () {
     c.eq(d1, ['60', 'c_p', '강남역 2번 출구', '보험증\n진료 카드'], '저장: 알림 · 캘린더 · 장소 · 메모');
     // (8) 새 일정: 하루 종일이 켜진 채 시작, 끄면 시각 두 칸, 말로 시각을 넣으면 꺼짐
     await p.click('.bx-fab'); await p.waitForTimeout(500);
-    c.eq(await p.evaluate(() => [document.querySelector('#f-chips [data-bxallday]').getAttribute('aria-checked'), document.querySelectorAll('#f-chips .bx-edt-t').length]), ['true', 0], '새 일정: 하루 종일 켜짐, 시각 칸 없음');
-    await p.click('#f-chips [data-bxallday]'); await p.waitForTimeout(200);
-    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt-t')).map(b => b.textContent)), ['오전 7:00', '오전 8:00'], '하루 종일을 끄면 시각 두 칸(기본 + 1시간)');
+    const tval = () => p.evaluate(() => document.querySelector('#f-chips [data-fpanel="time"] .bx-er-t').textContent);
+    c.eq(await tval(), '하루 종일', "새 일정: 시간 줄은 '하루 종일'");
+    await p.click('#f-chips [data-fpanel="time"]'); await p.waitForTimeout(300);
+    c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#bx-ep #f-time > .seg button')).map(b => [b.textContent, b.getAttribute('aria-pressed')])), [['종일', 'false'], ['시간 지정', 'true']], "시간 줄을 누르면 시간 페이지: 맨 위 '종일 | 시간 지정', 시간을 정하러 왔으니 '시간 지정'(‹ 면 그대로 하루 종일)");
+    await p.click('#bx-ep [data-ftimed="1"]'); await p.waitForTimeout(200);
+    await done(p);
+    c.eq(await tval(), '오전 7:00 ~ 오전 8:00', '시간 지정으로 바꾸면 기본 + 1시간');
     // 손으로 하루 종일을 바꾸면 말보다 손이 먼저(지금 앱과 같음) → 새 창에서 말로
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="sheet-close"]').click()); await p.waitForTimeout(300);
     await p.click('.bx-fab'); await p.waitForTimeout(500);
     await p.fill('#f-title', '내일 오후 3시 치과'); await p.waitForTimeout(400);
-    c.eq(await p.evaluate(() => [document.querySelector('#f-chips [data-bxallday]').getAttribute('aria-checked'), Array.from(document.querySelectorAll('#f-chips .bx-edt button')).map(b => b.textContent)]), ['false', ['11월 3일 (화)', '오후 3:00', '11월 3일 (화)', '오후 4:00']], '말로 시각을 넣으면 하루 종일 꺼짐 · 날짜 · 시각');
-    await p.click('#f-chips .bx-edt-t'); await p.waitForTimeout(300);
-    c.ok(await p.evaluate(() => document.getElementById('bx-ep-t').textContent === '시간' && getComputedStyle(document.querySelector('#bx-ep #f-time > .seg')).display === 'none'), "시각을 누르면 시간 페이지('종일/시간 지정'은 하루 종일 스위치로)");
+    c.eq(await p.evaluate(() => ['date', 'time'].map(k => document.querySelector('#f-chips [data-fpanel="' + k + '"] .bx-er-t').textContent)), ['11월 3일 (화)', '오후 3:00 ~ 오후 4:00'], '말로 시각을 넣으면 하루 종일 꺼짐 · 날짜 · 시각');
+    await p.click('#f-chips [data-fpanel="time"]'); await p.waitForTimeout(300);
+    c.ok(await p.evaluate(() => document.getElementById('bx-ep-t').textContent === '시간' && getComputedStyle(document.querySelector('#bx-ep #f-time > .seg')).display !== 'none' && document.querySelector('#bx-ep [data-ftimed="1"]').getAttribute('aria-pressed') === 'true'), "시간 줄을 누르면 시간 페이지(맨 위 '시간 지정'이 골라져 있음)");
     await done(p);
-    await p.click('#f-chips .bx-edt-d'); await p.waitForTimeout(300);
+    await p.click('#f-chips [data-fpanel="date"]'); await p.waitForTimeout(300);
     c.eq(await p.evaluate(() => [document.getElementById('bx-ep-t').textContent, getComputedStyle(document.querySelector('#bx-ep #f-date > .picks')).gridTemplateColumns.split(' ').length]), ['날짜', 4], '날짜를 누르면 날짜 페이지(오늘 · 내일 · 모레 · 다음 주 월 4칸)');
     await p.click('#bx-ep [data-fdate="2026-11-04"]'); await p.waitForTimeout(150);
     await p.click('#bx-ep [data-bxep="back"]'); await p.waitForTimeout(200);
-    c.eq(await p.evaluate(() => document.querySelector('#f-chips .bx-edt-d').textContent), '11월 3일 (화)', '날짜 페이지에서 ‹ 이면 그대로');
+    c.eq(await p.evaluate(() => document.querySelector('#f-chips [data-fpanel="date"] .bx-er-t').textContent), '11월 3일 (화)', '날짜 페이지에서 ‹ 이면 그대로');
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="sheet-close"]').click()); await p.waitForTimeout(300);
     c.eq(app.errors, [], '화면 오류(시험판 44)');
   } finally { await app.close(); }

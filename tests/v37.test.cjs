@@ -53,15 +53,17 @@ module.exports = async function () {
     // (3) 새 일정: 시간 없는 일정은 칩에 '알림'(정하지 않음), 칸을 열면 켜면 들어갈 기본값
     await p.click('.dock [data-view="today"]'); await p.waitForTimeout(500);
     await p.click('.bx-fab'); await p.waitForTimeout(500);
-    const chip = () => p.evaluate(() => (document.querySelector('#sheet-root [data-fpanel="rem"]') || {}).textContent.trim());
-    c.eq(await chip(), '알림', '칩: 알림(사선 종 · 알림 없음 아님)');
-    c.ok(await p.evaluate(() => !/M3 3l18 18/.test(document.querySelector('#sheet-root [data-fpanel="rem"]').innerHTML)), '칩 종에 사선 없음');
+    // 시험판 56(일정 넣기 나): 알림은 '없음 · 기본값 · 직접' 나눔 단추 + 아래 한 줄. 시간 없는 일정의 기본값은 설정의 하루 종일 알림(처음엔 없음)
+    const chip = () => p.evaluate(() => (document.querySelector('#sheet-root #f-chips .bx-rem3-n') || {}).textContent.trim());
+    const pick = () => p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root [data-bxrem3]')).filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.dataset.bxrem3).join(','));
+    c.eq(await pick(), 'none', "시간 없는 새 일정: 알림 '없음'(설정 기본값)");
+    c.ok(await p.evaluate(() => !/M3 3l18 18/.test(document.querySelector('#sheet-root .bx-er-rem').innerHTML)), '알림 줄 종에 사선 없음');
     await p.click('#sheet-root [data-fpanel="rem"]'); await p.waitForTimeout(300);
     const note = await p.evaluate(() => (document.querySelector('#sheet-root .bx-rem-def') || {}).textContent || '');
     c.ok(/켜면 당일 오전 9시/.test(note) && /시간을 정하면 10분 전/.test(note), '기본값 안내 · ' + note);
     await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     await p.fill('#f-title', '내일 오후 3시 치과'); await p.waitForTimeout(400);
-    c.eq(await chip(), '10분 전', '시간을 말하면 기본값 10분 전');
+    c.ok(/^기본값 10분 전/.test(await chip()) && await pick() === 'def', '시간을 말하면 기본값 10분 전 ' + await chip());
     // (4) 닫을 때 시트 그림이 내려가며 사라지고, 곧 치워진다
     // 시험판 49: 위 × 대신 아래 '취소 | 저장'의 '취소'
     await p.click('#sheet-root .bx-pill49 [data-act="sheet-close"]'); await p.waitForTimeout(60);

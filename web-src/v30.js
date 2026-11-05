@@ -56,6 +56,15 @@ let bxPastOpen = false;
 // 줄에 '지금'·'다음' 꼬리표(일정 줄은 제목 아래, 수업 줄은 장소 줄 앞)
 function bxTag(el, txt){
   if (el.classList.contains('rt-card')) return;
+  // 목록 줄 C: 둘째 줄이 비어 있을 때만 그 자리에 남은 시간('1시간 5분 뒤')
+  if (el.classList.contains('rowc')) {
+    const body = el.querySelector('.row-body'), has = el.querySelector('.rc-sub');
+    if (!body || (has && has.textContent.trim())) return;
+    let meta = body.querySelector(':scope > .row-meta'); if (!meta) { meta = document.createElement('span'); meta.className = 'row-meta'; body.appendChild(meta); }
+    const sub = has || document.createElement('span'); sub.className = 'meta rc-sub nx'; sub.textContent = String(txt).replace(/^다음 · /, '');
+    if (!has) meta.prepend(sub);
+    return;
+  }
   const tag = document.createElement('span'); tag.className = 'meta bx-next-tag'; tag.textContent = txt;
   const meta = el.querySelector('.row-meta, .tt-meta');
   if (meta) meta.prepend(tag); else { const t = el.querySelector('.row-title, .row-body > :first-child'); if (t) t.after(tag); }
@@ -77,16 +86,8 @@ function bxTimeline(){
   const ents = [];
   let lateWrap = null, nowLine = null;
   const hmAll = t => bxHMAll(t);
-  if (rtSec) rtSec.querySelectorAll(':scope > .rt-card[data-rid]').forEach((el, i) => {
-    const meta = el.querySelector('.rt-h .rt-meta'), mt = bxHMAll(meta ? meta.textContent : ''), m = mt.length >= 2 ? mt : null;
-    if (m && !el.querySelector('.bx-tl-t')) {
-      const s = document.createElement('span'); s.className = 'row-time bx-tl-t'; s.innerHTML = '<span class="bx-tl-s">' + bxT(fromMin(m[0] % 1440)) + '</span><small>' + bxT(fromMin(m[1] % 1440)) + '</small>';
-      const ic = el.querySelector('.rt-h .bx-ic'); if (ic) ic.after(s); else el.querySelector('.rt-h').prepend(s);
-      el.classList.add('bx-tl-rt');
-    }
-    const ts = hmAll(meta && meta.textContent);
-    ents.push({el, t: ts[0] == null ? null : ts[0], te: ts[1] == null ? ts[0] : ts[1], k: 2, i});
-  });
+  // 시험판 56: 루틴은 목록 줄(home.js bxRtRowHtml). 시작 · 끝(분)은 줄에 적혀 있다
+  if (rtSec) rtSec.querySelectorAll(':scope > .row[data-rid]').forEach((el, i) => { const t = +el.dataset.t, te = +el.dataset.te; ents.push({el, t: isNaN(t) ? null : t, te: isNaN(te) ? t : te, k: 2, i}); });
   if (itSub) {
     const late = itSub.querySelector('#late-block'), ll = late && late.nextElementSibling && late.nextElementSibling.matches('.list') ? late.nextElementSibling : null;
     if (late) late.remove();
@@ -116,7 +117,7 @@ function bxTimeline(){
     const past = [], allday = [], cur = [], fut = [];
     ents.forEach(e => {
       // 쉬는 루틴(오늘 쉬기 · 공휴일)은 그 시각 자리에 흐리게 두고 '지금'·'다음'은 달지 않는다(시험판 31)
-      e.off = e.el.classList.contains('rt-card') && e.el.classList.contains('off');
+      e.off = e.el.classList.contains('bx-off');
       if (e.late) past.push(e);
       else if (e.t == null || e.t < 0) allday.push(e);
       else if (e.te < nowMin) past.push(e);
@@ -140,18 +141,13 @@ function bxTimeline(){
       if (!tagged && !e.off) {
         tagged = true;
         e.el.classList.add(cur.length ? 'bx-next-soft' : 'bx-next');
-        if (!e.el.classList.contains('rt-card')) bxTag(e.el, '다음 · ' + untilText((e.t - nowMin) * 60000));
+        bxTag(e.el, '다음 · ' + untilText((e.t - nowMin) * 60000));
       }
       tl.append(e.el);
     });
     if (!cur.length && !tagged) { const p = document.createElement('p'); p.className = 'bx-tl-done'; p.textContent = '오늘 남은 일은 없어요'; tl.append(p); }
   }
   [rtSec, itSub, ttSub].forEach(x => { if (!x) return; x.querySelectorAll(':scope > :not(.sec-h):not(.list):not(.grp-h)').forEach(o => tl.after(o)); x.remove(); });
-  // 단계가 하나인 루틴: '오늘 쉬기'를 카드 아래 따로 두지 않고, 다른 루틴의 '단계 보기'와 같은 오른쪽 자리에(정렬, 대표 지적 11/2)
-  tl.querySelectorAll('.rt-card.bx-one').forEach(c => {
-    const sk = c.querySelector('.bx-rt-foot [data-act="rt-skip"]'), hd = c.querySelector('.rt-h');
-    if (sk && hd) { hd.appendChild(sk); const f = c.querySelector('.bx-rt-foot'); if (f) f.remove(); }
-  });
   // 칸별 접기는 쓰지 않는다(접어 둔 것이 있었으면 풀어 보인다)
   document.documentElement.classList.remove('bx-f-rt', 'bx-f-today', 'bx-f-tt');
 }

@@ -1,11 +1,11 @@
 /* ---------- 오늘 화면 정리 (대표 요청 2026-10-31) ----------
    루틴이 늘어날수록 아래 달력이 밀려서: 칸마다 접기(오늘의 루틴·오늘의 일정·오늘 시간표·달력),
    루틴 카드는 '지금 할 일'만 보이고 단계 목록은 눌러서 펼친다. 접은 상태는 이 휴대폰에 기억한다. */
-const BX_FOLD_KEY = 'bx:fold', BX_RTOPEN_KEY = 'bx:rtopen';
+const BX_FOLD_KEY = 'bx:fold';
 const BX_FOLDS = [['rt', 'h-rt'], ['today', 'h-today'], ['tt', 'h-tt-today'], ['cal', 'h-hcal']];
 const ICON_FOLD = '<svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>';
 function bxLoadJson(k){ try { return JSON.parse(lsGet(k) || '{}') || {}; } catch (e) { return {}; } }
-let bxFold = bxLoadJson(BX_FOLD_KEY), bxRtOpen = bxLoadJson(BX_RTOPEN_KEY);
+let bxFold = bxLoadJson(BX_FOLD_KEY);
 function bxSaveJson(k, v){ try { lsSet(k, JSON.stringify(v)); } catch (e) { /* 저장 공간이 없으면 이번만 */ } }
 function bxFoldApply(){ BX_FOLDS.forEach(([k]) => document.documentElement.classList.toggle('bx-f-' + k, !!bxFold[k])); }
 // 화면을 다시 그릴 때마다 접기 단추를 붙인다(render 끝에서 부름)
@@ -31,24 +31,7 @@ function bxFoldDecorate(){
     const sub = h.nextElementSibling && h.nextElementSibling.classList.contains('sec-sub') ? h.nextElementSibling : h;
     sub.after(b);
   });
-  $$('.rt-sec .rt-card[data-rid]').forEach(c => {
-    const rid = c.dataset.rid, st = c.querySelector('.rt-steps'), hd = c.querySelector('.rt-h');
-    // '오늘 쉬기'는 단계를 펼친 곳 맨 아래로(정리판 5번). 쉬는 중의 '다시 켜기'는 그대로 위에
-    const skip = hd && st && hd.querySelector('[data-act="rt-skip"][data-on="1"]');
-    if (skip && !c.querySelector('.bx-rt-foot')) { const f = document.createElement('div'); f.className = 'bx-rt-foot'; f.appendChild(skip); st.after(f); }
-    if (!st || !hd || hd.querySelector('.bx-rt-tog')) return;
-    const open = !!bxRtOpen[rid];
-    c.classList.toggle('bx-open', open);
-    const n = st.querySelectorAll('li:not(.arr)').length;
-    if (n <= 1) { c.classList.add('bx-open', 'bx-one'); return; }
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'bx-rt-tog'; b.dataset.rtog = rid;
-    b.setAttribute('aria-expanded', String(open));
-    b.innerHTML = '<span class="bx-rt-tog-t">' + (open ? '접기' : '자세히') + '</span>' + ICON_FOLD;
-    b.setAttribute('aria-label', '단계 ' + n + '개 ' + (open ? '접기' : '펼치기'));
-    hd.appendChild(b);
-  });
-  // 시험판 30: 한 목록, 시각 순서로(web-src/v30.js). 루틴 카드를 다 꾸민 뒤에 옮긴다
+  // 시험판 30: 한 목록, 시각 순서로(web-src/v30.js). 시험판 56부터 루틴도 목록 줄 하나(bxRtRowHtml)
   if (typeof bxTimeline === 'function') bxTimeline();
 }
 function bxToggleFold(k){
@@ -61,16 +44,6 @@ document.addEventListener('click', ev => {
   const t = ev.target;
   const fb = t.closest('.bx-fold-btn') || (t.closest('.sec-h.bx-foldable h2') && t.closest('.sec-h').querySelector('.bx-fold-btn'));
   if (fb) { ev.preventDefault(); ev.stopPropagation(); bxToggleFold(fb.dataset.fold); return; }
-  const rb = t.closest('.bx-rt-tog') || (t.closest('.rt-sec .rt-h b, .rt-sec .rt-h .rt-meta') && t.closest('.rt-card') && t.closest('.rt-card').querySelector('.bx-rt-tog'));
-  if (rb) {
-    ev.preventDefault(); ev.stopPropagation();
-    const rid = rb.dataset.rtog, c = rb.closest('.rt-card'), open = !c.classList.contains('bx-open');
-    c.classList.toggle('bx-open', open); rb.setAttribute('aria-expanded', String(open));
-    const rtt = rb.querySelector('.bx-rt-tog-t'); if (rtt) rtt.textContent = open ? '접기' : '자세히';
-    rb.setAttribute('aria-label', (rb.getAttribute('aria-label') || '').replace(/(접기|펼치기)$/, open ? '접기' : '펼치기'));
-    if (open) bxRtOpen[rid] = true; else delete bxRtOpen[rid];
-    bxSaveJson(BX_RTOPEN_KEY, bxRtOpen);
-  }
 }, true);
 
 /* 옆으로 밀어 넘기기(대표 요청): 월간·주간·오늘 화면 달력은 이전·다음 달(주), 날짜 창은 전날·다음 날.
@@ -127,7 +100,7 @@ function bxHomeSplit(head, body, o){
   // 내가 쓸 기능에서 끈 기능은 홈에서도 뺀다(전체 흐름 와이어프레임 19)
   // 공휴일이라 쉬는 루틴도 그 자리에 흐리게 보인다(시험판 31, web-src/v31.js)
   const rtN = o.isT && bxModOn('routines') ? M.routines.filter(r => rtActiveOn(r, M.today) || bxHolOff(r, M.today)).length : 0;
-  const rt = rtN ? bxHomeStrip(rtHomeHtml().replace('>오늘의 루틴</h2>', '>루틴</h2>')) : '';
+  const rt = rtN ? bxRtRowsHtml() : '';
   const ttOk = bxModOn('tt'), ttN = ttOk ? ttCountOn(o.vd) : 0, tt = ttOk ? bxHomeStrip(ttTodayHtml(o.vd, true)) : '';
   const total = rtN + ttN + o.n + (o.ns || 0), late = body.indexOf('id="late-block"') >= 0;
   const name = o.isT ? '오늘 할 일' : o.title.replace(/일정$/, '할 일');
@@ -154,6 +127,62 @@ function bxHomeSplit(head, body, o){
     // 시험판 41: '오늘 할 일' 아래 따로 '오늘의 메모'(대표 아이디어 11/3 15:17)
     (typeof bxMemoOn === 'function' && bxMemoOn() ? bxMemoCardHtml(o.vd) : '');
 }
+/* 시험판 56(목록 줄 C, 결정 기록 D-29): 홈의 루틴은 카드 대신 다른 일정과 같은 목록 줄 하나
+   [되풀이 아이콘 | 시작 · 끝 | 이름 + 둘째 줄 하나(지금 할 단계 · 남은 시간 · 확인할 약 · 쉼) | 체크(오늘 다 했어요)].
+   줄을 누르면 그 루틴의 단계 창(전에는 그 자리에 펼침 '자세히 ⌄'). 쉬는 날(건너뛰기 · 공휴일)은 체크 자리를 비운다. 말은 낱말표대로(건너뛰어요 · 모두 완료) */
+function bxRtRowsHtml(){
+  const list = M.routines.filter(rt => rtActiveOn(rt, M.today) || (typeof bxHolOff === 'function' && bxHolOff(rt, M.today)));
+  return list.length ? '<div class="rt-sec">' + secHead('h-rt', '루틴', '', '') + list.map(bxRtRowHtml).join('') + '</div>' : '';
+}
+function bxRtRowHtml(rt){
+  const rid = esc(rt.id), hol = typeof bxHolOff === 'function' && bxHolOff(rt, M.today);
+  const s = rtToday(rt), p = s.p, todo = s.rows.filter(r => r.kind !== 'wait'), nd = todo.filter(r => r.done).length;
+  const miss = !hol && !s.skip && typeof bxRtMissedOf === 'function' ? bxRtMissedOf(rt) : [];
+  let sub = '', cls = '';
+  if (hol) sub = esc(bxHolNote(M.today).replace(/^오늘은 /, '').replace(/\.$/, ''));
+  else if (s.skip) sub = '오늘은 건너뛰어요';
+  else if (miss.length) { sub = '먹었는지 확인 · ' + esc(miss.map(r => r.name).join(', ')); cls = 'warn'; }
+  else if (s.finished) sub = '모두 완료';
+  else if (s.after) { sub = '시간이 지났어요 · ' + nd + '/' + todo.length + ' 완료'; cls = 'warn'; }
+  else if (s.cur) { const c = s.cur, run = !!c.started && c.min > 0; sub = (run ? '하는 중 · ' : '지금 · ') + esc(c.name) + (run ? ' · ' + esc(rtLeftText(c.endM - s.nowM)) : ''); cls = 'live'; }
+  else if (s.waiting) { sub = '기다리는 중 · ' + esc(s.waiting.name) + ' · ' + esc(rtLeftText(s.waiting.at + s.waiting.min - s.nowM)); cls = 'live'; }
+  else if (s.next) sub = nd ? '다음 · ' + esc(s.next.name) + ' · ' + esc(untilText((s.next.at - s.nowM) * 60000)) : esc(untilText((s.next.at - s.nowM) * 60000)) + ' · ' + esc(s.next.name) + '부터';
+  const off = hol || s.skip;
+  const chk = off ? '<span class="chk chk-sp" aria-hidden="true"></span>'
+    : '<button type="button" class="chk" data-act="bx-rt-check" data-rid="' + rid + '" aria-pressed="' + !!s.finished + '" aria-label="' + (s.finished ? '다 했어요 취소: ' : '오늘 다 했어요: ') + esc(rt.name) + '">' + ICON.check + '</button>';
+  return '<div class="row rowc' + (s.finished && !off ? ' done' : '') + (off ? ' bx-off' : '') + ((s.cur || s.waiting) && !off ? ' live' : '') + '" data-kind="rt" data-rid="' + rid + '" data-t="' + Math.round(p.start) + '" data-te="' + Math.round(p.end) + '">' +
+    '<button type="button" class="row-main" data-act="bx-rt-open" data-rid="' + rid + '"><span class="rc-ic" aria-hidden="true">' + bxRcIcon('rt') + '</span>' +
+    '<span class="row-time"><b>' + bxT(mm(p.start)) + '</b><small>' + bxT(mm(p.end)) + '</small></span>' +
+    '<span class="row-body"><span class="row-title">' + esc(rt.name) + '</span>' + (sub ? '<span class="row-meta"><span class="meta rc-sub' + (cls ? ' ' + cls : '') + '">' + sub + '</span></span>' : '') + '</span></button>' + chk + '</div>';
+}
+// 루틴 단계 창: 전에 홈 카드를 펼치면 보이던 것 그대로(지금 할 단계 · 단계마다 체크 · 오늘 쉬기 · 오늘은 하기)
+function bxRtSheetOpen(rid){
+  const nm = () => { const rt = M.routines.find(r => r.id === rid); return rt ? rt.name : '루틴'; };
+  const draw = () => {
+    const rt = M.routines.find(r => r.id === rid); if (!rt) { closeSheet(); return; }
+    setSheet('<div class="bx-rtpage">' + rtCardHtml(rt).replace('class="rt-card', 'class="rt-card bx-open') + '</div>', '');
+    // '오늘 쉬기'는 단계 목록 맨 아래(정리판 5번). 쉬는 중의 '다시 켜기'는 그대로 위에
+    const c = document.querySelector('#sheet-b .bx-rtpage .rt-card'), sk = c && c.querySelector('.rt-h [data-act="rt-skip"][data-on="1"]'), st = c && c.querySelector('.rt-steps');
+    if (sk && st) { const f = document.createElement('div'); f.className = 'bx-rt-foot'; f.appendChild(sk); st.after(f); }
+    if (typeof bxRtMissDecorate === 'function') bxRtMissDecorate();
+  };
+  openSheet({title: nm(), draw, refresh: draw});
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-act="bx-rt-open"],[data-act="bx-rt-check"]'); if (!b || !window.BX_APP) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const rt = M.routines.find(r => r.id === b.dataset.rid); if (!rt) return;
+  if (b.dataset.act === 'bx-rt-open') { bxRtSheetOpen(rt.id); return; }
+  // 체크: 안 한 단계를 모두 했어요로(기다리기 단계는 시간이 지나면 저절로). 다 한 루틴을 다시 누르면 오늘 표시를 모두 지움. 되돌리기 있음
+  const s = rtToday(rt), id = rtLogId(rt.id, M.today), cur = getDoc(id), keep = cur ? JSON.parse(JSON.stringify(cur)) : null;
+  const nx = cur ? JSON.parse(JSON.stringify(cur)) : {type: 'rlog', rid: rt.id, date: M.today, done: {}, started: {}, extra: {}, skip: false, createdAt: nowIso()};
+  nx.done = nx.done || {};
+  if (s.finished) s.rows.forEach(r => { delete nx.done[r.id]; });
+  else s.rows.filter(r => r.kind !== 'wait' && !r.done).forEach(r => { nx.done[r.id] = nowIso(); });
+  nx.updatedAt = nowIso();
+  writeDoc(id, nx);
+  toast(rt.name + (s.finished ? ' · 다 했어요를 지웠어요' : ' · 오늘 다 했어요'), [['되돌리기', () => { if (keep) writeDoc(id, keep); else removeDoc(id); }]]);
+}, true);
 let BX_NEXT = null;
 // '다음 일정'은 따로 카드 대신 목록의 그 줄에 표시
 function bxMarkNext(){

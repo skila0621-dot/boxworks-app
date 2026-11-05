@@ -52,33 +52,36 @@ module.exports = async function () {
     await p.waitForTimeout(1200);
     c.eq(await p.evaluate(() => getComputedStyle(document.body).wordBreak), 'keep-all', '앱 전체 줄 바꿈은 낱말 단위');
     c.eq(await p.evaluate(midword), [], '홈(390): 낱말 가운데에서 꺾인 줄 없음');
-    const pl = await p.evaluate(() => { const e = document.querySelector('.row.bx-r49 .bx-r49-pl'); const cs = e && getComputedStyle(e); return e && [e.textContent, cs.display, cs.textOverflow, cs.whiteSpace]; });
-    c.eq(pl, ['서울 강남구 연세바른치과 3층', 'block', 'ellipsis', 'nowrap'], '홈 줄 장소: … 이 보이는 칸(flex 칸이면 글자가 반쯤 잘림)');
+    // 시험판 56(목록 줄 C): 둘째 줄 하나(.rc-sub)는 …이 보이는 칸
+    const pl = await p.evaluate(() => { const e = Array.from(document.querySelectorAll('.row.rowc .rc-sub')).find(x => /연세바른치과|출발/.test(x.textContent)); const cs = e && getComputedStyle(e); return e && [cs.display, cs.textOverflow, cs.whiteSpace]; });
+    c.eq(pl, ['block', 'ellipsis', 'nowrap'], '홈 줄 둘째 줄: … 이 보이는 칸(flex 칸이면 글자가 반쯤 잘림)');
     c.eq(await p.evaluate(() => (document.querySelector('.bx-mm-inp') || {}).placeholder), '떠오른 것을 적거나 말해요', '홈 메모 칸 안내 글(384 폭에서도 칸 안)');
 
     await p.click('[data-act="bx-past"]'); await p.waitForTimeout(400);
-    const late = await p.evaluate(() => { const m = document.querySelector('.row.bx-r49.late .row-meta'); return m && [getComputedStyle(m).flexWrap, Array.from(m.children).every(x => x.scrollWidth <= x.clientWidth + 1), m.textContent.includes('지남')]; });
-    c.eq(late, ['wrap', true, true], "지난 일 '…지남': 잘리지 않고 모자라면 다음 줄");
+    const late = await p.evaluate(() => { const m = document.querySelector('.row.rowc.late .rc-sub'); return m && [m.scrollWidth <= m.clientWidth + 1, m.textContent.includes('지남'), m.classList.contains('warn')]; });
+    c.eq(late, [true, true, true], "지난 일 둘째 줄 '…지남': 잘리지 않음 · 주황 글자");
     await p.click('[data-act="bx-past"]'); await p.waitForTimeout(300);
 
-    await p.click('.rt-card[data-rid="rt_w"] .bx-rt-tog'); await p.waitForTimeout(400);
-    const arr = await p.evaluate(() => { const e = document.querySelector('.rt-card[data-rid="rt_w"] .rt-steps li.arr .rt-n'); return e && [e.textContent.replace(/\s+/g, ' ').trim(), e.scrollWidth <= e.clientWidth + 1]; });
-    c.ok(arr && /도착/.test(arr[0]) && /이동 45분/.test(arr[0]) && /여유 15분/.test(arr[0]) && arr[1], "루틴 카드 펼침 '도착 이동 45분 · 여유 15분'이 …로 잘리지 않음: " + JSON.stringify(arr));
-    c.eq(await p.evaluate(midword), [], '루틴 카드를 펼친 홈: 낱말 가운데에서 꺾인 줄 없음');
-    await p.click('.rt-card[data-rid="rt_w"] .bx-rt-tog'); await p.waitForTimeout(300);
+    // 시험판 56: 루틴 줄을 누르면 단계 창(전: 카드 '자세히'로 펼침)
+    await p.click('#tcard2 .row[data-rid="rt_w"] .row-main'); await p.waitForTimeout(500);
+    const arr = await p.evaluate(() => { const e = document.querySelector('#sheet-root .rt-card[data-rid="rt_w"] .rt-steps li.arr .rt-n'); return e && [e.textContent.replace(/\s+/g, ' ').trim(), e.scrollWidth <= e.clientWidth + 1]; });
+    c.ok(arr && /도착/.test(arr[0]) && /이동 45분/.test(arr[0]) && /여유 15분/.test(arr[0]) && arr[1], "루틴 단계 창 '도착 이동 45분 · 여유 15분'이 …로 잘리지 않음: " + JSON.stringify(arr));
+    c.eq(await p.evaluate(midword), [], '루틴 단계 창: 낱말 가운데에서 꺾인 줄 없음');
+    await back();
 
     await p.click('[data-act="bx-late-open"]'); await p.waitForTimeout(500);
     c.ok(await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root button')).some(b => b.textContent.trim() === '오늘 오전 11:00로')), "확인 필요: '오늘 오전 11:00로'(24시간 '11:00로'가 아님)");
     await back();
 
     await p.click('.bx-fab'); await p.waitForTimeout(600);
-    c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 내일 오후 3시 치과', '새 일정 제목 칸(390): 원래 예시 그대로');
+    // 시험판 56(일정 넣기 나): 제목 칸이 보라 테 상자가 되어(안쪽 여백 · 말하기 단추가 칸 안) 390에서도 짧은 예시가 들어갈 수 있다. 칸에 다 들어가는 예시인지만 본다
+    c.ok(await p.evaluate(() => (() => { const i = document.querySelector('#f-title'), cs = getComputedStyle(i), cv = document.createElement('canvas').getContext('2d'); cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; return cv.measureText(i.placeholder).width <= i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1; })()), '새 일정 제목 칸(390): 예시가 칸에 다 들어감 ' + await p.evaluate(() => document.querySelector('#f-title').placeholder));
     const pill = await p.evaluate(() => Array.from(document.querySelectorAll('.bx-pill49 .bx-pl-b')).map(b => { const r = b.getBoundingClientRect(), rg = document.createRange(); rg.selectNodeContents(b); const t = rg.getBoundingClientRect(); return Math.round(Math.abs((t.left + t.right) / 2 - (r.left + r.right) / 2)); }));
     c.ok(pill.length === 2 && pill.every(d => d <= 2), "일정 창 '취소 | 저장': 글자가 단추 가운데(대표 11/4 22:15 '정렬 망가짐') " + JSON.stringify(pill));
     await p.setViewportSize({ width: 360, height: 844 }); await p.waitForTimeout(400);
     c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 오후 3시 치과', '새 일정 제목 칸(360): 칸에 안 들어가면 짧은 예시');
     await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(400);
-    c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 내일 오후 3시 치과', '다시 넓어지면 원래 예시로');
+    c.ok(await p.evaluate(() => (() => { const i = document.querySelector('#f-title'), cs = getComputedStyle(i), cv = document.createElement('canvas').getContext('2d'); cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; return cv.measureText(i.placeholder).width <= i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1; })()), '다시 넓어져도 예시가 칸에 다 들어감');
     await back();
 
     await p.setViewportSize({ width: 360, height: 844 }); await p.waitForTimeout(500);

@@ -252,6 +252,8 @@ function ttSave(o){
   const id = o.id || rid('tt_');
   const prev = o.id ? getDoc(o.id) : null;
   d.createdAt = prev && prev.createdAt ? prev.createdAt : nowIso();
+  // 시험판 56: 홈 수업 줄에서 체크한 날(다녀왔어요)은 고쳐 저장해도 남긴다
+  d.doneOn = prev && prev.doneOn ? prev.doneOn : null;
   writeDoc(id, d);
   return id;
 }
@@ -577,3 +579,13 @@ window.addEventListener('click', ev => {
   if (ev.target.matches('.scrim') || ev.target.closest('.tt-b') || ev.target.closest('.tt-body')) { ev.preventDefault(); ev.stopPropagation(); }
 }, true);
 document.addEventListener('contextmenu', ev => { if (ev.target.closest && ev.target.closest('.tt-b')) ev.preventDefault(); }, true);
+// 시험판 56(목록 줄 C, 결정 기록 D-29): 홈 수업 줄 오른쪽 체크 = 그날 다녀왔어요. 수업마다 doneOn {날짜: 시각}, 2주 지난 날은 지운다
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-act="bx-tt-done"]'); if (!b || !window.BX_APP) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const id = b.dataset.id, ds = b.dataset.date, doc = getDoc(id); if (!doc || !isDate(ds)) return;
+  const dn = Object.assign({}, doc.doneOn || {}), lim = ymd(addDays(parseYmd(M.today), -14));
+  Object.keys(dn).forEach(k => { if (k < lim) delete dn[k]; });
+  if (dn[ds]) delete dn[ds]; else dn[ds] = nowIso();
+  writeDoc(id, Object.assign({}, doc, {doneOn: Object.keys(dn).length ? dn : null, updatedAt: nowIso()}));
+}, true);

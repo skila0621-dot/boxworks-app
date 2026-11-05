@@ -66,7 +66,7 @@ module.exports = async function () {
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="sheet-close"]').click()); await p.waitForTimeout(300);
     // 날짜 창의 여러 날 줄
     await p.click('.cell[data-date="2026-11-08"]'); await p.waitForTimeout(600);
-    const day8 = await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .row')).map(r => [r.classList.contains('bx-span'), (r.querySelector('.row-title') || {}).textContent, (r.querySelector('.bx-span-d') || {}).textContent || '']));
+    const day8 = await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .row')).map(r => [r.classList.contains('bx-span'), (r.querySelector('.row-title') || {}).textContent, (r.querySelector('.rc-sub') || {}).textContent || '']));
     c.eq(day8, [[true, '부산 여행', '3/3일째 · 마지막 날'], [true, '캠핑', '1/3일째 · ~11/10 (화)']], '날짜 창: 여러 날 줄(몇째 날)');
     await p.evaluate(() => document.querySelector('#sheet-root [data-act="sheet-close"]').click()); await p.waitForTimeout(300);
     // 새 일정: 캘린더 칩을 골라 두면 그 캘린더로
@@ -92,7 +92,7 @@ module.exports = async function () {
     const home = await p.evaluate(() => ({ ids: Array.from(document.querySelectorAll('#tcard2 .row-main[data-id]')).map(b => b.dataset.id) }));
     c.ok(!home.ids.includes('it_8') && home.ids.includes('it_9') && home.ids.includes('it_1'), '홈: 정형외과(병원) 없음 · 약 타기(놓친 병원 일정)는 지난 일에 ' + JSON.stringify(home.ids));
     for (let i = 0; i < 5; i++) { await p.click('.bx-sum-nav[data-d="1"]'); await p.waitForTimeout(250); }
-    const h7 = await p.evaluate(() => ({ first: (() => { const r = document.querySelector('#tcard2 .bx-tl .row'); return r ? [r.classList.contains('bx-span'), r.querySelector('.row-title').textContent, (r.querySelector('.bx-span-d') || {}).textContent] : null; })(),
+    const h7 = await p.evaluate(() => ({ first: (() => { const r = document.querySelector('#tcard2 .bx-tl .row'); return r ? [r.classList.contains('bx-span'), r.querySelector('.row-title').textContent, (r.querySelector('.rc-sub') || {}).textContent] : null; })(),
       tiles: Array.from(document.querySelectorAll('.bx-sum-tiles .bx-st')).map(b => b.textContent.replace(/\s+/g, '')), ids: Array.from(document.querySelectorAll('#tcard2 .row-main[data-id]')).map(b => b.dataset.id) }));
     c.eq(h7.first, [true, '부산 여행', '2/3일째 · ~11/8 (일)'], "11월 7일: 맨 위 '부산 여행 · 2/3일째 · ~11/8 (일)'");
     c.ok(h7.tiles[0] === '남은1' && h7.tiles[1] === '완료0/1' && !h7.ids.includes('it_10'), '위 숫자는 여러 날 일정을 세지 않음 · 병원 빠짐 ' + JSON.stringify(h7));
@@ -116,9 +116,12 @@ module.exports = async function () {
     const p = app.page;
     await p.click('.bx-fab'); await p.waitForTimeout(500);
     await p.fill('#f-title', '6일부터 8일까지 부산 여행'); await p.waitForTimeout(300);
-    const dts = () => p.evaluate(() => Array.from(document.querySelectorAll('#f-chips .bx-edt-d')).map(b => b.textContent.trim()));
+    // 시험판 56(일정 넣기 나): 날짜 줄 하나에 '11월 6일 (금) → 11월 8일 (일)'
+    const dts = () => p.evaluate(() => document.querySelector('#f-chips [data-fpanel="date"] .bx-er-t').textContent.trim().split(' → '));
+    const more = () => p.evaluate(() => { const b = document.querySelector('#f-chips [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); });
     c.eq(await dts(), ['11월 6일 (금)', '11월 8일 (일)'], '일정 창 날짜: 11월 6일 (금) → 11월 8일 (일)');
     c.ok(/11월 6일 ~ 8일/.test(await p.evaluate(() => document.getElementById('f-hint').textContent)), '해석 줄도 범위');
+    await more(); await p.waitForTimeout(150);
     await p.click('#f-chips [data-fpanel="cat"]'); await p.waitForTimeout(300);
     await p.click('#f-cat [data-fcat="c_personal"]'); await p.waitForTimeout(200);
     await p.click('#f-cat [data-fcolor="#e87ba4"]'); await p.waitForTimeout(200);
@@ -136,9 +139,9 @@ module.exports = async function () {
     await p.click('#f-date [data-fdate="2026-11-03"]'); await p.waitForTimeout(200);
     c.eq([await p.evaluate(() => document.getElementById('f-end-in').value), await dts()], ['2026-11-05', ['11월 3일 (화)', '11월 5일 (목)']], '시작을 옮기면 끝나는 날도 같은 길이로');
     await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
-    // 시간은 일정 창의 '하루 종일'을 끄고 시각을 눌러 정한다(시험판 44)
-    await p.click('#f-chips [data-bxallday]'); await p.waitForTimeout(200);
-    await p.click('#f-chips .bx-edt-t'); await p.waitForTimeout(200);
+    // 시간은 시간 줄 → 시간 페이지 맨 위 '시간 지정'(시험판 56, 전: 일정 창의 '하루 종일' 스위치)
+    await p.click('#f-chips [data-fpanel="time"]'); await p.waitForTimeout(250);
+    await p.click('#bx-ep [data-ftimed="1"]'); await p.waitForTimeout(200);
     c.ok(await p.evaluate(() => !document.getElementById('f-dur') && /첫날 시작/.test(document.getElementById('f-time').textContent)), "여러 날 + 시간: '첫날 시작 ~ 마지막 날 끝', 소요 시간 칸 없음");
     await p.evaluate(() => { const e = document.getElementById('f-end'); e.value = '09:00'; e.dispatchEvent(new Event('change', { bubbles: true })); });
     await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);

@@ -17,9 +17,10 @@ function data(extra) {
 }
 const plan = p => p.evaluate(() => window.BX_alarmPlan(5).filter(a => a.kind === 'routine').map(a => ({ at: a.at, g: a.group })));
 const tl = p => p.evaluate(() => Array.from(document.querySelectorAll('.bx-tl > *')).map(e => ({
-  t: e.classList.contains('now-line') ? '지금' : (e.querySelector('.row-title, .rt-h > b, .row-main') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 12),
-  off: e.classList.contains('off'), next: e.classList.contains('bx-next') || e.classList.contains('bx-next-soft'),
-  note: ((e.querySelector('.rt-note') || {}).textContent || '').trim(), btn: ((e.querySelector('.rt-h [data-act]') || {}).textContent || '').trim()
+  t: e.classList.contains('now-line') ? '지금' : (e.querySelector('.row-title') || e.querySelector('.rt-h > b') || e.querySelector('.row-main') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 12),
+  // 시험판 56(목록 줄 C): 쉬는 루틴은 흐린 줄(bx-off) · 둘째 줄에 '성탄절이라 쉬어요'. '오늘은 하기'는 줄을 누르면 나오는 단계 창에
+  off: e.classList.contains('off') || e.classList.contains('bx-off'), next: e.classList.contains('bx-next') || e.classList.contains('bx-next-soft'),
+  note: ((e.querySelector('.rt-note, .rc-sub') || {}).textContent || '').trim()
 })));
 
 module.exports = async function () {
@@ -36,10 +37,13 @@ module.exports = async function () {
     c.ok(day('아침 약', '2026-12-25') > 0, "'공휴일에는 쉬기'를 켜지 않은 루틴은 공휴일에도 울림");
     const rows = await tl(p);
     const w = rows.find(r => r.t.indexOf('출근 준비') >= 0), wi = rows.indexOf(w), mi = rows.findIndex(r => r.t.indexOf('아침 약') >= 0);
-    c.ok(w && w.off && w.note === '오늘은 성탄절이라 쉬어요.' && w.btn === '오늘은 하기', "홈: 쉬는 루틴 줄에 '오늘은 성탄절이라 쉬어요.'와 '오늘은 하기' " + JSON.stringify(w));
+    c.ok(w && w.off && w.note === '성탄절이라 쉬어요', "홈: 쉬는 루틴 줄(흐림) 둘째 줄 '성탄절이라 쉬어요' " + JSON.stringify(w));
     c.ok(wi >= 0 && mi > wi && !w.next && rows[mi].next, "쉬는 줄은 07:30 자리, '다음'은 그다음 08:00 루틴에 " + JSON.stringify(rows));
     // 그날만 하기
-    await p.click('[data-act="bx-holrun"]'); await p.waitForTimeout(600);
+    await p.click('#tcard2 .row[data-kind="rt"].bx-off .row-main'); await p.waitForTimeout(600);
+    c.ok(/오늘은 성탄절이라 쉬어요/.test(await p.evaluate(() => (document.querySelector('#sheet-root .bx-rtpage') || {}).textContent || '')), "쉬는 루틴 줄을 누르면 단계 창에 '오늘은 성탄절이라 쉬어요.'와 '오늘은 하기'");
+    await p.click('#sheet-root [data-act="bx-holrun"]'); await p.waitForTimeout(600);
+    await p.evaluate(() => window.BX_back && window.BX_back()); await p.waitForTimeout(400);
     const a2 = await plan(p);
     c.ok(a2.some(x => x.g === '출근 준비' && kst(x.at).startsWith('2026-12-25')), "'오늘은 하기'를 누르면 그날 알람이 다시 잡힘");
     const w2 = (await tl(p)).find(r => r.t.indexOf('출근 준비') >= 0);
@@ -73,7 +77,7 @@ module.exports = async function () {
     const rows = await tl(p);
     const order = rows.map(r => r.t);
     const mi = order.findIndex(t => t.indexOf('아침 약') >= 0), di = order.findIndex(t => t.indexOf('치과') >= 0);
-    c.ok(mi >= 0 && di > mi && rows[mi].off && !rows[mi].next && rows[mi].note === '오늘은 건너뛰어요.', "'오늘 쉬기'한 루틴: 08:00 자리에 흐리게, '다음' 없음 " + JSON.stringify(rows));
+    c.ok(mi >= 0 && di > mi && rows[mi].off && !rows[mi].next && rows[mi].note === '오늘은 건너뛰어요', "'오늘 쉬기'한 루틴: 08:00 자리에 흐리게, '다음' 없음 " + JSON.stringify(rows));
     c.eq(app.errors, [], '화면 오류(쉬는 루틴)');
   } finally { await app.close(); }
 

@@ -23,11 +23,11 @@ module.exports = async function () {
   try {
     const p = app.page;
     const s = await p.evaluate(() => ({
-      order: Array.from(document.querySelectorAll('.bx-tl > *')).map(e => e.classList.contains('now-line') ? '지금' : (e.querySelector('.row-title, .rt-h > b, .row-main') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 12)),
+      order: Array.from(document.querySelectorAll('.bx-tl > *')).map(e => e.classList.contains('now-line') ? '지금' : (e.querySelector('.row-title') || e.querySelector('.rt-h > b') || e.querySelector('.row-main') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 12)),
       heads: Array.from(document.querySelectorAll('#tcard2 h2')).map(h => h.textContent.trim())
     }));
     c.eq(s.heads, ['오늘 할 일'], "홈에는 '오늘 할 일' 제목 하나(루틴·일정·수업 칸 제목 없음)");
-    const want = ['장보기', '지금', '아침 준비', '10:30', '치과'];
+    const want = ['장보기', '지금', '아침 준비', '경영학원론', '치과'];
     c.ok(s.order.length === want.length && want.every((w, i) => (s.order[i] || '').indexOf(w) >= 0), '시각 순서: ' + JSON.stringify(s.order));
     // 새 일정 창: 마이크에 '말하기', 칩을 눌러도 칩이 움직이지 않는다
     await p.click('.bx-fab'); await p.waitForTimeout(500);
@@ -36,7 +36,9 @@ module.exports = async function () {
     c.ok(/내일 오후 3시 치과\|금요일 저녁 7시 친구 약속/.test(await p.evaluate(() => (document.querySelector('#sheet-root [data-act="bx-mic"]') || {}).getAttribute('data-ex') || '')), '말하기를 누르면 보여 줄 예문 둘');
     // 시험판 44(대표 11/4 1:34 · 1:50): 줄을 누르면 그 아래로 펼치지 않고 페이지가 열린다. 줄 자리는 움직이지 않는다
     let off = [];
-    for (const [sel, t] of [['.bx-edt-d', '날짜'], ['[data-bxsub="loc"]', '장소'], ['[data-fpanel="cat"]', '캘린더'], ['[data-fpanel="rem"]', '알림'], ['[data-fpanel="go"]', '출발·준비'], ['[data-bxsub="note"]', '메모']]) {
+    // 시험판 56(일정 넣기 나): 캘린더 · 출발·준비 · 메모는 맨 아래 '자세히' 안. 펼쳐 두고 본다
+    await p.click('#f-chips [data-bxmore]'); await p.waitForTimeout(200);
+    for (const [sel, t] of [['[data-fpanel="date"]', '날짜'], ['[data-bxsub="loc"]', '장소'], ['[data-fpanel="cat"]', '캘린더'], ['[data-fpanel="rem"]', '알림'], ['[data-fpanel="go"]', '출발·준비'], ['[data-bxsub="note"]', '메모']]) {
       const s2 = '#f-chips ' + sel;
       const b0 = await rect(p, s2); if (!b0) { off.push(t + ' 줄 없음'); continue; }
       await p.click(s2); await p.waitForTimeout(400);
@@ -52,12 +54,13 @@ module.exports = async function () {
     const q = await p.evaluate(() => Array.from(document.querySelectorAll('#f-rem .bx-rem-q .pick')).map(b => b.textContent.trim()));
     c.eq(q, ['정시', '10분 전', '1시간 전', '직접 입력'].map((x, i) => i < 3 ? x : q[3]), '일정 알림 칩: ' + JSON.stringify(q));
     await p.click('#f-rem [data-bx-rem="60"]'); await p.waitForTimeout(200);
-    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '1시간 전', "칩 하나를 고르면 알림이 그 하나로");
+    const remTxt = () => p.evaluate(() => (document.querySelector('#f-chips .bx-rem3-n') || {}).textContent.trim());
+    c.eq(await remTxt(), '1시간 전', "칩 하나를 고르면 알림이 그 하나로");
     await p.click('#f-rem [data-bx-remsw]'); await p.waitForTimeout(200);
-    const offState = await p.evaluate(() => ({ chip: (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim(), opts: document.querySelectorAll('#f-rem .bx-rem-q').length, sw: (document.querySelector('#f-rem [data-bx-remsw]') || {}).getAttribute('aria-checked') }));
-    c.eq(offState, { chip: '알림', opts: 0, sw: 'false' }, '알림을 끄면 줄은 회색 이름만(알림), 아래 선택지는 없음(시험판 37)');
+    const offState = await p.evaluate(() => ({ chip: Array.from(document.querySelectorAll('#f-chips [data-bxrem3]')).filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.textContent).join(''), opts: document.querySelectorAll('#f-rem .bx-rem-q').length, sw: (document.querySelector('#f-rem [data-bx-remsw]') || {}).getAttribute('aria-checked') }));
+    c.eq(offState, { chip: '없음', opts: 0, sw: 'false' }, "알림을 끄면 일정 창 알림은 '없음', 아래 선택지는 없음(시험판 37 · 56)");
     await p.click('#f-rem [data-bx-remsw]'); await p.waitForTimeout(200);
-    c.eq(await p.evaluate(() => (document.querySelector('#f-chips [data-fpanel="rem"]') || {}).textContent.trim()), '1시간 전', '다시 켜면 끄기 전 값(1시간 전)');
+    c.eq(await remTxt(), '1시간 전', '다시 켜면 끄기 전 값(1시간 전)');
     await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     c.eq(app.errors, [], '화면 오류(홈·새 일정)');
   } finally { await app.close(); }
@@ -75,7 +78,7 @@ module.exports = async function () {
         const tog = document.querySelector('.bx-past-tog'), box = document.querySelector('.bx-past');
         return { now: name(document.querySelector('.bx-tl > .bx-now')), next: name(document.querySelector('.bx-tl > .bx-next, .bx-tl > .bx-next-soft')),
           past: box ? box.children.length : 0, hidden: box ? box.hidden : null, tog: tog ? tog.textContent.trim() : '',
-          nextTag: (document.querySelector('.bx-tl > .bx-next-soft .bx-next-tag, .bx-tl > .bx-next .bx-next-tag') || {}).textContent || '',
+          nextTag: (document.querySelector('.bx-tl > .bx-next-soft .rc-sub, .bx-tl > .bx-next .rc-sub') || {}).textContent || '',
           done: !!document.querySelector('.bx-tl-done') };
       });
       const t = now.slice(11, 16);
@@ -87,7 +90,7 @@ module.exports = async function () {
         c.ok(r.done, t + " 남은 일이 없으면 '오늘 남은 일은 없어요'");
         await p.click('.bx-past-tog'); await p.waitForTimeout(200);
         c.eq(await p.evaluate(() => document.querySelector('.bx-past').hidden), false, t + ' 누르면 지난 일이 펼쳐짐');
-      } else c.ok(/^다음 · /.test(r.nextTag), t + " 다음 일에 '다음 · N분 뒤' " + JSON.stringify(r.nextTag));
+      } else c.ok(/분 뒤$|시간 뒤$/.test(r.nextTag), t + " 다음 일 둘째 줄에 남은 시간('N분 뒤', 목록 줄 C) " + JSON.stringify(r.nextTag));
       c.eq(app.errors, [], t + ' 화면 오류');
     } finally { await app.close(); }
   }

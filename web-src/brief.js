@@ -179,7 +179,8 @@ function bxRtMissed(){ return M && M.routines ? M.routines.reduce((a, rt) => a.c
 function bxRtMissDecorate(){
   if (S.view !== 'today' || S.homeDay) return;
   let total = 0;
-  $$('.rt-sec .rt-card[data-rid]').forEach(c => {
+  // 시험판 56: 홈에는 루틴 카드 대신 목록 줄(둘째 줄 '먹었는지 확인 · …'), 주의 줄 · '먹었어요'는 줄을 누르면 나오는 단계 창에
+  $$('.rt-sec .rt-card[data-rid], #sheet-root .bx-rtpage .rt-card[data-rid]').forEach(c => {
     const rt = M.routines.find(r => r.id === c.dataset.rid); if (!rt || c.querySelector('.bx-miss-line')) return;
     const miss = bxRtMissedOf(rt); if (!miss.length) return;
     total += miss.length;

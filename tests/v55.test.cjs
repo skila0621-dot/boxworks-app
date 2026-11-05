@@ -88,6 +88,7 @@ module.exports = async function () {
     await q.evaluate(() => window.BX_back && window.BX_back()); await q.waitForTimeout(300);
     // 이동 시간 칸 글: 정시는 'N시간', 나머지는 'N분'
     await q.click('#tcard2 .row-main[data-id="it_1"]'); await q.waitForTimeout(500);
+    await q.evaluate(() => { const b = document.querySelector('#f-chips [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); // 시험판 56: 출발·준비는 '자세히' 안
     await q.click('#sheet-root .bx-er[data-fpanel="go"]'); await q.waitForTimeout(600);
     const tv = await q.evaluate(() => Array.from(document.querySelectorAll('#bx-ep [data-ftv]')).map(b => { const r = document.createRange(); r.selectNodeContents(b); const s = getComputedStyle(b), q = b.getBoundingClientRect(); return [b.textContent.trim(), r.getBoundingClientRect().width <= q.width - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight) + 0.5]; }));
     c.ok(tv.length >= 7 && tv.some(x => x[0] === '90분') && tv.some(x => x[0] === '1시간') && !tv.some(x => /시간 \d+분/.test(x[0])) && tv.every(x => x[1]), "이동 시간 칸: 정시는 'N시간', 나머지는 'N분'('1시간 30분' → '90분'), 폭 360에서 칸 안에 다 들어감 " + JSON.stringify(tv));

@@ -15,16 +15,15 @@ module.exports = async function () {
   const app = await openApp({ data, now: '2026-11-02T13:55:00+09:00' });
   try {
     const p = app.page;
-    // (1) 홈 줄 ②: 시작 · 끝 | 제목 + 장소 한 줄 | 오른쪽 출발 칸(다음 일정은 채운 칸). 캘린더 이름 · 알림 · '다음 · N분 뒤'는 없음
-    const rows = await p.evaluate(() => Array.from(document.querySelectorAll('#tcard2 .row.bx-r49')).filter(r => r.getBoundingClientRect().height > 0).map(r => ({
+    // (1) 홈 줄(시험판 56부터 목록 줄 C, 시험판 49의 ②를 바꿈): 시작 · 끝 | 제목 + 둘째 줄 하나(출발 → 장소) | 체크. 오른쪽 출발 칸 없음
+    const rows = await p.evaluate(() => Array.from(document.querySelectorAll('#tcard2 .row.rowc')).filter(r => r.getBoundingClientRect().height > 0).map(r => ({
       t: Array.from(r.querySelectorAll('.row-time > *')).map(e => e.textContent), title: (r.querySelector('.row-title') || {}).textContent,
-      meta: Array.from(r.querySelectorAll('.row-meta > .meta')).filter(m => getComputedStyle(m).display !== 'none').map(m => m.textContent),
-      go: r.querySelector('.bx-r49-go') ? r.querySelector('.bx-r49-go').textContent : null, next: r.classList.contains('bx-next'),
-      goBg: r.querySelector('.bx-r49-go') ? getComputedStyle(r.querySelector('.bx-r49-go')).backgroundColor : null })));
+      sub: (r.querySelector('.rc-sub') || {}).textContent || '', go: !!(r.querySelector('.rc-sub.go')), next: r.classList.contains('bx-next'),
+      box: !!r.querySelector('.bx-r49-go'), bg: getComputedStyle(r).backgroundColor })));
     const r1 = rows.find(r => r.title === '노동부 방문'), r2 = rows.find(r => r.title === '저녁 약속');
-    c.ok(r1 && JSON.stringify(r1.t) === '["오후 3:00","오후 4:00"]' && JSON.stringify(r1.meta) === '["롯데마트 옆 고용복지센터"]' && r1.go === '오후 2:40출발' && r1.next, "홈 줄 ②: 시작 · 끝 | 제목 + 장소 | '14:40 출발' 칸 " + JSON.stringify(r1));
-    c.ok(r2 && JSON.stringify(r2.meta) === '["강남역 2번 출구"]' && r2.go === null, '출발 시각이 없는 일정은 오른쪽 칸 없음 ' + JSON.stringify(r2));
-    c.ok(r1 && r1.goBg && r1.goBg !== 'rgba(0, 0, 0, 0)' && !/255, 255, 255/.test(r1.goBg), '다음 일정의 출발 칸은 채운 색 ' + (r1 && r1.goBg));
+    c.ok(r1 && JSON.stringify(r1.t) === '["오후 3:00","오후 4:00"]' && r1.sub === '오후 2:40 출발' && r1.go && r1.next && !r1.box, "홈 줄 C: 시작 · 끝 | 제목 + '오후 2:40 출발'(장소보다 먼저) " + JSON.stringify(r1));
+    c.ok(r2 && r2.sub === '강남역 2번 출구' && !r2.go, '출발 시각이 없는 일정은 둘째 줄에 장소 ' + JSON.stringify(r2));
+    c.ok(r1 && r1.bg !== 'rgba(0, 0, 0, 0)' && r2 && r2.bg === 'rgba(0, 0, 0, 0)', '다음 일정 하나만 연보라 바탕 ' + JSON.stringify([r1 && r1.bg, r2 && r2.bg]));
     // (2) 일정 창: 제목 옆 색 동그라미 · 아래 '취소 | 저장', 위 × 숨김
     await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(600);
     const ed = await p.evaluate(() => ({ dot: !!document.querySelector('#sheet-root .bx-tdot'), dotC: document.querySelector('#sheet-root .bx-tdot').style.getPropertyValue('--c'),

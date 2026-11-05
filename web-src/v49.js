@@ -6,7 +6,15 @@
    3) 일정 창: 제목 오른쪽에 이 일정 색 동그라미(누르면 캘린더 · 색), 아래에는 떠 있는 '취소 | 저장'(삼성), 고치기에서 '삭제'는 줄 목록 맨 아래
    (2 · 3은 대표가 고르지 않아 통합관리실 추천안, 14:12 삼성 캘린더 사진 "일정 등록 방식과 디자인 참고") */
 
-/* 1) 홈 줄 ② ------------------------------------------------------------- */
+/* 1) 목록 줄 C(시험판 56 · 대표 11/5 선택실 2에서 'C 종류 아이콘 · 체크 오른쪽', 결정 기록 D-29) -----------------------
+   일정 줄(홈 · 캘린더 주 · 일 · 날짜 창 · 찾기 · 목록 창), 홈의 수업 줄 · 루틴 줄이 모두 같은 줄 하나를 쓴다:
+     [종류 아이콘 | 시각(시작, 아래에 끝) | 이름 + 둘째 줄 하나 | 체크]
+   - 종류 아이콘 한 세트: 일정 달력 · 루틴 되풀이 · 수업 책. 같은 크기 · 굵기
+   - 둘째 줄은 하나만. 때를 놓치지 않게 상태(지남 · 쉼 · 진행 중 · 곧 시작 · 여러 날)가 있으면 그것, 없으면 출발 → 장소 → 남은 시간(다음 일정)
+   - 오른쪽은 늘 체크(하면 이름에 가로줄). '자세히 ⌄' · 오른쪽 출발 칸 · '확인' 단추는 없다. 줄을 누르면 열린다
+   - 다음 일정 하나만 연보라 바탕(v30.js) · 모양은 app.css '목록 줄' 한 곳 */
+const BX_RC_BOOK = '<svg class="i" viewBox="0 0 24 24"><path d="M12 6.5C9.6 5 6.8 4.6 3.5 5.2v13.3c3.3-.6 6.1-.2 8.5 1.3 2.4-1.5 5.2-1.9 8.5-1.3V5.2C17.2 4.6 14.4 5 12 6.5Z"/><path d="M12 6.5v13.3"/></svg>';
+function bxRcIcon(kind){ return kind === 'rt' ? ICON.loop : kind === 'tt' ? BX_RC_BOOK : ICON.cal; }
 function bxR49Go(it){
   if (!it || it.done || !it.start || isLate(it) || typeof tvPlan !== 'function') return null;
   const p = tvPlan(it); if (!p) return null;
@@ -14,23 +22,35 @@ function bxR49Go(it){
   if (p.rt && p.start) return {t: bxT(p.start), s: '준비'};
   return null;
 }
-// 줄 정리: 남길 것만(날짜 · 여러 날 · 지남 · 진행 중 · 곧 시작 · 장소 · 📎 첨부 수), 장소는 글자만
-function bxR49Tidy(row, it, o){
-  const meta = row.querySelector('.row-meta');
-  if (meta) {
-    const keep = [], rel = it && it.date && typeof relDay === 'function' ? relDay(it.date, M.today) : null;
-    let place = null;
-    Array.from(meta.children).forEach((m, i) => {
-      const c = m.classList;
-      if (c.contains('late') || m.querySelector('.pulse') || c.contains('bx-span-d') || c.contains('bx-off-tag') || (o && o.showDate && i === 0)) keep.push(m);
-      else if (!place && it && it.location && m.querySelector('svg') && m.textContent.trim() === String(it.location).trim()) place = m;
-      else if (c.contains('bx-att-m')) keep.push(m);
-    });
-    if (place) { place.querySelectorAll('svg').forEach(s => s.remove()); place.className = 'meta bx-r49-pl'; place.textContent = String(it ? it.location : place.textContent).trim(); keep.splice(keep.length && keep[keep.length - 1].classList.contains('bx-att-m') ? keep.length - 1 : keep.length, 0, place); }
-    meta.textContent = '';
-    keep.forEach(k => meta.appendChild(k));
-    if (!keep.length) meta.remove();
-  }
+// 줄을 C 모양으로: 아이콘은 누르는 칸 맨 앞, 체크는 맨 뒤, 둘째 줄은 하나(sub: 이미 이스케이프한 글)
+function bxRcShape(row, kind, sub, subCls, tail){
+  row.classList.add('rowc'); row.dataset.kind = kind;
+  const main = row.querySelector(':scope > .row-main'); if (!main) return;
+  if (!main.querySelector(':scope > .rc-ic')) main.insertAdjacentHTML('afterbegin', '<span class="rc-ic" aria-hidden="true">' + bxRcIcon(kind) + '</span>');
+  row.querySelectorAll(':scope > .lamp, :scope > .tt-dot').forEach(x => x.remove());
+  const chk = row.querySelector(':scope > .chk'); if (chk) row.appendChild(chk);
+  const body = main.querySelector('.row-body'); if (!body) return;
+  const old = body.querySelector(':scope > .row-meta'); if (old) old.remove();
+  if (sub || tail) body.insertAdjacentHTML('beforeend', '<span class="row-meta"><span class="meta rc-sub' + (subCls ? ' ' + subCls : '') + '">' + (sub || '') + '</span>' + (tail || '') + '</span>');
+}
+// 일정 줄의 둘째 줄: 날짜(지난 일 · 찾기) + [지남 · 쉼 · 진행 중 · 곧 시작 · 출발 · 여러 날 · 장소] 가운데 먼저 있는 것 하나
+function bxRcItem(row, it, o){
+  const meta = row.querySelector('.row-meta'), kids = meta ? Array.from(meta.children) : [];
+  const txt = m => m ? m.textContent.replace(/\s+/g, ' ').trim() : '';
+  const late = kids.find(m => m.classList.contains('late')), off = kids.find(m => m.classList.contains('bx-off-tag'));
+  const pulse = kids.find(m => m.querySelector('.pulse')), span = kids.find(m => m.classList.contains('bx-span-d'));
+  const att = kids.find(m => m.classList.contains('bx-att-m'));
+  const date = o && o.showDate && it.date ? relDay(it.date, M.today) : '';
+  const go = bxR49Go(it);
+  let sub = '', cls = '';
+  if (late) { sub = esc(txt(late)); cls = 'warn'; }
+  else if (off) { sub = esc(txt(off)); }
+  else if (pulse) { sub = esc(txt(pulse)); cls = 'live'; }
+  else if (go) { sub = esc(go.t + ' ' + go.s); cls = 'go'; }
+  else if (span) { sub = esc(txt(span)); }
+  else if (it.location) { sub = esc(String(it.location).trim()); }
+  if (date) sub = esc(date) + (sub ? ' · ' + sub : '');
+  bxRcShape(row, 'it', sub, cls, att ? '<span class="meta rc-att bx-att-m">' + att.innerHTML + '</span>' : '');
 }
 const bxRowHtml49 = rowHtml;
 rowHtml = function(it, o){
@@ -39,29 +59,27 @@ rowHtml = function(it, o){
   try {
     const tp = document.createElement('template'); tp.innerHTML = h;
     const row = tp.content.firstElementChild; if (!row || !row.classList.contains('row')) return h;
-    row.classList.add('bx-r49');
-    bxR49Tidy(row, it, o);
-    const go = bxR49Go(it), main = row.querySelector('.row-main');
-    if (go && main) main.insertAdjacentHTML('beforeend', '<span class="bx-r49-go" aria-label="' + go.t + ' ' + go.s + '"><b class="tnum">' + go.t + '</b><small>' + go.s + '</small></span>');
+    bxRcItem(row, it, o);
     return row.outerHTML;
   } catch (e) { return h; }
 };
-// 오늘 할 일 안의 수업 줄도 같은 모양(장소는 글자만, 알림 · 시간표 이름은 뺌)
+// 오늘 할 일 안의 수업 줄: 책 아이콘 · 장소 한 줄(휴강이면 '휴강 · 알람 쉼') · 체크(그날 다녀왔어요, timetable.js bx-tt-done)
+// 끝난 수업은 흐리게(past)만, 가로줄은 체크했을 때만
 const bxTtToday49 = ttTodayHtml;
-ttTodayHtml = function(){
+ttTodayHtml = function(ds){
   const h = bxTtToday49.apply(this, arguments);
   if (!window.BX_APP || !h) return h;
+  ds = ds || M.today;
   try {
     const tp = document.createElement('template'); tp.innerHTML = h;
     tp.content.querySelectorAll('.row.tt-row').forEach(row => {
-      row.classList.add('bx-r49');
-      const meta = row.querySelector('.row-meta'); if (!meta) return;
-      Array.from(meta.children).forEach(m => {
-        if (m.classList.contains('bx-off-tag')) return;
-        if (m.querySelector('svg') && !m.classList.contains('bx-rem') && !m.classList.contains('bx-tts-m')) { m.querySelectorAll('svg').forEach(s => s.remove()); m.className = 'meta bx-r49-pl'; return; }
-        m.remove();
-      });
-      if (!meta.children.length) meta.remove();
+      const main = row.querySelector('.row-main'), id = main ? main.dataset.id : '', e = id ? ttList().find(x => x.id === id) : null;
+      const off = row.classList.contains('bx-off'), past = row.classList.contains('done'), done = !!(e && e.doneOn && e.doneOn[ds]);
+      row.classList.remove('done'); if (past) row.classList.add('past'); if (done) row.classList.add('done');
+      const offTag = row.querySelector('.bx-off-tag');
+      bxRcShape(row, 'tt', off ? esc(offTag ? offTag.textContent : '휴강') : e && e.place ? esc(e.place) : '', '');
+      row.insertAdjacentHTML('beforeend', off ? '<span class="chk chk-sp" aria-hidden="true"></span>'
+        : '<button type="button" class="chk" data-act="bx-tt-done" data-id="' + esc(id) + '" data-date="' + esc(ds) + '" aria-pressed="' + done + '" aria-label="' + (done ? '다녀옴 취소: ' : '다녀왔어요: ') + esc(e ? e.name : '') + '">' + ICON.check + '</button>');
     });
     return tp.innerHTML;
   } catch (e) { return h; }
@@ -143,6 +161,8 @@ function bxEd49(){
     b.type = 'button'; b.className = 'bx-tdot'; b.dataset.bxtdot = '1';
     tin.insertAdjacentElement('afterend', b);
   }
+  // 시험판 56(일정 넣기 나): 꼭 적을 것은 제목 칸 하나. 위에 이름표, 칸은 보라 테(app.css). 날짜 · 시간 · 장소는 적은 말에서 채워진다
+  if (row && !sh.querySelector('.bx-must')) row.insertAdjacentHTML('beforebegin', '<p class="bx-must">꼭 적을 것 <em>무엇을</em></p>');
   const dot = row && row.querySelector('.bx-tdot');
   if (dot) { dot.style.setProperty('--c', bxFColor()); dot.setAttribute('aria-label', '이 일정 색 · 캘린더 ' + (bxCalName(F.categoryId) || '없음')); }
   const f = document.getElementById('sheet-f');
