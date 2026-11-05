@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 상태 표시줄 알림 아이콘: B(흰색 한 가지 색) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M7.5,4.5 L7.5,19.5 M7.5,4.5 L12.5,4.5 A3.5,3.5 0 0 1 12.5,11.5 L7.5,11.5 M7.5,11.5 L13,11.5 A4,4 0 0 1 13,19.5 L7.5,19.5"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.4" />
+</vector>

@@ -1,5 +1,5 @@
 {
- "note": "웹 기준 구현이 낸 답. 휴대폰 쪽도 같아야 한다",
+ "note": "웹 기준 구현이 낸 답. 휴대폰 쪽도 같아야 한다. helpers의 input은 vectors[이름]의 input에 now만 바꾼 것",
  "MIN": 60000,
  "vectors": [
   {
@@ -55,6 +55,9 @@
       "prepAt": 1793940600000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -138,6 +141,9 @@
       "prepAt": null,
       "leaveAt": null,
       "headsAt": null,
+      "latestLeave": null,
+      "bufferLeft": null,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -199,6 +205,9 @@
       "prepAt": null,
       "leaveAt": null,
       "headsAt": null,
+      "latestLeave": null,
+      "bufferLeft": null,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -266,6 +275,9 @@
       "prepAt": 1793940300000,
       "leaveAt": 1793943000000,
       "headsAt": 1793942400000,
+      "latestLeave": 1793943600000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -351,6 +363,9 @@
       "prepAt": 1793940900000,
       "leaveAt": 1793942700000,
       "headsAt": 1793942100000,
+      "latestLeave": 1793943300000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -425,23 +440,48 @@
       "allDay": false,
       "start": 1793944800000,
       "end": 1793948400000,
-      "out": false,
-      "outWhy": "memory",
+      "out": true,
+      "outWhy": "place",
       "suggest": false,
       "prep": 30,
       "prepWhy": "default",
       "travel": 30,
       "travelWhy": "default",
       "off": false,
-      "prepAt": null,
-      "leaveAt": null,
-      "headsAt": null,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
      }
     ],
-    "alarms": []
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793940600000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
    }
   },
   {
@@ -528,6 +568,9 @@
       "prepAt": 1793939400000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -614,9 +657,12 @@
       "travel": 30,
       "travelWhy": "default",
       "off": false,
-      "prepAt": 1793940600000,
-      "leaveAt": 1793942400000,
-      "headsAt": 1793941800000,
+      "prepAt": 1793940900000,
+      "leaveAt": 1793942700000,
+      "headsAt": 1793942100000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 5,
+      "remindAt": null,
       "snoozed": 0,
       "state": "prep",
       "tight": null
@@ -627,14 +673,14 @@
       "id": "heads:c:1:1793944800000",
       "key": "c:1:1793944800000",
       "kind": "heads",
-      "at": 1793941800000,
+      "at": 1793942100000,
       "strong": false
      },
      {
       "id": "leave:c:1:1793944800000",
       "key": "c:1:1793944800000",
       "kind": "leave",
-      "at": 1793942400000,
+      "at": 1793942700000,
       "strong": true
      }
     ]
@@ -701,9 +747,12 @@
       "travel": 30,
       "travelWhy": "default",
       "off": false,
-      "prepAt": 1793940600000,
+      "prepAt": 1793940000000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "left",
       "tight": null
@@ -776,9 +825,12 @@
       "travel": 30,
       "travelWhy": "default",
       "off": false,
-      "prepAt": 1793940900000,
-      "leaveAt": 1793942700000,
-      "headsAt": 1793942100000,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 5,
       "state": "idle",
       "tight": null
@@ -789,21 +841,21 @@
       "id": "prep:c:1:1793944800000",
       "key": "c:1:1793944800000",
       "kind": "prep",
-      "at": 1793940900000,
+      "at": 1793940600000,
       "strong": true
      },
      {
       "id": "heads:c:1:1793944800000",
       "key": "c:1:1793944800000",
       "kind": "heads",
-      "at": 1793942100000,
+      "at": 1793941800000,
       "strong": false
      },
      {
       "id": "leave:c:1:1793944800000",
       "key": "c:1:1793944800000",
       "kind": "leave",
-      "at": 1793942700000,
+      "at": 1793942400000,
       "strong": true
      }
     ]
@@ -871,6 +923,9 @@
       "prepAt": 1793933400000,
       "leaveAt": 1793935200000,
       "headsAt": 1793934600000,
+      "latestLeave": 1793935800000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -894,6 +949,9 @@
       "prepAt": 1793938800000,
       "leaveAt": 1793940600000,
       "headsAt": 1793940000000,
+      "latestLeave": 1793941200000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": {
@@ -1010,6 +1068,9 @@
       "prepAt": null,
       "leaveAt": null,
       "headsAt": null,
+      "latestLeave": null,
+      "bufferLeft": null,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1033,6 +1094,9 @@
       "prepAt": 1793940600000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1112,6 +1176,9 @@
       "prepAt": null,
       "leaveAt": null,
       "headsAt": null,
+      "latestLeave": null,
+      "bufferLeft": null,
+      "remindAt": 1793966400000,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1178,6 +1245,9 @@
       "prepAt": 1793947800000,
       "leaveAt": 1793949600000,
       "headsAt": 1793949000000,
+      "latestLeave": 1793950200000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1270,6 +1340,9 @@
       "prepAt": 1793940600000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1293,6 +1366,9 @@
       "prepAt": 1794019800000,
       "leaveAt": 1794021600000,
       "headsAt": 1794021000000,
+      "latestLeave": 1794022200000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1404,6 +1480,9 @@
       "prepAt": 1794003600000,
       "leaveAt": 1794005400000,
       "headsAt": 1794004800000,
+      "latestLeave": 1794006000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1491,6 +1570,9 @@
       "prepAt": 1793940600000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1552,6 +1634,9 @@
       "prepAt": 1793940600000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "past",
       "tight": null
@@ -1613,6 +1698,9 @@
       "prepAt": 1793940600000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1703,6 +1791,9 @@
       "prepAt": 1793940600000,
       "leaveAt": 1793942400000,
       "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1808,9 +1899,12 @@
       "travel": 30,
       "travelWhy": "default",
       "off": false,
-      "prepAt": 1793940900000,
+      "prepAt": 1793940960000,
       "leaveAt": 1793942880000,
       "headsAt": 1793942280000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 2,
+      "remindAt": null,
       "snoozed": 8,
       "state": "prep",
       "tight": null
@@ -1884,6 +1978,9 @@
       "prepAt": 1793941200000,
       "leaveAt": 1793943000000,
       "headsAt": null,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 0,
+      "remindAt": null,
       "snoozed": 0,
       "state": "idle",
       "tight": null
@@ -1905,6 +2002,993 @@
       "strong": true
      }
     ]
+   }
+  },
+  {
+   "name": "늦게 누른 미루기(13:56에 2분)",
+   "input": {
+    "now": 1793940990000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "prep",
+      "t": 1793940600000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "prep",
+      "t": 1793940780000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "prep",
+      "t": 1793940960000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "snooze",
+      "kind": "prep",
+      "n": 2,
+      "t": 1793940980000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793941100000,
+      "leaveAt": 1793942900000,
+      "headsAt": 1793942300000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 2,
+      "remindAt": null,
+      "snoozed": 2,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793941100000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793942300000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942900000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "늦게 시작 → 출발도 늦춤(최대 제시간 출발까지)",
+   "input": {
+    "now": 1793941500000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "prep",
+      "t": 1793940600000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "start",
+      "t": 1793941440000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793941440000,
+      "leaveAt": 1793943000000,
+      "headsAt": 1793942400000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 0,
+      "remindAt": null,
+      "snoozed": 0,
+      "state": "prep",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793942400000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793943000000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "출발 단계 미루기(14:26에 2분)",
+   "input": {
+    "now": 1793942790000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "c:1:1793944800000",
+      "act": "start",
+      "t": 1793940600000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "leave",
+      "t": 1793942400000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "snooze",
+      "kind": "leave",
+      "n": 2,
+      "t": 1793942760000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942880000,
+      "headsAt": 1793942280000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 2,
+      "remindAt": null,
+      "snoozed": 2,
+      "state": "prep",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942880000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "되돌린 나갔어요는 배우지 않음",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "q1",
+      "act": "start",
+      "t": 1793491200000
+     },
+     {
+      "key": "q1",
+      "act": "left",
+      "t": 1793493600000
+     },
+     {
+      "key": "q2",
+      "act": "start",
+      "t": 1793577600000
+     },
+     {
+      "key": "q2",
+      "act": "left",
+      "t": 1793580600000
+     },
+     {
+      "key": "q3",
+      "act": "start",
+      "t": 1793664000000
+     },
+     {
+      "key": "q3",
+      "act": "left",
+      "t": 1793664240000
+     },
+     {
+      "key": "q3",
+      "act": "undo",
+      "kind": "left",
+      "t": 1793664300000
+     },
+     {
+      "key": "q3",
+      "act": "left",
+      "t": 1793667300000
+     },
+     {
+      "key": "q4",
+      "act": "start",
+      "t": 1793750400000
+     },
+     {
+      "key": "q4",
+      "act": "undo",
+      "kind": "start",
+      "t": 1793750460000
+     },
+     {
+      "key": "q4",
+      "act": "left",
+      "t": 1793752200000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 50,
+      "prepWhy": "learned",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793939400000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793939400000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "장소 없는 제목에 답한 기억은 장소 있는 약속에 안 씀",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "9",
+      "begin": 1793959200000,
+      "end": 1793962800000,
+      "title": "친구랑 저녁",
+      "location": "홍대입구역 9번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {
+     "친구랑저녁": false
+    },
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:9:1793959200000",
+      "src": "cal",
+      "title": "친구랑 저녁",
+      "place": "홍대입구역 9번 출구",
+      "allDay": false,
+      "start": 1793959200000,
+      "end": 1793962800000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793955000000,
+      "leaveAt": 1793956800000,
+      "headsAt": 1793956200000,
+      "latestLeave": 1793957400000,
+      "bufferLeft": 10,
+      "remindAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:9:1793959200000",
+      "key": "c:9:1793959200000",
+      "kind": "prep",
+      "at": 1793955000000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:9:1793959200000",
+      "key": "c:9:1793959200000",
+      "kind": "heads",
+      "at": 1793956200000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:9:1793959200000",
+      "key": "c:9:1793959200000",
+      "kind": "leave",
+      "at": 1793956800000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "집은 나가는 약속 아님",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "10",
+      "begin": 1793955600000,
+      "end": 1793959200000,
+      "title": "가족 저녁",
+      "location": "집",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:10:1793955600000",
+      "src": "cal",
+      "title": "가족 저녁",
+      "place": "집",
+      "allDay": false,
+      "start": 1793955600000,
+      "end": 1793959200000,
+      "out": false,
+      "outWhy": "none",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": null,
+      "leaveAt": null,
+      "headsAt": null,
+      "latestLeave": null,
+      "bufferLeft": null,
+      "remindAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": []
+   }
+  },
+  {
+   "name": "긴 일정(출근) 안의 약속은 빠듯함 아님",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "11",
+      "begin": 1793923200000,
+      "end": 1793955600000,
+      "title": "출근",
+      "location": "회사",
+      "allDay": false,
+      "calName": "내 캘린더"
+     },
+     {
+      "id": "12",
+      "begin": 1793937600000,
+      "end": 1793941200000,
+      "title": "점심 약속",
+      "location": "홍대입구역",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:11:1793923200000",
+      "src": "cal",
+      "title": "출근",
+      "place": "회사",
+      "allDay": false,
+      "start": 1793923200000,
+      "end": 1793955600000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793919000000,
+      "leaveAt": 1793920800000,
+      "headsAt": 1793920200000,
+      "latestLeave": 1793921400000,
+      "bufferLeft": 10,
+      "remindAt": null,
+      "snoozed": 0,
+      "state": "past",
+      "tight": null
+     },
+     {
+      "key": "c:12:1793937600000",
+      "src": "cal",
+      "title": "점심 약속",
+      "place": "홍대입구역",
+      "allDay": false,
+      "start": 1793937600000,
+      "end": 1793941200000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793933400000,
+      "leaveAt": 1793935200000,
+      "headsAt": 1793934600000,
+      "latestLeave": 1793935800000,
+      "bufferLeft": 10,
+      "remindAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:12:1793937600000",
+      "key": "c:12:1793937600000",
+      "kind": "prep",
+      "at": 1793933400000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:12:1793937600000",
+      "key": "c:12:1793937600000",
+      "kind": "heads",
+      "at": 1793934600000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:12:1793937600000",
+      "key": "c:12:1793937600000",
+      "kind": "leave",
+      "at": 1793935200000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "이 앱 알림만 있는 날은 아침 요약 없음",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [],
+    "items": [
+     {
+      "id": "x3",
+      "title": "약 먹기",
+      "at": 1794052800000
+     }
+    ],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "o:x3",
+      "src": "own",
+      "title": "약 먹기",
+      "place": "",
+      "allDay": false,
+      "start": 1794052800000,
+      "end": null,
+      "out": false,
+      "outWhy": "none",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": null,
+      "leaveAt": null,
+      "headsAt": null,
+      "latestLeave": null,
+      "bufferLeft": null,
+      "remindAt": 1794052800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "remind:o:x3",
+      "key": "o:x3",
+      "kind": "remind",
+      "at": 1794052800000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "시작 시각 없는 일정은 뺌",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     },
+     {
+      "id": "13",
+      "begin": null,
+      "end": null,
+      "title": "이상한 일정",
+      "location": "어딘가",
+      "allDay": false
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "latestLeave": 1793943000000,
+      "bufferLeft": 10,
+      "remindAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793940600000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
+   }
+  }
+ ],
+ "helpers": [
+  {
+   "vector": "기본: 장소 있는 약속",
+   "index": 0,
+   "now": 1793940600000,
+   "stage": "prep",
+   "expect": {
+    "slack": 10,
+    "snoozeLeft": 5,
+    "departAt": 1793942400000,
+    "eta": 1793944200000,
+    "lateBy": 0,
+    "text": "14:20에 출발해서 14:50쯤 도착해요."
+   }
+  },
+  {
+   "vector": "기본: 장소 있는 약속",
+   "index": 0,
+   "now": 1793940960000,
+   "stage": "prep",
+   "expect": {
+    "slack": 4,
+    "snoozeLeft": 2,
+    "departAt": 1793942760000,
+    "eta": 1793944560000,
+    "lateBy": 0,
+    "text": "14:26에 출발해서 14:56쯤 도착해요."
+   }
+  },
+  {
+   "vector": "기본: 장소 있는 약속",
+   "index": 0,
+   "now": 1793941500000,
+   "stage": "prep",
+   "expect": {
+    "slack": -5,
+    "snoozeLeft": 0,
+    "departAt": 1793943300000,
+    "eta": 1793945100000,
+    "lateBy": 5,
+    "text": "미안해요, 5분쯤 늦을 것 같아요. 15:05쯤 도착해요."
+   }
+  },
+  {
+   "vector": "기본: 장소 있는 약속",
+   "index": 0,
+   "now": 1793942520000,
+   "stage": "leave",
+   "expect": {
+    "slack": 8,
+    "snoozeLeft": 4,
+    "departAt": 1793942520000,
+    "eta": 1793944320000,
+    "lateBy": 0,
+    "text": "지금 출발해요. 14:52쯤 도착해요."
+   }
+  },
+  {
+   "vector": "기본: 장소 있는 약속",
+   "index": 0,
+   "now": 1793943180000,
+   "stage": "leave",
+   "expect": {
+    "slack": -3,
+    "snoozeLeft": 0,
+    "departAt": 1793943180000,
+    "eta": 1793944980000,
+    "lateBy": 5,
+    "text": "미안해요, 5분쯤 늦을 것 같아요. 15:05쯤 도착해요."
+   }
+  },
+  {
+   "vector": "기본: 장소 있는 약속",
+   "index": 0,
+   "now": 1793941200000,
+   "stage": "leave",
+   "expect": {
+    "slack": 30,
+    "snoozeLeft": 15,
+    "departAt": 1793942400000,
+    "eta": 1793944200000,
+    "lateBy": 0,
+    "text": "14:20에 출발해서 14:50쯤 도착해요."
+   }
+  },
+  {
+   "vector": "준비 중",
+   "index": 0,
+   "now": 1793941200000,
+   "stage": "leave",
+   "expect": {
+    "slack": 30,
+    "snoozeLeft": 15,
+    "departAt": 1793942700000,
+    "eta": 1793944500000,
+    "lateBy": 0,
+    "text": "14:25에 출발해서 14:55쯤 도착해요."
+   }
+  },
+  {
+   "vector": "늦게 시작 → 출발도 늦춤(최대 제시간 출발까지)",
+   "index": 0,
+   "now": 1793941500000,
+   "stage": "leave",
+   "expect": {
+    "slack": 25,
+    "snoozeLeft": 13,
+    "departAt": 1793943000000,
+    "eta": 1793944800000,
+    "lateBy": 0,
+    "text": "14:30에 출발해서 15:00쯤 도착해요."
    }
   }
  ]

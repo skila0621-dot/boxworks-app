@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 알람 화면(늘 어두운 바탕) -->
+    <color name="b_bg">#0F1115</color>
+    <color name="b_text">#ECEEF2</color>
+    <color name="b_muted">#9AA1AD</color>
+    <color name="b_accent">#7C9BFF</color>
+    <color name="b_line">#3A4150</color>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 7(적응형 아이콘 이전)용: 동그라미 바탕 + B -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#0F1115"
+        android:pathData="M24,3 A21,21 0 1 1 24,45 A21,21 0 1 1 24,3 Z" />
+    <group
+        android:scaleX="0.62"
+        android:scaleY="0.62"
+        android:translateX="-9.48"
+        android:translateY="-9.48">
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M38,32 L38,76 M38,32 L55,32 A10,10 0 0 1 55,52 L38,52 M38,52 L57,52 A12,12 0 0 1 57,76 L38,76"
+            android:strokeColor="#ECEEF2"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="7" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M52.5,64 L52.5,58.5 M52.5,64 L57,64"
+            android:strokeColor="#7C9BFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="3.2" />
+    </group>
+</vector>

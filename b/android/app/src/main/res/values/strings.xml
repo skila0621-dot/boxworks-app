@@ -4,4 +4,6 @@
     <string name="title_activity_main">B 스케줄러</string>
     <string name="package_name">kr.boxworks.b</string>
     <string name="custom_url_scheme">kr.boxworks.b</string>
+    <!-- 다른 앱의 공유 창에 보이는 이름 -->
+    <string name="b_share_label">약속으로 넣기</string>
 </resources>
