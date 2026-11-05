@@ -1,0 +1,102 @@
+name: B 스케줄러 시험판 만들기
+
+# B 스케줄러(b/)가 바뀔 때만 돈다. A(저장소 맨 위)는 android.yml이 따로 만든다
+on:
+  push:
+    branches: [main]
+    paths: ['b/**', '.github/workflows/b.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: b/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: 웹 파일 준비
+        run: |
+          npm ci
+          npm run sync
+
+      # 계획 계산(시험표) · 한 문장 해석 · 화면 흐름. 하나라도 틀리면 설치 파일을 만들지 않는다
+      - name: 자동 시험
+        run: |
+          npm i --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+          set -o pipefail
+          node tests/run.mjs --ui 2>&1 | tee "$GITHUB_WORKSPACE/b-test.log"
+
+      # 정렬 점검(대표 상시 규칙 11/4 22:59): 모든 화면을 360 · 384 · 412 × 라이트 · 다크 × 오전·오후 · 24시간으로
+      - name: 정렬 점검
+        run: |
+          set -o pipefail
+          node tests/gate.cjs 2>&1 | tee "$GITHUB_WORKSPACE/b-gate.log"
+
+      # 휴대폰 쪽 계획 계산이 웹 기준 구현과 같은 답을 내는지(vectors/planner.json)
+      - name: 휴대폰 쪽 시험
+        working-directory: b/android
+        run: |
+          chmod +x gradlew
+          set -o pipefail
+          ./gradlew testDebugUnitTest --no-daemon 2>&1 | tee "$GITHUB_WORKSPACE/b-unit.log"
+
+      - name: 설치 파일(APK) 만들기
+        working-directory: b/android
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon 2>&1 | tee "$GITHUB_WORKSPACE/b-build.log"
+
+      - name: 파일 이름 정리
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/b-scheduler-test-${{ github.run_number }}.apk"
+
+      - name: 시험판 번호 읽기
+        id: ver
+        run: echo "trial=$(grep -oP 'export const TRIAL = \K[0-9]+' web/js/version.js)" >> "$GITHUB_OUTPUT"
+
+      - name: 휴대폰에서 받을 수 있게 올리기
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: b-test-${{ github.run_number }}
+          name: B 스케줄러 B-${{ steps.ver.outputs.trial }} (빌드 ${{ github.run_number }})
+          prerelease: true
+          files: b-scheduler-test-${{ github.run_number }}.apk
+          body: |
+            B 스케줄러 시험판 B-${{ steps.ver.outputs.trial }}입니다. A 스케줄러와 따로 깔려요(앱 이름 'B 스케줄러').
+            휴대폰에서 아래 apk 파일을 눌러 받은 뒤 설치하세요. 빌드 ${{ github.run_number }} · 커밋: ${{ github.sha }}
+
+      # 결과(성공 · 실패, 오류 내용, 설치 파일)를 git으로도 받을 수 있게 남긴다
+      - name: 결과를 ci-results-b 브랜치에 남기기
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p /tmp/ci && cd /tmp/ci
+          git init -q -b ci-results-b
+          echo "run=${{ github.run_number }} sha=${{ github.sha }} result=${{ job.status }}" > status.txt
+          for f in b-test.log b-gate.log b-unit.log; do cp "$GITHUB_WORKSPACE/$f" . 2>/dev/null || true; done
+          if [ -f "$GITHUB_WORKSPACE/b-unit.log" ]; then grep -E "FAILED|error:|What went wrong|Exception" -A8 "$GITHUB_WORKSPACE/b-unit.log" | head -200 > unit-errors.txt || true; fi
+          if [ -f "$GITHUB_WORKSPACE/b-build.log" ]; then grep -E "error:|e: |FAILURE|What went wrong|BUILD (SUCCESSFUL|FAILED)" -A6 "$GITHUB_WORKSPACE/b-build.log" | head -300 > errors.txt || true; tail -80 "$GITHUB_WORKSPACE/b-build.log" > build-tail.txt; fi
+          cp "$GITHUB_WORKSPACE"/b-scheduler-test-*.apk . 2>/dev/null || true
+          git add -A
+          git -c user.name="ci" -c user.email="ci@users.noreply.github.com" commit -qm "run ${{ github.run_number }}: ${{ job.status }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-results-b

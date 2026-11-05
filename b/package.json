@@ -1,0 +1,21 @@
+{
+  "name": "b-scheduler",
+  "version": "0.1.0",
+  "private": true,
+  "description": "B 스케줄러 — 약속 시간 말고 준비 시작 시간을 알려 주는 안드로이드 앱(비교 시험용)",
+  "scripts": {
+    "build:web": "node scripts/build-web.mjs",
+    "sync": "node scripts/build-web.mjs && npx cap sync android",
+    "test": "node tests/run.mjs",
+    "gate": "node tests/gate.cjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0"
+  },
+  "type": "module"
+}

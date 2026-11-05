@@ -3,6 +3,8 @@ name: 안드로이드 시험판 만들기
 on:
   push:
     branches: [main]
+    # B 스케줄러(b/)만 바뀐 것으로는 A를 다시 만들지 않는다(11/6 A 멈춤 · B 비교 시험)
+    paths-ignore: ['b/**', '.github/workflows/b.yml']
   workflow_dispatch:
 
 permissions:

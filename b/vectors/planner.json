@@ -1,0 +1,1911 @@
+{
+ "note": "웹 기준 구현이 낸 답. 휴대폰 쪽도 같아야 한다",
+ "MIN": 60000,
+ "vectors": [
+  {
+   "name": "기본: 장소 있는 약속",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793940600000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "제목 낱말만: 묻기만 함",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "2",
+      "begin": 1793959200000,
+      "end": 1793962800000,
+      "title": "친구랑 저녁",
+      "location": "",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:2:1793959200000",
+      "src": "cal",
+      "title": "친구랑 저녁",
+      "place": "",
+      "allDay": false,
+      "start": 1793959200000,
+      "end": 1793962800000,
+      "out": false,
+      "outWhy": "word",
+      "suggest": true,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": null,
+      "leaveAt": null,
+      "headsAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": []
+   }
+  },
+  {
+   "name": "온라인 장소는 나가지 않음",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "3",
+      "begin": 1793930400000,
+      "end": 1793934000000,
+      "title": "팀 회의",
+      "location": "Zoom https://zoom.us/j/1",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:3:1793930400000",
+      "src": "cal",
+      "title": "팀 회의",
+      "place": "Zoom https://zoom.us/j/1",
+      "allDay": false,
+      "start": 1793930400000,
+      "end": 1793934000000,
+      "out": false,
+      "outWhy": "none",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": null,
+      "leaveAt": null,
+      "headsAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": []
+   }
+  },
+  {
+   "name": "내가 정한 값",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {
+     "c:1:1793944800000": {
+      "out": true,
+      "prep": 45,
+      "travel": 20
+     }
+    },
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "user",
+      "suggest": false,
+      "prep": 45,
+      "prepWhy": "user",
+      "travel": 20,
+      "travelWhy": "user",
+      "off": false,
+      "prepAt": 1793940300000,
+      "leaveAt": 1793943000000,
+      "headsAt": 1793942400000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793940300000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793942400000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793943000000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "장소별 이동 시간 기억",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {
+     "강남역 3번 출구": 25
+    },
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 25,
+      "travelWhy": "place",
+      "off": false,
+      "prepAt": 1793940900000,
+      "leaveAt": 1793942700000,
+      "headsAt": 1793942100000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793940900000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793942100000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942700000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "같은 제목에 전에 정한 것",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {
+     "치과": false
+    },
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": false,
+      "outWhy": "memory",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": null,
+      "leaveAt": null,
+      "headsAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": []
+   }
+  },
+  {
+   "name": "실제 준비 시간 배우기(3번)",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "p1",
+      "act": "start",
+      "t": 1793491200000
+     },
+     {
+      "key": "p1",
+      "act": "left",
+      "t": 1793493720000
+     },
+     {
+      "key": "p2",
+      "act": "start",
+      "t": 1793577600000
+     },
+     {
+      "key": "p2",
+      "act": "left",
+      "t": 1793580600000
+     },
+     {
+      "key": "p3",
+      "act": "start",
+      "t": 1793664000000
+     },
+     {
+      "key": "p3",
+      "act": "left",
+      "t": 1793666820000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 50,
+      "prepWhy": "learned",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793939400000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793939400000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "준비 중",
+   "input": {
+    "now": 1793941200000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "c:1:1793944800000",
+      "act": "start",
+      "t": 1793940900000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "prep",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "나감",
+   "input": {
+    "now": 1793943000000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "c:1:1793944800000",
+      "act": "start",
+      "t": 1793940000000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "left",
+      "t": 1793942700000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "left",
+      "tight": null
+     }
+    ],
+    "alarms": []
+   }
+  },
+  {
+   "name": "준비 시작을 5분 미룸",
+   "input": {
+    "now": 1793940060000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "prep",
+      "t": 1793940000000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "snooze",
+      "kind": "prep",
+      "n": 5,
+      "t": 1793940000000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940900000,
+      "leaveAt": 1793942700000,
+      "headsAt": 1793942100000,
+      "snoozed": 5,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793940900000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793942100000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942700000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "빠듯함",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "4",
+      "begin": 1793937600000,
+      "end": 1793941200000,
+      "title": "점심 약속",
+      "location": "홍대입구역",
+      "allDay": false,
+      "calName": "내 캘린더"
+     },
+     {
+      "id": "5",
+      "begin": 1793943000000,
+      "end": 1793946600000,
+      "title": "미팅",
+      "location": "강남역",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:4:1793937600000",
+      "src": "cal",
+      "title": "점심 약속",
+      "place": "홍대입구역",
+      "allDay": false,
+      "start": 1793937600000,
+      "end": 1793941200000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793933400000,
+      "leaveAt": 1793935200000,
+      "headsAt": 1793934600000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     },
+     {
+      "key": "c:5:1793943000000",
+      "src": "cal",
+      "title": "미팅",
+      "place": "강남역",
+      "allDay": false,
+      "start": 1793943000000,
+      "end": 1793946600000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793938800000,
+      "leaveAt": 1793940600000,
+      "headsAt": 1793940000000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": {
+       "key": "c:4:1793937600000",
+       "minutes": 40
+      }
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:4:1793937600000",
+      "key": "c:4:1793937600000",
+      "kind": "prep",
+      "at": 1793933400000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:4:1793937600000",
+      "key": "c:4:1793937600000",
+      "kind": "heads",
+      "at": 1793934600000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:4:1793937600000",
+      "key": "c:4:1793937600000",
+      "kind": "leave",
+      "at": 1793935200000,
+      "strong": true
+     },
+     {
+      "id": "prep:c:5:1793943000000",
+      "key": "c:5:1793943000000",
+      "kind": "prep",
+      "at": 1793938800000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:5:1793943000000",
+      "key": "c:5:1793943000000",
+      "kind": "heads",
+      "at": 1793940000000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:5:1793943000000",
+      "key": "c:5:1793943000000",
+      "kind": "leave",
+      "at": 1793940600000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "종일 일정은 맨 위 · 알람 없음",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     },
+     {
+      "id": "6",
+      "begin": 1793890800000,
+      "end": 1793977200000,
+      "title": "엄마 생신",
+      "location": "",
+      "allDay": true,
+      "calName": "가족"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:6:1793890800000",
+      "src": "cal",
+      "title": "엄마 생신",
+      "place": "",
+      "allDay": true,
+      "start": 1793890800000,
+      "end": 1793977200000,
+      "out": false,
+      "outWhy": "allday",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": null,
+      "leaveAt": null,
+      "headsAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     },
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793940600000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "이 앱에만 넣은 알림",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [],
+    "items": [
+     {
+      "id": "x1",
+      "title": "약 먹기",
+      "at": 1793966400000
+     }
+    ],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "o:x1",
+      "src": "own",
+      "title": "약 먹기",
+      "place": "",
+      "allDay": false,
+      "start": 1793966400000,
+      "end": null,
+      "out": false,
+      "outWhy": "none",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": null,
+      "leaveAt": null,
+      "headsAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "remind:o:x1",
+      "key": "o:x1",
+      "kind": "remind",
+      "at": 1793966400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "이 앱에만 넣은 나가는 약속",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [],
+    "items": [
+     {
+      "id": "x2",
+      "title": "택배 맡기기",
+      "at": 1793952000000,
+      "out": true
+     }
+    ],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "o:x2",
+      "src": "own",
+      "title": "택배 맡기기",
+      "place": "",
+      "allDay": false,
+      "start": 1793952000000,
+      "end": null,
+      "out": true,
+      "outWhy": "user",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793947800000,
+      "leaveAt": 1793949600000,
+      "headsAt": 1793949000000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:o:x2",
+      "key": "o:x2",
+      "kind": "prep",
+      "at": 1793947800000,
+      "strong": true
+     },
+     {
+      "id": "heads:o:x2",
+      "key": "o:x2",
+      "kind": "heads",
+      "at": 1793949000000,
+      "strong": false
+     },
+     {
+      "id": "leave:o:x2",
+      "key": "o:x2",
+      "kind": "leave",
+      "at": 1793949600000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "아침 요약: 내일만(오늘 8시는 지남)",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     },
+     {
+      "id": "7",
+      "begin": 1794024000000,
+      "end": 1794031200000,
+      "title": "영화",
+      "location": "용산 CGV",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     },
+     {
+      "key": "c:7:1794024000000",
+      "src": "cal",
+      "title": "영화",
+      "place": "용산 CGV",
+      "allDay": false,
+      "start": 1794024000000,
+      "end": 1794031200000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1794019800000,
+      "leaveAt": 1794021600000,
+      "headsAt": 1794021000000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793940600000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     },
+     {
+      "id": "morning:2026-11-07",
+      "key": "day:2026-11-07",
+      "kind": "morning",
+      "at": 1794006000000,
+      "strong": false
+     },
+     {
+      "id": "prep:c:7:1794024000000",
+      "key": "c:7:1794024000000",
+      "kind": "prep",
+      "at": 1794019800000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:7:1794024000000",
+      "key": "c:7:1794024000000",
+      "kind": "heads",
+      "at": 1794021000000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:7:1794024000000",
+      "key": "c:7:1794024000000",
+      "kind": "leave",
+      "at": 1794021600000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "아침 요약 건너뜀: 첫 준비 시작이 더 이름",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "8",
+      "begin": 1794007800000,
+      "end": 1794042000000,
+      "title": "출근",
+      "location": "회사",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:8:1794007800000",
+      "src": "cal",
+      "title": "출근",
+      "place": "회사",
+      "allDay": false,
+      "start": 1794007800000,
+      "end": 1794042000000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1794003600000,
+      "leaveAt": 1794005400000,
+      "headsAt": 1794004800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:8:1794007800000",
+      "key": "c:8:1794007800000",
+      "kind": "prep",
+      "at": 1794003600000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:8:1794007800000",
+      "key": "c:8:1794007800000",
+      "kind": "heads",
+      "at": 1794004800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:8:1794007800000",
+      "key": "c:8:1794007800000",
+      "kind": "leave",
+      "at": 1794005400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "알람 끈 약속",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {
+     "c:1:1793944800000": {
+      "off": true
+     }
+    },
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": true,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": []
+   }
+  },
+  {
+   "name": "이미 시작한 약속",
+   "input": {
+    "now": 1793945400000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "past",
+      "tight": null
+     }
+    ],
+    "alarms": []
+   }
+  },
+  {
+   "name": "준비 시작이 지났는데 안 울림 → 곧바로",
+   "input": {
+    "now": 1793941200000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793941205000,
+      "strong": true
+     },
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "준비 시작이 지났고 울렸음 → 출발만",
+   "input": {
+    "now": 1793941200000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "prep",
+      "t": 1793940600000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940600000,
+      "leaveAt": 1793942400000,
+      "headsAt": 1793941800000,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "heads:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "heads",
+      "at": 1793941800000,
+      "strong": false
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942400000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "출발을 3분 미룸(앞서 준비 5분)",
+   "input": {
+    "now": 1793942760000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {},
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": [
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "prep",
+      "t": 1793940600000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "snooze",
+      "kind": "prep",
+      "n": 5,
+      "t": 1793940600000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "start",
+      "t": 1793940960000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "rang",
+      "kind": "leave",
+      "t": 1793942700000
+     },
+     {
+      "key": "c:1:1793944800000",
+      "act": "snooze",
+      "kind": "leave",
+      "n": 3,
+      "t": 1793942700000
+     }
+    ]
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793940900000,
+      "leaveAt": 1793942880000,
+      "headsAt": 1793942280000,
+      "snoozed": 8,
+      "state": "prep",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793942880000,
+      "strong": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "설정: 여유 0 · 미리 알림 끔 · 아침 요약 끔",
+   "input": {
+    "now": 1793926800000,
+    "days": [
+     {
+      "ymd": "2026-11-06",
+      "midnight": 1793890800000
+     },
+     {
+      "ymd": "2026-11-07",
+      "midnight": 1793977200000
+     }
+    ],
+    "events": [
+     {
+      "id": "1",
+      "begin": 1793944800000,
+      "end": 1793948400000,
+      "title": "치과",
+      "location": "강남역 3번 출구",
+      "allDay": false,
+      "calName": "내 캘린더"
+     }
+    ],
+    "items": [],
+    "settings": {
+     "buffer": 0,
+     "heads": 0,
+     "morningOn": false
+    },
+    "overrides": {},
+    "places": {},
+    "kw": {},
+    "log": []
+   },
+   "expect": {
+    "entries": [
+     {
+      "key": "c:1:1793944800000",
+      "src": "cal",
+      "title": "치과",
+      "place": "강남역 3번 출구",
+      "allDay": false,
+      "start": 1793944800000,
+      "end": 1793948400000,
+      "out": true,
+      "outWhy": "place",
+      "suggest": false,
+      "prep": 30,
+      "prepWhy": "default",
+      "travel": 30,
+      "travelWhy": "default",
+      "off": false,
+      "prepAt": 1793941200000,
+      "leaveAt": 1793943000000,
+      "headsAt": null,
+      "snoozed": 0,
+      "state": "idle",
+      "tight": null
+     }
+    ],
+    "alarms": [
+     {
+      "id": "prep:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "prep",
+      "at": 1793941200000,
+      "strong": true
+     },
+     {
+      "id": "leave:c:1:1793944800000",
+      "key": "c:1:1793944800000",
+      "kind": "leave",
+      "at": 1793943000000,
+      "strong": true
+     }
+    ]
+   }
+  }
+ ]
+}
