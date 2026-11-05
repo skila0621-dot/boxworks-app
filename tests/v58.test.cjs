@@ -1,6 +1,6 @@
 // 시험판 58(대표 11/4 22:20 · 22:25 · 22:40 · 22:46 ②)
 // (1) 설정 › 화면 › 시각 표시: 오전 · 오후(기본) | 24시간 — 앱 · 알림 글 · 위젯 자료 · 휴대폰 알람(h24)이 같이 바뀐다
-// (2) 시간 미지정 일정: '오늘 할 일' 아래 따로 상자(시각 칸 없이), 안 한 것이 먼저
+// (2) 시간 미지정 일정: '오늘 할 일' 아래 따로 상자, 안 한 것이 먼저(시험판 59부터 시각 칸에 '시간 미지정')
 // (3) 캘린더 칩을 길게 누르면 색 바꾸기 · 이 캘린더 빼기(휴대폰 캘린더도). 뺀 캘린더는 캘린더 목록 맨 아래에서 다시 넣기
 // (4) 버그: 휴대폰 캘린더 앱에서 끈 캘린더 · 고르기에서 뺀 캘린더의 일정이 계속 보이던 것
 // (5) '머리 말리기' 아이콘, 시간 페이지 '소요 시간' 글자가 '시간' 글자와 같은 줄
@@ -46,13 +46,15 @@ module.exports = async function () {
       const tm = rows[0] && rows[0].querySelector('.row-time');
       return { after: !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING), beforeMemo: !m || !!(b.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING),
         head: b.querySelector('.bx-ut-h h2').textContent.trim() + ' ' + b.querySelector('.bx-ut-h .n').textContent.trim(), rows: rows.map(r => [r.querySelector('.row-title').textContent.trim(), r.classList.contains('done')]),
-        main, timeShown: tm ? getComputedStyle(tm).display !== 'none' : null, titleX: rows[0] && Math.round(rows[0].querySelector('.row-title').getBoundingClientRect().left - rows[0].querySelector('.rc-ic').getBoundingClientRect().right) };
+        main, timeShown: tm ? getComputedStyle(tm).display !== 'none' : null, tmText: tm ? tm.textContent.trim() : null,
+        titleX: rows[0] && Math.round(rows[0].querySelector('.row-title').getBoundingClientRect().left), mainX: Math.round((Array.from(a.querySelectorAll('.row.rowc .row-title')).find(e => e.getBoundingClientRect().width > 0) || a).getBoundingClientRect().left) };
     });
     c.ok(ut && ut.after && ut.beforeMemo, "시간 미지정 상자는 '오늘 할 일' 아래 · 오늘의 메모 위 " + JSON.stringify(ut && [ut.after, ut.beforeMemo]));
     c.eq(ut && ut.head, '시간 미지정 일정 2', '상자 제목과 개수');
     c.eq(ut && ut.rows, [['택배 보내기', false], ['원두주문', true]], '안 한 것이 먼저, 한 것은 아래(가로줄 + 흐리게)');
     c.ok(ut && !ut.main.includes('택배 보내기') && !ut.main.includes('원두주문') && ut.main.includes('부산 출장'), "'오늘 할 일'에는 시각 없는 하루 일정이 없고, 여러 날 일정은 그대로 " + JSON.stringify(ut && ut.main));
-    c.ok(ut && ut.timeShown === false && ut.titleX === 12, '상자 줄은 시각 칸 없이 [종류 아이콘 | 이름 | 체크] ' + JSON.stringify(ut && [ut.timeShown, ut.titleX]));
+    // 시험판 59(대표 11/5 20:28): 상자 줄도 다른 상자와 같은 칸 [종류 아이콘 | 시각 칸 '시간 미지정' | 이름 | 체크]
+    c.ok(ut && ut.timeShown === true && ut.tmText === '시간 미지정' && ut.titleX === ut.mainX, "상자 줄은 [종류 아이콘 | '시간 미지정' | 이름 | 체크], 이름이 '오늘 할 일' 줄과 같은 자리 " + JSON.stringify(ut && [ut.timeShown, ut.tmText, ut.titleX, ut.mainX]));
     await p.click('#tcard-ut .row .chk[data-id="it_u2"]'); await p.waitForTimeout(600);
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#tcard-ut .bx-ut-list > .row')).map(r => r.classList.contains('done'))), [true, true], '상자에서 체크하면 완료');
     await p.click('#tcard-ut .row .chk[data-id="it_u2"]'); await p.waitForTimeout(500);

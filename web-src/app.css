@@ -151,15 +151,17 @@ html.bx-app :where(.tog[aria-checked="true"] i){transform:translateX(20px)}
    만드는 곳: v49.js(일정 · 수업) · home.js(루틴). 둘째 줄 색: 출발 · 진행 중 · 남은 시간은 보라, 지남 · 확인할 약은 주황 글자 */
 html.bx-app :where(.row.rowc){gap:12px}
 html.bx-app :where(.row.rowc > .row-main){display:grid;grid-template-columns:24px var(--row-tw) minmax(0,1fr);column-gap:12px;align-items:start;align-self:stretch;align-content:center}
-/* 시간 미지정 일정 상자(시험판 58): 이 목록은 시각 칸 없이 [종류 아이콘 | 이름 + 둘째 줄 | 체크] */
-html.bx-app :where(.bx-ut-list .row.rowc > .row-main){grid-template-columns:24px minmax(0,1fr)}
-html.bx-app :where(.bx-ut-list .row.rowc .row-time){display:none}
 html.bx-app :where(.row.rowc .rc-ic){display:flex;align-items:center;justify-content:center;width:24px;height:22px;color:var(--ink-2)}
 html.bx-app :where(.row.rowc .rc-ic) svg.i{width:21px;height:21px}
 html.bx-app :where(.row.rowc .row-time){width:auto;min-width:0}
 html.bx-app :where(.row.rowc .row-time b){font-size:16px;font-weight:700;color:var(--ink)}
 html.bx-app :where(.row.rowc .row-time small){font-size:13px;font-weight:500;color:var(--ink-2)}
 html.bx-app :where(.row.rowc .row-time b.allday){font-size:16px;font-weight:700;color:var(--ink)}
+/* 시간 미지정 일정 상자(시험판 59, 대표 11/5 20:28 '아이콘 · 시간 미지정 · 일정 내용으로 규정을 맞춰'): 다른 목록 줄 C와 같은 칸.
+   시각 칸에 '시간 미지정'(13 · 둘째 줄 글자와 같은 굵기). 24시간 칸(56)에서는 '시간 / 미지정' 두 줄 */
+html.bx-app :where(.row.rowc .row-time b.bx-utl){color:var(--ink-2);word-break:keep-all}
+/* └ 웹 원본 '.row-time b'(16 · 800)보다 먼저 서게 :where 없이. 색은 위(끝낸 줄은 흐리게 그대로 따라감) */
+.bx-app .row.rowc .row-time b.bx-utl{font-size:13px;font-weight:500}
 html.bx-app :where(.row.rowc .row-title){font-size:16px;font-weight:500}
 html.bx-app :where(.row.rowc .row-meta){display:flex;flex-wrap:nowrap;align-items:center;gap:6px;min-width:0;overflow:hidden}
 html.bx-app :where(.row.rowc .rc-sub){display:block;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--ink-2)}
@@ -1799,7 +1801,8 @@ html.bx-app .bx-tt-ap{font-size:11.5px;font-weight:500;color:var(--ink-3);line-h
 .bx-app .tt-line span small{position:absolute;right:0;bottom:100%;font-size:11.5px;line-height:1.1;white-space:nowrap}
 /* 줄의 시각 칸: '오후 12:30'(16px 굵게 75px)이 한 줄에 들어가게 넓힌다. 루틴 카드의 단계 · 안내 줄도 같은 만큼 오른쪽으로(아이콘 24 + 14 + 시각 76 + 14) */
 .bx-app .row-time{width:var(--row-tw)}
-.row-time b,.row-time small{white-space:nowrap}
+/* 시각은 한 줄로. '시간 미지정'(시험판 59)은 24시간 칸(56)에서 '시간 / 미지정' 두 줄로 */
+.row-time b:not(.bx-utl),.row-time small{white-space:nowrap}
 /* 메모 줄 왼쪽 시각: '오후 12:30'(13px 굵게 61px)이 들어가고 줄마다 글이 같은 곳에서 시작하게 */
 .bx-app .bx-mm-row > .bx-mm-t{min-width:62px;white-space:nowrap}
 /* 출발 칸: '오후 2:40'이 칸을 넓히지 않게 한 단계 작게 */

@@ -218,6 +218,27 @@ module.exports = function audit(opts){
       }
     }
   }
+  // colx: 한 화면에서 상자가 달라도 목록 줄 C(.row.rowc)는 시각 칸 · 이름 칸이 같은 자리(대표 11/5 20:28 '시간 미지정 상자도 아이콘 · 시간 미지정 · 일정 내용으로')
+  //   같은 폭의 줄끼리(창 안 · 화면 따로) 이름 칸 시작이 2 넘게 다르거나, 한쪽만 시각 칸이 없으면 걸린다
+  {
+    const grp = {};
+    document.querySelectorAll('.row.rowc').forEach(row => {
+      if (!vis(row) || row.closest('[aria-hidden="true"]')) return;
+      const main = row.querySelector(':scope > .row-main') || row, rb = main.getBoundingClientRect();
+      const key = (row.closest('#sheet-root') ? 's' : 'm') + Math.round(rb.left) + '|' + Math.round(rb.width);
+      // 칸이 있는지는 화면 밖으로 잘린 것과 상관없이 본다(위 · 아래 끝에 걸친 줄의 시각 칸이 화면 밖이어도 '있음')
+      const shown = e => { if (!e) return false; const q = cs(e), r = e.getBoundingClientRect(); return r.width > 0.5 && q.display !== 'none' && q.visibility !== 'hidden'; };
+      const tm = row.querySelector('.row-time'), bd = row.querySelector('.row-body');
+      (grp[key] = grp[key] || []).push({row, t: shown(tm) ? tm.getBoundingClientRect().left : null, b: shown(bd) ? bd.getBoundingClientRect().left : null});
+    });
+    for (const g of Object.values(grp)) {
+      const lists = Array.from(new Set(g.map(x => x.row.parentElement)));
+      if (g.length < 2 || lists.length < 2) continue;
+      const bs = g.map(x => x.b).filter(v => v != null), db = bs.length >= 2 ? Math.max(...bs) - Math.min(...bs) : 0;
+      const noT = g.some(x => x.t == null) && g.some(x => x.t != null);
+      if (db > 2 || noT) out.push({k: 'colx', p: lists.slice(0, 2).map(l => path(l)).join(' ↔ '), t: g.slice(0, 4).map(x => txt(x.row)).map(s => s.slice(0, 10)).join(' | '), db: Math.round(db), noT});
+    }
+  }
   // + 이름표가 칸에 붙음: 작은 이름표 바로 아래 칸(테두리 · 바탕이 있는 상자)과 6 미만으로 붙어 있음(대표 11/4 23:19)
   const boxy = x => { const q = cs(x); return parseFloat(q.borderTopWidth) > 0 || (q.backgroundColor !== 'transparent' && !/rgba\([^)]*,\s*0\)/.test(q.backgroundColor)) || q.boxShadow !== 'none'; };
   // 이름표: label · 이름이 '-l' · 'gl' · 'lab'로 끝나는 작은 글. 바로 다음 형제(또는 그 안의 첫 상자)가 칸

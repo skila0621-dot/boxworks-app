@@ -83,7 +83,11 @@ function bxUntimedBox(list){
   const sec = document.createElement('section'); sec.className = 'tcard bx-ut'; sec.id = 'tcard-ut'; sec.setAttribute('aria-labelledby', 'h-ut');
   sec.innerHTML = '<div class="tc-body"><div class="bx-ut-h"><h2 id="h-ut">시간 미지정 일정</h2><span class="n">' + list.length + '</span></div><div class="list bx-ut-list"></div></div>';
   const box = sec.querySelector('.bx-ut-list');
-  list.slice().sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.i - b.i).forEach(e => box.append(e.el));
+  // 시험판 59(대표 11/5 20:28): 줄은 다른 상자와 같은 칸 [종류 아이콘 | 시각 칸 | 이름]. 시각 칸에는 '시간 미지정'
+  list.slice().sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.i - b.i).forEach(e => {
+    const tm = e.el.querySelector('.row-time'); if (tm) tm.innerHTML = '<b class="bx-utl">시간 미지정</b>';
+    box.append(e.el);
+  });
   card.after(sec);
 }
 function bxTlDoneText(ents, ut){
