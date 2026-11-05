@@ -386,6 +386,8 @@ function bxItemOf(id){ return getDoc(id) || M.items.find(i => i.id === id) || nu
 function bxItemMenu(id, el){
   const it = bxItemOf(id); if (!it) return;
   // 시험판 59: 일정 옵션은 일정에만. 홈 · 캘린더의 수업 줄도 data-id를 달고 있어, 길게 누르면 '(제목 없음)' 일정 옵션(완료 · 내일로 미루기 · 삭제)이 수업에 떴다
+  // 시험판 60: 수업 줄은 수업 옵션(휴강 · 수정, v60.js)
+  if (it.type === 'tt') { bxTtRowMenu(id, (el && el.closest('.row')) || el); return; }
   if (it.type && it.type !== 'item') return;
   const pc = !!it.pc || /^pc_/.test(id);
   const row = (act, icon, label, sub, warn) => '<button type="button" class="menu-row' + (warn ? ' bx-im-del' : '') + '" data-bx-im="' + act + '"><span class="mi">' + icon + '</span><span class="ml">' + label + '</span>' + (sub ? '<span class="mv">' + esc(sub) + '</span>' : '') + '</button>';
@@ -398,6 +400,7 @@ function bxItemMenu(id, el){
       row('del', ICON.trash, '삭제', '휴지통에 30일 보관', true)) +
     '</div>' + (pc ? '<p class="p small" style="margin:10px 0 0">휴대폰 캘린더에서 읽어 온 일정은 그 캘린더 앱에서 지우거나 옮겨요.</p>' : ''), '')});
   SH.bxIm = {id, el};
+  bxCtxPlace((el && el.closest('.row')) || el);   // 시험판 60: 누른 자리 메뉴(v60.js) — 줄은 줄 전체를 비춘다
 }
 document.addEventListener('pointerdown', ev => {
   if (!window.BX_APP || (ev.button != null && ev.button > 0) || !ev.target.closest) return;

@@ -2,7 +2,7 @@
 // (1) 한국어 줄 바꿈은 낱말 단위(홈 · 루틴 창 · 설정, 390 · 360 폭). 칸보다 긴 낱말만 쪼갬
 // (2) 홈 줄 장소는 …로 끝남(글자가 반쯤 잘리지 않음), 지난 일 '…지남'은 모자라면 다음 줄, 루틴 카드 '도착' 줄은 잘리지 않음
 // (3) 설정 첫 화면: 값이 길어도 › 가 줄마다 같은 자리(360 폭)
-// (4) 입력칸 안내 글: 홈 메모 칸 '떠오른 것을 적거나 말해요', 새 일정 제목 칸은 칸에 안 들어가는 좁은 휴대폰에서만 '예) 오후 3시 치과'
+// (4) 입력칸 안내 글: 홈 메모 칸 '떠오른 것을 적거나 말해요', 새 일정 제목 칸은 칸에 안 들어가는 좁은 휴대폰에서만 '예) 오후 3시 치과'(시험판 60부터 280 같은 좁은 화면)
 // (5) 앱 안 알림 카드: 화면 끝에서 12 / (6) 오전 · 오후: '오늘 오전 11:00로', 루틴 도우미 · 처음 실행 · 잠금 화면 알람 설명
 const fs = require('fs');
 const path = require('path');
@@ -79,8 +79,11 @@ module.exports = async function () {
     c.ok(await p.evaluate(() => (() => { const i = document.querySelector('#f-title'), cs = getComputedStyle(i), cv = document.createElement('canvas').getContext('2d'); cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; return cv.measureText(i.placeholder).width <= i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1; })()), '새 일정 제목 칸(390): 예시가 칸에 다 들어감 ' + await p.evaluate(() => document.querySelector('#f-title').placeholder));
     const pill = await p.evaluate(() => Array.from(document.querySelectorAll('.bx-pill49 .bx-pl-b')).map(b => { const r = b.getBoundingClientRect(), rg = document.createRange(); rg.selectNodeContents(b); const t = rg.getBoundingClientRect(); return Math.round(Math.abs((t.left + t.right) / 2 - (r.left + r.right) / 2)); }));
     c.ok(pill.length === 2 && pill.every(d => d <= 2), "일정 창 '취소 | 저장': 글자가 단추 가운데(대표 11/4 22:15 '정렬 망가짐') " + JSON.stringify(pill));
+    // 시험판 60(대표 11/5 22:03): 말하기가 아이콘만 · 제목 옆 색 동그라미가 빠져 칸이 넓어졌다 → 360에서도 긴 예시. 짧은 예시는 더 좁은 화면(폴드 바깥 화면 280)에서
     await p.setViewportSize({ width: 360, height: 844 }); await p.waitForTimeout(400);
-    c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 오후 3시 치과', '새 일정 제목 칸(360): 칸에 안 들어가면 짧은 예시');
+    c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 내일 오후 3시 치과', '새 일정 제목 칸(360): 칸이 넓어져 긴 예시');
+    await p.setViewportSize({ width: 280, height: 700 }); await p.waitForTimeout(400);
+    c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 오후 3시 치과', '새 일정 제목 칸(280): 칸에 안 들어가면 짧은 예시');
     await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(400);
     c.ok(await p.evaluate(() => (() => { const i = document.querySelector('#f-title'), cs = getComputedStyle(i), cv = document.createElement('canvas').getContext('2d'); cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; return cv.measureText(i.placeholder).width <= i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1; })()), '다시 넓어져도 예시가 칸에 다 들어감');
     await back();

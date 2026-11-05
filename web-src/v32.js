@@ -23,13 +23,14 @@ document.addEventListener('click', ev => {
 /* 루틴 목록에서 루틴을 꾹 누르면 고치기 · 지우기(대표 요청 11/3). 일정 꾹 누르기와 같은 모양, 지운 뒤 되돌리기.
    보이는 대체 길: 누르면 고치기 창, 그 창 맨 아래 '이 루틴 지우기'(규칙 4) */
 let bxRlp = null;
-function bxRtMenu(rid){
+function bxRtMenu(rid, el){
   const rt = M.routines.find(r => r.id === rid); if (!rt) return;
   const p = rtPlan(rt);
   const row = (act, icon, label, sub, warn) => '<button type="button" class="menu-row' + (warn ? ' bx-im-del' : '') + '" data-bx-rm="' + act + '"><span class="mi">' + icon + '</span><span class="ml">' + label + '</span>' + (sub ? '<span class="mv">' + esc(sub) + '</span>' : '') + '</button>';
   openSheet({title: rt.name || '루틴', draw: () => setSheet('<p class="p small" style="margin:-6px 0 10px">' + esc(rtWhenText(rt) + (p.bad ? '' : ' · ' + bxT(mm(p.start)) + ' 시작')) + '</p><div class="menu">' +
     row('edit', ICON.edit, '수정', '') + row('del', ICON.trash, '삭제', '삭제해도 되돌릴 수 있어요', true) + '</div>', '')});
   SH.bxRm = rid;
+  bxCtxPlace((el && el.closest('.rt-item')) || el);   // 시험판 60: 누른 자리 메뉴(v60.js)
 }
 document.addEventListener('pointerdown', ev => {
   if (!window.BX_APP || (ev.button != null && ev.button > 0) || !ev.target.closest) return;
@@ -39,7 +40,7 @@ document.addEventListener('pointerdown', ev => {
   bxRlp = {x: ev.clientX, y: ev.clientY, t: setTimeout(() => {
     bxRlp = null; bxIlpAt = Date.now();
     try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) { /* 진동 없음 */ }
-    bxRtMenu(rid);
+    bxRtMenu(rid, el);
   }, 480)};
 }, true);
 document.addEventListener('pointermove', ev => { if (bxRlp && (Math.abs(ev.clientX - bxRlp.x) > 10 || Math.abs(ev.clientY - bxRlp.y) > 10)) { clearTimeout(bxRlp.t); bxRlp = null; } }, true);

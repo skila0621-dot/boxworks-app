@@ -30,7 +30,10 @@ document.addEventListener('click', ev => {
   const b = ev.target.closest && ev.target.closest('[data-act="bx-holrun"]'); if (!b || !window.BX_APP) return;
   ev.preventDefault(); ev.stopPropagation();
   const rt = M.routines.find(r => r.id === b.dataset.rid); if (!rt) return;
+  bxHolRunOn(rt);
+}, true);
+function bxHolRunOn(rt){
   rtPatchLog(rt.id, l => { l.holRun = true; });
   toast('오늘은 ' + rt.name + bxJosaUl(rt.name) + ' 해요. 알람도 울려요.');
-}, true);
+}
 // 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

@@ -36,10 +36,13 @@ function bxMemoWhen(m){
   if (c && !isNaN(c.getTime()) && ymd(c) !== m.date) return (c.getMonth() + 1) + '/' + c.getDate();
   return m.at ? bxT(m.at) : '';
 }
-function bxMemoRowsHtml(list){
-  return list.map(m => '<button type="button" class="bx-mm-row' + (bxMemoMoved(m) ? ' moved' : '') + '" data-bxmm="' + esc(m.id) + '"><span class="bx-mm-t tnum">' + esc(bxMemoWhen(m)) + '</span>' +
-    '<span class="bx-mm-x">' + esc(m.text) + (bxMemoMoved(m) ? '<small class="bx-mm-tag">일정으로 옮김</small>' : '') + '</span></button>').join('');
+// 메모 줄 한 부품(시험판 60, 선택실 5 · 4번 B, 대표 11/5 22:05): [메모 아이콘 | 시각 | 글] — 목록 줄 C와 같은 칸(app.css '메모 줄').
+// 홈 · 날짜 창 · 메모 화면 · 찾기가 같은 줄. when: 시각 칸 글(찾기는 날짜)
+function bxMemoRowHtml(m, when){
+  return '<button type="button" class="bx-mm-row' + (bxMemoMoved(m) ? ' moved' : '') + '" data-bxmm="' + esc(m.id) + '"><span class="rc-ic" aria-hidden="true">' + ICON.memo + '</span><span class="bx-mm-t tnum">' + esc(when) + '</span>' +
+    '<span class="bx-mm-x">' + esc(m.text) + (bxMemoMoved(m) ? '<small class="bx-mm-tag">일정으로 옮김</small>' : '') + '</span></button>';
 }
+function bxMemoRowsHtml(list){ return list.map(m => bxMemoRowHtml(m, bxMemoWhen(m))).join(''); }
 // 메모 상자: 칸에서 넣으면 상자 안 목록만 바로 고친다(data-bxmmbox="asc|desc" · data-bxmmds). 칸은 그대로라 키보드가 내려가지 않는다
 function bxMemoListHtml(list){ return '<div class="bx-mm-list">' + bxMemoRowsHtml(list) + '</div>'; }
 function bxMemoNHtml(n){ return '<span class="n"' + (n ? '' : ' hidden') + '>' + n + '</span>'; }
@@ -180,7 +183,7 @@ drawSearch = function(q){
   allDocs().forEach((d, id) => { if (d && d.type === 'memo' && d.text && String(d.text).toLowerCase().includes(k)) hits.push(Object.assign({}, d, {id})); });
   if (!hits.length) return r;
   hits.sort((a, b) => b.date.localeCompare(a.date) || String(b.at || '').localeCompare(String(a.at || '')));
-  const sec = '<div class="bx-mm-sres"><div class="grp-h">메모 ' + hits.length + '</div>' + hits.slice(0, 40).map(m => '<button type="button" class="bx-mm-row" data-bxmm="' + esc(m.id) + '"><span class="bx-mm-t">' + esc(relDay(m.date, M.today)) + '</span><span class="bx-mm-x">' + esc(m.text) + '</span></button>').join('') + '</div>';
+  const sec = '<div class="bx-mm-sres"><div class="grp-h">메모 ' + hits.length + '</div>' + hits.slice(0, 40).map(m => bxMemoRowHtml(m, relDay(m.date, M.today))).join('') + '</div>';
   if (el.querySelector('.sres')) el.insertAdjacentHTML('beforeend', sec); else el.innerHTML = sec;
   return r;
 };
@@ -203,17 +206,22 @@ document.addEventListener('click', ev => {
     if (v) { patchDoc(id, {text: v}); toast('메모를 고쳤어요', [['되돌리기', doUndo]]); } else { removeDoc(id); toast('메모를 삭제했어요', [['되돌리기', doUndo]]); }
     return;
   }
-  if (t.closest('[data-act="bx-mm-del"]')) { ev.preventDefault(); ev.stopPropagation(); closeSheet(); if (!m) return; record([id]); removeDoc(id); toast('메모를 삭제했어요', [['되돌리기', doUndo]]); return; }
+  if (t.closest('[data-act="bx-mm-del"]')) { ev.preventDefault(); ev.stopPropagation(); closeSheet(); bxMemoDel(id); return; }
   if (t.closest('[data-act="bx-mm-toitem"]')) {
     ev.preventDefault(); ev.stopPropagation(); if (!m) return;
     const text = String((document.getElementById('bx-mm-edit') || {}).value || m.text).trim();
-    closeSheet();
-    openEdit(null, {date: m.date});
-    if (F) F.bxFromMemo = id;
-    const tf = document.getElementById('f-title');
-    if (tf) { tf.value = text; tf.dispatchEvent(new Event('input', {bubbles: true})); }
+    closeSheet(); bxMemoToItem(id, text);
   }
 }, true);
+function bxMemoDel(id){ if (!getDoc(id)) return; record([id]); removeDoc(id); toast('메모를 삭제했어요', [['되돌리기', doUndo]]); }
+// 그 글로 새 일정 창(메모는 남고, 저장하면 '일정으로 옮김')
+function bxMemoToItem(id, text){
+  const m = getDoc(id); if (!m) return;
+  openEdit(null, {date: m.date});
+  if (F) F.bxFromMemo = id;
+  const tf = document.getElementById('f-title');
+  if (tf) { tf.value = String(text || m.text || '').trim(); tf.dispatchEvent(new Event('input', {bubbles: true})); }
+}
 document.addEventListener('keydown', ev => {
   const t = ev.target;
   if (!window.BX_APP || ev.key !== 'Enter' || ev.isComposing || !t || !t.classList || !t.classList.contains('bx-mm-inp')) return;

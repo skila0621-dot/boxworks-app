@@ -56,6 +56,8 @@ if (process.argv[2] === '--worker') {
     const add = (xs, where) => xs.forEach(x => rec.issues.push(Object.assign({ at: where }, x)));
     // 정리 전후 비교: 움직임(깜박임 · 호흡 원 · 넘어가기)을 멈춰서 찍는다(같은 판을 두 번 찍어도 같게)
     if (snapDir) await p.evaluate(() => { if (!document.getElementById('bx-snap-still')) { const s = document.createElement('style'); s.id = 'bx-snap-still'; s.textContent = '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}'; document.documentElement.appendChild(s); } });
+    // 사진에 시험판 번호가 들어가면 시험판마다 '바뀜'이 되므로 사진에서는 번호를 감춘다(설정 아래 '시험판 N', 와이어프레임 wire.cjs)
+    if (snapDir) await p.evaluate(() => document.querySelectorAll('.bx-set-foot').forEach(e => { e.textContent = e.textContent.replace(/시험판 \d+/, '시험판 N'); }));
     if (snapDir) { rec.top = await digest(p); await p.screenshot({ path: path.join(dir, nm + '.png') }); }
     else { add(await run(p, { top: true }), '위'); if (shots) await p.screenshot({ path: path.join(dir, nm + '.png') }); }
     // 내려 보며 아래쪽까지, 맨 아래에서 떠 있는 것이 가리는지

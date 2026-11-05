@@ -32,7 +32,8 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#tcard-ut .row-title')).map(e => e.textContent.trim())), ['장보기'], "시각 없는 일정은 '시간 미지정 일정' 상자에");
     // 새 일정 창: 마이크에 '말하기', 칩을 눌러도 칩이 움직이지 않는다
     await p.click('.bx-fab'); await p.waitForTimeout(500);
-    c.ok(/말하기/.test(await p.evaluate(() => (document.querySelector('#sheet-root [data-act="bx-mic"]') || {}).innerText || '')), "마이크 단추에 '말하기' 글자");
+    // 시험판 60(대표 11/5 22:03 '마이크 아이콘으로만'): 글자는 빼고 이름(화면 읽기)만 '말하기'
+    c.ok(await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-act="bx-mic"]'); return !!b && b.getAttribute('aria-label') === '말하기' && !(b.innerText || '').trim(); }), "마이크 단추: 아이콘만, 이름은 '말하기'");
     c.ok(await p.evaluate(() => { const fp = document.getElementById('f-panel'); return !!fp && fp.hidden; }), '새 일정 창은 작게 시작(고르는 칸은 칩을 누를 때만)');
     c.ok(/내일 오후 3시 치과\|금요일 저녁 7시 친구 약속/.test(await p.evaluate(() => (document.querySelector('#sheet-root [data-act="bx-mic"]') || {}).getAttribute('data-ex') || '')), '말하기를 누르면 보여 줄 예문 둘');
     // 시험판 44(대표 11/4 1:34 · 1:50): 줄을 누르면 그 아래로 펼치지 않고 페이지가 열린다. 줄 자리는 움직이지 않는다

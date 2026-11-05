@@ -22,14 +22,12 @@ export default [
     replace: "setSheet('<div id=\"day-list\">' + list + '</div>', window.BX_APP ? '<button type=\"button\" class=\"btn primary grow\" data-act=\"new\" data-date=\"' + ds + '\">' + ICON.plus + '일정 추가</button>' :\n    '<label class=\"sr\" for=\"day-in\">할 일 추가</label>"
   },
   {
-    name: "마이크 단추에 '말하기' 글자(규칙 1: 표준 아이콘 말고는 그림만 있는 단추를 두지 않는다)",
-    find: "<path d=\"M12 18v3\"/></svg></button>' : ''; }",
-    replace: "<path d=\"M12 18v3\"/></svg><span>말하기</span></button>' : ''; }"
-  },
-  {
-    name: '└ 마이크 단추 이름도 보이는 글자와 같게',
+    // 시험판 30에서 '말하기' 글자를 붙였다(규칙 1: 표준 아이콘 말고는 그림만 있는 단추를 두지 않는다).
+    // 시험판 60(대표 11/5 22:03 선택실 5 메모 "말하기 버튼 굳이 한글 써놓기 보단 마이크 아이콘으로만 만들어놓아도 사람들이 마이크 입력 방법인걸 인지 할것이다.
+    // 가로 사이즈를 줄이고 색이있는 배경에 마이크 아이콘만"): 마이크는 표준 아이콘으로 보고 글자를 뺀다. 이름(말하기)은 화면 읽기용으로 남김
+    name: '└ 마이크 단추: 예문을 받고, 아이콘만(이름은 화면 읽기용 말하기)',
     find: "data-prompt=\"' + esc(prompt || '') + '\" aria-label=\"말하기\"><svg",
-    replace: "data-prompt=\"' + esc(prompt || '') + '\"' + (ex ? ' data-ex=\"' + esc(ex) + '\"' : '') + '><svg"
+    replace: "data-prompt=\"' + esc(prompt || '') + '\"' + (ex ? ' data-ex=\"' + esc(ex) + '\"' : '') + ' aria-label=\"말하기\"><svg"
   },
   {
     name: '새 일정·일정 고치기 창에 이름표(여백 줄이기·칸이 열릴 때 부드럽게 커지기, web-src/v30.js). 창은 작게 시작(대표 결정 11/2 밤)',

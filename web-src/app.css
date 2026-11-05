@@ -60,7 +60,7 @@ html.bx-app :where(.btn,.bx-rt-new,.bx-ttb,.bxs-test,.bx-med-stop,.bx-mic) > svg
 html.bx-app :where(.btn.sm,.bx-ttb,.bx-mic){height:var(--bs-h);padding:0 var(--bs-px);border-radius:var(--bs-r);font-size:var(--bs-fs);letter-spacing:var(--ls-sub,-.16px)}
 html.bx-app :where(.btn.sm,.bx-ttb,.bx-mic) > svg.i{width:var(--bs-ic);height:var(--bs-ic)}
 /* 주 단추(채운 보라, 한 화면에 하나) */
-html.bx-app :where(.btn.primary,.bx-rt-new,.bx-ttb.main,.bx-inrow .bx-mic){background:var(--accent);box-shadow:none;color:var(--accent-ink)}
+html.bx-app :where(.btn.primary,.bx-rt-new,.bx-ttb.main,.bx-inrow .bx-mic:not(:has(~ .btn.primary))){background:var(--accent);box-shadow:none;color:var(--accent-ink)}
 html.bx-app :where(.btn.block,.bx-rt-new,.bxs-test){display:flex;width:100%}
 html.bx-app :where(.btn.grow){flex:1 1 0;min-width:0}
 /* 아이콘이 앞에 붙은 단추 · 칩: 아이콘 안에도 빈 곳이 있어 그쪽 여백이 넓어 보인다 → 아이콘 쪽 안쪽 여백을 --ic-in만큼 줄여 양쪽이 같아 보이게
@@ -69,7 +69,8 @@ html.bx-app :where(.btn,.bx-rt-new,.bxs-test,.bx-med-stop):where(:has(> svg.i:fi
 html.bx-app :where(.btn.sm,.bx-ttb,.bx-mic):where(:has(> svg.i:first-child)){padding-left:calc(var(--bs-px) - var(--ic-in))}
 /* 아이콘만 있는 단추: 정사각 */
 html.bx-app :where(.btn.sq){width:var(--b-h);padding:0}
-html.bx-app :where(.btn.sm.sq,.bx-mic.icon-btn,.bx-mm-in .bx-mic,.bx-mmn .bx-mic){width:var(--bs-h);min-width:0;padding:0}
+/* 말하기는 어디서나 마이크 아이콘만, 작은 단추 높이의 정사각(시험판 60, 대표 11/5 22:03). 줄 칸의 주 단추면 보라(.bx-inrow), 옆에 '추가'가 있으면 회색 */
+html.bx-app :where(.btn.sm.sq,.bx-mic){width:var(--bs-h);min-width:0;padding:0}
 /* 삭제 · 초기화: 보조 단추 모양에 빨간 글자(주 단추로 만들지 않음) */
 html.bx-app :where(.btn.danger,.btn.danger-line,.btn.bx-del-btn){color:var(--danger)}
 html.bx-app :where(.btn.danger-solid){background:var(--danger);box-shadow:none;color:#fff}
@@ -151,8 +152,8 @@ html.bx-app :where(.tog[aria-checked="true"] i){transform:translateX(20px)}
    만드는 곳: v49.js(일정 · 수업) · home.js(루틴). 둘째 줄 색: 출발 · 진행 중 · 남은 시간은 보라, 지남 · 확인할 약은 주황 글자 */
 html.bx-app :where(.row.rowc){gap:12px}
 html.bx-app :where(.row.rowc > .row-main){display:grid;grid-template-columns:24px var(--row-tw) minmax(0,1fr);column-gap:12px;align-items:start;align-self:stretch;align-content:center}
-html.bx-app :where(.row.rowc .rc-ic){display:flex;align-items:center;justify-content:center;width:24px;height:22px;color:var(--ink-2)}
-html.bx-app :where(.row.rowc .rc-ic) svg.i{width:21px;height:21px}
+html.bx-app :where(.row.rowc .rc-ic,.bx-mm-row > .rc-ic){display:flex;align-items:center;justify-content:center;width:24px;height:22px;color:var(--ink-2)}
+html.bx-app :where(.row.rowc .rc-ic,.bx-mm-row > .rc-ic) svg.i{width:21px;height:21px}
 html.bx-app :where(.row.rowc .row-time){width:auto;min-width:0}
 html.bx-app :where(.row.rowc .row-time b){font-size:16px;font-weight:700;color:var(--ink)}
 html.bx-app :where(.row.rowc .row-time small){font-size:13px;font-weight:500;color:var(--ink-2)}
@@ -1236,7 +1237,8 @@ html.bx-app .bx-ttper .inp{width:100%;min-width:0}
 .bx-app :is(.bx-mm-h,.bx-ut-h) h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em}
 .bx-app .bx-mm-sec .bx-mm-h h2{font-size:16px}
 .bx-app :is(.bx-mm-h,.bx-ut-h) .n{font-size:13px;font-weight:700;color:var(--ink-3)}
-html.bx-app .bx-mm-row{display:flex;gap:12px;width:100%;padding:11px 0;border-bottom:1px solid var(--line);align-items:flex-start;text-align:left;color:var(--ink)}
+/* 메모 줄(시험판 60, 선택실 5 · 4번 B): [메모 아이콘 24 | 시각 --row-tw | 글] — 목록 줄 C와 같은 칸, 칸 사이 12. 위 상자(오늘 할 일 · 시간 미지정)와 시각 · 글이 같은 줄에서 시작 */
+html.bx-app .bx-mm-row{display:grid;grid-template-columns:24px var(--row-tw) minmax(0,1fr);column-gap:12px;align-items:start;width:100%;padding:11px 0;border-bottom:1px solid var(--line);text-align:left;color:var(--ink)}
 html.bx-app .bx-mm-t{flex:none;min-width:44px;font-size:13px;font-weight:700;color:var(--ink-3);line-height:22px}
 .bx-app .bx-mm-x{flex:1;min-width:0;font-size:16px;line-height:22px;font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere}
 .bx-mm-row.moved .bx-mm-x{color:var(--ink-3)}
@@ -1244,13 +1246,12 @@ html.bx-app .bx-mm-tag{display:inline-block;margin-left:8px;font-size:13px;font-
 html.bx-app .bx-mm-in{display:flex;align-items:center;gap:8px;margin-top:10px;padding:5px 5px 5px 14px;border-radius:16px;background:var(--bx-card-in)}
 .bx-app .bx-mm-in .bx-mm-inp{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);height:40px}
 
-.bx-mm-in .bx-mic span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 html.bx-app .bx-mm-sec{margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
 .bx-app .bx-mm-ta{min-height:120px;width:100%;font-size:16px;line-height:1.6}
 html.bx-app .bx-mm-when{margin:6px 2px 0;color:var(--ink-3)}
 html.bx-app .bx-mm-sres{margin-top:12px}
-html.bx-app .bx-mm-sres .bx-mm-t{min-width:54px}
+html.bx-app .bx-mm-sres .bx-mm-row > .bx-mm-t{white-space:normal;word-break:keep-all}
 /* 메모 화면: 맨 위 오늘 칸, 그 아래 다가오는 날 · 지난 메모 상자(날짜마다 작은 제목) */
 /* 메모 화면의 상자: 홈 상자와 같은 반투명 상자(성격이 다른 묶음은 상자로 나눔, 시험판 37) */
 .bx-app .screen.memo{row-gap:14px}
@@ -1733,8 +1734,6 @@ html.bx-app .bx-mmp-plus{display:inline-flex;align-items:center;justify-content:
 .bx-mmn .bx-mmn-ta::placeholder{color:var(--ink-3)}
 .bx-mmn .bx-mmn-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;border-top:1px solid var(--line)}
 .bx-app .bx-mmn .bx-mmn-n{font-size:13px;color:var(--ink-3)}
-.bx-app .bx-mmn .bx-mic{position:relative}
-.bx-mmn .bx-mic span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .bx-mmn .bx-ep-b{display:flex;flex-direction:column;gap:14px}
 /* 7) 휴대폰 캘린더 일정 · 칩: 다른 일정 · 칩과 같은 모양(그 캘린더 색). 전에는 테두리만 있는 빈 칸 */
 html.bx-app .c-chip[data-item^="pc_"]{background:color-mix(in srgb,var(--c) 14%,transparent);border:0;border-left:2px solid var(--c)}
@@ -1768,9 +1767,7 @@ html.bx-app .bx-dc.rng.e{background:linear-gradient(90deg,var(--accent-soft) 50%
 .bx-dc.s span,.bx-dc.e span{background:var(--accent);color:var(--accent-ink);font-weight:700;box-shadow:none}
 .bx-dc:active span{background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .bx-app .bx-dcal-n b{color:var(--ink-2);font-weight:700}
-/* 3) 일정 창: 제목 옆 색 동그라미, 위 × 는 숨김(아래 '취소'), 떠 있는 '취소 | 저장' */
-.bx-app .bx-esheet .bx-tdot{flex:none;width:44px;height:44px;margin:0 -4px 0 0;padding:0;border:0;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center}
-.bx-esheet .bx-tdot::before{content:"";width:22px;height:22px;border-radius:50%;background:var(--c,var(--ink-3));box-shadow:0 0 0 3px color-mix(in srgb,var(--c,var(--ink-3)) 22%,transparent)}
+/* 3) 일정 창: 위 × 는 숨김(아래 '취소'), 떠 있는 '취소 | 저장'. 제목 옆 색 동그라미는 시험판 60에서 뺌(캘린더 · 색은 '자세히') */
 .bx-esheet .sheet-h [data-act="sheet-close"]{display:none}
 /* 떠 있는 '취소 | 저장'(대표 11/4 22:59 '사진·파일 줄을 가림'): 창 내용 위에 떠 있고, 내용 아래에 그 높이만큼 빈칸을 둔다
    → 맨 아래까지 밀면 마지막 줄이 단추 위로 다 올라온다(56 + 위아래 여백 22 + 띄움 16) */
@@ -1803,8 +1800,8 @@ html.bx-app .bx-tt-ap{font-size:11.5px;font-weight:500;color:var(--ink-3);line-h
 .bx-app .row-time{width:var(--row-tw)}
 /* 시각은 한 줄로. '시간 미지정'(시험판 59)은 24시간 칸(56)에서 '시간 / 미지정' 두 줄로 */
 .row-time b:not(.bx-utl),.row-time small{white-space:nowrap}
-/* 메모 줄 왼쪽 시각: '오후 12:30'(13px 굵게 61px)이 들어가고 줄마다 글이 같은 곳에서 시작하게 */
-.bx-app .bx-mm-row > .bx-mm-t{min-width:62px;white-space:nowrap}
+/* 메모 줄 시각: 한 줄('오후 12:30' 13px 굵게 61px가 시각 칸 80에, 24시간 '12:30'은 56에). 칸은 목록 줄 C와 같음(위 '메모 줄') */
+.bx-app .bx-mm-row > .bx-mm-t{min-width:0;white-space:nowrap}
 /* 출발 칸: '오후 2:40'이 칸을 넓히지 않게 한 단계 작게 */
 /* 떠 있는 '취소 | 저장'은 뒤 글자가 비치지 않게 바탕을 채운다 */
 html.bx-app .bx-pill49{background:var(--bg)}
@@ -1881,3 +1878,13 @@ input{text-overflow:ellipsis}
 .bx-rtpage .rt-steps li.arr .rt-n{grid-column:3/5}
 .bx-rtpage .rt-steps li.arr .rt-nm{white-space:normal;overflow:visible}
 
+
+/* 시험판 60(선택실 5 · 1번 B '누른 자리 메뉴', 대표 11/5 21:45): 길게 누르면 뜨는 옵션 — 누른 줄 · 칩을 비추고 그 바로 아래(자리가 없으면 위)에 작은 메뉴.
+   창(openSheet)을 그대로 쓰고 자리 · 모양만(v60.js bxCtxPlace). 제목 · 시각 줄은 비춘 줄이 대신한다 */
+.bx-app #sheet-root .scrim.bx-ctx{background:transparent;animation:none}
+.bx-app #sheet-root .scrim.bx-ctx > .bx-spot{position:fixed;border-radius:16px;box-shadow:0 0 0 2px var(--accent-text),0 0 0 9999px var(--scrim);pointer-events:none;animation:fade .16s ease-out}
+.bx-app #sheet-root .scrim.bx-ctx > .sheet.bx-ctx{position:fixed;max-width:none;max-height:calc(100vh - 24px);border-radius:20px;padding:4px 16px;box-shadow:0 14px 36px rgba(0,0,0,.3);overflow:auto;animation:bxCtxIn .14s ease-out}
+.bx-app #sheet-root .sheet.bx-ctx > .sheet-grab,.bx-app #sheet-root .sheet.bx-ctx > .sheet-h{display:none}
+.bx-app #sheet-root .sheet.bx-ctx > #sheet-b{padding:0}
+.bx-app #sheet-root .sheet.bx-ctx > #sheet-b > .p.small:first-child{display:none}
+@keyframes bxCtxIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}

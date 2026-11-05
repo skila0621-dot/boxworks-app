@@ -24,14 +24,14 @@ module.exports = async function () {
     c.ok(r1 && JSON.stringify(r1.t) === '["오후 3:00","오후 4:00"]' && r1.sub === '오후 2:40 출발' && r1.go && r1.next && !r1.box, "홈 줄 C: 시작 · 끝 | 제목 + '오후 2:40 출발'(장소보다 먼저) " + JSON.stringify(r1));
     c.ok(r2 && r2.sub === '강남역 2번 출구' && !r2.go, '출발 시각이 없는 일정은 둘째 줄에 장소 ' + JSON.stringify(r2));
     c.ok(r1 && r1.bg !== 'rgba(0, 0, 0, 0)' && r2 && r2.bg === 'rgba(0, 0, 0, 0)', '다음 일정 하나만 연보라 바탕 ' + JSON.stringify([r1 && r1.bg, r2 && r2.bg]));
-    // (2) 일정 창: 제목 옆 색 동그라미 · 아래 '취소 | 저장', 위 × 숨김
+    // (2) 일정 창: 아래 '취소 | 저장', 위 × 숨김. 제목 옆 색 동그라미는 시험판 60에서 뺌(대표 11/5 22:03, 캘린더 · 색은 '자세히')
     await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(600);
-    const ed = await p.evaluate(() => ({ dot: !!document.querySelector('#sheet-root .bx-tdot'), dotC: document.querySelector('#sheet-root .bx-tdot').style.getPropertyValue('--c'),
+    const ed = await p.evaluate(() => ({ dot: !!document.querySelector('#sheet-root .bx-tdot'),
       pill: Array.from(document.querySelectorAll('#sheet-root .bx-pill49 button')).map(b => b.textContent.trim()), x: getComputedStyle(document.querySelector('#sheet-root .sheet-h [data-act="sheet-close"]')).display,
       del: (document.querySelector('#f-chips > .bx-er-del') || {}).textContent, last: document.querySelector('#f-chips').lastElementChild.classList.contains('bx-er-del') }));
-    c.ok(ed.dot && /--c-green|1baf7a|var\(/i.test(ed.dotC) && JSON.stringify(ed.pill) === '["취소","저장"]' && ed.x === 'none' && ed.del === '일정 삭제' && ed.last, "일정 창: 색 동그라미(캘린더 색) · '취소 | 저장' · 위 × 없음 · '일정 삭제'는 맨 아래 " + JSON.stringify(ed));
-    await p.click('#sheet-root .bx-tdot'); await p.waitForTimeout(400);
-    c.eq(await p.evaluate(() => (document.getElementById('bx-ep-t') || {}).textContent), '캘린더', '색 동그라미 → 캘린더 · 색 페이지');
+    c.ok(!ed.dot && JSON.stringify(ed.pill) === '["취소","저장"]' && ed.x === 'none' && ed.del === '일정 삭제' && ed.last, "일정 창: 제목 옆 색 동그라미 없음 · '취소 | 저장' · 위 × 없음 · '일정 삭제'는 맨 아래 " + JSON.stringify(ed));
+    await p.click('#f-chips [data-fpanel="cat"]'); await p.waitForTimeout(400);
+    c.eq(await p.evaluate(() => (document.getElementById('bx-ep-t') || {}).textContent), '캘린더', "캘린더 · 색은 '자세히'의 캘린더 줄 → 캘린더 · 색 페이지");
     await p.click('#bx-ep [data-bxep="back"]'); await p.waitForTimeout(300);
     await p.click('#sheet-root .bx-pill49 [data-act="sheet-close"]'); await p.waitForTimeout(400);
     c.ok(await p.evaluate(() => !document.querySelector('#sheet-root .sheet')), "'취소' → 창 닫힘");

@@ -20,6 +20,16 @@ function ttList(){
 }
 // 시험판 40: 시간표의 기간 밖이면(끝남 · 시작 전) 그날 수업이 없는 것으로(알림 · 위젯 · 아침 요약 · 홈 모두)
 function ttOn(e, ds){ return e.on !== false && Array.isArray(e.days) && e.days.includes(parseYmd(ds).getDay()) && !ttSkipped(e, ds) && (typeof bxTtActive !== 'function' || bxTtActive(e, ds)); }
+// 휴강(그날만) 켜고 끄기: 시간표 화면의 길게 누른 줄 · 홈 수업 줄의 누른 자리 메뉴(시험판 60)가 같은 것을 쓴다
+function ttToggleOff(e, nd){
+  const doc = getDoc(e.id); if (!doc) return;
+  const keep = JSON.parse(JSON.stringify(doc)), sk = Object.assign({}, doc.skip || {}), lim = ymd(addDays(parseYmd(M.today), -14));
+  Object.keys(sk).forEach(k => { if (k < lim) delete sk[k]; });
+  const was = !!sk[nd]; if (was) delete sk[nd]; else sk[nd] = true;
+  writeDoc(e.id, Object.assign({}, doc, {skip: Object.keys(sk).length ? sk : null, updatedAt: nowIso()}));
+  const x = parseYmd(nd);
+  toast(was ? (x.getMonth() + 1) + '월 ' + x.getDate() + '일 ' + e.name + ' 다시 켰어요' : (x.getMonth() + 1) + '월 ' + x.getDate() + '일(' + WD[x.getDay()] + ') ' + e.name + ' 휴강 · 그날 알람도 쉬어요', [['되돌리기', () => writeDoc(e.id, keep)]]);
+}
 // 휴강(대표 요청 2026-10-31): 그 날짜 하루만 끈다. 알람·아침 보고·위젯·오늘 할 일이 모두 ttOn을 거치므로 함께 빠진다
 function ttSkipped(e, ds){ return !!(e && e.skip && e.skip[ds]); }
 // 이 요일의 다음 수업 날짜(오늘 포함). 이미 지난 요일이면 다음 주
@@ -491,15 +501,7 @@ document.addEventListener('click', ev => {
   const e = ttList().find(x => x.id === TTSEL.id); if (!e) { TTSEL = null; render(); return; }
   if (act === 'tt-x-done') { ttUnselect(); return; }
   if (act === 'tt-x-clip') { ttClip(e, TTSEL.d); render(); return; }
-  if (act === 'tt-x-off') {
-    const nd = ttNextDate(TTSEL.d), doc = getDoc(e.id), keep = JSON.parse(JSON.stringify(doc)), sk = Object.assign({}, doc.skip || {}), lim = ymd(addDays(parseYmd(M.today), -14));
-    Object.keys(sk).forEach(k => { if (k < lim) delete sk[k]; });
-    const was = !!sk[nd]; if (was) delete sk[nd]; else sk[nd] = true;
-    writeDoc(e.id, Object.assign({}, doc, {skip: Object.keys(sk).length ? sk : null, updatedAt: nowIso()}));
-    const x = parseYmd(nd);
-    toast(was ? (x.getMonth() + 1) + '월 ' + x.getDate() + '일 ' + e.name + ' 다시 켰어요' : (x.getMonth() + 1) + '월 ' + x.getDate() + '일(' + WD[x.getDay()] + ') ' + e.name + ' 휴강 · 그날 알람도 쉬어요', [['되돌리기', () => writeDoc(e.id, keep)]]);
-    render(); return;
-  }
+  if (act === 'tt-x-off') { ttToggleOff(e, ttNextDate(TTSEL.d)); render(); return; }
   if (act === 'tt-x-edit') { const id = e.id; TTSEL = null; ttOpen(id); return; }
   if (act === 'tt-x-del') { ttDelOpen(e, TTSEL.d); render(); return; }
   if (act === 'tt-x-dup') {

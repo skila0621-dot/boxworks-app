@@ -147,6 +147,12 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
   await tryDo('도움말', async () => { await closeAll(); await p.click('.ab-guide'); await snap('도움말'); await closeAll(); });
   await tryDo('루틴 꾹', async () => { await dock('routines'); if (await longPress('.rt-item .rt-open[data-rid="rt_w"]')) await snap('루틴 꾹 누르기'); await closeAll(); });
   await tryDo('일정 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row-main[data-id="it_2"]')) await snap('일정 꾹 누르기'); await closeAll(); });
+  // 시험판 60(선택실 5 · 1번 B · 2번): 누른 자리 메뉴 — 시간 미지정 줄 · 루틴 줄 · 수업 줄 · 메모 줄 · 캘린더 날짜 칸
+  await tryDo('시간 미지정 꾹', async () => { await dock('today'); if (await longPress('#tcard-ut .row .row-main[data-id]')) await snap('시간 미지정 줄 꾹 누르기'); await closeAll(); });
+  await tryDo('루틴 줄 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row.rowc[data-rid] .row-main')) await snap('루틴 줄 꾹 누르기'); await closeAll(); });
+  await tryDo('수업 줄 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row.tt-row .row-main')) await snap('수업 줄 꾹 누르기'); await closeAll(); });
+  await tryDo('메모 줄 꾹', async () => { await dock('today'); if (await longPress('#bx-mm-card .bx-mm-row')) await snap('메모 줄 꾹 누르기'); await closeAll(); });
+  await tryDo('날짜 칸 꾹', async () => { await dock('month'); if (await longPress('.cal .cell[data-date]:not(.other)')) await snap('날짜 칸 꾹 누르기'); await closeAll(); });
   const errs = app.errors.slice(); await app.close();
 
   await tryDo('처음 실행', async () => {

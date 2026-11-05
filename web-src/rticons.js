@@ -87,5 +87,10 @@ ICON.depart = '<svg class="i" viewBox="0 0 24 24"><path d="M3 11 9.5 5.5 16 11"/
 ICON.memo = BX_MEMO_ICON;
 ICON.home = BX_HOME_ICON;
 ICON.checkC = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.3 2.5 2.5 4.6-5"/></svg>';
+// 시험판 60(누른 자리 메뉴 · 말하기 아이콘만): 마이크(bxMic와 같은 그림) · 휴강(시간표 TT_OFF) · 오늘은 쉬기 · 오늘은 하기
+ICON.mic = '<svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
+ICON.calOff = TT_OFF;
+ICON.pauseC = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M10 9.2v5.6M14 9.2v5.6"/></svg>';
+ICON.playC = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m10.2 8.9 4.9 3.1-4.9 3.1z"/></svg>';
 // 자동 정렬 점검(tests/layout)이 아이콘 세트를 가려 보게(앱 아이콘 ICON | 루틴 아이콘 BX_ICONS)
 window.BX_ICONSRC = {app: ICON, rt: BX_ICONS};

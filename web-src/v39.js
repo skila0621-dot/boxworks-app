@@ -242,11 +242,12 @@ function bxCalAdd(){
 
 /* ---------- 칩 길게 누르기(시험판 58, 대표 11/4): 색 바꾸기 · 이 캘린더 빼기. 휴대폰 캘린더도 ---------- */
 let bxCcLp = null;
-function bxCalChipMenu(id){
+function bxCalChipMenu(id, el){
   const pc = /^pcc_/.test(id), p = pc ? bxPcCals().find(x => x.id === id) : null, c = pc ? null : M.catMap.get(id);
   if (!p && !c) return;
   openSheet({title: pc ? p.name : c.name, draw: () => bxCalChipDraw(id)});
   SH.bxCcm = id;
+  bxCtxPlace(el);   // 시험판 60: 누른 자리 메뉴(v60.js)
 }
 function bxCalChipDraw(id){
   const pc = /^pcc_/.test(id), c = pc ? null : M.catMap.get(id);
@@ -299,7 +300,7 @@ document.addEventListener('pointerdown', ev => {
   bxCcLp = {x: ev.clientX, y: ev.clientY, t: setTimeout(() => {
     bxCcLp = null; bxIlpAt = Date.now();   // 손을 떼며 생기는 누르기(칩 고르기)는 flow.js가 삼킨다
     try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) { /* 진동 없음 */ }
-    bxCalChipMenu(id);
+    bxCalChipMenu(id, ch);
   }, 480)};
 }, true);
 document.addEventListener('pointermove', ev => { if (bxCcLp && (Math.abs(ev.clientX - bxCcLp.x) > 10 || Math.abs(ev.clientY - bxCcLp.y) > 10)) { clearTimeout(bxCcLp.t); bxCcLp = null; } }, true);

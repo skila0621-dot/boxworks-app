@@ -156,20 +156,15 @@ document.addEventListener('click', ev => {
   drawFDate(); drawFHint(); if (typeof updRemWhen === 'function') updRemWhen();
 }, true);
 
-/* 3) 일정 창: 제목 옆 색 동그라미 · 아래 '취소 | 저장' · '삭제'는 줄 목록 맨 아래 */
+/* 3) 일정 창: 아래 '취소 | 저장' · '삭제'는 줄 목록 맨 아래
+   시험판 60(대표 11/5 22:03 "생상선택 버튼은 자세히에 들어가있어도 되는거 아닐까? 어짜피 기본값으로 설정된 캘린더에 저장되는것이 기본"):
+   제목 옆 색 동그라미는 뺐다. 캘린더 · 색은 '자세히'의 캘린더 줄에서 */
 function bxEd49(){
   // 일정 창(새 일정 · 일정 수정)만. 처음 그릴 때는 아직 bx-esheet 이름표가 없어서 칸으로 찾는다
   const sh = document.querySelector('#sheet-root .sheet'); if (!sh || !F || !sh.querySelector('#f-title') || !sh.querySelector('#f-chips')) return;
   const tin = document.getElementById('f-title'), row = tin && tin.parentNode;
-  if (row && !row.querySelector('.bx-tdot')) {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'bx-tdot'; b.dataset.bxtdot = '1';
-    tin.insertAdjacentElement('afterend', b);
-  }
   // 시험판 56(일정 넣기 나): 꼭 적을 것은 제목 칸 하나. 위에 이름표, 칸은 보라 테(app.css). 날짜 · 시간 · 장소는 적은 말에서 채워진다
   if (row && !sh.querySelector('.bx-must')) row.insertAdjacentHTML('beforebegin', '<p class="bx-must">꼭 적을 것 <em>무엇을</em></p>');
-  const dot = row && row.querySelector('.bx-tdot');
-  if (dot) { dot.style.setProperty('--c', bxFColor()); dot.setAttribute('aria-label', '이 일정 색 · 캘린더 ' + (bxCalName(F.categoryId) || '없음')); }
   const f = document.getElementById('sheet-f');
   if (f && !f.querySelector('.bx-pill49')) {
     const save = f.querySelector('[data-act="save"]');
@@ -198,7 +193,6 @@ const bxDrawFChips49 = drawFChips;
 drawFChips = function(){
   const r = bxDrawFChips49.apply(this, arguments);
   if (window.BX_APP && F) {
-    const dot = document.querySelector('#sheet-root .bx-tdot'); if (dot) dot.style.setProperty('--c', bxFColor());
     // 줄 목록을 다시 그리면 '삭제' 줄을 맨 아래에 다시 붙인다
     const list = document.getElementById('f-chips');
     if (list && F.mode === 'edit' && !list.querySelector('.bx-er-del')) {
@@ -207,11 +201,4 @@ drawFChips = function(){
   }
   return r;
 };
-document.addEventListener('click', ev => {
-  if (!window.BX_APP || !ev.target.closest || !F) return;
-  const d = ev.target.closest('[data-bxtdot]'); if (!d) return;
-  ev.preventDefault(); ev.stopPropagation();
-  const r = document.querySelector('#f-chips [data-fpanel="cat"]'); if (r) r.click();
-}, true);
-
 // 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)

@@ -102,15 +102,16 @@ module.exports = async function () {
     await p.mouse.move(bb.x, bb.y); await p.mouse.down(); await p.waitForTimeout(ms); await p.mouse.up(); await p.waitForTimeout(650);
     return p.evaluate(() => { const s = document.querySelector('#sheet-root .sheet'); return { screen: (document.querySelector('.screen') || {}).className || '', sheet: s ? (s.querySelector('h2') || {}).textContent : null, opts: s ? s.querySelectorAll('.menu-row').length : 0 }; });
   };
+  // 시험판 60(선택실 5 · 2번): 루틴 · 메모 · 수업 줄에도 옵션이 생겼다(누른 자리 메뉴). 다른 페이지로 넘어가지 않는 것은 그대로
   const cases = [
     ['홈 일정 줄', '#tcard2 .row .row-main[data-id="it_n"]', 'opts'],
-    ['홈 루틴 줄', '#tcard2 .row[data-rid] .row-main', 'none'],
-    ['홈 메모 줄', '#bx-mm-card .bx-mm-row', 'none'],
+    ['홈 루틴 줄', '#tcard2 .row[data-rid] .row-main', 'opts', 1],
+    ['홈 메모 줄', '#bx-mm-card .bx-mm-row', 'opts', 1],
     ['홈 시간 미지정 줄', '#tcard-ut .row .row-main[data-id="it_d"]', 'opts'],
-    // 수업 줄도 data-id를 달고 있어 일정 옵션('(제목 없음)' 완료 · 삭제)이 떴다 — 수업에는 일정 옵션을 띄우지 않는다
-    ['홈 수업 줄', '#tcard2 .row.tt-row .row-main', 'none']
+    // 수업 줄도 data-id를 달고 있어 일정 옵션('(제목 없음)' 완료 · 삭제)이 떴다 — 수업에는 수업 옵션(휴강 · 수정)
+    ['홈 수업 줄', '#tcard2 .row.tt-row .row-main', 'opts', 1]
   ];
-  for (const [name, sel, want] of cases) {
+  for (const [name, sel, want, tapToo] of cases) {
     const app = await openApp({ width: 384, height: 900, now: '2026-11-05T12:20:00+09:00', data: data('') });
     const p = app.page;
     try {
@@ -118,9 +119,9 @@ module.exports = async function () {
       const before = await p.evaluate(() => (document.querySelector('.screen') || {}).className || '');
       const r = await press(p, sel, 800);
       if (want === 'opts') c.ok(r && r.sheet && r.opts >= 2 && r.screen === before, name + ': 길게 누르면 옵션 창(화면은 그대로) ' + JSON.stringify(r));
-      else c.ok(r && !r.sheet && r.screen === before, name + ': 길게 눌렀다 떼도 다른 페이지 · 창이 열리지 않음(옵션은 선택실 5) ' + JSON.stringify(r));
+      else c.ok(r && !r.sheet && r.screen === before, name + ': 길게 눌렀다 떼도 다른 페이지 · 창이 열리지 않음 ' + JSON.stringify(r));
       // 짧게 누르면 지금처럼 열린다
-      if (want === 'none') {
+      if (want === 'none' || tapToo) {
         await p.evaluate(() => { if (window.BX_back) window.BX_back(); }); await p.waitForTimeout(300);
         const s = await press(p, sel, 80);
         c.ok(s && (s.sheet || s.screen !== before), name + ': 짧게 누르면 지금처럼 열림 ' + JSON.stringify(s));
