@@ -7,7 +7,8 @@ const day = n => { const d = new Date(Date.parse('2026-11-02T12:00:00+09:00') + 
 // 시각 표시(시험판 58): 정렬 점검은 오전 · 오후와 24시간 두 번 돈다(run.cjs --clocks). 24시간이면 모든 자료의 설정에 clock '24'
 let CLOCK = '';
 function data(extra = {}) {
-  const S = H.settings(Object.assign({ bxDock: ['routines', 'month', 'tt', 'memo'], bxDockMig: 1, bxDockMemo: 1, bxReport: { on: true, at: '07:30' } }, CLOCK ? { clock: CLOCK } : {}, extra));
+  // 시험판 62: 아래 메뉴는 기본값(루틴 · 홈 · 캘린더). 시간표 · 메모 · 릴렉스는 왼쪽 위 메뉴 단추에서 연다(dock())
+  const S = H.settings(Object.assign({ bxDock: undefined, bxDockMig: undefined, bxDockFold: undefined, bxReport: { on: true, at: '07:30' } }, CLOCK ? { clock: CLOCK } : {}, extra));
   return [
     ['settings', S],
     ['c_w', { type: 'category', name: '회사 · 프로젝트 일정 (팀 공유)', color: '#2a78d6', order: 0, createdAt: old }],
@@ -46,7 +47,8 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
   const tap = async sel => { const l = p.locator(sel).first(); if (!(await l.count())) return false; await l.click(); return true; };
   const tryDo = async (label, fn) => { try { await fn(); } catch (e) { fail(label, String(e && e.message || e).slice(0, 200)); } };
   const closeAll = async () => { for (let i = 0; i < 6; i++) { const has = await p.evaluate(() => !!(document.querySelector('#bx-pg:not([hidden]), #bx-ep:not([hidden]), #bx-mp:not([hidden]), #bx-mmn, #bx-att-view') || (document.querySelector('#sheet-root') && !document.querySelector('#sheet-root').hidden && document.querySelector('#sheet-root .sheet')))); if (!has) break; await p.evaluate(() => window.BX_back && window.BX_back()); await p.waitForTimeout(350); } };
-  const dock = async v => { await closeAll(); await p.click('.dock [data-view="' + v + '"]'); await p.waitForTimeout(600); };
+  // 아래 메뉴에 없으면(그 밖의 기능, 시험판 62) 왼쪽 위 메뉴 단추에서
+  const dock = async v => { await closeAll(); if (await p.$('.dock [data-view="' + v + '"]')) await p.click('.dock [data-view="' + v + '"]'); else { await p.click('.ab-menu'); await p.waitForTimeout(450); await p.click('#sheet-root [data-act="bx-go"][data-view="' + v + '"]'); } await p.waitForTimeout(600); };
   const more = async () => { await closeAll(); await p.click('.ab-menu'); await p.waitForTimeout(500); };
   const clickAll = async (rowSel, backSel, label) => {
     const n = await p.evaluate(s => Array.from(document.querySelectorAll(s)).filter(e => e.getBoundingClientRect().height > 0).length, rowSel);
@@ -164,9 +166,9 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
   await tryDo('루틴 도우미', async () => {
     const d = data(); d[0][1] = Object.assign({}, d[0][1]); delete d[0][1].bxRtHelp; delete d[0][1].bxTtHelp;
     await open({ data: d.filter(x => !/^rt_/.test(x[0]) && !/^tt_/.test(x[0])), wait: 1000 });
-    await p.click('.dock [data-view="routines"]'); await p.waitForTimeout(700); await snap('루틴 도우미');
+    await dock('routines'); await p.waitForTimeout(100); await snap('루틴 도우미');
     await p.evaluate(() => window.BX_back && window.BX_back()); await p.waitForTimeout(300);
-    await p.click('.dock [data-view="tt"]'); await p.waitForTimeout(700); await snap('시간표 도우미');
+    await dock('tt'); await p.waitForTimeout(100); await snap('시간표 도우미');
     errs.push(...app.errors); await app.close();
   });
   await tryDo('알람 허락', async () => {

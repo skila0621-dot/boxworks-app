@@ -468,7 +468,7 @@ function parseQuick0(text, now){
   {
     name: '말한·적은 날짜가 미리 정해진 날짜보다 우선(손으로 고른 날짜만 고정)',
     find: 'touchedDate: !!preset.date, touchedTime: false',
-    replace: 'touchedDate: false, baseDate: date, travel: 0, tvSrc: \'\', tvKey: \'\', prep: null, prepNew: null, touchedTravel: false, touchedPrep: false, touchedTime: false'
+    replace: 'touchedDate: false, baseDate: date, travel: 0, tvSrc: \'\', tvKey: \'\', prep: null, prepNew: null, prepMin: {}, prepRing: {}, prepSave: false, touchedTravel: false, touchedPrep: false, touchedTime: false'
   },
   {
     name: '└ 문장에서 날짜를 지우면 처음 날짜로 돌아감',
@@ -479,6 +479,18 @@ function parseQuick0(text, now){
     name: '└ 사용 설명서 목차에서 "PC 바탕화면 위젯으로 쓰기" 빼기',
     find: ", ['g-widget', 'PC 바탕화면 위젯으로 쓰기']]]",
     replace: "].concat(window.BX_APP ? [] : [['g-widget', 'PC 바탕화면 위젯으로 쓰기']])]"
+  },
+  {
+    // 시험판 62(대표 11/6 선택실 4 · 1번 B '세 칸 바퀴(삼성 시계처럼)', 결정 사안 s02): 앱의 시간 페이지는 휴대폰 시계 창 대신
+    // 시작 · 끝 칸 + 바퀴(web-src/v44.js bxTwHtml · bxTwMount). 웹은 그대로
+    name: '시간 페이지: 시작 · 끝 칸과 바퀴(앱)',
+    find: `'<div class="fgrid"><label class="fg-l" for="f-start">시간</label><div class="trange"><input type="time" id="f-start" class="inp" value="' + esc(F.start) + '" aria-label="시작"><span class="tilde">~</span><input type="time" id="f-end" class="inp" value="' + esc(F.end) + '" aria-label="끝"></div>' +`,
+    replace: `'<div class="fgrid"><label class="fg-l" for="f-start">시간</label>' + (window.BX_APP ? bxTwHtml() : '<div class="trange"><input type="time" id="f-start" class="inp" value="' + esc(F.start) + '" aria-label="시작"><span class="tilde">~</span><input type="time" id="f-end" class="inp" value="' + esc(F.end) + '" aria-label="끝"></div>') +`
+  },
+  {
+    name: '└ 그린 뒤 바퀴를 고른 칸으로 맞추기',
+    find: "  el.innerHTML = html;\n}\nfunction drawFCat(){",
+    replace: "  el.innerHTML = html;\n  if (window.BX_APP) bxTwMount(el);\n}\nfunction drawFCat(){"
   }
 ];
 patches.push(...step4, ...calendar, ...nav, ...fix10, ...icons, ...home, ...tidy, ...safe, ...v30, ...v31, ...v32, ...v36, ...words, ...v37, ...v38, ...v39, ...v40, ...v41, ...v42, ...v43, ...v51, ...v52);

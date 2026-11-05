@@ -94,10 +94,11 @@ module.exports = async function () {
   app = await openApp({ data: [['settings', settings({ bxDock: undefined, bxDockMig: undefined })]] });
   try {
     const p = app.page;
-    c.eq(await dockLabels(p), ['루틴', '캘린더', '홈', '시간표', '메모'], '새로 설치한 휴대폰의 아래 메뉴: 시간 · 행동 관리(시험판 38: 더보기는 왼쪽 위 메뉴 단추, 시험판 41: 메모)');
+    // 시험판 62(대표 결정 11/6): 시간표 · 메모 · 명상(릴렉스)은 그 밖의 기능으로 접음 → 아래 메뉴 기본은 루틴 · 홈 · 캘린더
+    c.eq(await dockLabels(p), ['루틴', '홈', '캘린더'], '새로 설치한 휴대폰의 아래 메뉴: 시간 · 행동 관리(시험판 38: 더보기는 왼쪽 위 메뉴 단추, 시험판 62: 루틴 · 캘린더만)');
     await p.click('.ab-menu'); await p.waitForTimeout(500);
     c.eq(await menuHeads(p), ['그 밖의 기능', '앱'], '더보기: 그 밖의 기능 → 앱 묶음(아래 메뉴에 있는 시간 · 행동 관리는 다시 두지 않음)');
-    c.ok(await p.evaluate(() => { const h = Array.from(document.querySelectorAll('#sheet-root .bx-menu-h')).find(x => x.textContent.trim() === '그 밖의 기능'); return !!(h && h.nextElementSibling && /명상/.test(h.nextElementSibling.textContent)); }), "'그 밖의 기능' 아래에 명상");
+    c.ok(await p.evaluate(() => { const h = Array.from(document.querySelectorAll('#sheet-root .bx-menu-h')).find(x => x.textContent.trim() === '그 밖의 기능'); return !!(h && h.nextElementSibling && /시간표[\s\S]*메모[\s\S]*릴렉스/.test(h.nextElementSibling.textContent)); }), "'그 밖의 기능' 아래에 시간표 · 메모 · 릴렉스(시험판 62)");
     await p.click('#sheet-root [data-view="med"]'); await p.waitForTimeout(600);
     c.ok(await p.evaluate(() => !!document.querySelector('.bx-med-set')), '더보기 › 명상으로 들어감');
     // 내가 쓸 기능: 묶음, 명상을 껐다 켜도 아래 메뉴에는 들어가지 않음
@@ -106,10 +107,10 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('#sheet-root .bx-ft-h')).map(h => h.textContent.trim())), ['시간 · 행동 관리', '그 밖의 기능', '아래 메뉴'], '내가 쓸 기능 묶음');
     await p.click('#sheet-root [data-bx-feat="med"]'); await p.waitForTimeout(300);
     await p.click('#sheet-root [data-bx-feat="med"]'); await p.waitForTimeout(300);
-    c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxDock), ['routines', 'month', 'tt', 'memo'], '명상을 다시 켜도 아래 메뉴는 그대로(더보기에)');
+    c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxDock), ['routines', 'month'], '명상(릴렉스)을 다시 켜도 아래 메뉴는 그대로(왼쪽 위 메뉴에)');
     await p.click('#sheet-root [data-bx-feat="tt"]'); await p.waitForTimeout(300);
     await p.click('#sheet-root [data-bx-feat="tt"]'); await p.waitForTimeout(300);
-    c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxDock), ['routines', 'month', 'tt', 'memo'], '시간표를 껐다 켜면 제자리로(메모 앞)');
+    c.eq(await p.evaluate(() => (window.BX_T.docs().find(([id]) => id === 'settings') || [0, {}])[1].bxDock), ['routines', 'month'], '시간표를 껐다 켜도 아래 메뉴에 들어가지 않음(시험판 62: 그 밖의 기능)');
     c.eq(app.errors, [], '화면 오류(기능 묶음)');
   } finally { await app.close(); }
   // (5) 명상 화면 다듬기(대표 지적 11/3): 고르는 화면의 큰 원 · 시작 단추 하나, 진행 중 위 한 줄 · 고리, 끝 화면 합계
@@ -152,10 +153,10 @@ module.exports = async function () {
   } finally { await app.close(); }
   // 예전 기본값을 그대로 쓰던 휴대폰은 새 기본값으로, 직접 고친 아래 메뉴는 그대로
   app = await openApp({ data: [['settings', settings({ bxDock: ['med', 'routines', 'month', 'tt'], bxDockMig: undefined })]] });
-  try { c.eq(await dockLabels(app.page), ['루틴', '캘린더', '홈', '시간표', '메모'], '예전 기본값(명상 · 루틴 · 캘린더 · 시간표) → 새 기본값'); } finally { await app.close(); }
+  try { c.eq(await dockLabels(app.page), ['루틴', '홈', '캘린더'], '예전 기본값(명상 · 루틴 · 캘린더 · 시간표) → 새 기본값'); } finally { await app.close(); }
   app = await openApp({ data: [['settings', settings({ bxDock: ['med', 'month'], bxDockMig: undefined })]] });
-  try { c.eq(await dockLabels(app.page), ['명상', '캘린더', '홈', '메모'], '직접 고친 아래 메뉴는 그대로(시험판 41: 자리가 있으면 메모만 한 번 더함)'); } finally { await app.close(); }
+  try { c.eq(await dockLabels(app.page), ['릴렉스', '홈', '캘린더'], '직접 고친 아래 메뉴는 그대로(시험판 62: 메모를 한 번 더하던 것은 뺌, 시험판 62 뒤에 고친 것은 접은 기능도 그대로)'); } finally { await app.close(); }
   app = await openApp({ data: [['settings', settings({ bxDock: ['med', 'month'], bxDockMig: 1, bxDockMemo: 1 })]] });
-  try { c.eq(await dockLabels(app.page), ['명상', '홈', '캘린더'], '메모가 들어간 뒤 다시 고쳐 저장한 아래 메뉴는 고른 그대로'); } finally { await app.close(); }
+  try { c.eq(await dockLabels(app.page), ['릴렉스', '홈', '캘린더'], '다시 고쳐 저장한 아래 메뉴는 고른 그대로'); } finally { await app.close(); }
   return c.done();
 };

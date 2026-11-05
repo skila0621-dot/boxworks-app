@@ -310,9 +310,10 @@ document.addEventListener('click', ev => {
 
 /* 19. 내가 쓸 기능 · 아래 메뉴: 기능을 끄면 홈·메뉴·알림에서 사라진다(넣어 둔 내용은 남음). 아래 메뉴는 누른 순서대로, 홈은 가운데 */
 let FEAT = null;
-const BX_FEAT = [['routines', '루틴'], ['report', '아침 요약'], ['tt', '시간표'], ['memo', '메모'], ['med', '명상']];
-// 묶음(시험판 35): 시간 · 행동 관리가 주 목적, 명상 같은 그 밖의 기능은 켜도 아래 메뉴가 아니라 ⋯ 더보기에(원하면 아래 메뉴에 넣음)
-const BX_FEAT_ETC = ['med'];
+const BX_FEAT = [['routines', '루틴'], ['report', '아침 요약'], ['tt', '시간표'], ['memo', '메모'], ['med', '릴렉스']];
+// 묶음(시험판 35): 시간 · 행동 관리가 주 목적, 그 밖의 기능은 켜도 아래 메뉴가 아니라 왼쪽 위 메뉴 단추에(원하면 아래 메뉴에 넣음)
+// 시험판 62(대표 결정 11/6): 시간표 · 메모 · 릴렉스를 그 밖의 기능으로 접음(home.js BX_ETC)
+const BX_FEAT_ETC = BX_ETC;
 function bxFeatOpen(){
   FEAT = {mods: Object.assign({}, bxStartMods()), dock: bxDockKeys().slice()};
   openSheet({title: '기능 · 메뉴 편집', draw: bxFeatDraw, refresh: bxFeatDraw, onClose: () => { FEAT = null; }});
@@ -336,9 +337,9 @@ function bxFeatDraw(){
     // 시험판 37: 묶음 제목과 설명은 상자 밖, 고르는 줄은 묶음마다 반투명 상자 하나(bx-grp)
     '<div class="bx-ft-hd"><h3 class="bx-ft-h">시간 · 행동 관리</h3><p class="p small">이 앱의 주 기능이에요. 끄면 홈·메뉴·알림에서 사라지고, 넣어 둔 내용은 남아요.</p></div>' +
     '<div class="bx-grp"><div class="bx-ft-row"><span>일정 · 캘린더</span><span class="bx-lv-fix">늘 켜짐</span></div>' + BX_FEAT.filter(f => !BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') + '</div>' +
-    '<div class="bx-ft-hd"><h3 class="bx-ft-h">그 밖의 기능</h3><p class="p small">켜면 ⋯ 더보기에 있어요. 아래 메뉴에도 넣을 수 있어요.</p></div>' +
+    '<div class="bx-ft-hd"><h3 class="bx-ft-h">그 밖의 기능</h3><p class="p small">켜면 왼쪽 위 메뉴 단추에 있어요. 아래 메뉴에도 넣을 수 있어요.</p></div>' +
     '<div class="bx-grp">' + BX_FEAT.filter(f => BX_FEAT_ETC.includes(f[0])).map(f => sw(f[0], f[1])).join('') + '</div>' +
-    '<div class="bx-ft-hd"><h3 class="bx-ft-h">아래 메뉴</h3><p class="p small">누른 순서대로 왼쪽부터 놓여요. 홈은 가운데, 4개까지. 처음엔 시간 · 행동 관리(루틴 · 캘린더 · 시간표 · 메모). 더보기는 왼쪽 위 메뉴 단추에 있어요.</p></div>' +
+    '<div class="bx-ft-hd"><h3 class="bx-ft-h">아래 메뉴</h3><p class="p small">누른 순서대로 왼쪽부터 놓여요. 홈은 가운데, 4개까지. 처음엔 루틴 · 캘린더. 더보기는 왼쪽 위 메뉴 단추에 있어요.</p></div>' +
     '<div class="bx-grp bx-grp-pad"><div class="bx-ft-chips">' + Object.keys(BX_DOCK_ALL).filter(k => k !== 'more').map(chip).join('') + '</div>' +
     '<span class="bx-ft-pv-h">미리 보기</span><div class="bx-ft-pv" aria-hidden="true" style="grid-template-columns:repeat(' + prev.length + ',minmax(0,1fr))">' + prev.map(x => '<span class="' + (x === '홈' ? 'on' : '') + '">' + x + '</span>').join('') + '</div></div>',
     '<button type="button" class="btn grow" data-bx-fnav="reset">기본값</button>');
@@ -353,9 +354,9 @@ document.addEventListener('click', ev => {
   if (k) {
     const on = FEAT.mods[k] === false; FEAT.mods[k] = on;
     if (!on) FEAT.dock = FEAT.dock.filter(x => x !== k);
-    // 시간 · 행동 관리 기능은 켜면 아래 메뉴에(자리가 있으면 '더보기' 앞에). 그 밖의 기능은 ⋯ 더보기에
-    // 시험판 41: 기본 순서(루틴 · 캘린더 · 시간표 · 메모)의 제자리로. 기본 순서에서 뒤에 오는 것 앞에 넣는다
-    else if ((k === 'routines' || k === 'tt' || k === 'memo') && FEAT.dock.length < 4 && !FEAT.dock.includes(k)) {
+    // 시간 · 행동 관리 기능(루틴)은 켜면 아래 메뉴에. 그 밖의 기능(시간표 · 메모 · 릴렉스, 시험판 62)은 왼쪽 위 메뉴 단추에
+    // 시험판 41: 기본 순서(루틴 · 캘린더)의 제자리로. 기본 순서에서 뒤에 오는 것 앞에 넣는다
+    else if (k === 'routines' && FEAT.dock.length < 4 && !FEAT.dock.includes(k)) {
       const di = x => { const i = BX_DOCK_DEF.indexOf(x); return i < 0 ? 99 : i; };
       let at = FEAT.dock.findIndex(x => x === 'more' || di(x) > di(k)); if (at < 0) at = FEAT.dock.length;
       FEAT.dock.splice(at, 0, k);
@@ -375,7 +376,7 @@ function bxFeatApply(){
   if (!FEAT) return;
   const st = Object.assign({at: nowIso()}, (M.settings && M.settings.bxStart) || {}, {mods: Object.assign({}, FEAT.mods)});
   const rep = Object.assign({}, bxRepCfg(), {on: FEAT.mods.report !== false});
-  saveSettings({bxStart: st, bxDock: FEAT.dock.slice(), bxDockMig: 1, bxDockMemo: 1, bxReport: rep});
+  saveSettings({bxStart: st, bxDock: FEAT.dock.slice(), bxDockMig: 1, bxDockMemo: 1, bxDockFold: 1, bxReport: rep});
 }
 // 메모를 적는 동안은 미룬다(시험판 41: 칸이 새로 그려지면 키보드가 내려감, 칸을 떠나면 그림)
 window.BX_rerender = function(){ if (S.view === 'today' && !SH && !document.getElementById('bx-start') && !(typeof bxMmHold === 'function' && bxMmHold())) render(); };

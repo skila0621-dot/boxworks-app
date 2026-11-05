@@ -25,7 +25,8 @@ function settings(extra = {}) {
   return Object.assign({ type: 'settings', weekStart: 1, onboarded: true, welcomed: true,
     bxStart: { at: old, mods: { report: false, routines: true, tt: true, med: true } }, bxRtHelp: { at: old }, bxTtHelp: { at: old },
     // 시험들은 명상을 아래 메뉴에서 연다(사용자가 아래 메뉴를 고친 휴대폰). 새 기본값(시간 · 행동 관리 + 더보기)은 v35에서 본다
-    bxDock: ['med', 'routines', 'month', 'tt'], bxDockMig: 1 }, extra);
+    // bxDockFold: 시험판 62 뒤에 아래 메뉴를 저장한 휴대폰(접은 기능을 빼지 않음). 접기는 v62에서 본다
+    bxDock: ['med', 'routines', 'month', 'tt'], bxDockMig: 1, bxDockFold: 1 }, extra);
 }
 
 /**

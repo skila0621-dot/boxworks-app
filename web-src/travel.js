@@ -9,6 +9,8 @@ const TV_PRE = 10;
 const TV_OUT = {name: '외출 준비', steps: [['씻기', 20], ['옷 입기', 10], ['짐 챙기기', 5]]};
 const ICON_GO = '<svg class="i" viewBox="0 0 24 24"><path d="M4 12h11.5M11 7.5l4.5 4.5-4.5 4.5"/><path d="M20 4.5v15"/></svg>';
 let tvNote = '';
+// 휴대폰 캘린더 일정 출발·준비 페이지의 '루틴에도 저장'(시험판 62): 페이지가 열려 있는 동안만, '완료'에서 루틴으로 넘긴다(v45.js)
+let tvPcSave = false;
 
 // 이동 시간 칸(4칸) 글: 정시는 'N시간', 나머지는 'N분'(90분 · 75분). '1시간 30분'은 폭 360 · 384의 칸에 안 들어감(시험판 55 정렬 점검)
 function tvPickText(m){ m = Math.round(+m || 0); return m >= 60 && m % 60 === 0 ? m / 60 + '시간' : m + '분'; }
@@ -92,18 +94,26 @@ function tvPlan(it, rtOverride){
   const rt = rtOverride || tvRoutine(it.prep) || (it.prepOut ? tvOutVirtual() : null);
   if (!travel && !rt) return null;
   const arrive = at(it.date, it.start), leave = addMin(arrive, -travel), rows = [];
+  // 시험판 62(대표 11/6 선택실 4 · 2번 가 · 3번 ㄱ): 이 일정만 바꾼 단계 시간(it.prepMin: 단계 id → 분)과
+  // 알람 켜고 끄기(it.prepRing: 단계 id · 'leave' · 'pre' → 0 끔 · 1 켬). 루틴 탭의 루틴은 그대로
+  const pm = it.prepMin || {}, pr = it.prepRing || {};
   if (rt) {
-    let t = addMin(leave, -rt.steps.reduce((a, s) => a + (+s.min || 0), 0));
-    // 시험판 52: 단계 세기는 루틴과 같다(첫 단계 · 약은 꼭 울림, 중간은 짧게 한 번, 기다리기는 소리 없이)
-    rt.steps.forEach((s, i) => { rows.push({id: s.id, name: s.name, at: t, min: +s.min || 0, kind: s.kind, ring: bxStepRing(s, i, rt.steps)}); t = addMin(t, +s.min || 0); });
-  } else rows.push({id: 'pre', name: '출발 ' + TV_PRE + '분 전', at: addMin(leave, -TV_PRE), min: 0, kind: 'do', pre: true, ring: 'short'});
-  if (travel) rows.push({id: 'leave', name: '출발', at: leave, min: 0, kind: 'do', leave: true, ring: 'must'});
+    const steps = rt.steps.map(s => pm[s.id] != null ? Object.assign({}, s, {min: clampInt(pm[s.id], 0, 600, +s.min || 0)}) : s);
+    // 시험판 52: 단계 세기는 루틴과 같다(첫 단계 · 약은 꼭 울림, 중간은 짧게 한 번, 기다리기는 소리 없이).
+    // 끈 단계는 소리 없이, 루틴에서 소리 없이인 단계를 켜면 짧게 한 번. 앞 단계를 이 일정에서 껐으면 남은 첫 단계가 준비 시작이라
+    // 꼭 울림(결정 사안 s06 '준비 시작을 꼭 울림에'). 루틴에서 세기를 정한 단계는 그 세기 그대로
+    const rings = steps.map((s, i) => { const b = bxStepRing(s, i, rt.steps); return pr[s.id] === 0 ? 'silent' : pr[s.id] === 1 && b === 'silent' ? 'short' : b; });
+    const fi = rings.findIndex(r => r !== 'silent'); if (fi >= 0 && rings[fi] === 'short' && !steps[fi].ring) rings[fi] = 'must';
+    let t = addMin(leave, -steps.reduce((a, s) => a + (+s.min || 0), 0));
+    steps.forEach((s, i) => { rows.push({id: s.id, name: s.name, at: t, min: +s.min || 0, kind: s.kind, ring: rings[i], own: pm[s.id] != null}); t = addMin(t, +s.min || 0); });
+  } else rows.push({id: 'pre', name: '출발 ' + TV_PRE + '분 전', at: addMin(leave, -TV_PRE), min: 0, kind: 'do', pre: true, ring: pr.pre === 0 ? 'silent' : 'short'});
+  if (travel) rows.push({id: 'leave', name: '출발', at: leave, min: 0, kind: 'do', leave: true, ring: pr.leave === 0 ? 'silent' : 'must'});
   return {it, rt, travel, arrive, leave, rows, start: rows[0].at};
 }
 function tvAlarms(it){
   const p = tvPlan(it); if (!p) return [];
   // 짧게 한 번 단계는 같은 시각에 꼭 울림 단계가 있거나 앞 단계와 시각이 같으면(0분 단계) 따로 울리지 않는다(BX_alarmPlan 루틴과 같게)
-  const al0 = p.rows.filter(r => r.kind !== 'wait'), end = p.travel ? p.leave : p.arrive;
+  const al0 = p.rows.filter(r => r.ring !== 'silent'), end = p.travel ? p.leave : p.arrive;
   const al = al0.filter((r, i) => r.ring !== 'short' || !al0.some((x, q) => q !== i && +x.at === +r.at && (x.ring === 'must' || q < i)));
   return al.map((r, i) => {
     const nx = al[i + 1], left = Math.round((end - r.at) / 60000);
@@ -139,7 +149,7 @@ function tvRtSum(rt){
 function tvFormRt(){ return F.prep ? tvRoutine(F.prep) : F.prepNew ? tvOutVirtual() : null; }
 function tvFormPlan(){
   if (!F || !F.timed || !isHM(F.start) || !isDate(F.date)) return null;
-  return tvPlan({date: F.date, start: F.start, title: F.title, travel: F.travel, prep: F.prep}, tvFormRt());
+  return tvPlan({date: F.date, start: F.start, title: F.title, travel: F.travel, prep: F.prep, prepMin: F.prepMin, prepRing: F.prepRing}, tvFormRt());
 }
 function tvTab(tab){
   if (!F) return '';
@@ -166,7 +176,7 @@ function tvDrawPanel(){
   const rts = tvPrepNames().map(r => ({id: r.id || 'new', name: r.name, isNew: !r.id}));
   const curPrep = F.prep || (F.prepNew ? 'new' : '');
   const p = tvFormPlan();
-  const line = p ? tvLineHtml(p, F.start, (F.parsed && F.parsed.title) || F.title) : '';
+  const line = p ? tvLineHtml(p, F.start, (F.parsed && F.parsed.title) || F.title, {save: !!F.prepSave}) : '';
   el.innerHTML =
     '<div class="fg-l">이동 시간</div><div class="picks">' + tvs.map(v => '<button type="button" class="pick" data-ftv="' + v + '" aria-pressed="' + ((+F.travel || 0) === v) + '">' + (v ? tvPickText(v) : '없음') + '</button>').join('') + '</div>' +
     '<div class="tv-cus"><span class="p small">직접</span>' + stepperHtml('f-travel', +F.travel || 0, 0, 300, null, 5) + '<span class="p small">분</span></div>' +
@@ -176,12 +186,77 @@ function tvDrawPanel(){
     rts.map(r => '<button type="button" class="pick" data-fprep="' + esc(r.id) + '" aria-pressed="' + (curPrep === r.id) + '">' + esc(r.name) + (r.isNew ? ' <small>새로</small>' : '') + '</button>').join('') + '</div>' + line;
 }
 // 준비·출발·도착 시각 줄(새 일정 창, 휴대폰 캘린더 일정 창)
-function tvLineHtml(p, start, title){
-  const al = new Set(p.rows.filter(r => r.kind !== 'wait').map(r => r.id));
-  return '<ol class="tv-line">' + p.rows.map(r => '<li class="' + (r.leave ? 'go' : r.pre ? 'pre' : '') + (r.kind === 'wait' ? ' wait' : '') + '"><b class="tnum">' + bxT(r.at) + '</b><span>' + esc(r.leave ? '출발' : r.name) + (r.min ? '<small>' + tvMinText(r.min) + '</small>' : '') + '</span>' + (al.has(r.id) ? ICON.bell : '') + '</li>').join('') +
-    '<li class="arr"><b class="tnum">' + esc(bxT(start)) + '</b><span>' + (p.travel ? '도착' : '시작') + (title ? ' · ' + esc(title) : '') + '</span></li></ol>' +
-    '<p class="p small">출발·준비 알람 ' + al.size + '개' + (p.rt ? ' · 루틴 단계 시간은 루틴 탭에서 고쳐요' : '') + '</p>';
+// 시험판 62(대표 11/6 선택실 4 · 2번 가 '단계마다 ± 늘 보임' · 3번 ㄱ '시각 왼쪽 종을 눌러 켜고 끄기', 결정 사안 d20261106-prepedit · s03).
+// ed(고칠 수 있는 줄)가 있으면:
+//  - 줄마다 시각 왼쪽에 종. 누르면 울림 ↔ 안 울림(빗금 · 흐리게). 울리는 세기는 루틴 · 설정 › 알림을 따른다(대표 메모 '울리는 방식은 설정에서')
+//  - 단계 줄 오른쪽에 − N분 +(5분씩). 출발 시각은 그대로 두고 준비 시작이 앞뒤로 움직인다
+//  - 출발 줄 오른쪽에 이동 시간 − + (위의 이동 시간과 같은 값). 늘리면 출발과 준비 단계가 함께 앞당겨진다
+//  - 아래 '‘루틴’에도 저장'(끄면 이 일정만, 켜면 저장할 때 루틴을 고친다 — 루틴 탭과 이 루틴을 붙인 다른 일정도 바뀜)
+//  - 폭 360에서 긴 단계 이름은 두 줄로(잘리지 않게)
+function tvLineHtml(p, start, title, ed){
+  const on = r => r.ring !== 'silent', arr = '<b class="tnum">' + esc(bxT(start)) + '</b><span class="nm">' + (p.travel ? '도착' : '시작') + (title ? ' · ' + esc(title) : '') + '</span>';
+  if (!ed) {
+    const al = new Set(p.rows.filter(on).map(r => r.id));
+    return '<ol class="tv-line">' + p.rows.map(r => '<li class="' + (r.leave ? 'go' : r.pre ? 'pre' : '') + (r.ring === 'silent' ? ' wait' : '') + '"><b class="tnum">' + bxT(r.at) + '</b><span>' + esc(r.leave ? '출발' : r.name) + (r.min ? '<small>' + tvMinText(r.min) + '</small>' : '') + '</span>' + (al.has(r.id) ? ICON.bell : '') + '</li>').join('') +
+      '<li class="arr">' + arr + '</li></ol>' +
+      '<p class="p small">출발·준비 알람 ' + al.size + '개' + (p.rt ? ' · 루틴 단계 시간은 루틴 탭에서 고쳐요' : '') + '</p>';
+  }
+  const nm = r => r.leave ? '출발' : r.name;
+  const stp = (k, v, lo, hi, label) => '<span class="bx-stp" role="group" aria-label="' + esc(label) + ' ' + tvMinText(v) + '">' +
+    '<button type="button" data-tvl="' + esc(k) + '" data-d="-5" aria-label="' + esc(label) + ' 5분 줄이기"' + (v <= lo ? ' disabled' : '') + '>−</button>' +
+    '<b class="tnum">' + tvMinText(v) + '</b>' +
+    '<button type="button" data-tvl="' + esc(k) + '" data-d="5" aria-label="' + esc(label) + ' 5분 늘리기"' + (v >= hi ? ' disabled' : '') + '>+</button></span>';
+  const bell = r => '<button type="button" class="bx-tvl-bell' + (on(r) ? '' : ' off') + '" data-tvl="bell" data-r="' + esc(String(r.id)) + '" aria-pressed="' + on(r) + '" aria-label="' + esc(nm(r)) + ' 알람 ' + (on(r) ? '울림' : '안 울림') + '">' + (on(r) ? ICON.bell : ICON.bellOff) + '</button>';
+  const li = p.rows.map(r => '<li class="' + (r.leave ? 'go' : r.pre ? 'pre' : '') + (r.own ? ' chg' : '') + (on(r) ? '' : ' off') + '">' + bell(r) + '<b class="tnum">' + bxT(r.at) + '</b>' +
+    '<span class="nm">' + esc(nm(r)) + (r.leave ? '<small>이동</small>' : '') + '</span>' +
+    (r.leave ? stp('tv', p.travel, 5, 300, '이동 시간') : r.pre ? '' : stp('st:' + r.id, r.min, 5, 120, r.name)) + '</li>').join('');
+  const n = p.rows.filter(on).length, off = p.rows.filter(r => !on(r)).map(nm);
+  let note = '알람 ' + p.rows.length + '개 중 <b>' + n + '개</b> 울려요' + (off.length ? ' · 끈 것: ' + esc(off.join(' · ')) : '');
+  if (p.rt) {
+    const base = tvPlan(Object.assign({}, p.it, {prepMin: null}), p.rt), d = base ? Math.round((base.start - p.start) / 60000) : 0;
+    note += ' · 준비 시작 <b>' + bxT(p.start) + '</b>' + (d ? '(루틴보다 ' + Math.abs(d) + '분 ' + (d > 0 ? '일찍' : '늦게') + ')' : '');
+  }
+  const save = p.rt ? '<button type="button" class="bx-tvl-save" data-tvl="save" role="checkbox" aria-checked="' + !!ed.save + '"><span class="chk' + (ed.save ? ' on' : '') + '" aria-hidden="true">' + ICON.check + '</span>' +
+    '<span class="bx-tvl-st"><b>‘' + esc(p.rt.name) + '’ 루틴에도 저장</b><small>' + (ed.save ? '루틴 탭과 이 루틴을 붙인 다른 일정도 같이 바뀌어요' : '끄면 이 일정' + (title ? '(' + esc(title) + ')' : '') + '에만 바뀌어요') + '</small></span></button>' : '';
+  return '<ol class="tv-line ed">' + li + '<li class="arr">' + arr + '</li></ol><p class="p small bx-tvl-note">' + note + '</p>' + save;
 }
+// 줄의 단추 하나를 누른 결과(바꿀 값만). st: 새 일정 창 F 또는 휴대폰 캘린더 일정의 덧붙인 값
+function tvLineApply(st, p, b){
+  const k = b.dataset.tvl, d = +b.dataset.d || 0;
+  if (k === 'save') return {prepSave: !st.prepSave};
+  if (k === 'tv') return {travel: Math.max(5, Math.min(300, (+p.travel || 0) + d))};
+  if (k === 'bell') {
+    const id = b.dataset.r, r = p.rows.find(x => String(x.id) === id); if (!r) return null;
+    // 루틴(기본) 값으로 돌아가면 따로 적어 두지 않는다
+    const base = tvPlan(Object.assign({}, p.it, {prepRing: null}), p.rt), br = base && base.rows.find(x => String(x.id) === id);
+    const want = r.ring === 'silent', def = br ? br.ring !== 'silent' : true, pr = Object.assign({}, st.prepRing || {});
+    if (want === def) delete pr[id]; else pr[id] = want ? 1 : 0;
+    return {prepRing: pr};
+  }
+  if (k.startsWith('st:') && p.rt) {
+    const id = k.slice(3), r = p.rows.find(x => String(x.id) === id), s = p.rt.steps.find(x => String(x.id) === id); if (!r || !s) return null;
+    const v = Math.max(Math.min(5, r.min), Math.min(Math.max(120, r.min), r.min + d)), pm = Object.assign({}, st.prepMin || {});
+    if (v === (+s.min || 0)) delete pm[id]; else pm[id] = v;
+    return {prepMin: pm};
+  }
+  return null;
+}
+// '루틴에도 저장'(시험판 62): 이 일정에서 바꾼 단계 시간 · 알람을 루틴에 적는다. 출발 · 출발 10분 전은 일정의 것이라 넘기지 않는다
+function tvSaveToRoutine(rid, pm, pr){
+  const d = getDoc(rid); if (!d || !Array.isArray(d.steps)) return false;
+  let ch = false;
+  const steps = d.steps.map(s => {
+    const o = Object.assign({}, s);
+    if (pm[s.id] != null && +pm[s.id] !== +s.min) { o.min = clampInt(pm[s.id], 0, 600, +s.min || 0); ch = true; }
+    if (pr[s.id] === 0 && s.kind !== 'wait') { o.kind = 'wait'; delete o.ring; ch = true; }
+    else if (pr[s.id] === 1 && s.kind === 'wait') { o.kind = 'do'; delete o.ring; ch = true; }
+    return o;
+  });
+  if (ch) writeDoc(rid, Object.assign({}, d, {steps, updatedAt: nowIso()}));
+  return ch;
+}
+// 루틴으로 넘긴 단계 값은 이 일정에서 지운다(출발 · 출발 10분 전 알람만 남김)
+function tvOwnLeft(pm, pr){ return {pm: {}, pr: Object.keys(pr || {}).filter(k => k === 'leave' || k === 'pre').reduce((o, k) => (o[k] = pr[k], o), {})}; }
 // 기본 '외출 준비' 루틴이 없으면 만든다(일정에 붙여 쓰는 용도라 꺼 둠)
 function tvEnsureOut(){
   const ex = M.routines.find(r => tvKey(r.name) === tvKey(TV_OUT.name));
@@ -220,6 +295,12 @@ function tvFields(fields, start){
   let prep = start ? F.prep : null;
   if (start && !prep && F.prepNew) prep = tvEnsureOut();
   fields.prep = prep && getDoc(prep) ? prep : null;
+  // 시험판 62: 이 일정만 바꾼 단계 시간 · 알람. '루틴에도 저장'이면 루틴을 고치고 이 일정에는 출발 쪽 알람만 남긴다
+  let pm = start && fields.prep ? Object.assign({}, F.prepMin || {}) : {}, pr = start ? Object.assign({}, F.prepRing || {}) : {};
+  if (fields.prep && F.prepSave) { tvSaveToRoutine(fields.prep, pm, pr); const o = tvOwnLeft(pm, pr); pm = o.pm; pr = o.pr; }
+  if (!fields.prep) Object.keys(pr).forEach(k => { if (k !== 'leave' && k !== 'pre') delete pr[k]; });
+  fields.prepMin = Object.keys(pm).length ? pm : null;
+  fields.prepRing = Object.keys(pr).length ? pr : null;
   if (fields.travel && tvRemember(fields.title, fields.location, fields.travel)) {
     const k = tvKey(fields.location).length >= 2 ? fields.location.trim() : fields.title;
     tvNote = k + '까지 ' + tvMinText(fields.travel) + ', 기억해 둘게요';
@@ -231,11 +312,39 @@ function tvWhenTail(fields){
   return (p ? ' · ' + (p.travel ? bxT(p.leave) + ' 출발' : '준비 ' + bxT(p.start) + '부터') : '') + (tvNote ? ' · ' + tvNote : '');
 }
 document.addEventListener('click', ev => {
+  if (!window.BX_APP || !F || !ev.target.closest) return;
+  const b = ev.target.closest('#f-go [data-tvl]'); if (!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const p = tvFormPlan(), ch = p && tvLineApply(F, p, b); if (!ch) return;
+  if (ch.travel != null) { F.travel = ch.travel; F.touchedTravel = true; F.tvSrc = 'hand'; }
+  if (ch.prepMin) F.prepMin = ch.prepMin;
+  if (ch.prepRing) F.prepRing = ch.prepRing;
+  if (ch.prepSave != null) F.prepSave = ch.prepSave;
+  tvRedraw();
+}, true);
+// 휴대폰 캘린더 일정의 출발·준비 페이지: 고르면 바로 그 일정의 덧붙인 값(px 문서)에 적는다. ‹ 는 연 순간으로 되돌림(v45.js)
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !ev.target.closest) return;
+  const b = ev.target.closest('.bx-pc45-pg [data-tvl]'); if (!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const idEl = document.querySelector('#sheet-f [data-act="pc-done"]'), it = idEl ? M.items.find(i => i.id === idEl.dataset.id) : null; if (!it) return;
+  const p = tvPlan(it), ch = p && tvLineApply({prepMin: it.prepMin, prepRing: it.prepRing, prepSave: tvPcSave}, p, b); if (!ch) return;
+  if (ch.prepSave != null) tvPcSave = ch.prepSave;
+  const patch = {};
+  if (ch.travel != null) { patch.travel = ch.travel; tvRemember(it.title, it.location, ch.travel); }
+  if (ch.prepMin) patch.prepMin = Object.keys(ch.prepMin).length ? ch.prepMin : null;
+  if (ch.prepRing) patch.prepRing = Object.keys(ch.prepRing).length ? ch.prepRing : null;
+  if (Object.keys(patch).length) pcSetOv(it.pcKey, patch);
+  pcDraw(it.id);
+}, true);
+document.addEventListener('click', ev => {
   if (!window.BX_APP || !F) return;
   const tv = ev.target.closest('[data-ftv]');
   if (tv) { F.travel = +tv.dataset.ftv || 0; F.touchedTravel = true; F.tvSrc = 'hand'; tvRedraw(); return; }
   const pr = ev.target.closest('[data-fprep]');
-  if (pr) { const v = pr.dataset.fprep; F.touchedPrep = true; F.prep = v && v !== 'new' ? v : null; F.prepNew = v === 'new' ? TV_OUT.name : null; tvRedraw(); return; }
+  if (pr) { const v = pr.dataset.fprep; F.touchedPrep = true; F.prep = v && v !== 'new' ? v : null; F.prepNew = v === 'new' ? TV_OUT.name : null;
+    // 시험판 62: 루틴을 바꾸면 단계가 달라지니 이 일정만 바꾼 단계 값은 비운다(출발 쪽 알람은 그대로)
+    const o = tvOwnLeft(F.prepMin, F.prepRing); F.prepMin = o.pm; F.prepRing = o.pr; F.prepSave = false; tvRedraw(); return; }
   if (ev.target.closest('[data-frem],[data-act="rem-add-rel"],[data-act="rem-add-abs"]')) { F.touchedRem = true; F.remSaid = false; }
 }, true);
 document.addEventListener('change', ev => {

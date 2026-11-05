@@ -113,6 +113,8 @@ document.addEventListener('click', ev => {
   const fp = ev.target.closest('#f-chips [data-fpanel]'); if (!fp) return;
   if (!F.panel) bxEpSnap = bxEpClone(F);
   F.bxSub = fp.dataset.bxsub || null;
+  // 시간 페이지는 늘 시작 칸부터(시험판 62 바퀴)
+  if (fp.dataset.fpanel === 'time') F.twEdit = 'start';
   // 이미 열린 칸을 한 번 더 눌러도 닫히지 않게(페이지가 덮고 있어 보통은 못 누름)
   if (F.panel === fp.dataset.fpanel) F.panel = null;
 }, true);
@@ -142,6 +144,8 @@ function bxEpSync(){
   body.querySelectorAll('#f-panel').forEach(x => { if (x !== pan) x.remove(); });
   if (pan.parentNode !== body) body.appendChild(pan);
   pan.hidden = false;
+  // 옮기면 바퀴의 밀린 자리가 0으로 돌아가므로 고른 칸으로 다시(시험판 62)
+  pan.querySelectorAll('.bx-wc').forEach(c => { if (c._bxPlace) c._bxPlace(); });
   document.documentElement.classList.add('bx-ep-on');
   if (k === 'loc') { if (pg.dataset.loc0 !== '1') { bxEpLoc0 = (F.location || '').trim(); pg.dataset.loc0 = '1'; } bxEpPlaces(); }
   // 알림 페이지: 스위치 줄은 삼성처럼 '사용 중 · 사용 안 함'(위 제목이 이미 '알림')
@@ -149,6 +153,87 @@ function bxEpSync(){
   // 캘린더 페이지: '없음' → '캘린더 없음'
   if (k === 'cat') { const nb = pan.querySelector('#f-cat > .picks .pick[data-fcat=""]'); if (nb && nb.textContent.trim() === '없음') nb.textContent = '캘린더 없음'; }
 }
+/* 시험판 62(대표 11/6 선택실 4 · 1번 B '세 칸 바퀴(삼성 시계처럼)', 결정 사안 s02): 시간 페이지에서 휴대폰 시계 창을 열지 않는다.
+   시작 · 끝 칸을 눌러 고칠 쪽을 정하고, 아래 바퀴(오전 · 오후 | 시 | 분)를 밀거나 눌러 바꾼다. 24시간 표시면 시 | 분 두 칸(00~23).
+   분 바퀴는 5분씩. 말로 넣은 '2시 3분' 같은 값은 분 바퀴를 건드릴 때까지 그대로 둔다.
+   시작을 바꾸면 끝도 소요 시간만큼 따라간다(전과 같음). 끝은 시작보다 앞설 수 없다(여러 날이면 마지막 날의 끝이라 그대로)
+   바퀴는 공통 부품(bxWheelHtml · bxWheelMount, 모양은 app.css '바퀴'): 칸 높이 40 · 다섯 줄 보임 · 가운데 줄에 연보라 띠 */
+const BX_WH = 40;
+let bxWheelFocus = null;
+function bxWheelHtml(cols, name){
+  const col = c => '<div class="bx-wc" data-wpart="' + c.part + '" role="listbox" tabindex="0" aria-label="' + esc(c.name) + '">' +
+    c.labels.map((l, j) => '<div class="bx-wi' + (j === c.sel ? ' on' : '') + '" role="option" data-j="' + j + '" aria-selected="' + (j === c.sel) + '">' + esc(l) + '</div>').join('') + '</div>';
+  return '<div class="bx-whl c' + cols.length + '" role="group" aria-label="' + esc(name) + '">' + cols.map(c => (c.sep ? '<span class="bx-wsep" aria-hidden="true">' + c.sep + '</span>' : '') + col(c)).join('') + '</div>';
+}
+// 그린 뒤: 고른 칸을 가운데로(창이 아직 안 보이면 보일 때까지 기다림). 밀다가 멈추면(scrollend, 없으면 0.15초 뒤) 가운데 칸을 고르고,
+// 칸을 누르면 그 칸, 위 · 아래 화살표 키는 한 칸씩. 고르면 onPick(part, j)
+function bxWheelMount(root, onPick){
+  root.querySelectorAll('.bx-wc').forEach(col => {
+    const n = col.querySelectorAll('.bx-wi').length, on = col.querySelector('.bx-wi.on'), j0 = on ? +on.dataset.j : 0;
+    let tm = null, quiet = 0, touched = false;
+    // 고른 칸을 가운데로. 창이 아직 안 보이거나, 그린 뒤 칸이 페이지로 옮겨지면(옮기면 밀린 자리가 0으로 돌아감) 잠깐 동안 다시 맞춘다.
+    // 손을 대면(누름 · 휠 · 키) 더 맞추지 않는다. 맞추는 동안 생긴 밀기는 고른 것으로 치지 않는다
+    const place = () => { if (!col.clientHeight || touched) return; if (col.scrollTop !== j0 * BX_WH) { quiet = Date.now() + 200; col.scrollTop = j0 * BX_WH; } };
+    let k = 0; const loop = () => { place(); if (++k < 24 && !touched && col.isConnected) requestAnimationFrame(loop); }; loop();
+    col._bxPlace = place;
+    ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(t => col.addEventListener(t, () => { touched = true; }, {passive: true}));
+    const settle = () => { clearTimeout(tm); tm = null; if (Date.now() < quiet || !touched || !col.isConnected) return; const j = Math.max(0, Math.min(n - 1, Math.round(col.scrollTop / BX_WH))); if (j !== j0) onPick(col.dataset.wpart, j); };
+    col.addEventListener('scroll', () => { if (Date.now() < quiet) return; clearTimeout(tm); tm = setTimeout(settle, 150); }, {passive: true});
+    col.addEventListener('scrollend', settle);
+    col.addEventListener('click', ev => { const it = ev.target.closest('.bx-wi'); if (!it) return; ev.preventDefault(); ev.stopPropagation(); const j = +it.dataset.j; if (j !== j0) onPick(col.dataset.wpart, j); });
+    col.addEventListener('keydown', ev => {
+      if (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown') return;
+      ev.preventDefault();
+      const j = Math.max(0, Math.min(n - 1, j0 + (ev.key === 'ArrowDown' ? 1 : -1)));
+      if (j !== j0) { bxWheelFocus = col.dataset.wpart; onPick(col.dataset.wpart, j); }
+    });
+  });
+  if (bxWheelFocus) { const c = root.querySelector('.bx-wc[data-wpart="' + bxWheelFocus + '"]'); bxWheelFocus = null; if (c) c.focus({preventScroll: true}); }
+}
+function bxTwEdit(){ return F && F.twEdit === 'end' && isHM(F.end) ? 'end' : 'start'; }
+function bxTwHtml(){
+  if (!F) return '';
+  const w = bxTwEdit(), h24 = bxClock24(), two = x => String(x).padStart(2, '0');
+  const box = k => { const v = k === 'start' ? F.start : F.end, txt = isHM(v) ? bxT(v) : '--:--';
+    return '<button type="button" class="bx-tw-box" id="f-' + k + '" data-bxtw="' + k + '" aria-pressed="' + (w === k) + '" aria-label="' + (k === 'start' ? '시작' : '끝') + ' ' + txt + '">' + txt + '</button>'; };
+  const v = w === 'end' ? F.end : F.start, m = isHM(v) ? toMin(v) : 0, h = Math.floor(m / 60), mi = m % 60;
+  const cols = [];
+  if (!h24) cols.push({part: 'ap', labels: ['오전', '오후'], sel: h >= 12 ? 1 : 0, name: '오전 · 오후'});
+  cols.push({part: 'h', labels: h24 ? Array.from({length: 24}, (_, i) => two(i)) : ['12'].concat(Array.from({length: 11}, (_, i) => String(i + 1))), sel: h24 ? h : h % 12, name: '시'});
+  cols.push({part: 'm', sep: ':', labels: Array.from({length: 12}, (_, i) => two(i * 5)), sel: Math.min(11, Math.round(mi / 5)), name: '분'});
+  return '<div class="bx-tw"><div class="bx-tw-row">' + box('start') + '<span class="bx-tw-til" aria-hidden="true">~</span>' + box('end') + '</div>' +
+    bxWheelHtml(cols, (w === 'start' ? '시작' : '끝') + ' 시각 고르기') + '</div>';
+}
+function bxTwMount(el){ const w = el && el.querySelector('.bx-tw'); if (w) bxWheelMount(w, bxTwPick); }
+function bxTwPick(part, j){
+  if (!F) return;
+  const w = bxTwEdit(), h24 = bxClock24(), cur = w === 'end' ? F.end : F.start, m0 = isHM(cur) ? toMin(cur) : 0;
+  let h = Math.floor(m0 / 60), mi = m0 % 60;
+  if (part === 'ap') h = h % 12 + (j ? 12 : 0);
+  else if (part === 'h') h = h24 ? j : j + (h >= 12 ? 12 : 0);   // 12시간 바퀴는 12, 1 … 11 차례라 j가 곧 시 % 12
+  else if (part === 'm') mi = j * 5;
+  const nv = Math.min(1439, h * 60 + mi);
+  F.touchedTime = true;
+  const multi = typeof bxFMulti === 'function' && bxFMulti();
+  if (w === 'start') {
+    // 여러 날이면 끝은 마지막 날의 끝이라 그대로(시험판 39와 같게)
+    const old = F.start; F.start = fromMin(nv);
+    if (!multi && F.end && isHM(old)) { const d = toMin(F.end) - toMin(old); if (d > 0) F.end = fromMin(Math.min(toMin(F.start) + d, 1439)); }
+  } else F.end = fromMin(multi || !isHM(F.start) ? nv : Math.max(nv, Math.min(1439, toMin(F.start) + 5)));
+  drawFTime();
+  if (typeof updRemWhen === 'function') updRemWhen();
+}
+// 시작 · 끝 칸: 누르면 그쪽을 고친다. 끝이 없으면(끝 시간 없음) 시작 + 1시간으로 정하고 고친다
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !F || !ev.target.closest) return;
+  const b = ev.target.closest('[data-bxtw]'); if (!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const k = b.dataset.bxtw;
+  if (k === 'end' && !isHM(F.end) && isHM(F.start)) { F.end = fromMin(Math.min(toMin(F.start) + 60, 1439)); F.touchedTime = true; }
+  F.twEdit = k; drawFTime();
+  if (typeof updRemWhen === 'function') updRemWhen();
+}, true);
+
 const bxPanel44 = drawFPanel;
 drawFPanel = function(){
   const prev = document.getElementById('bx-ep'), was = prev ? prev.dataset.k : null;
@@ -403,10 +488,12 @@ function bxPgClose(undo){
   if (!bxPg) return;
   const o = bxPg; bxPg = null;
   if (undo && o.onUndo) o.onUndo();
+  // '완료'(시험판 62): 닫을 때 마무리할 것이 있는 페이지(휴대폰 캘린더 일정의 출발·준비 '루틴에도 저장')
+  if (!undo && o.onDone) o.onDone();
   if (o.ph && o.ph.parentNode) { o.ph.parentNode.insertBefore(o.node, o.ph); o.ph.remove(); }
   const pg = document.getElementById('bx-pg'); if (pg) pg.remove();
 }
-function bxPgOpen(title, node, onUndo){
+function bxPgOpen(title, node, onUndo, onDone){
   if (!node || !node.parentNode) return;
   bxPgClose(false);
   const root = document.getElementById('sheet-root') || document.body;
@@ -417,7 +504,7 @@ function bxPgOpen(title, node, onUndo){
   pg.innerHTML = '<div class="bx-ep-h"><button type="button" class="icon-btn" data-bxpg="back" aria-label="취소하고 돌아가기">' + ICON.chevL + '</button><h2 id="bx-pg-t">' + esc(title) + '</h2><button type="button" class="bx-ep-ok" data-bxpg="done">완료</button></div><div class="bx-ep-b"></div>';
   pg.querySelector('.bx-ep-b').appendChild(node);
   root.appendChild(pg);
-  bxPg = {node, ph, onUndo};
+  bxPg = {node, ph, onUndo, onDone};
 }
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest) return;

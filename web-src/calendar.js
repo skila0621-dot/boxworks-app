@@ -111,7 +111,9 @@ function pcItems(settings){
       out.push({id: 'pc_' + key, type: 'item', pc: true, pcKey: key, pcEv: e, title: e.title || '(제목 없음)', date, endDate, start, end,
         location: e.location || '', note: e.description || '', categoryId: cid,
         remind: ov.remind != null ? ov.remind : !cfg.alarm ? '' : timed ? remNorm(settings.defaultRemind, true, start) : remNorm(settings.defaultRemindDay, false),
-        travel, prep: timed ? (ov.prep !== undefined ? ov.prep : pf && pf.id) || null : null, prepOut: !!(pf && !pf.id), done: !!ov.done, doneAt: ov.doneAt || null, slips: 0, createdAt: '', updatedAt: ''});
+        travel, prep: timed ? (ov.prep !== undefined ? ov.prep : pf && pf.id) || null : null, prepOut: !!(pf && !pf.id),
+        // 시험판 62: 이 일정만 바꾼 준비 단계 시간 · 알람 켜고 끄기(travel.js tvPlan)
+        prepMin: timed && ov.prepMin ? ov.prepMin : null, prepRing: timed && ov.prepRing ? ov.prepRing : null, done: !!ov.done, doneAt: ov.doneAt || null, slips: 0, createdAt: '', updatedAt: ''});
     });
   });
   return out;
@@ -211,7 +213,7 @@ document.addEventListener('click', ev => {
     const it = id ? M.items.find(i => i.id === id) : null; if (!it) return;
     if (sid.dataset.pcrem != null) pcSetOv(it.pcKey, {remind: sid.dataset.pcrem});
     else if (sid.dataset.pctv != null) { const v = +sid.dataset.pctv || 0; pcSetOv(it.pcKey, {travel: v}); if (v) tvRemember(it.title, it.location, v); }
-    else if (sid.dataset.pcprep != null) { const v = sid.dataset.pcprep; pcSetOv(it.pcKey, {prep: v === 'new' ? tvEnsureOut() : v || null}); }
+    else if (sid.dataset.pcprep != null) { const v = sid.dataset.pcprep, o = tvOwnLeft(it.prepMin, it.prepRing); tvPcSave = false; pcSetOv(it.pcKey, {prep: v === 'new' ? tvEnsureOut() : v || null, prepMin: null, prepRing: Object.keys(o.pr).length ? o.pr : null}); }
     else if (sid.dataset.act === 'pc-done') { pcSetOv(it.pcKey, {done: !it.done, doneAt: it.done ? null : nowIso()}); closeSheet(); toast(it.done ? '완료를 취소했어요.' : '완료로 표시했어요 · ' + it.title); return; }
     else if (sid.dataset.act === 'pc-open-app') { const e = it.pcEv || {}; const pl = pcPlug(); if (pl) pl.open({eventId: e.eventId, begin: e.begin, end: e.end}).catch(() => toast('캘린더 앱을 열지 못했어요.')); return; }
     pcDraw(id);

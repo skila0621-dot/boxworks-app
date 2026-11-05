@@ -15,3 +15,6 @@ __pycache__/
 tests/layout/out/
 tests/layout/out-inv/
 tests/layout/out-base/
+
+# 앱디자인 패턴 규정 점검 보고(tests/layout/rules.cjs가 만든다)
+tests/layout/out-rules/

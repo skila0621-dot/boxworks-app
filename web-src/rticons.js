@@ -92,5 +92,10 @@ ICON.mic = '<svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" heigh
 ICON.calOff = TT_OFF;
 ICON.pauseC = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M10 9.2v5.6M14 9.2v5.6"/></svg>';
 ICON.playC = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m10.2 8.9 4.9 3.1-4.9 3.1z"/></svg>';
+// 시험판 62: 아래 메뉴 · 메뉴 단추의 기능 아이콘(캘린더 · 시간표 · 루틴 · 메모 · 릴렉스 · 더보기 · 검색 · 설정)도 앱 아이콘 한 세트.
+// '그 밖의 기능' 줄에 시간표 · 메모 · 릴렉스가 함께 놓이면서 정렬 점검 icon에 걸림(시간표 아이콘이 세트 밖) → 같은 종류를 모두 세트에 넣음
+Object.keys(BX_DOCK_ALL).forEach(k => { ICON['fe_' + k] = BX_DOCK_ALL[k].icon; });
+// 시험판 62(선택실 4 · 3번 ㄱ): 출발·준비 단계 알람을 끈 종(종 + 빗금). 종 모양은 ICON.bell 그대로
+ICON.bellOff = '<svg class="i" viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9"/><path d="M10.3 20.5a1.9 1.9 0 0 0 3.4 0"/><path d="m3.5 3.5 17 17"/></svg>';
 // 자동 정렬 점검(tests/layout)이 아이콘 세트를 가려 보게(앱 아이콘 ICON | 루틴 아이콘 BX_ICONS)
 window.BX_ICONSRC = {app: ICON, rt: BX_ICONS};

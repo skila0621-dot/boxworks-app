@@ -325,12 +325,41 @@ html.bx-app :where(.row.rowc > .rc-warn) svg.i{width:20px;height:20px}
 .tv-line li:last-child::after{display:none}
 .tv-line li.go::before{background:var(--accent)}
 .tv-line li.arr::before{background:var(--ink)}
-.bx-app .tv-line b{min-width:46px;font-size:16px}
-.bx-app .tv-line span{flex:1;min-width:0;font-size:16px}
-.bx-app .tv-line small{margin-left:6px;color:var(--ink-3);font-size:13px}
-.tv-line li.go span{font-weight:700;color:var(--accent-text)}
-.tv-line li.wait span{color:var(--ink-3)}
-.bx-app .tv-line .i{width:16px;height:16px;color:var(--ink-3)}
+.bx-app .tv-line li > b{min-width:46px;font-size:16px}
+.bx-app .tv-line li > span{flex:1;min-width:0;font-size:16px}
+.bx-app .tv-line li > span > small{margin-left:6px;color:var(--ink-3);font-size:13px}
+.tv-line li.go > span{font-weight:700;color:var(--accent-text)}
+.tv-line li.wait > span{color:var(--ink-3)}
+.bx-app .tv-line li > .i{width:16px;height:16px;color:var(--ink-3)}
+/* 출발·준비 줄을 고칠 수 있게(시험판 62, 선택실 4 · 2번 가 '단계마다 ± 늘 보임' · 3번 ㄱ '시각 왼쪽 종'):
+   점 자리에 종(누르면 울림 ↔ 안 울림), 시각은 목록 줄 시각 칸 폭, 이름은 길면 두 줄, 오른쪽 − N분 + */
+.bx-app .tv-line.ed li{min-height:44px;padding-left:32px}
+.tv-line.ed li::before{display:none}
+.tv-line.ed li::after{left:13px;top:calc(50% + 14px);height:calc(100% - 28px)}
+.tv-line.ed li.arr::before{display:block;left:9px}
+.bx-app .tv-line.ed li > b{flex:none;width:var(--row-tw);min-width:0;font-weight:700;white-space:nowrap}
+.bx-app .tv-line.ed li > .nm{white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+/* 출발 줄 '이동'은 한 덩이로(폭 360에서 '이 / 동'으로 갈라지던 것, 정렬 점검 midword) */
+.bx-app .tv-line.ed li > .nm > small{display:inline-block;white-space:nowrap}
+.tv-line.ed li.off > b,.tv-line.ed li.off > .nm{color:var(--ink-3)}
+.tv-line.ed li.chg > b{color:var(--accent-text)}
+.bx-app .bx-tvl-bell{position:absolute;left:-6px;top:50%;display:grid;place-items:center;width:38px;height:38px;margin-top:-19px;padding:0;border:0;border-radius:12px;background:transparent;color:var(--accent-text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bx-app .bx-tvl-bell svg.i{width:20px;height:20px}
+.bx-app .bx-tvl-bell.off{color:var(--ink-3)}
+/* − N분 +: 작은 단추 높이(36), 칸 둘레는 입력 칸과 같은 회색 테. 단추 폭 32 · 가운데 글 44(폭 360에서 단계 이름이 들어가게, 선택실 4 그림 값) */
+.bx-stp{flex:none;display:inline-flex;align-items:center;height:var(--bs-h);border-radius:var(--bs-r);background:var(--bg);box-shadow:inset 0 0 0 1px var(--line-2);color:var(--ink)}
+/* 줄의 이름 칸 규칙(.tv-line li > span: 늘어남 · 출발 줄 보라 굵게)이 − N분 + 칸에 물려 들지 않게 */
+.bx-app .tv-line li > .bx-stp{flex:none;min-width:0;color:var(--ink);font-weight:400}
+.bx-app .bx-stp > button{display:grid;place-items:center;width:32px;height:var(--bs-h);padding:0;border:0;background:transparent;color:var(--ink);font-family:var(--f);font-size:16px;font-weight:700;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bx-app .bx-stp > button:disabled{color:var(--ink-3);opacity:.5;cursor:default}
+.bx-app .bx-stp > b{min-width:44px;text-align:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bx-app .bx-tvl-note{margin:10px 4px 0}
+.bx-app .bx-tvl-note b{color:var(--accent-text);font-weight:700}
+.bx-app .bx-tvl-save{display:flex;align-items:flex-start;gap:12px;width:100%;margin:14px 0 0;padding:4px;border:0;background:transparent;color:var(--ink);text-align:left;font-family:var(--f);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bx-app .bx-tvl-save > .chk{margin-top:1px;pointer-events:none}
+.bx-tvl-st{display:grid;min-width:0}
+.bx-app .bx-tvl-st > b{font-size:16px;font-weight:600}
+.bx-app .bx-tvl-st > small{font-size:13px;color:var(--ink-2)}
 .bx-app .meta.bx-go{color:var(--accent-text);font-weight:700}
 .bx-app .meta.bx-go .i{width:14px;height:14px}
 /* 위쪽 막대는 모든 화면에서 오늘 화면과 같게(로고 + 설명서·검색·더보기). 주간·월간 제목과 이동 단추는 화면 안 제목 줄에 */
@@ -499,6 +528,8 @@ html.bx-app.locked body{overflow:visible}
 #bx-start .bxs-opt,#bx-start .bxs-card,#bx-start .bxs-res,.bx-app .bx-nudge{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;text-align:left;color:var(--ink)}
 #bx-start .bxs-opt{border:2px solid var(--line);background:var(--bg);min-height:72px}
 #bx-start .bxs-opt[aria-checked="true"],#bx-start .bxs-opt.fixed{border-color:var(--accent);background:var(--accent-soft)}
+/* 시험판 62: 첫 실행 '그 밖의 기능' 묶음 이름(⋯ 메뉴의 묶음 이름 .bx-menu-h와 같은 글) */
+#bx-start .bxs-gh{margin:12px 0 -4px;padding:0 2px;font-size:13px;font-weight:700;color:var(--ink-3);letter-spacing:.01em}
 #bx-start .bxs-card{background:var(--sunk);align-items:flex-start;padding:16px}
 #bx-start .bxs-ic,.bx-app .bx-nudge .bxs-ic{width:40px;height:40px;flex:none;border-radius:12px;background:var(--bg);color:var(--accent-text);display:flex;align-items:center;justify-content:center}
 #bx-start .bxs-ic .i,.bx-nudge .bxs-ic .i{width:21px;height:21px}
@@ -1425,6 +1456,23 @@ html.bx-app .bx-ep #f-date > .inline{display:flex;align-items:center;gap:12px;mi
 .bx-ep #f-time > .fgrid{row-gap:12px}
 /* 상자 안 이름표는 상자 안쪽 여백(20)에서 시작. '소요 시간'처럼 이름표 줄(.fg-lr) 안에 든 것도(시험판 58: 20 더 들어가 있었음) */
 .bx-ep #f-time > .fgrid .fg-l{margin:0}
+/* 시간 페이지 시작 · 끝 칸 + 바퀴(시험판 62, 선택실 4 · 1번 B). 칸은 나눔 단추와 같은 고른 모양(연보라 바탕 · 보라 테) */
+.bx-tw{display:grid;gap:12px;min-width:0}
+.bx-tw-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center}
+.bx-tw-til{color:var(--ink-2)}
+.bx-app .bx-tw-box{box-sizing:border-box;height:var(--b-h);min-width:0;padding:0 8px;border:0;border-radius:var(--b-r);background:var(--bg);box-shadow:inset 0 0 0 1px var(--line-2);color:var(--ink);font-family:var(--f);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bx-app .bx-tw-box[aria-pressed="true"]{background:var(--c-on-bg);box-shadow:inset 0 0 0 var(--c-on-bw) var(--c-on-bd);color:var(--c-on-fg)}
+/* 바퀴(공통 부품, 시험판 62): 칸 40 · 다섯 줄 보임(위아래 두 줄 여백) · 가운데 줄 연보라 띠. 밀면 칸에 맞춰 멈춘다 */
+.bx-whl{position:relative;display:grid;border-radius:16px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.bx-whl::before{content:"";position:absolute;left:8px;right:8px;top:50%;height:40px;margin-top:-20px;border-radius:10px;background:var(--accent-soft);pointer-events:none}
+.bx-whl.c2{grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr)}
+.bx-whl.c3{grid-template-columns:minmax(0,.9fr) minmax(0,1fr) 18px minmax(0,1fr)}
+.bx-wc{position:relative;box-sizing:border-box;height:200px;padding:80px 0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;overscroll-behavior:contain;touch-action:pan-y;outline:none;-webkit-tap-highlight-color:transparent}
+.bx-wc::-webkit-scrollbar{display:none}
+.bx-wc:focus-visible{box-shadow:inset 0 0 0 2px var(--accent-text);border-radius:12px}
+.bx-wi{height:40px;display:grid;place-items:center;scroll-snap-align:center;font-size:20px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums;cursor:pointer;user-select:none;-webkit-user-select:none}
+.bx-wi.on{color:var(--accent-text);font-weight:800}
+.bx-wsep{position:relative;display:grid;place-items:center;font-size:20px;font-weight:800;color:var(--accent-text)}
 /* 출발·준비: 이동 시간 4칸, 직접 · 준비 루틴은 상자 */
 html.bx-app .bx-ep #f-go > .picks:has([data-ftv]){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0}
 .bx-app .bx-ep #f-go > .picks:has([data-ftv]) .pick{width:auto;min-height:48px;margin:0;border:0;border-radius:16px;background:var(--card-bg);color:var(--ink);font-size:16px;font-weight:600;white-space:nowrap;justify-content:center}

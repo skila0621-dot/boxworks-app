@@ -143,7 +143,9 @@ module.exports = async function () {
     await p.click('#f-chips [data-fpanel="time"]'); await p.waitForTimeout(250);
     await p.click('#bx-ep [data-ftimed="1"]'); await p.waitForTimeout(200);
     c.ok(await p.evaluate(() => !document.getElementById('f-dur') && /첫날 시작/.test(document.getElementById('f-time').textContent)), "여러 날 + 시간: '첫날 시작 ~ 마지막 날 끝', 소요 시간 칸 없음");
-    await p.evaluate(() => { const e = document.getElementById('f-end'); e.value = '09:00'; e.dispatchEvent(new Event('change', { bubbles: true })); });
+    // 시험판 62: 끝 칸 + 바퀴로 오전 9:00(마지막 날의 끝이라 시작보다 일러도 그대로)
+    await p.click('#bx-ep [data-bxtw="end"]'); await p.waitForTimeout(200);
+    for (const [part, l] of [['ap', '오전'], ['h', '9'], ['m', '00']]) { await p.evaluate(([part, l]) => { const it = Array.from(document.querySelectorAll('#bx-ep .bx-wc[data-wpart="' + part + '"] .bx-wi')).find(e => e.textContent.trim() === l); if (it) it.click(); }, [part, l]); await p.waitForTimeout(200); }
     await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(200);
     await p.click('#sheet-root [data-act="save"]'); await p.waitForTimeout(600);
     const ws = await p.evaluate(() => window.BX_T.docs().filter(([, d]) => d && d.title === '워크숍').map(([, d]) => [d.date, d.endDate, d.start, d.end]));

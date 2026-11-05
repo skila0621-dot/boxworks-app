@@ -90,12 +90,13 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => { const b = document.querySelector('#sheet-root .bx-pill49'); const m = /rgba?\(([^)]+)\)/.exec(getComputedStyle(b).backgroundColor); const a = m ? m[1].split(',').map(Number) : []; return a.length === 3 || a[3] === 1; }), true, "'취소 | 저장' 바탕은 채운 색(뒤가 비치지 않음)");
     c.eq(await offScale(p), [], '일정 창: 글자 크기는 6단계만');
     await p.click('#f-chips [data-fpanel="time"]'); await p.waitForTimeout(600);
-    const tp = await p.evaluate(() => ['f-start', 'f-end'].map(id => { const i = document.getElementById(id); const w = i && i.parentElement; return w ? [w.classList.contains('bx-t12'), w.querySelector('.bx-t12-v').textContent, getComputedStyle(i).opacity] : null; }));
-    c.eq(tp, [[true, '오후 3:00', '0'], [true, '오후 4:00', '0']], '시간 페이지: 입력 칸 위에 오전 · 오후 글(칸은 투명하게 위에)');
-    await p.fill('#f-start', '09:30'); await p.waitForTimeout(300);
-    c.eq(await p.evaluate(() => [document.getElementById('f-start').value, document.querySelector('#f-start').parentElement.querySelector('.bx-t12-v').textContent]), ['09:30', '오전 9:30'], '시각을 고르면 글이 바로 바뀜(값은 그대로 HH:MM)');
-    await p.evaluate(() => { document.getElementById('f-end').value = '11:00'; });
-    c.eq(await p.evaluate(() => document.querySelector('#f-end').parentElement.querySelector('.bx-t12-v').textContent), '오전 11:00', '코드로 값을 바꿔도 글이 따라옴');
+    // 시험판 62(선택실 4 · 1번 B): 시간 페이지는 휴대폰 시계 창 대신 시작 · 끝 칸 + 세 칸 바퀴(v62). 칸 글은 오전 · 오후
+    const tp = await p.evaluate(() => ['f-start', 'f-end'].map(id => { const b = document.getElementById(id); return b ? [b.tagName, b.textContent.trim()] : null; }));
+    c.eq(tp, [['BUTTON', '오후 3:00'], ['BUTTON', '오후 4:00']], '시간 페이지: 시작 · 끝 칸 글은 오전 · 오후');
+    await p.evaluate(() => { const it = Array.from(document.querySelectorAll('#bx-ep .bx-wc[data-wpart="ap"] .bx-wi')).find(e => e.textContent.trim() === '오전'); it.click(); }); await p.waitForTimeout(250);
+    await p.evaluate(() => { const it = Array.from(document.querySelectorAll('#bx-ep .bx-wc[data-wpart="h"] .bx-wi')).find(e => e.textContent.trim() === '9'); it.click(); }); await p.waitForTimeout(250);
+    await p.evaluate(() => { const it = Array.from(document.querySelectorAll('#bx-ep .bx-wc[data-wpart="m"] .bx-wi')).find(e => e.textContent.trim() === '30'); it.click(); }); await p.waitForTimeout(250);
+    c.eq(await p.evaluate(() => [window.BX_T.fn.form().start, document.getElementById('f-start').textContent.trim(), document.getElementById('f-end').textContent.trim()]), ['09:30', '오전 9:30', '오전 10:30'], '바퀴로 고르면 글이 바로 바뀜(값은 그대로 HH:MM, 끝은 소요 시간만큼)');
     c.eq(await offScale(p), [], '시간 페이지: 글자 크기는 6단계만');
     // (6) 알람 · 알림 글
     const sync = await p.evaluate(() => JSON.stringify(window.__sync.slice(-1)[0] || {}));

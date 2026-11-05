@@ -208,7 +208,7 @@ function bxPc45PageHtml(k, it){
   return '<div class="fg-l">이동 시간</div><div class="picks bx-pc45-tv">' + tvs.map(v => pick('data-pctv', String(v), String(tvv), v ? tvMinText(v) : '없음')).join('') + '</div>' +
     '<div class="fg-l">준비 루틴 <small>출발 시각에 끝나게 거꾸로 놓여요</small></div><div class="picks bx-pc45-list" role="radiogroup" aria-label="준비 루틴">' + pick('data-pcprep', '', curPrep, '없음') +
     tvPrepNames().map(r => pick('data-pcprep', r.id || 'new', curPrep, esc(r.name) + (r.id ? '' : ' <small>새로</small>'))).join('') + '</div>' +
-    (p ? tvLineHtml(p, it.start, it.title) : '');
+    (p ? tvLineHtml(p, it.start, it.title, {save: tvPcSave}) : '');
 }
 const bxPcDraw45 = pcDraw;
 pcDraw = function(id){
@@ -243,11 +243,21 @@ document.addEventListener('click', ev => {
   node.className = 'bx-tt45-pg bx-pc45-pg'; node.dataset.pc45 = k; node.hidden = true;
   sb.appendChild(node);
   node.innerHTML = bxPc45PageHtml(k, it);
+  tvPcSave = false;
   bxPgOpen(k === 'rem' ? '알림' : '출발·준비', node, () => {
+    tvPcSave = false;
     if (snap) writeDoc(key, snap); else if (getDoc(key)) removeDoc(key);
     if (JSON.stringify(getDoc(TV_MEM)) !== JSON.stringify(memSnap)) { if (memSnap) writeDoc(TV_MEM, memSnap); else removeDoc(TV_MEM); }
     M.routines.filter(x => !rtIds.has(x.id) && tvKey(x.name) === tvKey(TV_OUT.name)).forEach(x => removeDoc(x.id));
     M = buildModel(); pcDraw(id);
+  }, () => {
+    // 시험판 62: '루틴에도 저장'을 켜고 '완료'면 이 일정에서 바꾼 단계 값을 루틴으로 넘긴다(새 일정 창은 저장할 때 같은 일)
+    const save = tvPcSave; tvPcSave = false;
+    const cur = M.items.find(i => i.id === id); if (!save || !cur || !cur.prep) return;
+    if (tvSaveToRoutine(cur.prep, cur.prepMin || {}, cur.prepRing || {})) toast('‘' + ((tvRoutine(cur.prep) || {}).name || '루틴') + '’ 루틴도 바꿨어요');
+    const o = tvOwnLeft(cur.prepMin, cur.prepRing);
+    pcSetOv(cur.pcKey, {prepMin: null, prepRing: Object.keys(o.pr).length ? o.pr : null});
+    pcDraw(id);
   });
   node.hidden = false;
 }, true);

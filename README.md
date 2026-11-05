@@ -124,6 +124,12 @@ cd android && ./gradlew assembleDebug
 - **말하기 단추(시험판 60)**: 어디서나 마이크 아이콘만(이름은 화면 읽기용 '말하기'), 작은 단추 높이의 정사각. 줄 칸의 주 단추면 보라, 옆에 '추가'가 있으면 회색
 - **와이어프레임(실제 화면, 시험판 60~)**: `node tests/layout/run.cjs --widths 384 --themes light --clocks 12 --snap DIR` 뒤 `node tests/layout/wire.cjs --snap DIR --out PAGE`. 화면 모양 지문을 지난 시험판과 비교해 바뀐 화면만 '시험판 N에서 바뀜'(지문은 tests/layout/wire/manifest.json). 통합관리실이 PAGE를 와이어프레임 페이지(https://claude.ai/artifact/HLEcxvt2jVk5DjVCvUbcdx)로 올린다. 사진은 바뀐 화면 것만 새로 올리고(PAGE/upload.json), 전에 올린 사진은 그 페이지에 남아 있다
 
+## 그 밖의 기능 · 시간 바퀴 · 출발·준비 단계 ± (시험판 62)
+
+- 기능 묶음은 `web-src/home.js`의 `BX_ETC`(시간표 · 메모 · 릴렉스) 한 곳. 아래 메뉴 기본은 `BX_DOCK_DEF`(루틴 · 캘린더, 홈 가운데). 저장해 둔 아래 메뉴에서 접은 기능을 한 번 빼고, 그 뒤 저장하면 `bxDockFold`
+- 시간 페이지 바퀴: `web-src/v44.js`의 `bxWheelHtml` · `bxWheelMount`(공통 부품, 칸 40 · 다섯 줄)와 `bxTwHtml` · `bxTwPick`. 원본 `drawFTime`의 시각 칸은 빌드가 바꾼다(`scripts/build-web.mjs` '시간 페이지: 시작 · 끝 칸과 바퀴'). 칸이 페이지로 옮겨지면 밀린 자리가 0이 되므로 `bxEpSync`가 다시 맞춘다
+- 출발·준비 줄: `web-src/travel.js`의 `tvLineHtml(p, start, title, ed)` · `tvLineApply` · `tvSaveToRoutine`. 이 일정만 바꾼 값은 일정의 `prepMin`(단계 id → 분) · `prepRing`(단계 id · `leave` · `pre` → 0 끔 · 1 켬), 휴대폰 캘린더 일정은 `px_` 문서의 같은 이름. `tvPlan`이 읽어 알람 계획(`tvAlarms`)까지 쓴다
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.

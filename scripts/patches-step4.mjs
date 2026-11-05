@@ -4,7 +4,7 @@ export default [
   {
     name: '일정 수정 창에 이동 시간·붙인 루틴 불러오기',
     find: `extra: !!(it.location || it.note), done: !!it.done};`,
-    replace: `extra: !!(it.location || it.note), done: !!it.done, travel: it.travel || 0, tvSrc: '', tvKey: '', prep: it.prep || null, prepNew: null, touchedTravel: true, touchedPrep: true};`
+    replace: `extra: !!(it.location || it.note), done: !!it.done, travel: it.travel || 0, tvSrc: '', tvKey: '', prep: it.prep || null, prepNew: null, prepMin: Object.assign({}, it.prepMin || {}), prepRing: Object.assign({}, it.prepRing || {}), prepSave: false, touchedTravel: true, touchedPrep: true};`
   },
   {
     name: '└ 말에서 이동 시간·루틴만 찾아도 해석 결과로 씀',

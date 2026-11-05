@@ -4,7 +4,8 @@ const { openApp, settings, checker } = require('./harness.cjs');
 
 const old = '2026-10-29T00:00:00.000Z';
 function seed(extra) {
-  return [['settings', settings(Object.assign({ bxDock: ['routines', 'month', 'tt'], bxDockMig: 1 }, extra || {}))],
+  // 시험판 62: 메모는 그 밖의 기능(처음엔 아래 메뉴에 없음, v62). 여기서는 아래 메뉴에 메모를 넣어 둔 휴대폰
+  return [['settings', settings(Object.assign({ bxDock: ['routines', 'month', 'tt', 'memo'], bxDockMig: 1 }, extra || {}))],
     ['mm_1', { type: 'memo', date: '2026-11-02', text: '우유 사기', at: '06:10', createdAt: '2026-11-01T21:10:00.000Z', updatedAt: '2026-11-01T21:10:00.000Z' }],
     ['mm_2', { type: 'memo', date: '2026-11-02', text: '치과 예약 전화하기', at: '06:30', createdAt: '2026-11-01T21:30:00.000Z', updatedAt: '2026-11-01T21:30:00.000Z' }],
     ['mm_3', { type: 'memo', date: '2026-11-01', text: '어제 떠오른 생각: 책 반납', at: '22:00', createdAt: '2026-11-01T13:00:00.000Z', updatedAt: '2026-11-01T13:00:00.000Z' }],
@@ -27,8 +28,8 @@ module.exports = async function () {
     c.eq(await texts(p, '#bx-mm-card .bx-mm-h h2'), ['오늘의 메모'], '홈 메모 상자 제목');
     c.eq(await texts(p, '#bx-mm-card .bx-mm-x'), ['우유 사기', '치과 예약 전화하기'], '홈: 오늘 메모(적은 시각 순)');
     c.ok(await p.evaluate(() => { const a = document.getElementById('tcard2'), b = document.getElementById('bx-mm-card'); return !!(a && b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)); }), "메모 상자는 '오늘 할 일' 아래 따로");
-    // (2) 아래 메뉴: 고쳐 둔 아래 메뉴(루틴 · 캘린더 · 시간표)에도 메모가 한 번 들어감
-    c.eq(await dockLabels(p), ['루틴', '캘린더', '홈', '시간표', '메모'], '아래 메뉴에 메모(명상이 빠진 자리)');
+    // (2) 아래 메뉴에 메모를 넣어 둔 휴대폰(시험판 62 뒤에 고름)
+    c.eq(await dockLabels(p), ['루틴', '캘린더', '홈', '시간표', '메모'], '아래 메뉴에 메모');
     // (3) 홈 칸에서 적고 Enter → 메모, 칸은 그대로(연달아 적기)
     await p.evaluate(() => { document.getElementById('bx-mm-in-20261102').__same = 1; });
     await p.fill('#bx-mm-in-20261102', '빨래 돌리기');
@@ -117,7 +118,7 @@ module.exports = async function () {
     // (11) 기능 · 메뉴 편집에서 메모 끄기 → 홈 상자 · 달력 표시 · 아래 메뉴 · 위젯 ✎ · '메모 …' 규칙이 빠짐(적어 둔 메모는 남음)
     await p.click('.ab-menu'); await p.waitForTimeout(400);
     await p.click('#sheet-root [data-act="bx-feat"]'); await p.waitForTimeout(500);
-    c.ok(await p.evaluate(() => { const h = Array.from(document.querySelectorAll('#sheet-root .bx-ft-h')).find(x => x.textContent.trim() === '시간 · 행동 관리'); const g = h && h.parentElement.nextElementSibling; return !!(g && g.querySelector('[data-bx-feat="memo"]')); }), "메모는 '시간 · 행동 관리' 묶음");
+    c.ok(await p.evaluate(() => { const h = Array.from(document.querySelectorAll('#sheet-root .bx-ft-h')).find(x => x.textContent.trim() === '그 밖의 기능'); const g = h && h.parentElement.nextElementSibling; return !!(g && g.querySelector('[data-bx-feat="memo"]')); }), "메모는 '그 밖의 기능' 묶음(시험판 62)");
     await p.click('#sheet-root [data-bx-feat="memo"]'); await p.waitForTimeout(400);
     c.eq((await doc(p, 'settings')).bxStart.mods.memo, false, '메모 끔');
     await p.evaluate(() => window.BX_back()); await p.waitForTimeout(300);
@@ -131,8 +132,8 @@ module.exports = async function () {
     await p.click('.ab-menu'); await p.waitForTimeout(400);
     await p.click('#sheet-root [data-act="bx-feat"]'); await p.waitForTimeout(500);
     await p.click('#sheet-root [data-bx-feat="memo"]'); await p.waitForTimeout(400);
-    c.eq((await doc(p, 'settings')).bxDock, ['routines', 'month', 'tt', 'memo'], '다시 켜면 아래 메뉴 제자리(맨 끝)로');
-    c.eq((await doc(p, 'settings')).bxDockMemo, 1, '아래 메뉴를 저장하면 그 뒤로는 고른 그대로');
+    c.eq((await doc(p, 'settings')).bxDock, ['routines', 'month', 'tt'], '다시 켜도 아래 메뉴에는 넣지 않음(시험판 62: 그 밖의 기능은 왼쪽 위 메뉴 단추)');
+    c.eq((await doc(p, 'settings')).bxDockFold, 1, '아래 메뉴를 저장하면 그 뒤로는 고른 그대로');
     await p.evaluate(() => window.BX_back()); await p.waitForTimeout(300);
     c.eq(app.errors, [], '화면 오류(메모)');
   } finally { await app.close(); }

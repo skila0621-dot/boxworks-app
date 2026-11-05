@@ -93,7 +93,7 @@ function medMoreText(){
 document.addEventListener('toggle', ev => { const d = ev.target; if (d && d.classList && d.classList.contains('bx-med-more')) { MED.moreOpen = d.open; medSave(); } }, true);
 function medHtml(){
   const now = Date.now(), run = MED.run, live = run && run.endAt > now, done = run && run.endAt <= now;
-  const head = '<div class="page-head"><div class="ph-t"><h1>명상</h1><p>' + (medLog()[M.today] ? '오늘 ' + medLog()[M.today] + '분' + (medWeek() > medLog()[M.today] ? ' · 이번 주 ' + medWeek() + '분' : '') : '편하게 앉아 숨에 집중해 보세요') + '</p></div></div>';
+  const head = '<div class="page-head"><div class="ph-t"><h1>릴렉스</h1><p>' + (medLog()[M.today] ? '오늘 ' + medLog()[M.today] + '분' + (medWeek() > medLog()[M.today] ? ' · 이번 주 ' + medWeek() + '분' : '') : '편하게 앉아 숨에 집중해 보세요') + '</p></div></div>';
   if (live || done) {
     const left = live ? (run.endAt - now) / 1000 : 0, lead = live && now < run.startAt;
     // 화면 다듬기(대표 지적 11/3: 고르는 화면과 시작 · 끝 디자인). 원 둘레에 지나간 시간이 차오르는 고리, 위에 무엇을 하는 중인지 한 줄,

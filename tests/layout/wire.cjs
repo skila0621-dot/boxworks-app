@@ -146,7 +146,10 @@ figcaption { font-size: 12px; color: var(--muted); text-align: center; }
   }); });
 })();
 </script>
+<a class="bx-back-f" href="https://claude.ai/artifact/Qf3o5SdboeHN7LQvENFg4C" target="_blank" rel="noopener">← 결정 사안</a>
+<style>.bx-back-f{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:40;display:inline-flex;align-items:center;height:44px;padding:0 16px;border-radius:22px;font:700 14px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;text-decoration:none;color:#fff;background:#14171c;box-shadow:0 4px 14px rgba(0,0,0,.2)}@media (prefers-color-scheme:dark){.bx-back-f{background:#e8eaed;color:#14171c}}body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}</style>
 `;
+// 결정 · 결재 사안으로 돌아가는 단추(대표 11/6 03:10 '선택실 · 청음실 · 와이어프레임을 보고 결재 창으로 다시 찾아와야 해서 번거롭다')
 fs.writeFileSync(path.join(OUT, 'index.html'), page);
 fs.writeFileSync(path.join(OUT, 'upload.json'), JSON.stringify(upload, null, 1));
 console.log('시험판 ' + TRIAL + ': 화면 ' + all.length + '곳 · 바뀜 ' + changed + ' · 새 화면 ' + added + ' · 올릴 사진 ' + Object.keys(upload).length + '장 → ' + OUT);
