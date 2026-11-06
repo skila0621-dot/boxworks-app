@@ -1,5 +1,5 @@
 {
- "trial": 66,
+ "trial": 67,
  "screens": {
   "홈": {
    "h": "5bca39469f87ebe7|c7681efce602122f",
@@ -526,15 +526,15 @@
    "prevBottom": false
   },
   "루틴 고치기 알림 방식": {
-   "h": "5b8e9eca6eedf58a",
-   "ht": "5b8e9eca6eedf58a",
+   "h": "3e5699e6d9d117c1",
+   "ht": "3e5699e6d9d117c1",
    "hb": null,
    "key": "s1aiv4pz",
-   "since": 63,
-   "img": 63,
+   "since": 67,
+   "img": 67,
    "scrolls": false,
    "order": 46,
-   "prev": 59,
+   "prev": 63,
    "prevBottom": false
   },
   "루틴 고치기 기준": {
@@ -1093,6 +1093,6 @@
    "isNew": true
   }
  },
- "trialPrev": 65,
- "at": "2026-11-06T01:06:56.599Z"
+ "trialPrev": 66,
+ "at": "2026-11-06T01:53:03.699Z"
 }

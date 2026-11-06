@@ -67,7 +67,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             String lv = o.optString("lv", "alarm");
             if ("short".equals(lv)) {
                 AlarmNotify.showShort(context, o);
-                ShortChime.play(context, goAsync());
+                ShortChime.play(context, goAsync(), o.optString("say", ""));
             } else if (!"silent".equals(lv)) {
                 AlarmNotify.show(context, o);
             }

@@ -407,7 +407,7 @@ final class AlarmNotify {
         // 시계 앱처럼 서비스가 알람 소리를 직접 1분 동안 울린다. 서비스를 못 띄우면 그 안에서 되풀이 알림으로 물러선다.
         // 전체 화면이 뜰 때는 알람 화면이 직접 울린다
         if (live) {
-            AlarmRingService.start(c, notifId(id), o.optString("series", ""), n);
+            AlarmRingService.start(c, notifId(id), o.optString("series", ""), n, o.optString("say", ""));
             return;
         }
         try {

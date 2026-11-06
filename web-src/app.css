@@ -1452,11 +1452,15 @@ html.bx-app .bx-ep .bx-fcol-row{background:var(--card-bg);border-radius:26px;pad
 .bx-ep .bx-swrow{display:flex;align-items:center;justify-content:space-between;min-height:60px;font-size:16px;font-weight:500}
 .bx-ep .bx-swrow.on > span{color:var(--accent-text)}
 /* 크게 울리기(시험판 65): 알림 페이지 맨 아래 상자 한 줄 — 이름 아래 작은 설명, 스위치는 오른쪽 가운데 */
-.bx-ep .bx-swrow.bx-loud{gap:16px;min-height:72px;padding-top:12px;padding-bottom:12px}
-.bx-ep .bx-swrow.bx-loud > span{display:flex;flex-direction:column;gap:3px;min-width:0;color:var(--ink)}
-.bx-ep .bx-swrow.bx-loud > span b{font-size:16px;font-weight:500}
-.bx-ep .bx-swrow.bx-loud > span small{font-size:13px;font-weight:400;line-height:1.4;color:var(--ink-3)}
-.bx-ep .bx-swrow.bx-loud > .tog{flex:none}
+.bx-ep .bx-swrow:is(.bx-loud,.bx-say){gap:16px;min-height:72px;padding-top:12px;padding-bottom:12px}
+.bx-ep .bx-swrow:is(.bx-loud,.bx-say) > span{display:flex;flex-direction:column;gap:3px;min-width:0;color:var(--ink)}
+.bx-ep .bx-swrow:is(.bx-loud,.bx-say) > span b{font-size:16px;font-weight:500}
+.bx-ep .bx-swrow:is(.bx-loud,.bx-say) > span small{font-size:13px;font-weight:400;line-height:1.4;color:var(--ink-3)}
+.bx-ep .bx-swrow:is(.bx-loud,.bx-say) > .tog{flex:none}
+/* 단계 이름 읽어 주기(시험판 67): 루틴 알림 방식 페이지, 다시 알림 상자 아래 · '들어 보기'는 글자 단추 */
+.bx-ep #bx-rrep .bx-swrow.bx-say{margin-top:12px}
+.bx-app .bx-say-try{display:inline-flex;align-items:center;gap:8px;margin:10px 20px 0}
+.bx-app .bx-say-try svg.i{width:18px;height:18px}
 /* 크게 울리는 일정의 일정 창 알림 줄: 종에 소리 결(보라) */
 .bx-er.bx-er-rem.loud > .bx-er-ic{color:var(--accent-text)}
 .bx-ep .bx-fmulti .set-row{min-height:60px;padding:0;font-size:16px;font-weight:500}

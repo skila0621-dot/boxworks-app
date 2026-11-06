@@ -47,6 +47,18 @@ public class BxAlarmPlugin extends Plugin {
     }
 
     /** 앱 안에서 루틴 단계를 '했어요'로 누르면, 휴대폰을 쓰는 중 울리던 알람 소리를 멈춘다(알림은 남는다) */
+    /** 시험판 67(결정 사안 s05): '들어 보기' — 휴대폰 목소리로 읽어 본다. {ok, why: lang(한국어 목소리 없음) · init · speak · timeout} */
+    @PluginMethod
+    public void speak(PluginCall call) {
+        String text = call.getString("text", "");
+        BxSay.say(getContext(), text, (ok, why) -> {
+            JSObject r = new JSObject();
+            r.put("ok", ok);
+            r.put("why", why == null ? "" : why);
+            call.resolve(r);
+        });
+    }
+
     @PluginMethod
     public void ringOff(PluginCall call) {
         AlarmRingService.quietNow(getContext());

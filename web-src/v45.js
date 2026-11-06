@@ -270,7 +270,7 @@ const BX_SAND_I = '<svg class="i" viewBox="0 0 24 24"><path d="M6.5 3.5h11M6.5 2
 ICON.sand = BX_SAND_I; // 앱 아이콘 한 세트(ICON, 시험판 54)
 function bxRt45NtfText(){
   if (R.sound === 'bowl') { const b = BX_BOWLS.find(x => x[0] === (R.bowl || bxBowlType())); return '싱잉볼 · ' + (b ? b[1] : '맑은 볼'); }
-  return '알람 · 꼭 울림은 ' + (+R.times ? R.every + '분마다 ' + R.times + '번 더' : '한 번만');
+  return '알람 · 꼭 울림은 ' + (+R.times ? R.every + '분마다 ' + R.times + '번 더' : '한 번만') + (R.say ? ' · 이름 읽어 주기' : '');
 }
 function bxRt45Row(k){
   const row = (icon, title, val) => '<button type="button" class="bx-er bx-rt45-r" data-bxrt45="' + k + '" aria-label="' + esc(title + ', ' + val) + '"><span class="bx-er-ic" aria-hidden="true">' + icon + '</span><span class="bx-er-tt"><span class="bx-er-t">' + esc(title) + '</span><small>' + esc(val) + '</small></span></button>';
@@ -332,7 +332,7 @@ document.addEventListener('click', ev => {
   if (r) {
     ev.preventDefault(); ev.stopPropagation();
     if (r.dataset.bxrt45 === 'ntf') {
-      const node = document.getElementById('bx-rt45-pntf'), snap = {sound: R.sound, bowl: R.bowl, every: R.every, times: R.times};
+      const node = document.getElementById('bx-rt45-pntf'), snap = {sound: R.sound, bowl: R.bowl, every: R.every, times: R.times, say: R.say};
       bxPgOpen('알림 방식', node, () => { Object.assign(R, snap); node.innerHTML = bxNotifyHtml(); });
     } else if (r.dataset.bxrt45 === 'mode') {
       const snap = R.mode;

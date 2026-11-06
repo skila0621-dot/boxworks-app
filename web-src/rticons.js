@@ -29,6 +29,16 @@ function bxIconPickHtml(){
 }
 /* 알려 주는 방식(대표 결정 11/1): 루틴마다 고르고, 루틴 고치기 창 위쪽에 한 줄. 설정에는 두지 않는다.
    알람 = 확인할 때까지 다시 울림(기본, 간격·횟수는 이때만 보임) / 싱잉볼 = 단계마다 종 한 번, 끝에 세 번, 다시 알림 없음(종소리 종류는 이 루틴에만) */
+// 시험판 67: 휴대폰 목소리로 읽기(BxAlarm.speak, 휴대폰 쪽 TextToSpeech). 없는 곳(웹 · 옛 설치 파일)에서는 '들어 보기'를 두지 않는다
+function bxSayOk(){ const a = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BxAlarm; return !!(a && typeof a.speak === 'function'); }
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !ev.target.closest || typeof R === 'undefined' || !R) return;
+  const sw = ev.target.closest('[data-rsay]'), tr = !sw && ev.target.closest('[data-act="rt-say-try"]'); if (!sw && !tr) return;
+  ev.preventDefault(); ev.stopPropagation();
+  if (sw) { R.say = sw.dataset.rsay === '1'; const host = document.getElementById('bx-rt45-pntf'), box = sw.closest('.bx-notify'); if (host) host.innerHTML = bxNotifyHtml(); else if (box) box.outerHTML = bxNotifyHtml(); return; }
+  const st = (R.steps || []).find(x => x && x.kind !== 'wait'), nm = st && String(st.name || '').trim() ? String(st.name).trim().slice(0, 30) : '씻기';
+  Capacitor.Plugins.BxAlarm.speak({text: nm + ', 출발까지 25분'}).then(r => { if (r && r.ok === false) toast(r.why === 'lang' ? '이 휴대폰에는 한국어 목소리가 없어요. 휴대폰 설정 › 텍스트 읽어주기에서 받을 수 있어요.' : '이 휴대폰에서는 읽어 줄 수 없어요.'); }).catch(() => toast('이 휴대폰에서는 읽어 줄 수 없어요.'));
+}, true);
 function bxNotifyHtml(){
   const bowl = R.sound === 'bowl', bt = R.bowl || bxBowlType();
   const opt = (v, b, sm) => '<button type="button" class="bx-lock-o" role="radio" aria-checked="' + ((v === 'bowl') === bowl) + '" data-rsound="' + v + '"><i aria-hidden="true"></i><span><b>' + b + '</b><small>' + sm + '</small></span></button>';
@@ -37,7 +47,10 @@ function bxNotifyHtml(){
     '<div id="bx-rrep"' + (bowl ? ' hidden' : '') + '>' +
       '<div class="bx-rrow"><span class="bx-rl">간격</span>' + stepperHtml('r-every', R.every, 1, 60, null, 1) + '<span class="bx-ru">분마다</span></div>' +
       '<div class="bx-rrow"><span class="bx-rl">횟수</span>' + stepperHtml('r-times', R.times, 0, 12, null, 1) + '<span class="bx-ru">번 더</span></div>' +
-      '<p class="p small bx-rnote">꼭 울림 단계에서 확인을 누르지 않으면 다시 울려요. 0번이면 한 번만 울려요. 짧게 한 번 단계는 다시 울리지 않아요.</p></div>' +
+      '<p class="p small bx-rnote">꼭 울림 단계에서 확인을 누르지 않으면 다시 울려요. 0번이면 한 번만 울려요. 짧게 한 번 단계는 다시 울리지 않아요.</p>' +
+      // 시험판 67(결정 사안 s05 '나 루틴마다 스위치(처음 꺼짐)'): 울릴 때 단계 이름을 휴대폰 목소리로. 휴대폰마다 목소리가 달라 '들어 보기'로 먼저 들어 봄
+      '<div class="bx-swrow bx-say"><span><b>단계 이름 읽어 주기</b><small>울릴 때 “씻기, 출발까지 25분”처럼 읽어 줘요</small></span>' + bxSwitch('data-rsay', !!R.say, '단계 이름 읽어 주기') + '</div>' +
+      (bxSayOk() ? '<button type="button" class="sec-link bx-say-try" data-act="rt-say-try">' + ICON.speak + '들어 보기</button>' : '') + '</div>' +
     '<div id="bx-rbowl"' + (bowl ? '' : ' hidden') + '><div class="bx-sndrow"><div class="picks bx-bowl-picks" id="bx-bowlpick">' +
       BX_BOWLS.map(b => '<button type="button" class="pick" data-rbowl="' + b[0] + '" aria-pressed="' + (bt === b[0]) + '">' + b[1] + '</button>').join('') + '</div></div>' +
       '<p class="p small">누르면 들려요. 명상의 종소리와는 따로예요.</p></div></div>';
@@ -99,5 +112,7 @@ Object.keys(BX_DOCK_ALL).forEach(k => { ICON['fe_' + k] = BX_DOCK_ALL[k].icon; }
 ICON.bellOff = '<svg class="i" viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9"/><path d="M10.3 20.5a1.9 1.9 0 0 0 3.4 0"/><path d="m3.5 3.5 17 17"/></svg>';
 // 시험판 65(결정 사안 s07 '크게 울리기'): 크게 울리는 일정의 종(종 + 양쪽 소리 결). 종 모양은 ICON.bell 그대로
 ICON.bellRing = '<svg class="i" viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9"/><path d="M10.3 20.5a1.9 1.9 0 0 0 3.4 0"/><path d="M19.6 2.6a8.6 8.6 0 0 1 2.3 5.2"/><path d="M4.4 2.6a8.6 8.6 0 0 0-2.3 5.2"/></svg>';
+// 시험판 67(결정 사안 s05): '들어 보기'(휴대폰 목소리로 읽기) — 소리 나는 스피커
+ICON.speak = '<svg class="i" viewBox="0 0 24 24"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path d="M15.4 9.2a4 4 0 0 1 0 5.6"/><path d="M17.9 6.6a7.6 7.6 0 0 1 0 10.8"/></svg>';
 // 자동 정렬 점검(tests/layout)이 아이콘 세트를 가려 보게(앱 아이콘 ICON | 루틴 아이콘 BX_ICONS)
 window.BX_ICONSRC = {app: ICON, rt: BX_ICONS};

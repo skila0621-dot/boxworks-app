@@ -31,6 +31,11 @@ final class ShortChime {
     private static final float VOLUME = 0.7f;
 
     static void play(Context c, BroadcastReceiver.PendingResult pr) {
+        play(c, pr, "");
+    }
+
+    /** say: 시험판 67(결정 사안 s05) — 짧은 소리가 끝난 뒤 단계 이름을 읽는다(통화 중에는 읽지 않음) */
+    static void play(Context c, BroadcastReceiver.PendingResult pr, String say) {
         Context ctx = c.getApplicationContext();
         AtomicBoolean done = new AtomicBoolean(false);
         Handler h = new Handler(Looper.getMainLooper());
@@ -86,12 +91,16 @@ final class ShortChime {
                 } catch (Exception ignored) {
                 }
             }
-            if (pr != null) {
-                try {
-                    pr.finish();
-                } catch (Exception ignored) {
+            Runnable end = () -> {
+                if (pr != null) {
+                    try {
+                        pr.finish();
+                    } catch (Exception ignored) {
+                    }
                 }
-            }
+            };
+            if (!call && say != null && !say.isEmpty()) BxSay.say(ctx, say, end);
+            else end.run();
         };
         if (player == null) {
             h.postDelayed(finish, 400);

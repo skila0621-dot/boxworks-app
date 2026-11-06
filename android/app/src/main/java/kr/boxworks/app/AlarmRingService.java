@@ -29,6 +29,7 @@ import androidx.core.app.NotificationManagerCompat;
 public class AlarmRingService extends Service {
     static final String EXTRA_ID = "bx_ring_id";
     static final String EXTRA_SERIES = "bx_ring_series";
+    static final String EXTRA_SAY = "bx_ring_say";
     static final String EXTRA_NOTIF = "bx_ring_notif";
     static final String ACTION_QUIET = "kr.boxworks.app.RING_QUIET";
     private static final long RING_MS = 60 * 1000L;
@@ -44,9 +45,15 @@ public class AlarmRingService extends Service {
 
     /** 알람 알림을 이 서비스에 맡겨 띄우고 울린다. 서비스를 못 띄우면 알림 소리 되풀이로 물러선다 */
     static void start(Context c, int notifId, String series, Notification n) {
+        start(c, notifId, series, n, "");
+    }
+
+    /** say: 시험판 67(결정 사안 s05) — 이름 읽어 주기를 켠 루틴이면 먼저 읽고 소리(BxSay) */
+    static void start(Context c, int notifId, String series, Notification n, String say) {
         Intent i = new Intent(c, AlarmRingService.class);
         i.putExtra(EXTRA_ID, notifId);
         i.putExtra(EXTRA_SERIES, series == null ? "" : series);
+        i.putExtra(EXTRA_SAY, say == null ? "" : say);
         i.putExtra(EXTRA_NOTIF, n);
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) c.startForegroundService(i);
@@ -142,9 +149,17 @@ public class AlarmRingService extends Service {
         }
         currentId = id;
         currentSeries = series;
-        startRinging();
         handler.removeCallbacks(timeUp);
         handler.postDelayed(timeUp, RING_MS);
+        String say = intent.getStringExtra(EXTRA_SAY);
+        if (say != null && !say.isEmpty() && !(ringtone != null && ringtone.isPlaying())) {
+            final int sid = id;
+            // 읽는 동안에도 '확인' · '5분 뒤' · 알림 지움이 서비스를 내릴 수 있게(stop · quietNow는 ringing을 본다)
+            ringing = true;
+            BxSay.say(this, say, () -> { if (currentId == sid) startRinging(); });
+            return START_NOT_STICKY;
+        }
+        startRinging();
         return START_NOT_STICKY;
     }
 
@@ -207,6 +222,7 @@ public class AlarmRingService extends Service {
     }
 
     private void stopRinging() {
+        BxSay.stop();
         try {
             if (ringtone != null) ringtone.stop();
         } catch (Exception ignored) {
@@ -229,6 +245,8 @@ public class AlarmRingService extends Service {
     @Override
     public void onDestroy() {
         handler.removeCallbacks(timeUp);
+        // 읽는 중에 내려가면 다 읽은 뒤 소리를 틀지 않게(시험판 67)
+        currentId = 0;
         stopRinging();
         super.onDestroy();
     }

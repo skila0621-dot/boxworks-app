@@ -161,6 +161,13 @@ cd android && ./gradlew assembleDebug
 - '그대로' 둔 지난 일(`lateKeep`)은 홈 '지난 일'에도 넣지 않는다(캘린더 그날에만, `scripts/patches-v39.mjs`의 `pastLate`)
 - 정렬 점검 장면 '홈 돌아온 날' · '홈 돌아온 날 오늘부터 시작'
 
+## 단계 이름 읽어 주기 (시험판 67)
+
+- 루틴마다 '단계 이름 읽어 주기'(결정 사안 s05, 처음 꺼짐): 루틴 고치기 › 알림 방식 페이지(`web-src/rticons.js`의 `bxNotifyHtml`), 루틴 문서 `say: true`. 싱잉볼 루틴은 읽지 않는다
+- 알람 계획(`BX_alarmPlan`)이 단계 알람(다시 알림 포함)에 `say: '씻기, 출발까지 25분'`(출발은 '출발할 시간')을 싣는다. 그 루틴을 준비 루틴으로 붙인 일정의 단계도(`travel.js`의 `tvAlarms`, 일정 제목은 읽지 않음)
+- 휴대폰 쪽 `BxSay`(TextToSpeech, 알람 음량): 꼭 울림은 먼저 읽고 알람 소리(`AlarmActivity` · `AlarmRingService`), 짧게 한 번은 짧은 소리 뒤에 읽는다(`ShortChime`, 통화 중에는 읽지 않음). 한국어 목소리가 없거나 6초 안에 준비되지 않으면 읽지 않고 그대로 울린다. '확인' · '5분 뒤'를 누르면 멈춘다
+- '들어 보기': `BxAlarm.speak({text})` → `{ok, why}`(why: `lang` 한국어 목소리 없음 · `init` · `speak` · `timeout`)
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.

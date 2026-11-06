@@ -160,7 +160,7 @@ window.BX_alarmPlan = function(days){
         pt: isLeave ? (loud ? '출발할 시간 · ' + nm : '출발할 시간') : a.routine ? a.title : (loud ? nm : '곧 출발'),
         ps: isLeave ? (loud ? bxT(it.start) + ' 도착' : '일정 내용은 잠금을 풀면 보여요') : a.sub,
         pg: a.routine ? (loud ? String(a.group) : String(a.group).split(' · ')[0]) : '일정',
-        lv: a.ring === 'short' ? lvS : lvR, ring: a.ring === 'short' ? 'short' : 'must', ok: a.ok || undefined});
+        lv: a.ring === 'short' ? lvS : lvR, ring: a.ring === 'short' ? 'short' : 'must', ok: a.ok || undefined, say: a.say});
     });
     tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
@@ -216,6 +216,8 @@ window.BX_alarmPlan = function(days){
           if (r.leave) a.ok = '다 했어요';
           if (!j && !bowl) { a.rid = rt.id; a.ds = ds; a.leave = leaveAt; a.steps = steps; }
           if (bowl) { a.sound = 'bowl'; a.bowl = rt.bowl || bxBowlType(); }
+          // 시험판 67(결정 사안 s05): 이름 읽어 주기를 켠 루틴은 울릴 때 '씻기, 출발까지 25분'을 휴대폰 목소리로(다시 알림도). 잠금 화면 글과 같은 말만(일정 제목 · 장소 없음)
+          if (rt.say && !bowl) a.say = (r.leave ? '출발할 시간' : r.name) + (left != null && !r.leave ? ', 출발까지 ' + left + '분' : '');
           (j ? reps : out).push(a);
         }
       });

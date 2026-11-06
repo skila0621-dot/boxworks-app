@@ -18,3 +18,7 @@ tests/layout/out-base/
 
 # 앱디자인 패턴 규정 점검 보고(tests/layout/rules.cjs가 만든다)
 tests/layout/out-rules/
+
+# 저장소 맨 위의 화면 사진(시험하다 잘못 찍힌 것, 시험판 66에 한 번 들어감). 기준 사진은 tests/layout/base/
+/*.png
+/*.jpg

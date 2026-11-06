@@ -112,9 +112,16 @@ public class AlarmActivity extends Activity {
     }
 
     private void ring() {
-        startRinging();
         handler.removeCallbacks(stopper);
         handler.postDelayed(stopper, RING_MS);
+        // 시험판 67(결정 사안 s05): 이름 읽어 주기를 켠 루틴은 먼저 읽고(BxSay, 알람 음량) 다 읽으면 알람 소리
+        final JSONObject a = alarm;
+        String say = a == null ? "" : a.optString("say", "");
+        if (!say.isEmpty()) {
+            BxSay.say(this, say, () -> { if (alarm == a && !isFinishing()) startRinging(); });
+            return;
+        }
+        startRinging();
     }
 
     @Override
@@ -376,6 +383,7 @@ public class AlarmActivity extends Activity {
     }
 
     private void stopRinging() {
+        BxSay.stop();
         try {
             if (ringtone != null) ringtone.stop();
         } catch (Exception ignored) {
