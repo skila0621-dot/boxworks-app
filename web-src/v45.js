@@ -221,7 +221,8 @@ pcDraw = function(id){
   const body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcCalColor(e.calendarId, e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
     '<h3 class="pc-title">' + esc(it.title) + '</h3>' +
     '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(bxT(it.start)) + ' 시작' + (it.end ? ' · ' + esc(bxT(it.end)) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(bxTR(it.start, it.end)) : '종일')) + '</p>' +
-    (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +
+    // 장소 끝 '지도'(시험판 71, 선택실 9 · 2번 A '일정 수정 창 · 휴대폰 캘린더 일정 창도 같은 자리'): 휴대폰 지도 앱으로 찾기
+    (it.location ? '<div class="pc-loc bx-pcloc"><p>' + ICON.pin + '<span>' + esc(it.location) + '</span></p><button type="button" class="btn sm" data-bxmapq="' + esc(it.location) + '" aria-label="' + esc('지도 앱에서 ' + it.location + ' 찾기') + '">' + ICON.pin + '<span>지도</span></button></div>' : '') +
     (it.note ? '<p class="pc-note">' + esc(it.note.slice(0, 300)) + (it.note.length > 300 ? '…' : '') + '</p>' : '') +
     '<div class="bx-ed bx-pc45" role="group" aria-label="' + esc(window.BX_NAME) + '에서 정하는 것">' + row('rem', rem && it.loud ? ICON.bellRing : ICON.bell, rem || '알림', !!rem, '알림') +
       (timed ? row('go', ICON.depart, go || '출발·준비', !!go, '출발·준비') : '') + '</div>' +

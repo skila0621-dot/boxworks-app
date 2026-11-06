@@ -14,7 +14,7 @@
 // 모양 규칙은 web-src/app.css로 옮김(시험판 54 덧칠 정리)
 
 /* 2) 일정 창 줄 목록 */
-const BX_EP_T = {date: '날짜', time: '시간', rem: '알림', cat: '캘린더', go: '출발·준비', att: '사진·파일', loc: '장소', note: '메모'};
+const BX_EP_T = {date: '날짜', time: '시간', rem: '알림', cat: '캘린더', go: '출발·준비', att: '사진·파일', loc: '장소', note: '메모', view: '보기 방식'};
 const BX_ARROW = '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function bxEdDay(ds){ if (!isDate(ds)) return '날짜 미지정'; const d = parseYmd(ds); return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + WD[d.getDay()] + ')'; }
 function bxEdRow(k, icon, text, set, label, sub){
@@ -26,7 +26,43 @@ function bxEdRow(k, icon, text, set, label, sub){
    - 날짜 줄 하나에서 여러 날도: 날짜 페이지 달력에서 첫날 → 마지막 날(대표 메모 '여러 날을 선택하는 경우는?'). 줄에는 '11월 6일 (금) → 11월 8일 (일)'
    - 시간 줄: '오전 11:00 ~ 오전 11:30', 시간이 없으면 '하루 종일'(시간 페이지 맨 위 '종일 | 시간 지정')
    - 알림: 기본값은 설정 › 알림의 미리 알림(지금 10분 전), 직접은 알림 페이지
-   - 자세히: 출발·준비 · 캘린더 · 메모 · 사진·파일. 고칠 때 그중 하나라도 정해져 있으면 펼쳐서 연다. 맨 아래라 펼쳐도 위 줄은 움직이지 않는다 */
+   - 자세히: 출발·준비 · 캘린더 · 메모 · 사진·파일. 고칠 때 그중 하나라도 정해져 있으면 펼쳐서 연다. 맨 아래라 펼쳐도 위 줄은 움직이지 않는다
+   시험판 71(대표 11/6 선택실 9 · 1번 'B 아이콘 줄 + 요약' + 메모 "A보기 방식도 선택할수 있으면 좋겠는데 우측 상단에 설정 버튼을 넣어두고
+   메뉴 보기 방식 변경하는 선택할수 있게 … B는 간략형, 기존, 그리고 칩 메뉴를 통해서 기간을 정하거나, 시간을 정하는 방식인데 직접입력 기능도 있어야한다",
+   결정 사안 d20261106-addlook · s27 · s28 · maplook): 보기 방식 셋을 오른쪽 위 톱니(보기 방식 페이지)에서 고르고 이 휴대폰에 기억(M.settings.bxAddView)
+   - 간략형(처음): 요약 한 줄(날짜 · 시간 · 장소 · 알림, 출발은 보라 굵게) + 아이콘 단추 다섯(날짜 · 출발 · 알림 · 메모 · 더 보기)
+   - 기존: 위의 줄 목록(시험판 56) · 칩: 값 칩(날짜 · 시간 · 출발 · 알림 · 메모 · ⋯)
+   - 셋 모두 날짜 빠른 칩(s28 내일 · 3일 후 · 1주 후 · 1개월 후) + 끝자리 '직접 입력'(날짜 페이지, 제품 원칙 규칙 9). 기존은 날짜 줄 바로 아래
+   - 더 보기 · ⋯: 시간(간략형) · 장소 · 캘린더 · 사진·파일 줄을 아래에 펼친다(맨 아래라 위는 움직이지 않음)
+   - 장소 줄 끝 '지도'(선택실 9 · 2번 A): 휴대폰 지도 앱으로 그 장소를 찾는다. 줄의 나머지를 누르면 지금처럼 장소 페이지 */
+const BX_ADD_VIEWS = [['brief', '간략형', '요약 한 줄 + 아이콘 다섯'], ['list', '기존', '날짜 · 시간 · 장소 · 알림 줄 + 자세히'], ['chip', '칩', '날짜 · 시간 · 출발 · 알림 · 메모 칩']];
+function bxAddView(){
+  const s = (typeof getDoc === 'function' && getDoc('settings')) || (M && M.settings) || {};
+  return s.bxAddView === 'list' || s.bxAddView === 'chip' ? s.bxAddView : 'brief';
+}
+// 날짜 빠른 칩: 오늘부터 내일 · 3일 후 · 1주 후 · 1개월 후(다음 달에 그날이 없으면 그달 마지막 날)
+function bxQdOpts(){
+  const t = sod(new Date()), m = new Date(t.getFullYear(), t.getMonth() + 1, 1);
+  m.setDate(Math.min(t.getDate(), new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate()));
+  return [['내일', ymd(addDays(t, 1))], ['3일 후', ymd(addDays(t, 3))], ['1주 후', ymd(addDays(t, 7))], ['1개월 후', ymd(m)]];
+}
+function bxQdHtml(){
+  return '<div class="bx-qd" role="group" aria-label="날짜 빠른 고르기">' +
+    bxQdOpts().map(([l, ds]) => '<button type="button" class="chip" data-bxqd="' + ds + '" aria-pressed="' + (F.date === ds) + '" aria-label="' + esc(l + ', ' + bxEdDay(ds)) + '">' + l + '</button>').join('') +
+    '<button type="button" class="chip bx-qd-own" data-fpanel="date">직접 입력</button></div>';
+}
+// 장소 줄: 장소가 있으면 끝에 '지도'(줄의 나머지는 장소 페이지)
+function bxEdLocRow(){
+  if (!F.location) return bxEdRow('more', ICON.pin, '장소', false, '장소', 'loc');
+  return '<div class="bx-er bx-er-loc"><button type="button" class="bx-er-in" data-fpanel="more" data-bxsub="loc" aria-label="' + esc('장소, ' + F.location) + '"><span class="bx-er-ic" aria-hidden="true">' + ICON.pin + '</span><span class="bx-er-t">' + esc(F.location) + '</span></button>' +
+    '<button type="button" class="btn sm bx-er-map" data-bxmap="1" aria-label="' + esc('지도 앱에서 ' + F.location + ' 찾기') + '">' + ICON.pin + '<span>지도</span></button></div>';
+}
+// 오른쪽 위 톱니: 보기 방식 페이지(F.panel 'view')
+function bxEdGear(){
+  const sh = document.querySelector('#sheet-root .sheet'), h = sh && sh.querySelector(':scope > .sheet-h');
+  if (!h || !sh.querySelector('#f-chips') || h.querySelector('[data-fpanel="view"]')) return;
+  h.insertAdjacentHTML('beforeend', '<button type="button" class="icon-btn bx-ed-gear" data-fpanel="view" aria-label="보기 방식">' + ICON.gear + '</button>');
+}
 function bxEdList(){
   const el = document.getElementById('f-chips'); if (!el || !F) return;
   const chip = k => el.querySelector('.fchip[data-fpanel="' + k + '"]');
@@ -36,36 +72,69 @@ function bxEdList(){
   const multi = typeof bxFMulti === 'function' && bxFMulti();
   const dTxt = bxEdDay(F.date) + (multi && F.endDate && F.endDate !== F.date ? ' → ' + bxEdDay(F.endDate) : '');
   const t0 = F.timed && isHM(F.start) ? F.start : '', t1 = F.timed && isHM(F.end) ? F.end : '';
-  const tTxt = t0 ? bxT(t0) + (t1 ? ' ~ ' + bxT(t1) : '') : '하루 종일';
+  const tTxt = t0 ? bxT(t0) + (t1 ? ' ~ ' + bxT(t1) : '') : '하루 종일', tShort = t0 ? bxTR(t0, t1) : '종일';
   const cur = remList(fRem()), def = bxRemDef(F.timed);
   const rs = !cur.length && !F.remAdv ? 'none' : cur.length === 1 && cur[0] === def && !F.remAdv ? 'def' : 'own';
   // 크게 울리기(시험판 65): 알림이 있으면 종에 소리 결 · 글 끝에 '크게 울려요'(설정 안내 대신)
   const loud = !!F.loud && cur.length > 0;
   const remNote = rs === 'def' ? '기본값 ' + remLabel(def) + (loud ? ' · 크게 울려요' : ' · 설정 › 알림에서 바꿔요') : rs === 'own' ? (cur.length > 1 ? '알림 ' + cur.length + '개 · ' + cur.map(remLabel).join(', ') : cur.length ? remLabel(cur[0]) : '알림 페이지에서 정해요') + (loud ? ' · 크게 울려요' : '') : '알림 없이 저장해요';
+  const remShort = !cur.length ? (rs === 'none' ? '알림 없음' : '알림') : cur.length > 1 ? '알림 ' + cur.length + '개' : remLabel(cur[0]);
   const cat = F.categoryId ? M.catMap.get(F.categoryId) : null;
   const catDot = cat ? '<i class="dot" style="--c:' + (F.color || catColor(cat.id)) + '"></i>' : '';
   const note = (F.note || '').split('\n').map(s => s.trim()).filter(Boolean)[0] || '';
   const n = (F.att || []).length;
-  const more = F.bxMore != null ? !!F.bxMore : (F.mode === 'edit' && (!!cat || !!note || n > 0 || goSet));
-  const sum = [goTxt, cat ? cat.name : '', note ? '메모' : '', n ? '사진·파일 ' + n + '개' : ''].filter(Boolean).join(' · ') || (hasGo ? '출발·준비 · ' : '') + '캘린더 · 메모' + (hasAtt ? ' · 사진·파일' : '');
+  const view = bxAddView();
+  const catRow = () => bxEdRow('cat', '<span class="bx-er-cal">' + ICON.cal + catDot + '</span>', cat ? cat.name : '캘린더', !!cat, '캘린더');
+  const attRow = () => hasAtt ? bxEdRow('att', BX_CLIP_ICON, n ? '사진·파일 ' + n + '개' : '사진·파일', n > 0, '사진·파일') : '';
   el.classList.add('bx-ed');
+  ['brief', 'list', 'chip'].forEach(v => el.classList.toggle('bx-ed-' + v, v === view));
   el.setAttribute('role', 'group'); el.setAttribute('aria-label', '일정 내용');
-  el.innerHTML =
-    bxEdRow('date', ICON.cal, dTxt, true, multi ? '날짜(여러 날)' : '날짜') +
-    bxEdRow('time', ICON.clock, tTxt, true, '시간') +
-    bxEdRow('more', ICON.pin, F.location || '장소', !!F.location, '장소', 'loc') +
-    '<div class="bx-er bx-er-rem' + (loud ? ' loud' : '') + '"><span class="bx-er-ic" aria-hidden="true">' + (loud ? ICON.bellRing : ICON.bell) + '</span><div class="bx-rem3"><div class="seg" role="group" aria-label="알림">' +
-      '<button type="button" data-bxrem3="none" aria-pressed="' + (rs === 'none') + '">없음</button>' +
-      '<button type="button" data-bxrem3="def" aria-pressed="' + (rs === 'def') + '">기본값</button>' +
-      '<button type="button" data-bxrem3="own" data-fpanel="rem" aria-pressed="' + (rs === 'own') + '">직접</button></div>' +
-      '<p class="bx-rem3-n">' + esc(remNote) + '</p></div></div>' +
-    '<button type="button" class="bx-er bx-er-more" data-bxmore="1" aria-expanded="' + more + '"><span class="bx-er-ic" aria-hidden="true">' + ICON_FOLD + '</span><span class="bx-er-t"><b>자세히</b><small>' + esc(sum) + '</small></span></button>' +
-    '<div class="bx-more"' + (more ? '' : ' hidden') + '>' +
-      (hasGo ? bxEdRow('go', ICON.depart, goSet ? goTxt : '출발·준비', goSet, '출발·준비') : '') +
-      bxEdRow('cat', '<span class="bx-er-cal">' + ICON.cal + catDot + '</span>', cat ? cat.name : '캘린더', !!cat, '캘린더') +
-      bxEdRow('more', BX_MEMO_ICON, note || '메모', !!note, '메모', 'note') +
-      (hasAtt ? bxEdRow('att', BX_CLIP_ICON, n ? '사진·파일 ' + n + '개' : '사진·파일', n > 0, '사진·파일') : '') +
-    '</div>';
+  bxEdGear();
+  if (view === 'list') {
+    const more = F.bxMore != null ? !!F.bxMore : (F.mode === 'edit' && (!!cat || !!note || n > 0 || goSet));
+    const sum = [goTxt, cat ? cat.name : '', note ? '메모' : '', n ? '사진·파일 ' + n + '개' : ''].filter(Boolean).join(' · ') || (hasGo ? '출발·준비 · ' : '') + '캘린더 · 메모' + (hasAtt ? ' · 사진·파일' : '');
+    el.innerHTML =
+      bxEdRow('date', ICON.cal, dTxt, true, multi ? '날짜(여러 날)' : '날짜').replace('class="bx-er"', 'class="bx-er bx-er-hasq"') +
+      '<div class="bx-er-q">' + bxQdHtml() + '</div>' +
+      bxEdRow('time', ICON.clock, tTxt, true, '시간') +
+      bxEdLocRow() +
+      '<div class="bx-er bx-er-rem' + (loud ? ' loud' : '') + '"><span class="bx-er-ic" aria-hidden="true">' + (loud ? ICON.bellRing : ICON.bell) + '</span><div class="bx-rem3"><div class="seg" role="group" aria-label="알림">' +
+        '<button type="button" data-bxrem3="none" aria-pressed="' + (rs === 'none') + '">없음</button>' +
+        '<button type="button" data-bxrem3="def" aria-pressed="' + (rs === 'def') + '">기본값</button>' +
+        '<button type="button" data-bxrem3="own" data-fpanel="rem" aria-pressed="' + (rs === 'own') + '">직접</button></div>' +
+        '<p class="bx-rem3-n">' + esc(remNote) + '</p></div></div>' +
+      '<button type="button" class="bx-er bx-er-more" data-bxmore="1" aria-expanded="' + more + '"><span class="bx-er-ic" aria-hidden="true">' + ICON_FOLD + '</span><span class="bx-er-t"><b>자세히</b><small>' + esc(sum) + '</small></span></button>' +
+      '<div class="bx-more"' + (more ? '' : ' hidden') + '>' +
+        (hasGo ? bxEdRow('go', ICON.depart, goSet ? goTxt : '출발·준비', goSet, '출발·준비') : '') +
+        catRow() + bxEdRow('more', BX_MEMO_ICON, note || '메모', !!note, '메모', 'note') + attRow() +
+      '</div>';
+    return;
+  }
+  // 간략형 · 칩: 더 보기(⋯)는 처음에 접혀 있다(값은 요약 · 칩에 보임)
+  const more = !!F.bxMore, inMore = !!F.location || !!cat || n > 0;
+  const moreBox = '<div class="bx-more"' + (more ? '' : ' hidden') + '>' + (view === 'brief' ? bxEdRow('time', ICON.clock, tTxt, true, '시간') : '') + bxEdLocRow() + catRow() + attRow() + '</div>';
+  if (view === 'brief') {
+    const sum = [esc(dTxt), esc(tShort), F.location ? esc(F.location) : '', esc(remShort === '알림 없음' || remShort === '알림' ? remShort : '알림 ' + remShort) + (loud ? ' · 크게' : '')].filter(Boolean).join(' · ') + (goSet && goTxt ? ' · <b>' + esc(goTxt) + '</b>' : '');
+    const ib = (attrs, icon, label, on) => '<button type="button" class="bx-ib' + (on ? ' on' : '') + '" ' + attrs + '><i aria-hidden="true">' + icon + '</i><span>' + label + '</span></button>';
+    el.innerHTML = '<p class="bx-ed-sum">' + sum + '</p>' +
+      '<div class="bx-ibs">' +
+        ib('data-fpanel="date" aria-label="' + esc('날짜, ' + dTxt) + '"', ICON.cal, '날짜', true) +
+        (hasGo ? ib('data-fpanel="go" aria-label="' + esc('출발, ' + (goSet ? goTxt : '정하지 않음')) + '"', ICON.depart, '출발', goSet) : '') +
+        ib('data-fpanel="rem" aria-label="' + esc('알림, ' + remShort) + '"', loud ? ICON.bellRing : ICON.bell, '알림', !!cur.length) +
+        ib('data-fpanel="more" data-bxsub="note" aria-label="' + esc('메모, ' + (note || '없음')) + '"', BX_MEMO_ICON, '메모', !!note) +
+        ib('data-bxmore="1" aria-expanded="' + more + '" aria-label="더 보기, 시간 · 장소 · 캘린더' + (hasAtt ? ' · 사진·파일' : '') + '"', ICON.fe_more, '더 보기', inMore) +
+      '</div>' + bxQdHtml() + moreBox;
+    return;
+  }
+  const vc = (attrs, icon, label, on) => '<button type="button" class="chip bx-vc' + (on ? ' on' : '') + '" ' + attrs + '>' + icon + '<span>' + esc(label) + '</span></button>';
+  el.innerHTML = '<div class="bx-vcs">' +
+      vc('data-fpanel="date" aria-label="' + esc('날짜, ' + dTxt) + '"', ICON.cal, dTxt, true) +
+      vc('data-fpanel="time" aria-label="' + esc('시간, ' + tShort) + '"', ICON.clock, tShort, !!t0) +
+      (hasGo ? vc('data-fpanel="go" aria-label="' + esc('출발, ' + (goSet ? goTxt : '정하지 않음')) + '"', ICON.depart, goSet ? goTxt : '출발', goSet) : '') +
+      vc('data-fpanel="rem" aria-label="' + esc('알림, ' + remShort) + '"', loud ? ICON.bellRing : ICON.bell, remShort, !!cur.length) +
+      vc('data-fpanel="more" data-bxsub="note" aria-label="' + esc('메모, ' + (note || '없음')) + '"', BX_MEMO_ICON, '메모', !!note) +
+      '<button type="button" class="chip bx-vc bx-vc-more' + (inMore ? ' on' : '') + '" data-bxmore="1" aria-expanded="' + more + '" aria-label="더 보기, 장소 · 캘린더' + (hasAtt ? ' · 사진·파일' : '') + '">' + ICON.fe_more + '</button>' +
+    '</div>' + bxQdHtml() + moreBox;
 }
 // 알림 없음 · 기본값(직접은 data-fpanel="rem"으로 알림 페이지가 열림) · 자세히 펼치기
 document.addEventListener('click', ev => {
@@ -77,6 +146,16 @@ document.addEventListener('click', ev => {
     if (k === 'none') { const c = fRem(); if (remList(c).length) F.remLast = c; F.remAdv = false; setFRem(''); }
     else { F.remAdv = false; setFRem(bxRemDef(F.timed)); }
     drawFChips(); if (typeof drawFRem === 'function') drawFRem(); if (typeof updRemWhen === 'function') updRemWhen();
+    return;
+  }
+  // 날짜 빠른 칩: 오늘부터 그날(여러 날이면 같은 길이로 옮김)
+  const qd = !r3 && !mo && ev.target.closest('#f-chips [data-bxqd]');
+  if (qd) {
+    ev.preventDefault(); ev.stopPropagation();
+    const ds = qd.dataset.bxqd, multi = typeof bxFMulti === 'function' && bxFMulti();
+    if (multi) { const span = diffDays(F.endDate, F.date); F.date = ds; F.endDate = ymd(addDays(parseYmd(ds), span)); } else F.date = ds;
+    F.bxD0 = F.date; F.touchedDate = true; F.multiParsed = false;
+    drawFChips(); drawFHint(); if (typeof updRemWhen === 'function') updRemWhen();
     return;
   }
   if (mo) {
@@ -112,7 +191,9 @@ function bxEpKey(){ return F && F.panel ? (F.panel === 'more' ? (F.bxSub === 'no
 // 줄을 누르는 순간(바탕 처리기가 F.panel을 바꾸기 전)의 값을 둔다. 장소 · 메모는 같은 칸을 반씩 쓴다
 document.addEventListener('click', ev => {
   if (!window.BX_APP || !ev.target.closest || !F) return;
-  const fp = ev.target.closest('#f-chips [data-fpanel]'); if (!fp) return;
+  const fp = ev.target.closest('#f-chips [data-fpanel], #sheet-root .sheet-h [data-fpanel]'); if (!fp) return;
+  // 보기 방식 페이지: 지금 방식에서 시작(완료를 눌러야 바뀜)
+  if (fp.dataset.fpanel === 'view') F.bxViewPick = bxAddView();
   if (!F.panel) bxEpSnap = bxEpClone(F);
   F.bxSub = fp.dataset.bxsub || null;
   // 시간 페이지는 늘 시작 칸부터(시험판 62 바퀴)
@@ -240,6 +321,7 @@ drawFPanel = function(){
   const prev = document.getElementById('bx-ep'), was = prev ? prev.dataset.k : null;
   const r = bxPanel44.apply(this, arguments);
   if (window.BX_APP) {
+    if (F && F.panel === 'view') bxViewDraw();
     bxEpSync();
     const k = bxEpKey();
     if (!k) bxEpSnap = null;
@@ -248,8 +330,26 @@ drawFPanel = function(){
   }
   return r;
 };
+// 보기 방식 페이지(시험판 71): 고른 것은 ✓, '완료'를 누르면 이 휴대폰에 기억하고 일정 창을 그 방식으로
+function bxViewDraw(){
+  const el = document.getElementById('f-panel'); if (!el || !F) return;
+  const pick = F.bxViewPick || bxAddView();
+  el.innerHTML = '<div id="f-view"><div class="picks" role="radiogroup" aria-label="보기 방식">' +
+    BX_ADD_VIEWS.map(([k, name, sub]) => '<button type="button" class="pick" role="radio" data-bxview="' + k + '" aria-checked="' + (pick === k) + '" aria-pressed="' + (pick === k) + '"><span class="bx-vw-t"><b>' + name + '</b><small>' + esc(sub) + '</small></span></button>').join('') +
+    '</div><p class="p small bx-ep-note">새 일정 · 일정 수정 창에 같이 써요. 날짜 빠른 칩과 직접 입력은 셋 다 있어요.</p></div>';
+}
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !F || !ev.target.closest) return;
+  const b = ev.target.closest('#bx-ep [data-bxview]'); if (!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  F.bxViewPick = b.dataset.bxview; bxViewDraw();
+}, true);
 function bxEpClose(undo){
   if (!F) return;
+  if (F.panel === 'view') {
+    const v = F.bxViewPick; delete F.bxViewPick;
+    if (!undo && v && v !== bxAddView()) { saveSettings({bxAddView: v}); F.bxMore = null; }
+  }
   if (undo && bxEpSnap) {
     const s = bxEpSnap;
     Object.keys(F).forEach(x => { if (!(x in s)) delete F[x]; });
@@ -287,6 +387,16 @@ drawEdit = function(){
   return bxEdit44.apply(this, arguments);
 };
 
+// 휴대폰 지도 앱으로 찾기(장소 페이지 · 장소 줄 '지도' · 휴대폰 캘린더 일정 창 '지도'가 같이 씀).
+// geo: 주소를 휴대폰에 넘기면 깔린 지도 앱(구글 지도 · 네이버 지도 등)이 고르라고 뜬다. 지도 API는 쓰지 않는다(D-02)
+function bxOpenMap(q){
+  const a = document.createElement('a'); a.href = 'geo:0,0?q=' + encodeURIComponent(q || '장소'); a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+document.addEventListener('click', ev => {
+  const b = window.BX_APP && ev.target.closest && ev.target.closest('[data-bxmapq]'); if (!b) return;
+  ev.preventDefault(); ev.stopPropagation(); bxOpenMap(b.dataset.bxmapq);
+}, true);
 /* 장소 페이지: 최근 장소(적은 글자가 들어간 것만) + 휴대폰 지도 앱에서 찾기 */
 let bxEpLoc0 = null;
 function bxEpRecent(now){
@@ -334,10 +444,7 @@ document.addEventListener('click', ev => {
   const mp = ev.target.closest('[data-bxmap]');
   if (mp) {
     ev.preventDefault(); ev.stopPropagation();
-    const q = (F.location || F.title || '').trim();
-    // geo: 주소를 휴대폰에 넘기면 깔린 지도 앱(구글 지도 · 네이버 지도 등)이 고르라고 뜬다. 지도 API는 쓰지 않는다(D-02)
-    const a = document.createElement('a'); a.href = 'geo:0,0?q=' + encodeURIComponent(q || '장소'); a.rel = 'noopener';
-    document.body.appendChild(a); a.click(); a.remove();
+    bxOpenMap((F.location || F.title || '').trim());
   }
 }, true);
 

@@ -8,7 +8,7 @@ const day = n => { const d = new Date(Date.parse('2026-11-02T12:00:00+09:00') + 
 let CLOCK = '';
 function data(extra = {}) {
   // 시험판 62: 아래 메뉴는 기본값(루틴 · 홈 · 캘린더). 시간표 · 메모 · 릴렉스는 왼쪽 위 메뉴 단추에서 연다(dock())
-  const S = H.settings(Object.assign({ bxDock: undefined, bxDockMig: undefined, bxDockFold: undefined, bxReport: { on: true, at: '07:30' } }, CLOCK ? { clock: CLOCK } : {}, extra));
+  const S = H.settings(Object.assign({ bxDock: undefined, bxDockMig: undefined, bxDockFold: undefined, bxAddView: undefined, bxReport: { on: true, at: '07:30' } }, CLOCK ? { clock: CLOCK } : {}, extra));
   return [
     ['settings', S],
     ['c_w', { type: 'category', name: '회사 · 프로젝트 일정 (팀 공유)', color: '#2a78d6', order: 0, createdAt: old }],
@@ -31,7 +31,9 @@ function data(extra = {}) {
     ['tt_c', { type: 'tt', name: '카페 알바', days: [5], start: '13:00', end: '17:00', remind: '30', color: '#3d9a5b', on: true, createdAt: old, updatedAt: old }],
     ['mm_1', { type: 'memo', date: day(0), text: '은행 서류 사본 두 장 챙기기', at: '06:20', createdAt: '2026-11-01T21:20:00.000Z', updatedAt: '2026-11-01T21:20:00.000Z' }],
     ['mm_2', { type: 'memo', date: day(0), text: '점심에 우체국 들러 택배 보내기 — 주소는 문자로 받은 것', at: '12:35', createdAt: '2026-11-01T21:30:00.000Z', updatedAt: '2026-11-01T21:30:00.000Z' }],
-    ['mm_3', { type: 'memo', date: day(2), text: '출장 짐 목록', at: '21:00', createdAt: '2026-11-01T12:00:00.000Z', updatedAt: '2026-11-01T12:00:00.000Z' }]
+    ['mm_3', { type: 'memo', date: day(2), text: '출장 짐 목록', at: '21:00', createdAt: '2026-11-01T12:00:00.000Z', updatedAt: '2026-11-01T12:00:00.000Z' }],
+    // 시험판 71: 새 일정에 '강남역'을 적으면 기억해 둔 이동 40분으로 출발 칸이 생긴다
+    ['travelmem', { type: 'travelmem', map: { '강남역': 40 }, updatedAt: old }]
   ];
 }
 
@@ -77,11 +79,22 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
   // 일정 창의 줄 · 날짜 · 시간 페이지(날짜 · 시간 칸은 처음 것 하나씩)
   // 시험판 56(일정 넣기 나): 맨 아래 '자세히'를 펼쳐 출발·준비 · 캘린더 · 메모 · 사진·파일 페이지까지 모두 연다
   const moreOpen = async () => { await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.waitForTimeout(250); };
-  const edPages = async label => { await moreOpen(); await snap(label + ' · 자세히 펼침'); await clickAll('#sheet-root .bx-er[data-fpanel], #sheet-root [data-fpanel="date"], #sheet-root [data-fpanel="time"], #sheet-root [data-bxrem3="own"]', '#bx-ep [data-bxep="back"]', label); };
+  // 시험판 71: 간략형(처음)은 아이콘 단추(.bx-ib) · 더 보기 줄, 장소가 있으면 장소 줄 안 단추(.bx-er-in) + '지도'
+  const edPages = async label => { await moreOpen(); await snap(label + ' · 자세히 펼침'); await clickAll('#sheet-root .bx-er[data-fpanel], #sheet-root .bx-er-in[data-fpanel], #sheet-root .bx-ib[data-fpanel], #sheet-root .bx-vc[data-fpanel], #sheet-root [data-fpanel="date"], #sheet-root [data-fpanel="time"], #sheet-root [data-bxrem3="own"]', '#bx-ep [data-bxep="back"]', label); };
   await tryDo('새 일정', async () => { await closeAll(); await p.click('.bx-fab'); await snap('새 일정 창'); await edPages('새 일정'); await closeAll(); });
+  // 시험판 71(선택실 9 · 1번 B + 대표 메모): 적은 뒤 요약 한 줄 · 출발(보라 굵게) · 빠른 칩, 오른쪽 위 톱니 '보기 방식' 페이지, 칩 · 기존 보기
+  await tryDo('새 일정 보기 방식', async () => { await closeAll(); await p.click('.bx-fab'); await p.waitForTimeout(400);
+    await p.fill('#f-title', '내일 오후 3시 강남역 치과'); await p.waitForTimeout(700); await p.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
+    await snap('새 일정 적은 뒤');
+    await moreOpen(); await snap('새 일정 적은 뒤 · 더 보기');
+    const view = async (v, label) => { await p.click('#sheet-root .sheet-h [data-fpanel="view"]'); await p.waitForTimeout(400); if (label === '보기 방식') await snap('새 일정 보기 방식 페이지'); await p.click('#bx-ep [data-bxview="' + v + '"]'); await p.click('#bx-ep [data-bxep="done"]'); await p.waitForTimeout(400); };
+    await view('chip', '보기 방식'); await snap('새 일정 칩 보기'); await moreOpen(); await snap('새 일정 칩 보기 · 더 보기');
+    await view('list'); await snap('새 일정 기존 보기');
+    // 다음 장면들은 처음 방식(간략형)으로
+    await view('brief'); await closeAll(); });
   // 시험판 65: 전체 화면 페이지가 열린 동안의 알림 글(아래에 뜸 — 위에 뜨면 페이지 머리 ‹ · 이름 · 완료를 가렸다). 폭 360에서도 가장 긴 글 하나
   await tryDo('알림 페이지 · 알림 글', async () => { await closeAll(); await p.click('.bx-fab'); await p.waitForTimeout(400);
-    if (await tap('#sheet-root [data-bxrem3="own"]')) { await p.waitForTimeout(400); await p.evaluate(() => window.BX_toast('‘개인’ 캘린더를 뺐어요 · 알림은 그대로 울려요', [['되돌리기', () => {}]])); await p.waitForTimeout(400); await snap('알림 페이지 · 알림 글'); }
+    if (await tap('#sheet-root [data-bxrem3="own"], #sheet-root .bx-ib[data-fpanel="rem"]')) { await p.waitForTimeout(400); await p.evaluate(() => window.BX_toast('‘개인’ 캘린더를 뺐어요 · 알림은 그대로 울려요', [['되돌리기', () => {}]])); await p.waitForTimeout(400); await snap('알림 페이지 · 알림 글'); }
     // 알림 글은 이 장면에서만(다음 장면 사진에 남지 않게)
     await p.evaluate(() => { const t = document.getElementById('toasts'); if (t) t.innerHTML = ''; });
     await closeAll(); });
@@ -99,7 +112,7 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
     await closeAll(); });
   await tryDo('일정 수정', async () => { await closeAll(); await p.click('#tcard2 .row-main[data-id="it_1"]'); await snap('일정 수정 창'); await edPages('일정 수정'); await closeAll(); });
   // 고른 칸 안의 작은 글(대표 11/4 23:07 '외출 준비 새로'가 안 보임): 출발·준비에서 새 루틴을 골라 본다
-  await tryDo('출발·준비 새 루틴', async () => { await closeAll(); await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500); await moreOpen(); await p.click('#sheet-root .bx-er[data-fpanel="go"]'); await p.waitForTimeout(500);
+  await tryDo('출발·준비 새 루틴', async () => { await closeAll(); await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500); await moreOpen(); await p.click('#sheet-root [data-fpanel="go"]'); await p.waitForTimeout(500);
     const ok = await p.evaluate(() => { const s = Array.from(document.querySelectorAll('#bx-ep small')).find(s => /새로/.test(s.textContent)); if (s) s.closest('button').click(); return !!s; });
     if (ok) await snap('출발·준비 · 새 루틴 고름'); else fail('출발·준비 새 루틴', "'새로' 칸이 없음"); await closeAll(); });
   await tryDo('캘린더', async () => {
@@ -223,6 +236,21 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
     await p.reload(); await p.waitForFunction(() => window.BX_T && document.querySelector('.dock')); await p.waitForTimeout(1300);
     await snap('홈 돌아온 날');
     if (await tap('[data-act="bx-ret-fresh"]')) { await p.waitForTimeout(600); await p.evaluate(() => { const t = document.getElementById('toasts'); if (t) t.innerHTML = ''; }); await snap('홈 돌아온 날 오늘부터 시작'); }
+    errs.push(...app.errors); await app.close();
+  });
+  // 시험판 71: 휴대폰 캘린더 일정 창(읽기 전용 · 장소 끝 '지도' · 알림 · 출발·준비 페이지). 휴대폰 캘린더 사본을 넣고 다시 연다
+  await tryDo('휴대폰 캘린더 일정 창', async () => {
+    await open({ now: '2026-11-02T07:40:00+09:00', data: data(), wait: 900 });
+    const t0 = Date.parse('2026-11-02T13:00:00+09:00');
+    await p.evaluate(pc => { localStorage.setItem('bx:pcal', JSON.stringify({ on: true })); localStorage.setItem('bx:pcache', JSON.stringify(pc)); },
+      { at: Date.parse('2026-11-02T06:00:00+09:00'), events: [{ eventId: 78, begin: t0, end: t0 + 3600e3, allDay: false, title: '팀 점심 · 분기 계획 이야기', calendarId: 5, calendar: '회사', color: -16744448, location: '서울 강남구 테헤란로 152 강남파이낸스센터 지하 1층 식당가', description: '예약자 이름으로 자리 잡아 둠' }] });
+    await p.reload(); await p.waitForFunction(() => window.BX_T && document.querySelector('.dock')); await p.waitForTimeout(1300);
+    await p.waitForSelector('[data-act="edit"][data-id^="pc_78"]', { state: 'attached' });
+    await p.evaluate(() => { const e = document.querySelector('[data-act="edit"][data-id^="pc_78"]'); e.scrollIntoView({ block: 'center' }); e.click(); }); await p.waitForTimeout(600);
+    await snap('휴대폰 캘린더 일정 창');
+    for (const [k, t] of [['rem', '알림'], ['go', '출발·준비']]) {
+      if (await tap('#sheet-root [data-bxpc45="' + k + '"]')) { await p.waitForTimeout(450); await snap('휴대폰 캘린더 일정 · ' + t); await p.evaluate(() => window.BX_back && window.BX_back()); await p.waitForTimeout(400); }
+    }
     errs.push(...app.errors); await app.close();
   });
   await tryDo('앱 안 알림', async () => { await open({ now: '2026-11-02T07:01:00+09:00', data: data(), wait: 1500 }); await snap('앱 안 알림 카드'); errs.push(...app.errors); await app.close(); });

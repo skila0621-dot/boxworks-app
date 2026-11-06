@@ -42,6 +42,8 @@ module.exports = async function () {
     await p.click('#f-chips [data-bxmore]'); await p.waitForTimeout(200);
     for (const [sel, t] of [['[data-fpanel="date"]', '날짜'], ['[data-bxsub="loc"]', '장소'], ['[data-fpanel="cat"]', '캘린더'], ['[data-fpanel="rem"]', '알림'], ['[data-fpanel="go"]', '출발·준비'], ['[data-bxsub="note"]', '메모']]) {
       const s2 = '#f-chips ' + sel;
+      // 시험판 71: 기존 보기에 날짜 빠른 칩 줄이 생겨 맨 아래 줄은 누를 때 창이 밀려 올라간다 → 먼저 보이는 곳으로
+      await p.evaluate(s => { const e = document.querySelector(s); if (e) e.scrollIntoView({ block: 'center' }); }, s2); await p.waitForTimeout(100);
       const b0 = await rect(p, s2); if (!b0) { off.push(t + ' 줄 없음'); continue; }
       await p.click(s2); await p.waitForTimeout(400);
       const pg = await p.evaluate(() => { const e = document.getElementById('bx-ep'); return e ? [e.querySelector('#bx-ep-t').textContent, e.getBoundingClientRect().height] : null; });
