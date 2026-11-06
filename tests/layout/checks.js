@@ -90,6 +90,9 @@ module.exports = function audit(opts){
     const ns = cs(nx), alphaN = ns.backgroundColor === 'transparent' ? 0 : +((ns.backgroundColor.match(/rgba?\(([^)]+)\)/) || [0, '0,0,0,0'])[1].split(',')[3] || 1);
     if (alphaN > 0.3 || parseFloat(ns.borderTopWidth) > 0 || ns.boxShadow !== 'none') continue;
     if (!Array.from(nx.querySelectorAll('*')).some(x => cs(x).boxShadow !== 'none')) continue;
+    // 시험판 71: 스크롤 상자 아래쪽이 흐려지며 사라지면(마스크 그러데이션이 투명으로 끝남) 경계가 있다 — 잘린 줄이 보이지 않음
+    const mk = String(cs(sc).webkitMaskImage || cs(sc).maskImage || '');
+    if (/linear-gradient/.test(mk) && Math.max(mk.lastIndexOf('rgba(0, 0, 0, 0)'), mk.lastIndexOf('transparent')) > mk.lastIndexOf('rgb(0, 0, 0)')) continue;
     const sb = sc.getBoundingClientRect().bottom;
     const cut = all.find(e => sc.contains(e) && ownText(e) && e.getBoundingClientRect().top < sb - 2 && e.getBoundingClientRect().bottom > sb + 2);
     if (cut) out.push({k: 'cover', why: '경계 없음', p: path(sc) + ' ▸ ' + path(nx), t: txt(cut) + ' ▸ ' + txt(nx).slice(0, 12)});

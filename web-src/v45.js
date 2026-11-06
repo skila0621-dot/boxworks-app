@@ -207,7 +207,7 @@ function bxPc45PageHtml(k, it){
   const tvv = +it.travel || 0, tvs = [0].concat(TV_PICKS.includes(tvv) || !tvv ? [] : [tvv]).concat(TV_PICKS);
   const curPrep = it.prep || (it.prepOut ? 'new' : '');
   const p = tvPlan(it);
-  return '<div class="fg-l">이동 시간</div><div class="picks bx-pc45-tv">' + tvs.map(v => pick('data-pctv', String(v), String(tvv), v ? tvMinText(v) : '없음')).join('') + '</div>' +
+  return '<div class="fg-l">이동 시간</div><div class="picks bx-pc45-tv">' + tvs.map(v => pick('data-pctv', String(v), String(tvv), v ? tvPickText(v) : '없음')).join('') + '</div>' +
     '<div class="fg-l">준비 루틴 <small>출발 시각에 끝나게 거꾸로 놓여요</small></div><div class="picks bx-pc45-list" role="radiogroup" aria-label="준비 루틴">' + pick('data-pcprep', '', curPrep, '없음') +
     tvPrepNames().map(r => pick('data-pcprep', r.id || 'new', curPrep, esc(r.name) + (r.id ? '' : ' <small>새로</small>'))).join('') + '</div>' +
     (p ? tvLineHtml(p, it.start, it.title, {save: tvPcSave}) : '');
@@ -221,12 +221,14 @@ pcDraw = function(id){
   const body = '<div class="pc-cal-name"><i class="dot" style="--c:' + pcCalColor(e.calendarId, e.color) + '"></i>' + esc(e.calendar || '휴대폰 캘린더') + '</div>' +
     '<h3 class="pc-title">' + esc(it.title) + '</h3>' +
     '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(bxT(it.start)) + ' 시작' + (it.end ? ' · ' + esc(bxT(it.end)) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(bxTR(it.start, it.end)) : '종일')) + '</p>' +
-    (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +
+    // 장소 끝 '지도'(시험판 71, 선택실 9 · 2번 A '일정 수정 창 · 휴대폰 캘린더 일정 창도 같은 자리'): 휴대폰 지도 앱으로 찾기
+    (it.location ? '<div class="pc-loc bx-pcloc"><p>' + ICON.pin + '<span>' + esc(it.location) + '</span></p><button type="button" class="btn sm" data-bxmapq="' + esc(it.location) + '" aria-label="' + esc('지도 앱에서 ' + it.location + ' 찾기') + '">' + ICON.pin + '<span>지도</span></button></div>' : '') +
     (it.note ? '<p class="pc-note">' + esc(it.note.slice(0, 300)) + (it.note.length > 300 ? '…' : '') + '</p>' : '') +
     '<div class="bx-ed bx-pc45" role="group" aria-label="' + esc(window.BX_NAME) + '에서 정하는 것">' + row('rem', rem && it.loud ? ICON.bellRing : ICON.bell, rem || '알림', !!rem, '알림') +
       (timed ? row('go', ICON.depart, go || '출발·준비', !!go, '출발·준비') : '') + '</div>' +
     '<p class="p small pc-ro">제목·날짜·시간은 휴대폰 캘린더 앱에서 고쳐요. ' + esc(window.BX_NAME) + '에서는 읽기만 해요.</p>';
-  setSheet(body, '<button type="button" class="btn grow" data-act="pc-open-app" data-id="' + esc(id) + '">' + ICON.cal + '캘린더 앱에서 열기</button>' +
+  // 시험판 71(정렬 점검에 이 창을 넣자 걸림): '캘린더 앱에서 열기'가 반 칸 단추보다 길어 글이 안쪽 여백을 넘었다 → 보이는 글은 '캘린더 앱', 이름은 그대로
+  setSheet(body, '<button type="button" class="btn grow" data-act="pc-open-app" data-id="' + esc(id) + '" aria-label="캘린더 앱에서 열기">' + ICON.cal + '<span>캘린더 앱</span></button>' +
     '<button type="button" class="btn grow' + (it.done ? '' : ' primary') + '" data-act="pc-done" data-id="' + esc(id) + '">' + (it.done ? '완료 취소' : ICON.check + '완료') + '</button>');
   // 열린 페이지는 그 자리에서 새로(고른 표시 · 출발 줄)
   if (bxPg && bxPg.node && bxPg.node.dataset.pc45) bxPg.node.innerHTML = bxPc45PageHtml(bxPg.node.dataset.pc45, it);

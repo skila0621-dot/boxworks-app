@@ -66,7 +66,8 @@ module.exports = async function () {
         must: (document.querySelector('#sheet-root .bx-must') || {}).textContent || '', ring: tin ? getComputedStyle(tin).boxShadow : '',
         hidden: Array.from(document.querySelectorAll('#f-chips .bx-more [data-fpanel]')).map(e => e.dataset.fpanel + (e.dataset.bxsub ? ':' + e.dataset.bxsub : '')), moreOpen: !document.querySelector('#f-chips .bx-more').hidden };
     });
-    c.eq(ed.rows, ['date', 'time', 'more:loc', 'rem3', 'more'], '새 일정 창: 날짜 · 시간 · 장소 · 알림 · 자세히');
+    // 시험판 71(s28): 날짜 줄 바로 아래 날짜 빠른 칩 줄(bx-er-q)
+    c.eq(ed.rows, ['date', 'bx-er-q', 'time', 'more:loc', 'rem3', 'more'], '새 일정 창: 날짜(+ 빠른 칩) · 시간 · 장소 · 알림 · 자세히');
     c.ok(/꼭 적을 것/.test(ed.must) && /inset/.test(ed.ring), "제목 칸 위 '꼭 적을 것' · 칸에 보라 테 " + JSON.stringify([ed.must, ed.ring]));
     c.ok(!ed.moreOpen && ed.hidden.join(',') === 'go,cat,more:note,att' || (!ed.moreOpen && ed.hidden.join(',') === 'cat,more:note,att'), "'자세히'는 접혀 있고 출발·준비 · 캘린더 · 메모 · 사진·파일이 그 안 " + JSON.stringify(ed.hidden));
     await p.click('#f-chips [data-bxmore]'); await p.waitForTimeout(250);

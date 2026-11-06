@@ -27,8 +27,10 @@ export default [
     replace: "(window.BX_APP ? tvHint() + bxPlaceHint() : '') + '</span></div>' + bxDateNote(p);\n  } else el.innerHTML = bxDateNote(null);\n}"
   },
   {
+    // 시험판 71: 장소를 먼저 채운 뒤 출발 계산(기억해 둔 그 장소까지 이동 시간). 전에는 출발을 먼저 계산해,
+    // 말하기처럼 한 번에 들어온 '내일 오후 3시 강남역 치과'는 장소가 비어 있을 때 계산되어 '오후 2:20 출발'이 생기지 않았다
     name: '말로 넣기: 알아들은 장소를 새 일정의 장소 칸에(대표 확인 11/3 "날짜 및 장소 분류")',
     find: '  if (window.BX_APP) tvOnParse(p);',
-    replace: '  if (window.BX_APP) { tvOnParse(p); bxPlaceOnParse(p); }'
+    replace: '  if (window.BX_APP) { bxPlaceOnParse(p); tvOnParse(p); }'
   }
 ];

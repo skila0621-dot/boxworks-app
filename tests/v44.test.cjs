@@ -13,7 +13,8 @@ function seed() {
 }
 // 시험판 49: 고치기의 '일정 삭제' 줄(맨 아래)은 빼고 센다(v49에서 따로 봄)
 // 시험판 56(일정 넣기 나): 날짜 · 시간 · 장소 · 알림(나눔 단추) · 자세히, 펼치면 그 안에 출발·준비 · 캘린더 · 메모 · 사진·파일
-const rows = p => p.evaluate(() => Array.from(document.querySelectorAll('#f-chips > .bx-er:not(.bx-er-del), #f-chips > .bx-more:not([hidden]) > .bx-er')).map(r => r.classList.contains('bx-er-rem') ? 'REM' : r.classList.contains('bx-er-more') ? '자세히' : r.textContent.trim()));
+// 시험판 71: 장소가 있으면 장소 줄 끝에 '지도'(줄 글은 .bx-er-t)
+const rows = p => p.evaluate(() => Array.from(document.querySelectorAll('#f-chips > .bx-er:not(.bx-er-del), #f-chips > .bx-more:not([hidden]) > .bx-er')).map(r => r.classList.contains('bx-er-rem') ? 'REM' : r.classList.contains('bx-er-more') ? '자세히' : r.classList.contains('bx-er-loc') ? r.querySelector('.bx-er-t').textContent.trim() + ' +지도' : r.textContent.trim()));
 const remv = p => p.evaluate(() => (document.querySelector('#f-chips .bx-rem3-n') || {}).textContent.trim());
 const row = (p, sel) => p.evaluate(s => { const r = document.querySelector('#f-chips ' + s); if (!r) return null; const t = r.querySelector('.bx-er-t'); return { t: (t || r).textContent.trim(), ph: !!(t && t.classList.contains('ph')) }; }, sel);
 const page = p => p.evaluate(() => { const e = document.getElementById('bx-ep'); return e ? e.querySelector('#bx-ep-t').textContent : null; });
@@ -43,7 +44,7 @@ module.exports = async function () {
     // (2) 일정 창: 삼성 순서의 줄 목록, 길면 …, 비어 있으면 회색 이름
     await p.click('.dock [data-view="today"]'); await p.waitForTimeout(500);
     await p.click('#tcard2 .row-main[data-id="it_1"]'); await p.waitForTimeout(500);
-    c.eq(await rows(p), ['11월 2일 (월)', '오후 3:00 ~ 오후 4:00', '서울대학교치과병원 본관 3층 보존과 앞 회의실 옆 보호자 대기실', 'REM', '자세히', '출발·준비', '회사 · 마케팅팀 공유 캘린더', '신분증 챙기기', '사진·파일'],
+    c.eq(await rows(p), ['11월 2일 (월)', '오후 3:00 ~ 오후 4:00', '서울대학교치과병원 본관 3층 보존과 앞 회의실 옆 보호자 대기실 +지도', 'REM', '자세히', '출발·준비', '회사 · 마케팅팀 공유 캘린더', '신분증 챙기기', '사진·파일'],
       '줄 순서(일정 넣기 나): 날짜 · 시간 · 장소 · 알림 · 자세히(캘린더가 있어 펼침: 출발·준비 · 캘린더 · 메모 첫 줄 · 사진·파일)');
     const ell = await p.evaluate(() => { const t = document.querySelector('#f-chips [data-bxsub="loc"] .bx-er-t'); const s = getComputedStyle(t); return { cut: t.scrollWidth > t.clientWidth, ov: s.textOverflow, ws: s.whiteSpace, h: Math.round(t.closest('.bx-er').getBoundingClientRect().height) }; });
     c.ok(ell.cut && ell.ov === 'ellipsis' && ell.ws === 'nowrap' && ell.h === 56, '긴 장소는 한 줄, 뒤는 …(줄 높이 56) ' + JSON.stringify(ell));
