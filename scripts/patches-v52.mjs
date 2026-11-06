@@ -5,27 +5,38 @@ export default [
   {
     name: '루틴 세기(52): 단계에 고른 세기(step.ring)를 저장해 둔다',
     find: `min: clampInt(s.min, 0, 600, 0), kind: s.kind === 'wait' ? 'wait' : 'do'};`,
-    replace: `min: clampInt(s.min, 0, 600, 0), kind: s.kind === 'wait' ? 'wait' : 'do', ring: s.kind !== 'wait' && (s.ring === 'must' || s.ring === 'short') ? s.ring : undefined};`
+    // 시험판 68(결정 사안 s20): 중요한 단계(step.chk)도 함께. 기다리기 단계는 중요한 단계가 될 수 없다
+    replace: `min: clampInt(s.min, 0, 600, 0), kind: s.kind === 'wait' ? 'wait' : 'do', ring: s.kind !== 'wait' && (s.ring === 'must' || s.ring === 'short') ? s.ring : undefined, chk: s.kind !== 'wait' && s.chk === true || undefined};`
+  },
+  {
+    // 시험판 68(결정 사안 s20): 시험판 67까지 저장한 루틴은 꼭 울림이던 약 이름 단계를 중요한 단계로 이어받는다(v52.js bxChkLegacy)
+    name: '└ 옛 루틴 읽기: 약 단계 → 중요한 단계',
+    find: `else if (d.type === 'routine') routines.push(Object.assign(rtNorm(d), {id, order: d.order || 0}));`,
+    replace: `else if (d.type === 'routine') routines.push(Object.assign(rtNorm(bxChkLegacy(d)), {id, order: d.order || 0}));`
+  },
+  {
+    // 고치기 창도 같은 이어받기로 연다(저장하면 chkV 1과 중요한 단계가 그대로 남음)
+    name: '└ 옛 루틴 고치기 창: 약 단계 → 중요한 단계',
+    find: `  R = rtNorm(cur || preset);`,
+    replace: `  R = rtNorm(cur ? bxChkLegacy(cur) : preset);`
   },
   {
     name: '└ 루틴 창 저장',
     find: `.trim().slice(0, 30) || '단계 ' + (i + 1), min: clampInt(s.min, 0, 600, 0), kind: s.kind === 'wait' ? 'wait' : 'do'}));`,
-    replace: `.trim().slice(0, 30) || '단계 ' + (i + 1), min: clampInt(s.min, 0, 600, 0), kind: s.kind === 'wait' ? 'wait' : 'do', ring: s.kind !== 'wait' && (s.ring === 'must' || s.ring === 'short') ? s.ring : undefined}));`
+    replace: `.trim().slice(0, 30) || '단계 ' + (i + 1), min: clampInt(s.min, 0, 600, 0), kind: s.kind === 'wait' ? 'wait' : 'do', ring: s.kind !== 'wait' && (s.ring === 'must' || s.ring === 'short') ? s.ring : undefined, chk: s.kind !== 'wait' && s.chk === true || undefined}));`
   },
   {
-    // '약속' · '예약'도 '먹었어요'가 되던 것. 앱에서 단계 체크는 하고 싶은 사람만 한 번 누른다(시작했어요 → 끝냈어요 두 번이 아니라)
-    name: '└ 단계 단추 글: 약 단계만 먹었어요, 그 밖은 했어요',
-    find: `  if (/약/.test(s.name)) return '먹었어요';
-  if (/출발/.test(s.name)) return '출발했어요';
+    // 앱에서 단계 체크는 하고 싶은 사람만 한 번 누른다(시작했어요 → 끝냈어요 두 번이 아니라). 시험판 68: '먹었어요'는 없다(중요한 단계도 '했어요')
+    name: '└ 단계 단추 글: 기상 · 출발 말고는 했어요',
+    find: `  if (/출발/.test(s.name)) return '출발했어요';
   return s.min > 0 ? '시작했어요' : '했어요';`,
-    replace: `  if (bxIsMed(s.name)) return '먹었어요';
-  if (/출발/.test(s.name)) return '출발했어요';
+    replace: `  if (/출발/.test(s.name)) return '출발했어요';
   return window.BX_APP ? '했어요' : s.min > 0 ? '시작했어요' : '했어요';`
   },
   {
     name: '└ 시간표의 줄마다 세기',
     find: `const rows = rt.steps.map(s => { const r = {id: s.id, name: s.name, at: t, min: s.min, kind: s.kind, ok: okLabel(s)}; t += s.min; return r; });`,
-    replace: `const rows = rt.steps.map((s, i) => { const r = {id: s.id, name: s.name, at: t, min: s.min, kind: s.kind, ok: okLabel(s), ring: bxStepRing(s, i, rt.steps)}; t += s.min; return r; });`
+    replace: `const rows = rt.steps.map((s, i) => { const r = {id: s.id, name: s.name, at: t, min: s.min, kind: s.kind, ok: okLabel(s), ring: bxStepRing(s, i, rt.steps), chk: s.kind !== 'wait' && !!s.chk}; t += s.min; return r; });`
   },
   {
     name: "└ 출발은 꼭 울림, 확인 단추는 '다 했어요'(대표 16:58 \"출근 직전에 '다 했다' 누르면 될 일\")",
@@ -38,7 +49,7 @@ export default [
     replace: `const endM = Math.max(r.at, sm == null ? r.at : sm) + r.min + (extra[r.id] || 0); return Object.assign({}, r, {done: done[r.id] || ((r.kind === 'wait' ? nowM >= r.at + r.min : r.ring === 'short' && nowM >= endM) ? 'auto' : null), started: st, extra: extra[r.id] || 0, endM}); });`
   },
   {
-    // 꼭 울림 단계(기상 · 약 · 출발)를 확인하지 않았어도 다음 단계 시각이 되면 '지금'은 다음 단계(놓친 단계로 붙잡지 않음)
+    // 꼭 울림 단계(기상 · 중요한 단계 · 출발)를 확인하지 않았어도 다음 단계 시각이 되면 '지금'은 다음 단계(놓친 단계로 붙잡지 않음)
     name: "└ 오늘: '지금' 단계는 시각으로",
     find: `const cur = after ? null : todo.find(r => !r.done && r.at <= nowM) || null;`,
     replace: `const tAt = todo.reduce((a, r) => r.at <= nowM ? r.at : a, null);

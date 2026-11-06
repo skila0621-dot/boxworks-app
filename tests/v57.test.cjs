@@ -1,7 +1,7 @@
 // 시험판 57(대표 11/5 선택실 3: 곧 시작 강조 A · 위젯 줄 사이 선 다 · 끝난 일정 다 · 줄을 긋는 때는 메모대로)
 // (1) 체크한 일정: 시각 · 이름 가로줄 + 줄 전체 반쯤 흐리게(목록 줄 C, 앱 전체)
 // (2) 시간이 지났는데 체크하지 않은 일정(확인 필요): 조금 연하게 + 체크 왼쪽에 확인 필요 아이콘(동그라미 안 느낌표, 앱 아이콘 세트) 깜박임
-//     먹었는지 확인하지 않은 약 단계가 있는 루틴도 같은 아이콘. 끝난 수업은 확인 필요가 아니라 흐리게만
+//     했는지 확인하지 않은 중요한 단계가 있는 루틴도 같은 아이콘. 끝난 수업은 확인 필요가 아니라 흐리게만
 // (3) 체크 · 확인 필요 아이콘은 줄 세로 가운데(두 줄이어도)
 // (4) 위젯 자료: 수업 체크(그날 다녀왔어요) · 약 확인 필요(miss)
 const { openApp, settings, checker } = require('./harness.cjs');
@@ -56,7 +56,7 @@ module.exports = async function () {
     }).filter(x => x != null));
     c.ok(mids.length >= 4 && mids.every(d => d <= 1.5), '모든 줄(한 줄 · 두 줄)에서 체크가 글 묶음의 세로 가운데 ' + JSON.stringify(mids));
     c.ok(info.tt && !info.tt.warn && info.tt.past, '끝난 수업은 확인 필요 아이콘 없이 흐리게만 ' + JSON.stringify(info.tt));
-    c.ok(info.rt && info.rt.warn && /먹었는지 확인/.test(info.rt.sub), '약을 확인하지 않은 루틴도 확인 필요 아이콘 ' + JSON.stringify(info.rt));
+    c.ok(info.rt && info.rt.warn && /했는지 확인/.test(info.rt.sub), '중요한 단계를 확인하지 않은 루틴도 확인 필요 아이콘 ' + JSON.stringify(info.rt));
     // 움직임 줄이기: 깜박이지 않음
     await p.emulateMedia({ reducedMotion: 'reduce' }); await p.waitForTimeout(200);
     c.eq(await p.evaluate(() => { const w = document.querySelector('#tcard2 .rc-warn'); return w ? getComputedStyle(w).animationName : null; }), 'none', '움직임 줄이기면 깜박이지 않음');

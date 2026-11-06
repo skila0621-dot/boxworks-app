@@ -39,6 +39,24 @@ document.addEventListener('click', ev => {
   const st = (R.steps || []).find(x => x && x.kind !== 'wait'), nm = st && String(st.name || '').trim() ? String(st.name).trim().slice(0, 30) : '씻기';
   Capacitor.Plugins.BxAlarm.speak({text: nm + ', 출발까지 25분'}).then(r => { if (r && r.ok === false) toast(r.why === 'lang' ? '이 휴대폰에는 한국어 목소리가 없어요. 휴대폰 설정 › 텍스트 읽어주기에서 받을 수 있어요.' : '이 휴대폰에서는 읽어 줄 수 없어요.'); }).catch(() => toast('이 휴대폰에서는 읽어 줄 수 없어요.'));
 }, true);
+/* 시험판 68(결정 사안 s20 '가 생활 기능으로'): 중요한 단계(step.chk). 약처럼 잊으면 안 되는 단계를 쓰는 사람이 고른다(이름으로 정하지 않음).
+   중요한 단계는 꼭 울림이고, 했다고 누르지 않으면 루틴이 끝나고 10분 뒤 한 번 더 · 홈 '확인 필요'에 남는다(brief.js bxRtMissedOf).
+   상자 하나: 머리 줄 + 할 일 단계마다 스위치(기다리기 단계는 고를 수 없음). 켜면 그 단계는 꼭 울림 */
+function bxChkHtml(){
+  const rows = (R.steps || []).map((s, i) => s && s.kind !== 'wait' ? '<div class="bx-swrow"><span>' + esc(String(s.name || '').trim() || '단계 ' + (i + 1)) + '</span>' + bxSwitch('data-rck="' + i + '" data-rchk', !!s.chk, (s.name || '단계 ' + (i + 1)) + ' 중요한 단계') + '</div>' : '').join('');
+  return rows ? '<div class="bx-chkbox"><div class="bx-chk-h"><b>중요한 단계</b><small>했다고 누르지 않으면 루틴이 끝나고 10분 뒤 한 번 더 알리고, 홈 ‘확인 필요’에 남겨요</small></div>' + rows + '</div>' : '';
+}
+function bxChkCount(){ return R && R.sound !== 'bowl' ? (R.steps || []).filter(s => s && s.kind !== 'wait' && s.chk).length : 0; }
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !ev.target.closest || typeof R === 'undefined' || !R) return;
+  const sw = ev.target.closest('[data-rchk]'); if (!sw) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const st = R.steps[+sw.dataset.rck]; if (!st) return;
+  if (sw.dataset.rchk === '1') { st.chk = true; st.kind = 'do'; st.ring = 'must'; } else delete st.chk;
+  const box = document.getElementById('bx-rchk'); if (box) box.innerHTML = bxChkHtml();
+  // 뒤의 루틴 창 단계 줄도 꼭 울림으로(페이지를 닫으면 바로 보이게)
+  rtRedrawParts('steps');
+}, true);
 function bxNotifyHtml(){
   const bowl = R.sound === 'bowl', bt = R.bowl || bxBowlType();
   const opt = (v, b, sm) => '<button type="button" class="bx-lock-o" role="radio" aria-checked="' + ((v === 'bowl') === bowl) + '" data-rsound="' + v + '"><i aria-hidden="true"></i><span><b>' + b + '</b><small>' + sm + '</small></span></button>';
@@ -50,7 +68,8 @@ function bxNotifyHtml(){
       '<p class="p small bx-rnote">꼭 울림 단계에서 확인을 누르지 않으면 다시 울려요. 0번이면 한 번만 울려요. 짧게 한 번 단계는 다시 울리지 않아요.</p>' +
       // 시험판 67(결정 사안 s05 '나 루틴마다 스위치(처음 꺼짐)'): 울릴 때 단계 이름을 휴대폰 목소리로. 휴대폰마다 목소리가 달라 '들어 보기'로 먼저 들어 봄
       '<div class="bx-swrow bx-say"><span><b>단계 이름 읽어 주기</b><small>울릴 때 “씻기, 출발까지 25분”처럼 읽어 줘요</small></span>' + bxSwitch('data-rsay', !!R.say, '단계 이름 읽어 주기') + '</div>' +
-      (bxSayOk() ? '<button type="button" class="sec-link bx-say-try" data-act="rt-say-try">' + ICON.speak + '들어 보기</button>' : '') + '</div>' +
+      (bxSayOk() ? '<button type="button" class="sec-link bx-say-try" data-act="rt-say-try">' + ICON.speak + '들어 보기</button>' : '') +
+      '<div id="bx-rchk">' + bxChkHtml() + '</div></div>' +
     '<div id="bx-rbowl"' + (bowl ? '' : ' hidden') + '><div class="bx-sndrow"><div class="picks bx-bowl-picks" id="bx-bowlpick">' +
       BX_BOWLS.map(b => '<button type="button" class="pick" data-rbowl="' + b[0] + '" aria-pressed="' + (bt === b[0]) + '">' + b[1] + '</button>').join('') + '</div></div>' +
       '<p class="p small">누르면 들려요. 명상의 종소리와는 따로예요.</p></div></div>';

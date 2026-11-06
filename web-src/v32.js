@@ -4,7 +4,8 @@
 
 /* 루틴 단계: '할 일 / 기다리기' 칸 대신 단계마다 '알람' 스위치(대표 결정 11/3, D-12).
    시험판 52(대표 11/4 16:58, D-25): 스위치를 세 칸으로 — 꼭 울림(끌 때까지) · 짧게 한 번(누를 것 없음) · 소리 없이(시간만 지나감: 세탁 기다리기처럼).
-   소리 없이는 지금처럼 kind 'wait'. 고르지 않은 단계는 자리 · 이름으로 정해진 기본값(v52.js bxStepRing)이 눌린 채 보인다 */
+   소리 없이는 지금처럼 kind 'wait'. 고르지 않은 단계는 자리로 정해진 기본값(v52.js bxStepRing)이 눌린 채 보인다.
+   시험판 68: 중요한 단계(step.chk)는 꼭 울림이라, 짧게 한 번 · 소리 없이를 고르면 중요한 단계에서도 빠진다 */
 function bxRsAlarmHtml(s, i){
   const cur = bxStepRing(s, i, R ? R.steps : null);
   return '<div class="seg seg3 bx-rs-ring" role="group" aria-label="' + (i + 1) + '번째 단계 알림">' +
@@ -16,8 +17,11 @@ document.addEventListener('click', ev => {
   const st = R.steps[+b.dataset.i]; if (!st) return;
   const v = b.dataset.rsRing;
   if (v === 'silent') { st.kind = 'wait'; delete st.ring; } else { st.kind = 'do'; st.ring = v; }
+  if (v !== 'must') delete st.chk;
   // 첫 단계가 '소리 없이'가 되면 다음 단계의 기본값이 바뀌므로 단계 줄을 모두 다시 그린다
   rtRedrawParts('steps');
+  // '알림 방식' 줄 글(중요한 단계 N)도 바로(v45.js)
+  if (typeof bxRt45Refresh === 'function') bxRt45Refresh();
 }, true);
 
 /* 루틴 목록에서 루틴을 꾹 누르면 고치기 · 지우기(대표 요청 11/3). 일정 꾹 누르기와 같은 모양, 지운 뒤 되돌리기.

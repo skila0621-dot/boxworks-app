@@ -38,12 +38,12 @@ export default [
   },
   {
     name: '루틴 템플릿에 \'명상 10분\' 넣기(대표 요청)',
-    find: "  {key: 'sleep', name: '취침 루틴', days: RT_ALL, mode: 'start', target: '23:00', steps: [['씻기', 15], ['저녁 약', 0], ['휴대폰 내려놓기', 0], ['잠자리 들기', 0]]}\n];",
-    replace: "  {key: 'sleep', name: '취침 루틴', days: RT_ALL, mode: 'start', target: '23:00', steps: [['씻기', 15], ['저녁 약', 0], ['휴대폰 내려놓기', 0], ['잠자리 들기', 0]]},\n  {key: 'meditate', name: '명상 10분', days: RT_ALL, mode: 'start', target: '07:30', steps: [['휴대폰 방해 금지 켜기', 0], ['편하게 앉기', 1], ['호흡 명상', 10]]}\n];"
+    find: "  {key: 'sleep', name: '취침 루틴', days: RT_ALL, mode: 'start', target: '23:00', steps: [['씻기', 15], ['휴대폰 내려놓기', 0], ['잠자리 들기', 0]]}\n];",
+    replace: "  {key: 'sleep', name: '취침 루틴', days: RT_ALL, mode: 'start', target: '23:00', steps: [['씻기', 15], ['휴대폰 내려놓기', 0], ['잠자리 들기', 0]]},\n  {key: 'meditate', name: '명상 10분', days: RT_ALL, mode: 'start', target: '07:30', steps: [['휴대폰 방해 금지 켜기', 0], ['편하게 앉기', 1], ['호흡 명상', 10]]}\n];"
   },
   {"name": "명상(D-07): 화면 그리기", "find": "S.view === 'routines' ? routinesHtml() :", "replace": "(window.BX_APP && S.view === 'med') ? medHtml() : S.view === 'routines' ? routinesHtml() :"},
   {"name": "└ 루틴 탭 위쪽에 명상 카드", "find": "  return '<div class=\"page-head\"><div class=\"ph-t\"><h1>루틴</h1></div></div>' + make + cards;", "replace": "  return '<div class=\"page-head\"><div class=\"ph-t\"><h1>루틴</h1></div></div>' + (window.BX_APP ? medCardHtml() : '') + make + cards;"},
-  {"name": "└ 더보기에 명상", "find": "      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·약') +", "replace": "      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·약') + (window.BX_APP ? '<button type=\"button\" class=\"menu-row\" data-act=\"bx-med-open\"><span class=\"mi\">' + BX_ICONS.lotus + '</span><span class=\"ml\">명상</span><span class=\"mv\">싱잉볼' + ICON.chevR + '</span></button>' : '') +"},
+  {"name": "└ 더보기에 명상", "find": "      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·잠자리') +", "replace": "      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·잠자리') + (window.BX_APP ? '<button type=\"button\" class=\"menu-row\" data-act=\"bx-med-open\"><span class=\"mi\">' + BX_ICONS.lotus + '</span><span class=\"ml\">명상</span><span class=\"mv\">싱잉볼' + ICON.chevR + '</span></button>' : '') +"},
   {"name": "└ 루틴 알람 소리(기본 알람 | 싱잉볼)를 루틴에 저장", "find": ", icon: typeof o.icon === 'string' && o.icon ? o.icon.slice(0, 20) : null};", "replace": ", icon: typeof o.icon === 'string' && o.icon ? o.icon.slice(0, 20) : null, sound: o.sound === 'bowl' ? 'bowl' : null};"},
   {"name": "└ 명상 10분 템플릿은 싱잉볼·다시 알림 없음", "find": "{key: 'meditate', name: '명상 10분', days: RT_ALL, mode: 'start', target: '07:30', steps:", "replace": "{key: 'meditate', name: '명상 10분', days: RT_ALL, mode: 'start', target: '07:30', sound: 'bowl', times: 0, steps:"}
 ];

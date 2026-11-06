@@ -48,8 +48,8 @@ export default [
   },
   {
     name: '└ ⋯ 메뉴: 아래 메뉴에 없는 기능 + 아래 메뉴 고르기',
-    find: "      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·약') +",
-    replace: "      (window.BX_APP ? bxMoreRows() : '') + menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·약') +"
+    find: "      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·잠자리') +",
+    replace: "      (window.BX_APP ? bxMoreRows() : '') + menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·잠자리') +"
   },
   {
     // 정리판(11/1): 앱에서는 '확인 필요'와 같은 카드(다 했어요·옮기기·날짜 고르기·그대로 두기)가 열리므로 이름도 '확인'

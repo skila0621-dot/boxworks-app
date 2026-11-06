@@ -1947,10 +1947,10 @@ function guideHtml(){
   '<h3>메뉴</h3>' + tbl(['메뉴', '하는 일'], [['오늘', '위에서 설명한 오늘 화면이에요.'], ['주간 일정', '한 주의 일정을 요일별로 모두 보여 줘요.'], ['새 일정', '일정을 추가하는 창을 열어요. 아래 툴바 가운데 + 버튼이에요. PC는 왼쪽 위 버튼도 돼요.'], ['월간 일정', '달력으로 한 달을 보고, 날짜를 누르면 그날 일정이 나와요.'], ['도구 (휴대폰은 더보기)', '검색, 분류 관리, 백업·복원, 휴지통, 다크 모드, 위젯 모드'], ['설정', '연동(사용 방식·Claude 연동·알림 받을 곳), 화면(메인 색·다크 모드·주 시작 요일·분류 색), 알림, 아침 일정 보고, 분류·데이터, 데이터 초기화, 정보를 한 페이지에서 관리해요. PC 단축키 <kbd>,</kbd>'], ['사용 설명서', '지금 보고 있는 안내예요.']]) + '</section>' +
 
   '<section class="g-sec" id="g-routine"><h2>루틴과 오늘 할 일 순서</h2>' +
-  '<p>기상·출근 준비·약 먹기처럼 매일 되풀이하는 행동은 <b>루틴</b>으로 만들어 둬요. 정한 요일마다 저절로 시작하고, 확인 버튼을 누를 때까지 다시 알려 줘요. 시간 계산은 스케줄러가 해요.</p>' +
+  '<p>기상·출근 준비·잠자리 준비처럼 매일 되풀이하는 행동은 <b>루틴</b>으로 만들어 둬요. 정한 요일마다 저절로 시작하고, 확인 버튼을 누를 때까지 다시 알려 줘요. 시간 계산은 스케줄러가 해요.</p>' +
   '<h3>오늘 할 일 순서 정하기</h3><ol><li>PC는 왼쪽 메뉴, 휴대폰은 <b>더보기</b>에서 <b>루틴</b>을 열어요.</li><li><b>오늘 할 일 순서</b>를 고르고 "빨래도 해야 하고 설거지도 하고 책도 읽어야 해"처럼 생각나는 대로 적어요. 휴대폰 키보드의 마이크로 말해도 돼요.</li><li><b>순서 정하기</b>를 누르면 기다리는 시간까지 계산한 순서가 나와요. 예) 빨래 돌리기 → 세탁기가 도는 동안 설거지 → 빨래 널기 → 10분 쉬기 → 책 읽기</li><li><b>저장</b>하면 지금부터 단계마다 알려 줘요. 오늘만 쓰는 시간표라 지나면 목록에서 사라져요.</li></ol>' +
-  '<h3>매일 루틴 만들기</h3><ol><li><b>매일 루틴</b>을 고르고 "평일 9시까지 출근, 회사까지 45분, 준비 1시간, 아침 약"처럼 적어요.</li><li><b>루틴 만들기</b>를 누르면 도착 시각에서 거꾸로 계산한 시간표가 나와요. 예) 06:50 기상 → 06:55 약 → 07:00 준비 → 08:00 출발</li><li>시각·이동 시간·여유·단계별 시간을 고치면 시간표가 바로 다시 계산돼요. 출근·약 먹기·집안일·공부·책 읽기·취침 템플릿에서 시작해도 돼요.</li></ol>' +
-  '<h3>실행</h3>' + tbl(['알림', '언제', '누르는 버튼'], [['시작 알림', '단계 시각', '일어났어요 · 먹었어요 · 시작했어요 · 출발했어요'], ['다시 알림', '누를 때까지 정한 간격마다', '같은 버튼'], ['하는 중 확인', '시작한 뒤 정한 간격마다', '계속하는 중 · 끝냈어요'], ['끝 확인', '끝낼 시각', '끝냈어요 · 5분 더'], ['출발 10분 전', '도착 시각 루틴', '확인']]) +
+  '<h3>매일 루틴 만들기</h3><ol><li><b>매일 루틴</b>을 고르고 "평일 9시까지 출근, 회사까지 45분, 준비 1시간"처럼 적어요.</li><li><b>루틴 만들기</b>를 누르면 도착 시각에서 거꾸로 계산한 시간표가 나와요. 예) 07:00 기상 → 07:05 준비 → 08:05 출발</li><li>시각·이동 시간·여유·단계별 시간을 고치면 시간표가 바로 다시 계산돼요. 출근·꼭 챙길 일·집안일·공부·책 읽기·취침 템플릿에서 시작해도 돼요.</li></ol>' +
+  '<h3>실행</h3>' + tbl(['알림', '언제', '누르는 버튼'], [['시작 알림', '단계 시각', '일어났어요 · 했어요 · 시작했어요 · 출발했어요'], ['다시 알림', '누를 때까지 정한 간격마다', '같은 버튼'], ['하는 중 확인', '시작한 뒤 정한 간격마다', '계속하는 중 · 끝냈어요'], ['끝 확인', '끝낼 시각', '끝냈어요 · 5분 더'], ['출발 10분 전', '도착 시각 루틴', '확인']]) +
   '<p>오늘 화면의 <b>오늘의 루틴</b>에는 지금 할 단계가 크게 보여요. 기다리는 단계(세탁·쉬기)는 확인 없이 시간이 지나면 끝나요. 쉬는 날은 <b>오늘 쉬기</b>를 눌러요.</p>' +
   '<p>지금은 스케줄러가 열려 있을 때만 알림이 울려요. 화면이 꺼져 있어도 울리는 알람은 앱 버전에서 제공할 예정이에요.</p></section>' +
 
@@ -2107,12 +2107,13 @@ function parseQuick(text, now){
    'start' runs forward from the start time. Each day's progress lives in its own 'rlog' document. */
 const RT_WD = [1, 2, 3, 4, 5], RT_ALL = [0, 1, 2, 3, 4, 5, 6];
 const RT_TEMPLATES = [
-  {key: 'work', name: '출근 루틴', days: RT_WD, mode: 'arrive', target: '09:00', travel: 40, buffer: 15, steps: [['기상', 5], ['약 먹기', 5], ['씻고 옷 입기', 30], ['아침 먹기', 15], ['짐 챙기기', 10]]},
-  {key: 'meds', name: '약 먹기', days: RT_ALL, mode: 'start', target: '08:00', every: 10, times: 6, steps: [['아침 약', 0]]},
+  {key: 'work', name: '출근 루틴', days: RT_WD, mode: 'arrive', target: '09:00', travel: 40, buffer: 15, steps: [['기상', 5], ['씻고 옷 입기', 35], ['아침 먹기', 15], ['짐 챙기기', 10]]},
+  // 잊으면 안 되는 일 하나를 정한 시각에, 했다고 누를 때까지(중요한 단계). 이름은 쓰는 사람이 바꾼다
+  {key: 'key', name: '꼭 챙길 일', days: RT_ALL, mode: 'start', target: '08:00', every: 10, times: 6, steps: [['챙기기', 0, 'do', true]]},
   {key: 'house', name: '집안일 15분', days: RT_ALL, mode: 'start', target: '20:00', steps: [['빨래 돌리기', 5], ['설거지', 15], ['세탁 기다리기', 30, 'wait'], ['빨래 널기', 10]]},
   {key: 'study', name: '공부 시작', days: RT_WD, mode: 'start', target: '20:00', steps: [['책상 정리', 5], ['공부', 50], ['쉬기', 10, 'wait']]},
   {key: 'read', name: '책 읽기', days: RT_ALL, mode: 'start', target: '21:30', steps: [['휴대폰 멀리 두기', 0], ['책 읽기', 30]]},
-  {key: 'sleep', name: '취침 루틴', days: RT_ALL, mode: 'start', target: '23:00', steps: [['씻기', 15], ['저녁 약', 0], ['휴대폰 내려놓기', 0], ['잠자리 들기', 0]]}
+  {key: 'sleep', name: '취침 루틴', days: RT_ALL, mode: 'start', target: '23:00', steps: [['씻기', 15], ['휴대폰 내려놓기', 0], ['잠자리 들기', 0]]}
 ];
 const clampInt = (v, lo, hi, d) => { if (v === '' || v == null) return d; const n = Math.round(+v); return isNaN(n) ? d : Math.max(lo, Math.min(hi, n)); };
 const mm = m => fromMin(((Math.round(m) % 1440) + 1440) % 1440);
@@ -2120,7 +2121,7 @@ function rtNorm(o){
   o = o || {};
   const days = Array.isArray(o.days) ? Array.from(new Set(o.days.map(Number).filter(d => d >= 0 && d <= 6))).sort() : RT_WD.slice();
   const steps = (Array.isArray(o.steps) ? o.steps : []).slice(0, 12).map((s, i) => {
-    if (Array.isArray(s)) s = {name: s[0], min: s[1], kind: s[2]};
+    if (Array.isArray(s)) s = {name: s[0], min: s[1], kind: s[2], chk: s[3] === true || undefined};
     return {id: String(s.id || 's' + i), name: String(s.name || '').trim().slice(0, 30) || '단계 ' + (i + 1), min: clampInt(s.min, 0, 600, 0), kind: s.kind === 'wait' ? 'wait' : 'do'};
   });
   return {type: 'routine', name: String(o.name || '').trim().slice(0, 30) || '내 루틴', days: days.length ? days : RT_WD.slice(), mode: o.mode === 'start' ? 'start' : 'arrive',
@@ -2130,7 +2131,6 @@ function rtNorm(o){
 function okLabel(s){
   if (s.kind === 'wait') return '';
   if (/기상|일어나/.test(s.name)) return '일어났어요';
-  if (/약/.test(s.name)) return '먹었어요';
   if (/출발/.test(s.name)) return '출발했어요';
   return s.min > 0 ? '시작했어요' : '했어요';
 }
@@ -2286,7 +2286,7 @@ function routinesHtml(){
   const list = M.routines.filter(rt => !rt.once || rt.once >= M.today), kind = S.rtKind || 'plan', plan = kind === 'plan';
   const make = '<section class="set-sec rt-make" aria-labelledby="rt-make-h"><h2 id="rt-make-h">말로 만들기</h2>' +
     segHtml('data-rt-kind', [['plan', '오늘 할 일 순서'], ['routine', '매일 루틴']], kind, '만들 것', 280) +
-    '<textarea id="rt-text" class="inp" rows="3" maxlength="300" placeholder="' + (plan ? '예: 빨래도 해야 하고 설거지도 하고 책도 읽어야 해' : '예: 평일 9시까지 출근, 회사까지 45분, 준비 1시간, 아침 약') + '">' + esc(S.rtText || '') + '</textarea>' +
+    '<textarea id="rt-text" class="inp" rows="3" maxlength="300" placeholder="' + (plan ? '예: 빨래도 해야 하고 설거지도 하고 책도 읽어야 해' : '예: 평일 9시까지 출근, 회사까지 45분, 준비 1시간') + '">' + esc(S.rtText || '') + '</textarea>' +
     '<div class="rt-make-a"><span class="p small">키보드 마이크로 말해도 돼요</span><button type="button" class="btn primary" data-act="rt-make"' + (S.rtBusy ? ' disabled' : '') + '>' + (S.rtBusy ? '<span class="spin"></span>' + (plan ? '순서 짜는 중' : '계산하는 중') : ICON.spark + (plan ? '순서 정하기' : '루틴 만들기')) + '</button></div>' +
     (plan ? '' : '<div class="set-sub">템플릿에서 고르기</div><div class="rt-tpls">' + RT_TEMPLATES.map(t => '<button type="button" class="pill-btn" data-act="rt-tpl" data-key="' + t.key + '">' + esc(t.name) + '</button>').join('') + '</div>') + '</section>';
   const cards = '<section class="set-sec" aria-labelledby="rt-list-h"><h2 id="rt-list-h">내 루틴</h2>' + (list.length ? list.map(rt => {
@@ -2384,29 +2384,26 @@ function rtParseLocal(text){
   const travel = num(/(?:까지|이동|가는\s?데|통근|출근길)\D{0,8}?(\d+(?:\.\d+)?|한|두|반)\s*(분|시간)/) || num(/(\d+(?:\.\d+)?|한|두)\s*(분|시간)\s*(?:정도\s*)?(?:걸|이동|거리)/);
   const prep = num(/준비\D{0,6}?(\d+(?:\.\d+)?|한|두|반)\s*(분|시간)/) || num(/(\d+(?:\.\d+)?|한|두)\s*(분|시간)\s*(?:정도\s*)?(?:준비)/);
   const buffer = num(/여유\D{0,4}?(\d+)\s*(분|시간)/);
-  const meds = /약/.test(t);
   const days = /평일/.test(t) ? RT_WD : /주말/.test(t) ? [0, 6] : /매일|날마다/.test(t) ? RT_ALL : (arrive ? RT_WD : RT_ALL);
   if (arrive) {
     const P = prep || 60, steps = [['기상', 5]];
-    if (meds) steps.push(['약 먹기', 5]);
     if (P >= 40) { const a = Math.round(P * 0.5 / 5) * 5, b = Math.round(P * 0.25 / 5) * 5; steps.push(['씻고 옷 입기', a], ['아침 먹기', b], ['짐 챙기기', P - a - b]); } else steps.push(['출근 준비', P]);
     const school = /(학교|등교|수업)/.test(t);
     return {name: school ? '등교 루틴' : '출근 루틴', days, mode: 'arrive', target: target || '09:00', travel: leaveOnly ? 0 : travel == null ? 30 : travel, buffer: leaveOnly ? 0 : buffer == null ? 15 : buffer, steps};
   }
-  const pickTpl = /(취침|잠)/.test(t) ? 'sleep' : /공부/.test(t) ? 'study' : /(책|독서)/.test(t) ? 'read' : /(빨래|설거지|집안일|청소)/.test(t) ? 'house' : /약/.test(t) ? 'meds' : null;
+  const pickTpl = /(취침|잠)/.test(t) ? 'sleep' : /공부/.test(t) ? 'study' : /(책|독서)/.test(t) ? 'read' : /(빨래|설거지|집안일|청소)/.test(t) ? 'house' : null;
   const tpl = pickTpl ? RT_TEMPLATES.find(x => x.key === pickTpl) : null;
   const dur = num(/(\d+(?:\.\d+)?|한|두|반)\s*(분|시간)/);
-  const steps = tpl ? tpl.steps.map(s => s.slice()) : [['시작', dur || 30]];
+  const steps = tpl ? tpl.steps.map(s => s.slice(0, 3)) : [['시작', dur || 30]];
   if (tpl && dur && tpl.key === 'study') steps[1][1] = dur;
   if (tpl && dur && tpl.key === 'read') steps[1][1] = dur;
-  if (meds && tpl && tpl.key !== 'meds' && tpl.key !== 'sleep') steps.unshift(['약 먹기', 0]);
   return {name: tpl ? tpl.name : '내 루틴', days: tpl && !/평일|주말|매일|날마다/.test(t) ? tpl.days : days, mode: 'start', target: target || (tpl ? tpl.target : '09:00'), steps, every: tpl && tpl.every, times: tpl && tpl.times};
 }
 /* today's to-do list said in one breath -> an order that can actually be finished */
 const PLAN_KEYS = [
   [/빨래|세탁/, 'laundry'], [/설거지/, ['설거지', 15]], [/청소기|청소/, ['청소', 20]], [/정리/, ['방 정리', 15]], [/분리수거|쓰레기/, ['쓰레기 버리기', 10]],
   [/장보기|장 보/, ['장보기', 40]], [/요리|밥 하|밥하/, ['밥 하기', 30]], [/운동|산책/, ['운동', 30]], [/메일|이메일/, ['메일 답장', 20]], [/서류|보고서/, ['서류 작업', 30]],
-  [/공부/, ['공부', 30, 'focus']], [/책|독서/, ['책 읽기', 30, 'focus']], [/약/, ['약 먹기', 0, 'first']]
+  [/공부/, ['공부', 30, 'focus']], [/책|독서/, ['책 읽기', 30, 'focus']]
 ];
 function rtPlanLocal(text){
   const t = String(text);
@@ -2452,7 +2449,6 @@ function rtPrompt(text){
     '- travel: 이동 시간(분, arrive만). buffer: 도착 전 여유(분). 말이 없으면 travel 30, buffer 15.',
     '- steps: 순서대로 [{"name":"기상","min":5,"kind":"do"}]. min은 그 단계에 쓰는 분. 세탁기·밥솥처럼 기다리기만 하는 단계는 kind "wait".',
     '- arrive 루틴: 첫 단계는 "기상"(5분). 사용자가 말한 준비 시간을 씻기·옷 입기·아침·짐 챙기기처럼 2~4개로 나누고, 그 합이 준비 시간과 같게 한다(말이 없으면 60분). "출발" 단계는 넣지 않는다.',
-    '- 약을 말하면 "약 먹기"(0~5분) 단계를 넣는다.',
     '- days: 0=일 1=월 … 6=토. 평일=[1,2,3,4,5], 매일=[0,1,2,3,4,5,6]. 말이 없으면 arrive는 평일, start는 매일.',
     '- name: 짧게 ("출근 루틴"). 문장에 없는 일을 지어내지 않는다.',
     '형식: {"name":"출근 루틴","days":[1,2,3,4,5],"mode":"arrive","target":"09:00","travel":45,"buffer":15,"steps":[{"name":"기상","min":5,"kind":"do"}]}',
@@ -2851,7 +2847,7 @@ function drawSearch(q){
 function openMore(){
   openSheet({title: '더보기', draw: () => {
     setSheet('<div class="menu">' +
-      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·약') +
+      menuRow('routines', ICON.loop, '루틴', M.routines.length ? M.routines.length + '개' : '기상·출근·잠자리') +
       menuRow('search', ICON.search, '검색', '') +
       menuRow('cats', ICON.tag, '분류 관리', M.cats.length + '개') +
       menuRow('prefs', ICON.gear, '설정', '화면·알림·데이터') +

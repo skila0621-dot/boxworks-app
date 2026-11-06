@@ -4,7 +4,8 @@ export default [
     name: "루틴에 '공휴일에는 쉬기'(skipHol)를 저장",
     find: "bowl: typeof o.bowl === 'string' && o.bowl ? o.bowl.slice(0, 12) : null};",
     // 시험판 67(결정 사안 s05 '나 루틴마다 스위치, 처음 꺼짐'): 단계 이름 읽어 주기(say)도 같은 자리에 저장
-    replace: "bowl: typeof o.bowl === 'string' && o.bowl ? o.bowl.slice(0, 12) : null, skipHol: o.skipHol === true || undefined, say: o.say === true || undefined};"
+    // 시험판 68(결정 사안 s20): chkV 1 = 중요한 단계를 단계마다 고르는 판(옛 약 이름 규칙을 쓰지 않음, v52.js bxChkLegacy)
+    replace: "bowl: typeof o.bowl === 'string' && o.bowl ? o.bowl.slice(0, 12) : null, skipHol: o.skipHol === true || undefined, say: o.say === true || undefined, chkV: 1};"
   },
   {
     name: '└ 루틴이 그날 하는지 보는 곳 하나(알람·홈·위젯·아침 일정 알림이 다 여기를 본다)에서 공휴일을 거른다',

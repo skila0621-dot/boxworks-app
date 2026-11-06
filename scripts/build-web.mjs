@@ -229,8 +229,8 @@ window.BX_alarmPlan = function(days){
         out.push({id: sid, at: t, kind: 'routine', lv: 'silent', ring: 'silent', series: sid, group: rt.name || '루틴', title: r.name, sub: '', body: '',
           rid: rt.id, ds, leave: leaveAt, steps});
       });
-      // 루틴이 끝난 10분 뒤: 확인하지 않은 약 단계가 있으면 휴대폰이 한 번 더 알린다(대표 요청, 시험판 52부터 약 단계만: 약 루틴은 지금처럼 확인)
-      const born = bxRtBornM(rt, ds), todo = rows.filter(r => r.ring === 'must' && bxIsMed(r.name) && !doneMap[r.id] && r.at >= born);
+      // 루틴이 끝난 10분 뒤: 확인하지 않은 중요한 단계가 있으면 휴대폰이 한 번 더 알린다(대표 요청, 시험판 52부터 약 단계만 → 시험판 68 중요한 단계만, 결정 사안 s20)
+      const born = bxRtBornM(rt, ds), todo = rows.filter(r => r.ring === 'must' && r.chk && !doneMap[r.id] && r.at >= born);
       const endM = p.leave != null ? p.leave : rows.length ? rows[rows.length - 1].at + rows[rows.length - 1].min : null;
       // 싱잉볼 루틴(명상 등): 마지막 단계가 끝날 때 끝 종 세 번. 확인 안 한 단계 알림은 하지 않는다
       if (bowl && endM != null && rows.length && rows[rows.length - 1].min > 0) {

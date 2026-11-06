@@ -128,7 +128,7 @@ function bxHomeSplit(head, body, o){
     (typeof bxMemoOn === 'function' && bxMemoOn() ? bxMemoCardHtml(o.vd) : '');
 }
 /* 시험판 56(목록 줄 C, 결정 기록 D-29): 홈의 루틴은 카드 대신 다른 일정과 같은 목록 줄 하나
-   [되풀이 아이콘 | 시작 · 끝 | 이름 + 둘째 줄 하나(지금 할 단계 · 남은 시간 · 확인할 약 · 쉼) | 체크(오늘 다 했어요)].
+   [되풀이 아이콘 | 시작 · 끝 | 이름 + 둘째 줄 하나(지금 할 단계 · 남은 시간 · 확인할 중요한 단계 · 쉼) | 체크(오늘 다 했어요)].
    줄을 누르면 그 루틴의 단계 창(전에는 그 자리에 펼침 '자세히 ⌄'). 쉬는 날(건너뛰기 · 공휴일)은 체크 자리를 비운다. 말은 낱말표대로(건너뛰어요 · 모두 완료) */
 function bxRtRowsHtml(){
   const list = M.routines.filter(rt => rtActiveOn(rt, M.today) || (typeof bxHolOff === 'function' && bxHolOff(rt, M.today)));
@@ -141,7 +141,7 @@ function bxRtRowHtml(rt){
   let sub = '', cls = '';
   if (hol) sub = esc(bxHolNote(M.today).replace(/^오늘은 /, '').replace(/\.$/, ''));
   else if (s.skip) sub = '오늘은 건너뛰어요';
-  else if (miss.length) { sub = '먹었는지 확인 · ' + esc(miss.map(r => r.name).join(', ')); cls = 'warn'; }
+  else if (miss.length) { sub = '했는지 확인 · ' + esc(miss.map(r => r.name).join(', ')); cls = 'warn'; }
   else if (s.finished) sub = '모두 완료';
   else if (s.after) { sub = '시간이 지났어요 · ' + nd + '/' + todo.length + ' 완료'; cls = 'warn'; }
   else if (s.cur) { const c = s.cur, run = !!c.started && c.min > 0; sub = (run ? '하는 중 · ' : '지금 · ') + esc(c.name) + (run ? ' · ' + esc(rtLeftText(c.endM - s.nowM)) : ''); cls = 'live'; }
@@ -218,10 +218,10 @@ function bxLateOpen(only){
       (BXL_PICK === i.id ? '<div class="bx-lc-pick"><input type="date" class="inp" id="bx-lc-date" value="' + tmr + '" min="' + esc(M.today) + '" aria-label="옮길 날짜">' +
         '<input type="time" class="inp" id="bx-lc-time" value="' + esc(i.start || '') + '" aria-label="옮길 시각"><button type="button" class="btn sm primary" data-bx-late="move" data-id="' + esc(i.id) + '">변경</button></div>' : '') + '</div>'; };
     if (only) { setSheet(card(its[0]), ''); return; }
-    // 시험판 52: 루틴은 약 단계만 확인을 받는다(다른 단계는 '놓침'이 없음)
-    let html = '<p class="p small bx-late-p">' + (byRt.length ? '지난 일정과 먹었는지 확인하지 않은 약이에요.' : '지난 일정이에요.') + ' 그대로 둬도 괜찮아요.</p>';
+    // 시험판 52: 루틴은 약 단계만 확인을 받는다(다른 단계는 '놓침'이 없음) → 시험판 68: 중요한 단계만(결정 사안 s20)
+    let html = '<p class="p small bx-late-p">' + (byRt.length ? '지난 일정과 했는지 확인하지 않은 루틴 단계예요.' : '지난 일정이에요.') + ' 그대로 둬도 괜찮아요.</p>';
     html += '<h3 class="bx-late-h">일정 · ' + its.length + '</h3>' + (its.length ? its.map(card).join('') : '<p class="bx-late-ok">' + ICON.check + '지난 일정 없음</p>');
-    if (byRt.length) html += '<h3 class="bx-late-h">약 · ' + miss.length + '</h3>' + byRt.map(g => '<div class="bx-late-rt"><div><b>' + esc(g.rt.name) + '</b><span>' + esc(g.rows.map(r => r.name).join(', ')) + '</span></div><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(g.rt.id) + '">먹었어요</button></div>').join('');
+    if (byRt.length) html += '<h3 class="bx-late-h">루틴 단계 · ' + miss.length + '</h3>' + byRt.map(g => '<div class="bx-late-rt"><div><b>' + esc(g.rt.name) + '</b><span>' + esc(g.rows.map(r => r.name).join(', ')) + '</span></div><button type="button" class="btn sm" data-act="bx-rt-alldone" data-rid="' + esc(g.rt.id) + '">했어요</button></div>').join('');
     setSheet(html, its.length > 1 ? '<button type="button" class="btn grow" data-bx-late="keepall">모두 그대로</button>' : '');
   };
   BXL_PICK = null;
@@ -274,11 +274,11 @@ document.addEventListener('click', ev => {
 }, true);
 // ⓘ: 지금 화면 사용법(꾹 누르기·밀기처럼 눌러 보기 전엔 모르는 것들)
 const BX_HELP = {
-  today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 먹었는지 확인하지 않은 약이 모여요.', '네모 칸을 누르면 완료. 일정을 길게 누르면 수정 · 완료 · 내일로 미루기 · 삭제가 바로 나와요.', '오른쪽 아래 +로 새 일정. 길게 누르면 바로 말하기.'],
+  today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 했는지 확인하지 않은 중요한 단계가 모여요.', '네모 칸을 누르면 완료. 일정을 길게 누르면 수정 · 완료 · 내일로 미루기 · 삭제가 바로 나와요.', '오른쪽 아래 +로 새 일정. 길게 누르면 바로 말하기.'],
   month: ['날짜를 누르면 그날 일정이 열리고, 거기서 바로 추가할 수 있어요. 일정을 길게 누르면 수정 · 삭제가 바로 나와요.', '옆으로 밀면 이전·다음 달로 넘어가요.', '위의 ‘주간’을 누르면 한 주를 요일별로 봐요.', '오른쪽 아래 +는 고른 날짜에 일정을 추가해요.'],
   week: ['옆으로 밀면 이전·다음 주로 넘어가요.', '요일 옆 ‘+ 추가’로 그날 일정을 추가해요.', '‘월간’을 누르면 달력으로 돌아가요.'],
   tt: ['아래 ‘빠른 추가’에 말하거나 적으면 시간표가 채워져요. 예) “월수 10시 반 경영학원론 301호”', '블록을 길게 누르면 들어 올려져요. 끌어서 시간·요일을 옮기고, 위·아래 끝을 끌어 길이를 바꿔요.', '길게 누른 뒤 나오는 줄에서 수업 묶기 · 휴강(그날만) · 복제 · 삭제.', '아래 ‘보기 설정’에서 표시 시간과 주말을 바꿔요.'],
-  routines: ['루틴은 단계가 바뀔 때마다 짧게 한 번 울려요. 첫 단계 · 약 · 출발만 끌 때까지 울려요.', '템플릿을 고르거나 빠른 추가로 만들 수 있어요.', '스위치를 끄면 그 루틴 알람이 쉬어요.', '홈의 ‘오늘 할 일’에서 오늘 루틴을 확인해요.'],
+  routines: ['루틴은 단계가 바뀔 때마다 짧게 한 번 울려요. 첫 단계 · 출발 · 중요한 단계만 끌 때까지 울려요.', '템플릿을 고르거나 빠른 추가로 만들 수 있어요.', '스위치를 끄면 그 루틴 알람이 쉬어요.', '홈의 ‘오늘 할 일’에서 오늘 루틴을 확인해요.'],
   med: ['시간을 고르고 시작하면 싱잉볼 소리로 시작을 알려요.', '휴대폰을 내려놓아도 중간 종과 끝 종이 울려요.', '‘소리와 호흡’에서 종소리·중간 종·호흡 안내를 바꿔요. 호흡 안내를 켜면 원이 커질 때 들이쉬고 작아질 때 내쉬어요.']
 };
 function bxHelpOpen(){
@@ -366,7 +366,7 @@ const BX_MEMO_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M14.5 20.5h-8a
 const BX_DOCK_ALL = {
   month: {label: '캘린더', sub: '달력·주간 일정', icon: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.4h.01M12 17.4h.01" stroke-width="2.6"/></svg>', attr: 'data-act="go" data-view="month"'},
   tt: {label: '시간표', sub: '매주 반복되는 수업·학원·알바', icon: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16.5" rx="3"/><path d="M3.5 9.5h17M9.5 9.5v11M15 9.5v11"/></svg>', attr: 'data-act="go" data-view="tt"'},
-  routines: {label: '루틴', sub: '아침 준비·약 먹기 같은 반복 습관', icon: '<svg class="i" viewBox="0 0 24 24"><path d="M4.5 11a7.5 7.5 0 0 1 13-4.6L19.5 8.5"/><path d="M19.5 4v4.5H15"/><path d="M19.5 13a7.5 7.5 0 0 1-13 4.6L4.5 15.5"/><path d="M4.5 20v-4.5H9"/></svg>', attr: 'data-act="go" data-view="routines"'},
+  routines: {label: '루틴', sub: '아침 준비·잠자리 준비 같은 반복 습관', icon: '<svg class="i" viewBox="0 0 24 24"><path d="M4.5 11a7.5 7.5 0 0 1 13-4.6L19.5 8.5"/><path d="M19.5 4v4.5H15"/><path d="M19.5 13a7.5 7.5 0 0 1-13 4.6L4.5 15.5"/><path d="M4.5 20v-4.5H9"/></svg>', attr: 'data-act="go" data-view="routines"'},
   memo: {label: '메모', sub: '떠오른 것을 바로 적어 두기', icon: BX_MEMO_ICON, attr: 'data-act="go" data-view="memo"'},
   med: {label: '릴렉스', sub: '명상 · 배경 소리로 쉬어 가요', icon: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5c1.8 2 2.8 4 2.8 6.3s-1.2 4.2-2.8 5.2c-1.6-1-2.8-2.9-2.8-5.2S10.2 7 12 5z"/><path d="M12 16.5c-3.5 0-6.5-2-7.5-5.5 2.7-.3 5.2.6 7 2.5"/><path d="M12 16.5c3.5 0 6.5-2 7.5-5.5-2.7-.3-5.2.6-7 2.5"/><path d="M5 19.5h14"/></svg>', attr: 'data-act="go" data-view="med"'},
   more: {label: '더보기', sub: '그 밖의 기능 · 설정을 모아 둔 곳', icon: '<svg class="i" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>', attr: 'data-act="more"'},
@@ -440,11 +440,12 @@ function bxRoutinesPage(cards){
     .replace(/<\/section>$/, '<button type="button" class="bx-rt-new" data-act="bx-rt-new">' + ICON.plus + '새 루틴</button></section>');
   return '<div class="page-head"><div class="ph-t"><h1>루틴</h1></div></div>' + list;
 }
-/* 말로 만들기(휴대폰 안에서 읽기): "평일 7시에 일어나서 씻고 약 먹고 8시에 나가기"처럼 이어 말한 일을 적은 순서대로 단계로.
-   나가는 시각이 있으면 그 시각에 맞춰 거꾸로, 일어나는 시각도 있으면 그 사이에 맞게 시간을 나눈다. 말하지 않은 단계는 넣지 않는다 */
+/* 말로 만들기(휴대폰 안에서 읽기): "평일 7시에 일어나서 씻고 옷 입고 8시에 나가기"처럼 이어 말한 일을 적은 순서대로 단계로.
+   나가는 시각이 있으면 그 시각에 맞춰 거꾸로, 일어나는 시각도 있으면 그 사이에 맞게 시간을 나눈다. 말하지 않은 단계는 넣지 않는다.
+   시험판 68(결정 사안 s20): 약을 따로 알아듣는 말은 뺐다. "약 먹고"는 모르는 일처럼 적은 말 그대로('약 먹기') */
 const BX_RT_WORDS = [
   [/일어나|기상|깨/, '기상', 5], [/샤워/, '샤워', 15], [/세수/, '세수', 5], [/양치/, '양치', 5], [/씻/, '씻기', 20], [/머리/, '머리 손질', 10], [/화장/, '화장', 15],
-  [/약/, '약 먹기', 2], [/옷|입/, '옷 입기', 10], [/(아침|밥|식사|빵).*(먹)|먹.*(아침|밥)|아침\s*먹|밥\s*먹/, '아침 먹기', 15], [/물/, '물 한 잔', 2], [/커피/, '커피', 10],
+  [/옷|입/, '옷 입기', 10], [/(아침|밥|식사|빵)\s*(?:을|를)?\s*먹|먹.*(아침|밥)/, '아침 먹기', 15], [/물/, '물 한 잔', 2], [/커피/, '커피', 10],
   [/스트레칭|체조/, '스트레칭', 5], [/명상/, '명상', 10], [/(짐|가방).*(챙|싸)|챙기/, '짐 챙기기', 5], [/이불|침대/, '이불 정리', 3]
 ];
 const BX_RT_LEAVE = /(나가|나서|나갈|출발|집을 나|출근|등교|외출)/;
@@ -486,7 +487,7 @@ function bxRtNewOpen(){
   openSheet({title: '새 루틴', draw: () => setSheet(
     '<h3 class="bx-late-h">템플릿 <small>누르면 열려요. 시각만 바꾸고 저장하세요</small></h3><div class="bx-tpls">' + tpls + '</div>' +
     '<h3 class="bx-late-h" style="margin-top:18px">빠른 추가</h3>' +
-    '<label class="sr" for="bx-rt-say">어떤 루틴인지 한 문장으로</label><div class="bx-inrow"><textarea id="bx-rt-say" class="inp" rows="2" maxlength="300" placeholder="예: 평일 7시에 일어나서 씻고 약 먹고 8시에 나가기"></textarea>' + bxMic('bx-rt-say', '어떤 루틴인지 말해 보세요') + '</div>' +
+    '<label class="sr" for="bx-rt-say">어떤 루틴인지 한 문장으로</label><div class="bx-inrow"><textarea id="bx-rt-say" class="inp" rows="2" maxlength="300" placeholder="예: 평일 7시에 일어나서 씻고 옷 입고 8시에 나가기"></textarea>' + bxMic('bx-rt-say', '어떤 루틴인지 말해 보세요') + '</div>' +
     '<div class="rt-make-a"><span class="sp"></span><button type="button" class="btn" data-act="bx-rt-say-go">' + ICON.spark + '만들기</button></div>' +
     '<button type="button" class="bx-rt-blank" data-act="bx-rt-blank">' + ICON.edit + '<span><b>빈 루틴</b><small>이름 · 시각 · 단계 직접 입력</small></span>' + ICON.chevR + '</button>', '')});
 }

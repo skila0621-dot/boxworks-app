@@ -4,7 +4,7 @@
    루틴을 켰는데 하나도 없으면 홈 '오늘 할 일'에 '아침 루틴 30초 만에 만들기' 카드. 고르는 칸에는 늘 '직접 입력'과 '나중에'. */
 const BX_MODS = [
   ['report', '아침 요약', '아침 알림 하나로 오늘 할 일 한눈에', 'sun'],
-  ['routines', '루틴', '아침 준비·약 먹기를 단계마다 알려 줘요', 'loop'],
+  ['routines', '루틴', '아침 준비처럼 되풀이하는 일을 단계마다 알려 줘요', 'loop'],
   ['tt', '시간표', '매주 반복되는 수업·학원·알바', 'school'],
   // 시험판 41(대표 아이디어 11/3 15:17 · 요청 23:38): 떠오른 것을 바로 적는 메모. 시간 · 행동 관리 쪽(아래 메뉴)
   ['memo', '메모', '떠오른 것을 바로 적어 두면 그날에 모여요', 'note'],
@@ -48,7 +48,7 @@ function bxStartDraw(){
   const keys = bxStartDock(), pos = k => { const i = keys.indexOf(k); return i < 0 ? '' : '아래 메뉴 ' + (i < Math.ceil(keys.length / 2) ? i + 1 : i + 2) + '번째'; };
   const card = (icon, name, where, text) => '<div class="bxs-card"><span class="bxs-ic">' + bxIconSpan(icon, '') + '</span><span class="bxs-t"><span class="bxs-cn"><b>' + name + '</b>' + (where ? '<em>' + where + '</em>' : '') + '</span><small>' + text + '</small></span></div>';
   const cards = [];
-  if (BXS.sel.routines) cards.push(card('loop', '루틴', pos('routines'), '아침 준비·약 먹기처럼 반복하는 일을 단계로 나눠, 단계가 바뀔 때마다 짧게 알려 줘요. 기상 · 약 · 출발만 확인을 받아요. 처음 들어가면 몇 가지만 물어볼게요.'));
+  if (BXS.sel.routines) cards.push(card('loop', '루틴', pos('routines'), '아침 준비처럼 되풀이하는 일을 단계로 나눠, 단계가 바뀔 때마다 짧게 알려 줘요. 기상 · 출발 · 중요한 단계만 확인을 받아요. 처음 들어가면 몇 가지만 물어볼게요.'));
   cards.push(card('home', '일정 · 캘린더', '오른쪽 아래 +', '“내일 3시 치과”처럼 말하거나 적으면 날짜·시간이 알아서 들어가요. 삼성 캘린더 같은 휴대폰 캘린더 일정도 함께 볼 수 있어요. 달력은 ' + (pos('month') || '⋯ 메뉴') + '.'));
   if (BXS.sel.report) cards.push(card('sun', '아침 요약', '', '매일 아침 알림 하나로 오늘 할 일을 보여 줘요. 처음엔 ' + bxT('07:30') + ', 아침 루틴을 만들면 그 시각에 맞춰요.'));
   // 그 밖의 기능은 왼쪽 위 메뉴 단추에(시험판 62)
@@ -72,13 +72,13 @@ function bxStartDock(){ return BX_DOCK_DEF.filter(k => k === 'month' || BXS.sel[
 function bxStartOpen(){ BXS = {step: 1, sel: (M.settings && M.settings.bxStart) ? Object.assign({memo: true}, bxStartMods()) : {report: false, routines: false, tt: false, memo: false, med: false}}; bxStartDraw(); }
 
 /* 루틴 도우미: 질문 하나씩. 정리판(대표 결정 11/1): 질문은 둘 — 나가는 시각 → 넣을 단계.
-   약은 단계 하나로(점심·저녁 약은 새 루틴 템플릿 '약 먹기'), 아침 일정은 첫 실행·'내가 쓸 기능'에서 이미 골랐으니 묻지 않는다 */
+   아침 일정은 첫 실행·'내가 쓸 기능'에서 이미 골랐으니 묻지 않는다. 시험판 68(결정 사안 s20): 약 칸은 뺐다(직접 입력은 그대로) */
 const BX_RH_Q = [
   {k: 'out', h: '아침에 보통\n몇 시에 나가요?', p: '나가는 시각에 맞춰 준비 루틴을 거꾸로 짜 드려요.', opts: [['07:30', '오전 7:30'], ['08:00', '오전 8:00'], ['08:30', '오전 8:30'], ['09:00', '오전 9:00']], none: '안 나가요', custom: '나가는 시각', def: '07:50'},
   {k: 'steps', h: '어떤 단계를\n넣을까요?', p: '넣을 단계를 골라 주세요. 시간과 순서는 나중에 루틴에서 고쳐요.'}
 ];
 // 적은 순서가 곧 루틴 순서. 처음에는 아무것도 골라 두지 않는다(D-10 보완 11/2)
-const BX_RH_STEPS = [['기상', 5, false], ['약 먹기', 2, false], ['씻기', 20, false], ['아침 먹기', 15, false], ['옷 입기', 10, false], ['짐 챙기기', 5, false]];
+const BX_RH_STEPS = [['기상', 5, false], ['씻기', 20, false], ['아침 먹기', 15, false], ['옷 입기', 10, false], ['짐 챙기기', 5, false]];
 let BXR = null;
 function bxRtHelpOpen(){ BXR = {q: 0, a: {}, cust: {}, st: BX_RH_STEPS.map((x, i) => ({k: 's' + i, name: x[0], min: x[1], on: x[2]})), add: false}; bxRtHelpDraw(); }
 function bxRtHelpDraw(){

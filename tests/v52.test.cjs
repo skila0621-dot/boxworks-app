@@ -1,10 +1,11 @@
 // 시험판 52(대표 11/4 16:34 · 16:58, 결정 기록 D-25): 루틴은 폰을 쥐고 있지 않아도 되게
-// (1) 단계 세기 기본값: 첫 단계 · 약 · 출발은 꼭 울림, 중간은 짧게 한 번, 기다리기는 소리 없이('약속' · '예약'은 약이 아님)
-// (2) 알람 계획: 짧게 한 번은 다시 알림 없음, 꼭 울림만 다시 알림(다음 꼭 울림 단계 전까지), 출발은 '다 했어요', 확인 안 한 단계 알림은 약만
+// (1) 단계 세기 기본값: 첫 단계 · 중요한 단계 · 출발은 꼭 울림, 중간은 짧게 한 번, 기다리기는 소리 없이
+//     시험판 68(s20): 이름으로 정하지 않음. 옛 루틴(chkV 없음)만 약 이름 단계를 중요한 단계로 이어받음('약속' · '예약'은 아님)
+// (2) 알람 계획: 짧게 한 번은 다시 알림 없음, 꼭 울림만 다시 알림(다음 꼭 울림 단계 전까지), 출발은 '다 했어요', 확인 안 한 단계 알림은 중요한 단계만
 // (3) 기다리기 시작: 소리 없는 자리(알림창 · 위젯만 고침), 0분 단계와 같은 시각의 짧게 한 번은 하나로, '조용히'면 소리 없이
 // (4) 일정 출발: 출발 10분 전은 짧게 한 번, 루틴을 하는 동안이면 빠짐, 준비 루틴을 붙이면 루틴과 같은 세기
-// (5) 홈: 확인 안 해도 주의 줄 · 빨간 숫자 없음, '지금'은 시각으로, 약만 확인 필요 / 펼친 단계 시각은 한 줄
-// (6) 루틴 창: 단계마다 세 칸(꼭 울림 · 짧게 한 번 · 소리 없이), 고른 세기 저장, 약 이름이면 기본값이 꼭 울림, 좁은 휴대폰에서도 한 줄
+// (5) 홈: 확인 안 해도 주의 줄 · 빨간 숫자 없음, '지금'은 시각으로, 중요한 단계만 확인 필요 / 펼친 단계 시각은 한 줄
+// (6) 루틴 창: 단계마다 세 칸(꼭 울림 · 짧게 한 번 · 소리 없이), 고른 세기 저장, 좁은 휴대폰에서도 한 줄
 // (7) 위젯 자료: 단계표에 세기 · 기다리기, 출발 '다 했어요', 아침 요약은 꼭 울림 알람에
 const { openApp, settings, checker, hmOf } = require('./harness.cjs');
 
@@ -19,7 +20,7 @@ const at = hm => Date.parse('2026-11-02T' + hm + ':00+09:00');
 const doc = (p, id) => p.evaluate(i => (window.BX_T.docs().find(([k]) => k === i) || [0, null])[1], id);
 
 module.exports = async function () {
-  const c = checker('시험판 52 · 루틴 단계 세기(꼭 울림 · 짧게 한 번 · 소리 없이) · 확인은 기상 · 약 · 출발만');
+  const c = checker('시험판 52 · 루틴 단계 세기(꼭 울림 · 짧게 한 번 · 소리 없이) · 확인은 기상 · 중요한 단계 · 출발만');
 
   // (1)~(4) 계산
   let app = await openApp({ data: [['settings', settings()], work('rt_w', DOC_STEPS),
@@ -30,14 +31,19 @@ module.exports = async function () {
     const p = app.page;
     const R = await p.evaluate(() => {
       const ring = (name, i, steps) => window.BX_RING.ring({ name, kind: 'do' }, i, steps || [{ kind: 'do' }, { kind: 'do' }]);
+      // 시험판 68: 옛 루틴(chkV 없음)만 약 이름 단계를 중요한 단계로 이어받는다. 새 루틴(chkV 1)은 이름으로 정하지 않는다
+      const leg = (n, v) => !!window.BX_RING.legacy(Object.assign({ type: 'routine', steps: [{ name: n, kind: 'do' }] }, v ? { chkV: 1 } : {})).steps[0].chk;
       return {
-        med: ['약 먹기', '아침 약', '저녁약', 'ADHD 약', '영양제', '약속 준비', '병원 예약', '약국 가기', '요약 정리', '약간 쉬기'].map(n => window.BX_RING.isMed(n)),
+        med: ['약 먹기', '아침 약', '저녁약', 'ADHD 약', '영양제', '약속 준비', '병원 예약', '약국 가기', '요약 정리', '약간 쉬기'].map(n => leg(n)),
+        fresh: ['약 먹기', '아침 약'].map(n => leg(n, true)),
         ring: [ring('씻기', 0), ring('씻기', 1), ring('아침 약', 1), ring('세탁', 1, [{ kind: 'wait' }, { kind: 'do' }]), window.BX_RING.ring({ name: '세탁 기다리기', kind: 'wait' }, 2, []),
-          window.BX_RING.ring({ name: '씻기', kind: 'do', ring: 'must' }, 3, []), window.BX_RING.ring({ name: '기상', kind: 'do', ring: 'short' }, 0, [])]
+          window.BX_RING.ring({ name: '씻기', kind: 'do', ring: 'must' }, 3, []), window.BX_RING.ring({ name: '기상', kind: 'do', ring: 'short' }, 0, []),
+          window.BX_RING.ring({ name: '챙기기', kind: 'do', chk: true }, 2, [])]
       };
     });
-    c.eq(R.med, [true, true, true, true, true, false, false, false, false, false], "약 단계 알아보기: '약속' · '예약' · '약국' · '요약' · '약간'은 약이 아님");
-    c.eq(R.ring, ['must', 'short', 'must', 'must', 'silent', 'must', 'short'], '기본값: 첫 단계 · 약은 꼭 울림, 중간은 짧게 한 번, 기다리기는 소리 없이, 고른 세기가 먼저');
+    c.eq(R.med, [true, true, true, true, true, false, false, false, false, false], "옛 루틴의 약 단계 이어받기: '약속' · '예약' · '약국' · '요약' · '약간'은 아님");
+    c.eq(R.fresh, [false, false], '새 루틴은 이름으로 중요한 단계를 정하지 않음');
+    c.eq(R.ring, ['must', 'short', 'short', 'must', 'silent', 'must', 'short', 'must'], '기본값: 첫 단계 · 중요한 단계는 꼭 울림, 중간은 짧게 한 번(이름과 상관없이), 기다리기는 소리 없이, 고른 세기가 먼저');
 
     const plan = await p.evaluate(() => window.BX_alarmPlan(1));
     const mine = (rid, day = '2026-11-02') => plan.filter(a => a.id.startsWith('r_' + rid + '_' + day + '_'));
@@ -129,21 +135,21 @@ module.exports = async function () {
     c.eq(app.errors, [], '화면 오류(홈)');
   } finally { await app.close(); }
 
-  // (5) 약 단계는 지금처럼 확인(주의 줄 · 확인 필요 · 빨간 숫자)
+  // (5) 중요한 단계(옛 루틴의 약 단계)는 확인(주의 줄 · 확인 필요 · 빨간 숫자)
   app = await openApp({ now: '2026-11-02T07:40:00+09:00', data: [['settings', settings()], work('rt_w', [['기상', 5], ['약 먹기', 5], ['씻고 옷 입기', 30], ['아침 먹기', 15], ['짐 챙기기', 5]])] });
   try {
     const p = app.page;
     await p.waitForTimeout(600);
-    // 시험판 56(목록 줄 C): 홈 루틴 줄 둘째 줄이 주황 '먹었는지 확인 · 약 먹기', 주의 줄 · '먹었어요'는 줄을 누르면 나오는 단계 창
+    // 시험판 56(목록 줄 C): 홈 루틴 줄 둘째 줄이 주황 '했는지 확인 · 약 먹기', 주의 줄 · '했어요'는 줄을 누르면 나오는 단계 창(시험판 68 글)
     const row = await p.evaluate(() => { const s = document.querySelector('#tcard2 .row[data-rid="rt_w"] .rc-sub'); return s ? [s.textContent, s.classList.contains('warn')] : null; });
-    c.eq(row, ['먹었는지 확인 · 약 먹기', true], "홈 루틴 줄 둘째 줄: 주황 '먹었는지 확인 · 약 먹기'");
+    c.eq(row, ['했는지 확인 · 약 먹기', true], "홈 루틴 줄 둘째 줄: 주황 '했는지 확인 · 약 먹기'(옛 루틴의 약 단계 = 중요한 단계)");
     await p.click('#tcard2 .row[data-rid="rt_w"] .row-main'); await p.waitForTimeout(500);
     const h = await p.evaluate(() => ({ line: (document.querySelector('#sheet-root .bx-miss-line span') || {}).textContent, btn: (document.querySelector('#sheet-root .bx-miss-line .btn') || {}).textContent,
       badge: (document.getElementById('dock-badge') || {}).textContent }));
-    c.eq([h.line, h.btn, String(h.badge).trim()], ['먹었는지 확인하지 않은 약 · 약 먹기', '먹었어요', '1'], '약 단계만 확인 필요(단계 창 주의 줄 · 빨간 숫자 1)');
+    c.eq([h.line, h.btn, String(h.badge).trim()], ['했는지 확인하지 않은 단계 · 약 먹기', '했어요', '1'], '중요한 단계만 확인 필요(단계 창 주의 줄 · 빨간 숫자 1)');
     await p.click('#sheet-root .bx-miss-line .btn'); await p.waitForTimeout(500);
     const lg = await p.evaluate(() => (window.BX_T.docs().find(([k]) => k.startsWith('rl_rt_w_')) || [0, {}])[1]);
-    c.ok(lg && lg.done && lg.done.s1 && !lg.done.s0, "'먹었어요'는 약 단계만 완료로");
+    c.ok(lg && lg.done && lg.done.s1 && !lg.done.s0, "'했어요'는 중요한 단계만 완료로");
     c.eq(app.errors, [], '화면 오류(약)');
   } finally { await app.close(); }
 
@@ -165,7 +171,7 @@ module.exports = async function () {
     c.eq(await segs(), ['must', 'silent', 'short', 'must'], '누르면 그 칸으로');
     await p.click('[data-act="rs-add"]'); await p.waitForTimeout(200);
     await p.fill('#r-steps .rs-row:last-child .rs-name', '영양제'); await p.waitForTimeout(150);
-    c.eq((await segs())[4], 'must', "새 단계 이름을 '영양제'로 적으면 기본값이 꼭 울림");
+    c.eq((await segs())[4], 'short', "새 단계 이름이 '영양제'여도 기본값은 짧게 한 번(시험판 68: 이름으로 정하지 않음)");
     // 좁은 휴대폰(360)에서도 세 칸 글자가 칸 안에
     await p.setViewportSize({ width: 360, height: 780 }); await p.waitForTimeout(300);
     c.ok(await p.evaluate(() => Array.from(document.querySelectorAll('#r-steps .bx-rs-ring button')).every(b => b.scrollWidth <= b.clientWidth + 1 && b.getBoundingClientRect().height < 44)), '360 너비에서도 세 칸 글자가 한 줄로 칸 안에');
@@ -173,7 +179,7 @@ module.exports = async function () {
     const rt = await doc(p, 'rt_w');
     c.eq(rt.steps.map(s => [s.kind, s.ring || null]), [['do', null], ['wait', null], ['do', 'short'], ['do', 'must'], ['do', null]], '저장: 고른 세기만 남김(고르지 않은 단계는 기본값을 따름)');
     const plan = await p.evaluate(() => window.BX_alarmPlan(2).filter(a => a.id.startsWith('r_rt_w_2026-11-03_') && !/_r\d+$/.test(a.id)).map(a => [a.title, a.lv]));
-    c.eq(plan, [['기상', 'alarm'], ['씻기', 'silent'], ['세탁 기다리기', 'short'], ['옷 입기', 'alarm'], ['영양제', 'alarm'], ['출발할 시간', 'alarm']], '고른 세기대로 울림');
+    c.eq(plan, [['기상', 'alarm'], ['씻기', 'silent'], ['세탁 기다리기', 'short'], ['옷 입기', 'alarm'], ['영양제', 'short'], ['출발할 시간', 'alarm']], '고른 세기대로 울림');
     c.eq(app.errors, [], '화면 오류(루틴 창)');
   } finally { await app.close(); }
 
@@ -197,13 +203,13 @@ module.exports = async function () {
     c.eq(app.errors, [], '화면 오류(앱 안 알림 카드)');
   } finally { await app.close(); }
 
-  // 단추 글: 약속 · 예약은 '먹었어요'가 아님, 루틴 목록 글이 '오 / 전'으로 꺾이지 않음
+  // 단추 글: '했어요'(시험판 68부터 '먹었어요'는 없음), 루틴 목록 글이 '오 / 전'으로 꺾이지 않음
   app = await openApp({ now: '2026-11-02T07:31:00+09:00', data: [['settings', settings()], startRt('rt_k', '외출', '07:30', [['약속 준비', 20], ['짐', 5]])] });
   try {
     const p = app.page;
     await p.waitForTimeout(500);
     // 홈 카드는 체크 칸(시험판 54), 확인 글은 앱 안 알림 카드 단추
-    c.eq(await p.evaluate(() => (document.querySelector('#alarms .alarm.rt [data-alarm="rt-ok"]') || {}).textContent), '했어요', "'약속 준비'는 '먹었어요'가 아니라 '했어요'");
+    c.eq(await p.evaluate(() => (document.querySelector('#alarms .alarm.rt [data-alarm="rt-ok"]') || {}).textContent), '했어요', "'약속 준비'는 '했어요'");
     await p.click('#tcard2 .row[data-rid="rt_k"] .row-main'); await p.waitForTimeout(400);
     c.ok(await p.evaluate(() => !!document.querySelector('#sheet-root .rt-card[data-rid="rt_k"] .rt-steps li.cur .chk.rt-chk[data-act="rt-done"], #sheet-root .rt-card[data-rid="rt_k"] .rt-now .chk.rt-chk[data-act="rt-done"]')), "루틴 단계 창: 지금 단계는 '했어요' 단추 대신 체크 칸");
     await p.evaluate(() => window.BX_back && window.BX_back()); await p.waitForTimeout(300);

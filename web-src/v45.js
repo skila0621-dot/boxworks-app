@@ -270,7 +270,8 @@ const BX_SAND_I = '<svg class="i" viewBox="0 0 24 24"><path d="M6.5 3.5h11M6.5 2
 ICON.sand = BX_SAND_I; // 앱 아이콘 한 세트(ICON, 시험판 54)
 function bxRt45NtfText(){
   if (R.sound === 'bowl') { const b = BX_BOWLS.find(x => x[0] === (R.bowl || bxBowlType())); return '싱잉볼 · ' + (b ? b[1] : '맑은 볼'); }
-  return '알람 · 꼭 울림은 ' + (+R.times ? R.every + '분마다 ' + R.times + '번 더' : '한 번만') + (R.say ? ' · 이름 읽어 주기' : '');
+  const ck = typeof bxChkCount === 'function' ? bxChkCount() : 0;
+  return '알람 · 꼭 울림은 ' + (+R.times ? R.every + '분마다 ' + R.times + '번 더' : '한 번만') + (R.say ? ' · 이름 읽어 주기' : '') + (ck ? ' · 중요한 단계 ' + ck : '');
 }
 function bxRt45Row(k){
   const row = (icon, title, val) => '<button type="button" class="bx-er bx-rt45-r" data-bxrt45="' + k + '" aria-label="' + esc(title + ', ' + val) + '"><span class="bx-er-ic" aria-hidden="true">' + icon + '</span><span class="bx-er-tt"><span class="bx-er-t">' + esc(title) + '</span><small>' + esc(val) + '</small></span></button>';
@@ -333,7 +334,14 @@ document.addEventListener('click', ev => {
     ev.preventDefault(); ev.stopPropagation();
     if (r.dataset.bxrt45 === 'ntf') {
       const node = document.getElementById('bx-rt45-pntf'), snap = {sound: R.sound, bowl: R.bowl, every: R.every, times: R.times, say: R.say};
-      bxPgOpen('알림 방식', node, () => { Object.assign(R, snap); node.innerHTML = bxNotifyHtml(); });
+      // 시험판 68: 중요한 단계(단계마다)도 ‹ 로 되돌림. 단계 이름 · 개수는 창에서 바뀌었을 수 있어 열 때 상자를 다시 그린다
+      const stSnap = R.steps.map(x => ({x, chk: x.chk, ring: x.ring, kind: x.kind}));
+      const ck = node.querySelector('#bx-rchk'); if (ck) ck.innerHTML = bxChkHtml();
+      bxPgOpen('알림 방식', node, () => {
+        Object.assign(R, snap);
+        stSnap.forEach(o => { o.x.kind = o.kind; if (o.ring) o.x.ring = o.ring; else delete o.x.ring; if (o.chk) o.x.chk = o.chk; else delete o.x.chk; });
+        node.innerHTML = bxNotifyHtml(); rtRedrawParts('steps');
+      });
     } else if (r.dataset.bxrt45 === 'mode') {
       const snap = R.mode;
       bxPgOpen('기준', document.getElementById('bx-rt45-pmode'), () => {

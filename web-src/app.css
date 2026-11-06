@@ -150,7 +150,7 @@ html.bx-app :where(.tog[aria-checked="true"] i){transform:translateX(20px)}
 
 /* ── 목록 줄 C(시험판 56 · 선택실 2에서 고름, 결정 기록 D-29): 일정 · 루틴 · 수업 줄 하나 ──
    [종류 아이콘 24 | 시각 --row-tw(시작, 아래 끝) | 이름 + 둘째 줄 하나 | 체크 24], 칸 사이 12. 홈 · 캘린더 주 · 일 · 날짜 창 · 찾기 · 목록 창이 같은 줄.
-   만드는 곳: v49.js(일정 · 수업) · home.js(루틴). 둘째 줄 색: 출발 · 진행 중 · 남은 시간은 보라, 지남 · 확인할 약은 주황 글자 */
+   만드는 곳: v49.js(일정 · 수업) · home.js(루틴). 둘째 줄 색: 출발 · 진행 중 · 남은 시간은 보라, 지남 · 확인할 중요한 단계는 주황 글자 */
 html.bx-app :where(.row.rowc){gap:12px}
 html.bx-app :where(.row.rowc > .row-main){display:grid;grid-template-columns:24px var(--row-tw) minmax(0,1fr);column-gap:12px;align-items:start;align-self:stretch;align-content:center}
 html.bx-app :where(.row.rowc .rc-ic,.bx-mm-row > .rc-ic){display:flex;align-items:center;justify-content:center;width:24px;height:22px;color:var(--ink-2)}
@@ -1461,6 +1461,15 @@ html.bx-app .bx-ep .bx-fcol-row{background:var(--card-bg);border-radius:26px;pad
 .bx-ep #bx-rrep .bx-swrow.bx-say{margin-top:12px}
 .bx-app .bx-say-try{display:inline-flex;align-items:center;gap:8px;margin:10px 20px 0}
 .bx-app .bx-say-try svg.i{width:18px;height:18px}
+/* 중요한 단계(시험판 68): 같은 페이지 맨 아래 상자 하나 — 머리 줄(이름 + 설명) 아래 단계마다 스위치 줄. 줄 사이는 상자 안에서만 곧은 선 */
+.bx-ep #bx-rrep .bx-chkbox{margin-top:12px;background:var(--card-bg);border-radius:26px;padding:0 20px}
+.bx-ep .bx-chkbox .bx-chk-h{display:flex;flex-direction:column;gap:3px;padding:14px 0 12px;border-bottom:1px solid var(--line)}
+.bx-ep .bx-chkbox .bx-chk-h b{font-size:16px;font-weight:500;color:var(--ink)}
+.bx-ep .bx-chkbox .bx-chk-h small{font-size:13px;font-weight:400;line-height:1.4;color:var(--ink-3)}
+.bx-app .bx-ep .bx-chkbox .bx-swrow{gap:16px;min-height:56px;padding:0;border-radius:0;background:none;border-bottom:1px solid var(--line)}
+.bx-app .bx-ep .bx-chkbox .bx-swrow:last-child{border-bottom:0}
+.bx-ep .bx-chkbox .bx-swrow > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400;color:var(--ink)}
+.bx-ep .bx-chkbox .bx-swrow > .tog{flex:none}
 /* 크게 울리는 일정의 일정 창 알림 줄: 종에 소리 결(보라) */
 .bx-er.bx-er-rem.loud > .bx-er-ic{color:var(--accent-text)}
 .bx-ep .bx-fmulti .set-row{min-height:60px;padding:0;font-size:16px;font-weight:500}
