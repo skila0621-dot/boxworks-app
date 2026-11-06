@@ -1,5 +1,5 @@
 {
- "trial": 65,
+ "trial": 66,
  "screens": {
   "홈": {
    "h": "5bca39469f87ebe7|c7681efce602122f",
@@ -921,15 +921,15 @@
    "prevBottom": false
   },
   "날짜 칸 꾹 누르기": {
-   "h": "8447bcb1d3984638|53c5b6c940940cf5",
-   "ht": "8447bcb1d3984638",
-   "hb": "53c5b6c940940cf5",
+   "h": "81eb6544f1969715|cf6e7c4d6b4d2dc1",
+   "ht": "81eb6544f1969715",
+   "hb": "cf6e7c4d6b4d2dc1",
    "key": "s1l33pau",
-   "since": 63,
-   "img": 63,
+   "since": 66,
+   "img": 66,
    "scrolls": true,
    "order": 80,
-   "prev": 62,
+   "prev": 63,
    "prevBottom": false
   },
   "처음 실행 1": {
@@ -1032,7 +1032,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 89,
+   "order": 91,
    "prev": 62,
    "prevBottom": false
   },
@@ -1069,8 +1069,30 @@
    "scrolls": false,
    "order": 16,
    "isNew": true
+  },
+  "홈 돌아온 날": {
+   "h": "dbb7b32e7ef12c24|e033f4b8e35ae370",
+   "ht": "dbb7b32e7ef12c24",
+   "hb": "e033f4b8e35ae370",
+   "key": "snlxiif",
+   "since": 66,
+   "img": 66,
+   "scrolls": true,
+   "order": 89,
+   "isNew": true
+  },
+  "홈 돌아온 날 오늘부터 시작": {
+   "h": "5beacb9bf0956c9c|27b64d6f31b4b087",
+   "ht": "5beacb9bf0956c9c",
+   "hb": "27b64d6f31b4b087",
+   "key": "s1w7717g",
+   "since": 66,
+   "img": 66,
+   "scrolls": true,
+   "order": 90,
+   "isNew": true
   }
  },
- "trialPrev": 64,
- "at": "2026-11-06T00:31:04.867Z"
+ "trialPrev": 65,
+ "at": "2026-11-06T01:06:56.599Z"
 }

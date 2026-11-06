@@ -74,7 +74,8 @@ export default [
   {
     name: "└ 지난 일정(확인 필요)에 이어지는 여러 날 일정을 넣지 않음",
     find: 'const pastLate = isT ? M.items.filter(i => !i.done && !i.pc && i.date < today)',
-    replace: 'const pastLate = isT ? M.items.filter(i => !i.done && !i.pc && i.date < today && !(window.BX_APP && bxSpan(i)))'
+    replace: 'const pastLate = isT ? M.items.filter(i => !i.done && !i.pc && i.date < today && !(window.BX_APP && bxSpan(i)) && !(window.BX_APP && i.lateKeep && i.lateKeep === +dueAt(i)))'
+    // 시험판 66(선택실 7 C): 확인 필요에서 '그대로' 둔 지난 일(lateKeep)은 홈 '지난 일'에도 넣지 않는다 — 캘린더 그날에만 그대로(날짜 · 시각을 바꾸면 다시)
   },
   {
     name: '└ 홈 상자에 넘기는 개수(n: 하루 일정, ns: 여러 날)',

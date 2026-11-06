@@ -141,9 +141,13 @@ function bxTimeline(){
       else if (e.t <= nowMin && !e.off) cur.push(e);
       else fut.push(e);
     });
+    // 돌아온 날 한 장(시험판 66, home.js bxRetState): 맨 위. 한 장이 있는 동안 지난 일 줄은 넣어 둔다(같은 지난 일을 두 번 말하지 않게)
+    const ret = typeof bxRetState === 'function' ? bxRetState() : null, retCard = ret ? bxRetHtml(ret) : '', retLine = ret ? bxRetLineHtml(ret) : '';
+    if (retCard) tl.insertAdjacentHTML('beforeend', retCard);
+    else if (retLine) tl.insertAdjacentHTML('beforeend', retLine);
     // 종일 줄은 맨 위(대표 11/5 22:48 '제일 위에'): 안 한 종일(급하게 넣은 것) → 여러 날 → 한 것(가로줄 + 흐리게)
     allday.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || (b.ut ? 1 : 0) - (a.ut ? 1 : 0) || a.i - b.i).forEach(e => tl.append(e.el));
-    if (past.length) {
+    if (past.length && !retCard) {
       const tog = document.createElement('button'); tog.type = 'button'; tog.className = 'bx-past-tog'; tog.dataset.act = 'bx-past';
       tog.setAttribute('aria-expanded', String(bxPastOpen));
       tog.innerHTML = '<span class="bx-pt-i" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span><span>지난 일 ' + past.length + '개</span>';

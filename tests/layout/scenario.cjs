@@ -172,7 +172,9 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
   await tryDo('루틴 줄 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row.rowc[data-rid] .row-main')) await snap('루틴 줄 꾹 누르기'); await closeAll(); });
   await tryDo('수업 줄 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row.tt-row .row-main')) await snap('수업 줄 꾹 누르기'); await closeAll(); });
   await tryDo('메모 줄 꾹', async () => { await dock('today'); if (await longPress('#bx-mm-card .bx-mm-row')) await snap('메모 줄 꾹 누르기'); await closeAll(); });
-  await tryDo('날짜 칸 꾹', async () => { await dock('month'); if (await longPress('.cal .cell[data-date]:not(.other)')) await snap('날짜 칸 꾹 누르기'); await closeAll(); });
+  // 시험판 66: 꾹 누르기 전에 달력을 맨 위로(앞 장면에서 내려간 자리에 따라 창 뒤 달력이 달라 와이어프레임이 '바뀜'으로 보였음)
+  await tryDo('날짜 칸 꾹', async () => { await dock('month'); await p.evaluate(() => { const se = document.scrollingElement || document.documentElement; se.scrollTop = 0; document.querySelectorAll('.content, .main-col').forEach(e => { e.scrollTop = 0; }); }); await p.waitForTimeout(150);
+    if (await longPress('.cal .cell[data-date]:not(.other)')) await snap('날짜 칸 꾹 누르기'); await closeAll(); });
   const errs = app.errors.slice(); await app.close();
 
   await tryDo('처음 실행', async () => {
@@ -199,6 +201,15 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
     const d = data().filter(x => !/^(it_|rt_|tt_|mm_)/.test(x[0])).concat([['it_9', { type: 'item', title: '치과', date: day(0), start: '15:00', createdAt: old, updatedAt: old }], ['it_8', { type: 'item', title: '장보기', date: day(0), createdAt: old, updatedAt: old }]]);
     await open({ now: '2026-11-02T07:40:00+09:00', data: d }); await snap('짧은 홈');
     await dock('month'); await snap('짧은 캘린더'); errs.push(...app.errors); await app.close();
+  });
+  // 시험판 66(선택실 7 C): 3일 넘게 열지 않다가 연 날 — '오늘 할 일' 맨 위 한 장, '오늘부터 시작'을 누른 뒤 그날의 회색 한 줄
+  await tryDo('돌아온 날', async () => {
+    await open({ now: '2026-11-02T07:40:00+09:00', data: data(), wait: 900 });
+    await p.evaluate(() => { localStorage.setItem('bx:seen', '2026-10-30'); localStorage.removeItem('bx:ret'); });
+    await p.reload(); await p.waitForFunction(() => window.BX_T && document.querySelector('.dock')); await p.waitForTimeout(1300);
+    await snap('홈 돌아온 날');
+    if (await tap('[data-act="bx-ret-fresh"]')) { await p.waitForTimeout(600); await p.evaluate(() => { const t = document.getElementById('toasts'); if (t) t.innerHTML = ''; }); await snap('홈 돌아온 날 오늘부터 시작'); }
+    errs.push(...app.errors); await app.close();
   });
   await tryDo('앱 안 알림', async () => { await open({ now: '2026-11-02T07:01:00+09:00', data: data(), wait: 1500 }); await snap('앱 안 알림 카드'); errs.push(...app.errors); await app.close(); });
   return errs;

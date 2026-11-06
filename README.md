@@ -153,6 +153,14 @@ cd android && ./gradlew assembleDebug
 - 일정 창 알림 줄: 종에 소리 결(`ICON.bellRing`) · '크게 울려요'
 - 전체 화면 페이지(‹ 이름 · 완료)가 열린 동안 알림 글은 아래에 뜬다(위에 뜨면 페이지 머리를 가렸다). 정렬 점검 장면 '알림 페이지 · 알림 글'
 
+## 돌아온 날 한 장 (시험판 66)
+
+- 3일 넘게 열지 않다가 열면 '오늘 할 일' 맨 위에 한 장(선택실 7 C, `web-src/home.js`의 `bxRetState` · `bxRetHtml`, 목록에 넣는 곳은 `v30.js`의 `bxTimeline`). 확인이 필요한 지난 일이 있을 때만, 그날 한 번
+- 마지막으로 연 날은 휴대폰 안 `localStorage`의 `bx:seen`(화면이 보일 때 그린 날만), 그날의 상태는 `bx:ret`(`card` · `kept` · `seen`)
+- '오늘부터 시작': 확인 필요 창의 '모두 그대로'와 같음(`lateKeep`). 그날은 맨 위 회색 한 줄(누르면 캘린더), 알림 글에 되돌리기. '지난 일 확인': 확인 필요 창
+- '그대로' 둔 지난 일(`lateKeep`)은 홈 '지난 일'에도 넣지 않는다(캘린더 그날에만, `scripts/patches-v39.mjs`의 `pastLate`)
+- 정렬 점검 장면 '홈 돌아온 날' · '홈 돌아온 날 오늘부터 시작'
+
 ## 앱 이름 바꾸기
 
 앱 이름(지금 '스케줄러', 대표 결정 2026-11-03 23:40)은 **`android/app/src/main/res/values/strings.xml`의 `app_name` 한 곳**에서만 정합니다.

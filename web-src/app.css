@@ -985,6 +985,14 @@ html.bx-fab-on #toasts{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0p
 html.bx-app .bx-past > .row.rowc :is(.row-time b,.row-time small,.rc-ic){color:var(--ink-3)}
 html.bx-app .bx-past > .row.rowc .row-title{color:var(--ink-2)}
 .bx-past[hidden]{display:none}
+/* 돌아온 날 한 장(시험판 66, 선택실 7 C): 연보라 상자 · 제목 16 굵게 · 글 14 · 단추 둘은 반씩(모자라면 단추 안에서 두 줄) */
+.bx-app .bx-ret{display:grid;gap:10px;margin:4px 0 12px;padding:20px;border-radius:16px;background:var(--accent-soft);color:var(--ink)}
+.bx-app .bx-ret > b{font-size:16px;font-weight:700;line-height:1.4}
+.bx-app .bx-ret > p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-2)}
+.bx-app .bx-ret-b{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:4px}
+.bx-app .bx-ret-b .btn{width:100%;min-height:48px;justify-content:center;white-space:normal;word-break:keep-all;text-align:center}
+/* '오늘부터 시작' 뒤 그날의 회색 한 줄: 지난 일 줄과 같은 모양, 꺾쇠는 '넘어감'(오른쪽 꺾쇠) */
+.bx-app .bx-ret-line .bx-pt-i .i{transform:none}
 /* 지금 하는 일: 배경, 다음 일: 지금 하는 일이 있으면 꼬리표만 */
 .bx-todo .row.bx-now{background:var(--accent-soft)}
 .bx-app .bx-todo .rt-card.bx-now,.bx-app .bx-todo .rt-card.bx-next{background:var(--accent-soft);border-radius:14px;margin:0 -10px;padding:10px 10px 8px;border-bottom-color:transparent}

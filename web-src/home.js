@@ -227,6 +227,51 @@ function bxLateOpen(only){
   BXL_PICK = null;
   openSheet({title: only ? '지난 일정' : '확인 필요', draw, refresh: draw});
 }
+/* 시험판 66(선택실 7 C '돌아온 날 한 장', 결정 사안 d20261106-return · 대표 메모 11/6 02:31 "3일 이상 접속이 없어서 계속 쌓이면
+   며칠만에 왔고 확인이 필요한 지난일이 몇개 있어요 확인해보겠어요? 아니면 오늘부터 다시 일정을 관리해볼까요? 이런 뉘양스의 선택지"):
+   3일 넘게 열지 않다가 열면 '오늘 할 일' 맨 위에 한 장(확인이 필요한 지난 일이 있을 때만, 그날 한 번). 지난 일 줄('지난 일 N개')은 그동안 넣어 둔다
+   - 지난 일 확인하기: 확인 필요 창(일정마다 완료 · 오늘로 · 날짜 변경 · 그대로)
+   - 오늘부터 다시 시작: 지난 일은 확인 필요에서 뺀다(확인 필요 창의 '모두 그대로'와 같음, 날짜 · 시각을 바꾸면 다시 셈). 캘린더 그날에는 그대로.
+     그날은 맨 위에 회색 한 줄 '지난 일 N개는 캘린더 그날에 그대로 있어요'(누르면 캘린더)
+   마지막으로 연 날은 휴대폰 안(localStorage bx:seen)에만 둔다. 화면이 보일 때 그린 날만 '연 날'로 센다 */
+const BX_RET_DAYS = 3;
+function bxRetLoad(){ try { const r = JSON.parse(localStorage.getItem('bx:ret') || 'null'); return r && typeof r === 'object' ? r : null; } catch (e) { return null; } }
+function bxRetSave(r){ try { if (r) localStorage.setItem('bx:ret', JSON.stringify(r)); else localStorage.removeItem('bx:ret'); } catch (e) { /* 저장 못 해도 이번에는 보임 */ } }
+function bxRetState(){
+  if (!window.BX_APP || !M) return null;
+  const today = M.today;
+  let r = bxRetLoad(); if (r && r.d !== today) r = null;
+  if (!document.hidden) {
+    let seen = null; try { seen = localStorage.getItem('bx:seen'); } catch (e) { seen = null; }
+    if (!r && isDate(seen) && seen < today && diffDays(today, seen) >= BX_RET_DAYS && M.items.some(isLate)) { r = {d: today, gap: diffDays(today, seen), st: 'card'}; bxRetSave(r); }
+    if (seen !== today) { try { localStorage.setItem('bx:seen', today); } catch (e) { /* 다음에 다시 셈 */ } }
+  }
+  return r;
+}
+// 돌아온 날 한 장(선택실 7 C 사진 그대로: 연보라 상자 · 제목 · 글 · 단추 둘). 확인이 필요한 지난 일이 다 없어지면 그리지 않는다
+function bxRetHtml(r){
+  const n = M.items.filter(isLate).length; if (!r || r.st !== 'card' || !n) return '';
+  return '<div class="bx-ret" role="group" aria-labelledby="bx-ret-t"><b id="bx-ret-t">' + r.gap + '일 만이에요</b>' +
+    '<p>확인이 필요한 지난 일이 ' + n + '개 있어요. 오늘부터 다시 시작할까요, 지난 일을 확인해 볼까요?</p>' +
+    '<div class="bx-ret-b"><button type="button" class="btn primary" data-act="bx-ret-fresh">오늘부터 시작</button><button type="button" class="btn" data-act="bx-ret-see">지난 일 확인</button></div></div>';
+}
+// '오늘부터 다시 시작' 뒤 그날의 회색 한 줄(지난 일 줄과 같은 모양, 꺾쇠는 오른쪽 → 누르면 캘린더)
+function bxRetLineHtml(r){
+  if (!r || r.st !== 'kept' || !r.kept) return '';
+  return '<button type="button" class="bx-past-tog bx-ret-line" data-act="go" data-view="month"><span class="bx-pt-i" aria-hidden="true">' + ICON.chevR + '</span><span>지난 일 ' + r.kept + '개는 캘린더 그날에 그대로 있어요</span></button>';
+}
+document.addEventListener('click', ev => {
+  if (!window.BX_APP || !ev.target.closest) return;
+  const b = ev.target.closest('[data-act="bx-ret-see"],[data-act="bx-ret-fresh"]'); if (!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const r = bxRetLoad(); if (!r) return;
+  if (b.dataset.act === 'bx-ret-see') { r.st = 'seen'; bxRetSave(r); scheduleRender(); bxLateOpen(); return; }
+  const its = M.items.filter(isLate);
+  if (its.length) { record(its.map(i => i.id)); its.forEach(i => patchDoc(i.id, {lateKeep: +dueAt(getDoc(i.id))})); }
+  r.st = 'kept'; r.kept = its.length; bxRetSave(r);
+  toast('지난 일 ' + its.length + '개는 캘린더 그날에 그대로 둘게요', [['되돌리기', () => { doUndo(); const r2 = bxRetLoad(); if (r2) { r2.st = 'card'; delete r2.kept; bxRetSave(r2); } scheduleRender(); }]]);
+  scheduleRender();
+}, true);
 // ⓘ: 지금 화면 사용법(꾹 누르기·밀기처럼 눌러 보기 전엔 모르는 것들)
 const BX_HELP = {
   today: ['옆으로 밀면 어제·내일 할 일을 볼 수 있어요.', '위의 숫자를 누르면 그 목록이 열려요. ‘확인 필요’에는 지난 일정과 먹었는지 확인하지 않은 약이 모여요.', '네모 칸을 누르면 완료. 일정을 길게 누르면 수정 · 완료 · 내일로 미루기 · 삭제가 바로 나와요.', '오른쪽 아래 +로 새 일정. 길게 누르면 바로 말하기.'],
