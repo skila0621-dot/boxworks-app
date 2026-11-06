@@ -30,7 +30,7 @@ module.exports = async function () {
       secs: document.querySelectorAll('.set-sec .set-row').length,
       foot: (document.querySelector('.bx-set-foot') || {}).textContent || ''
     }));
-    c.eq(home.rows.map(r => r[1]), ['화면', '알림', '캘린더·데이터'], '설정 첫 화면은 묶음 목록(휴대폰 캘린더는 그 기능이 있을 때만, 시험판 39: 분류 → 캘린더)');
+    c.eq(home.rows.map(r => r[1]), ['화면', '알림', '캘린더·데이터', '시험 기록'], '설정 첫 화면은 묶음 목록(휴대폰 캘린더 · 시험 기록은 그 기능이 있을 때만, 시험판 39: 분류 → 캘린더)');
     c.ok(home.secs === 0, '첫 화면에는 세부 칸이 없다 ' + home.secs);
     c.ok(/아침 요약 오전 7:30/.test(home.rows[1][2]) && /10분 전/.test(home.rows[1][2]) && /월요일 시작/.test(home.rows[0][2]), '묶음 줄 오른쪽에 지금 고른 값 ' + JSON.stringify(home.rows));
     c.ok(/^이 휴대폰에만 저장 · 시험판 \d+$/.test(home.foot), '맨 아래 한 줄에 앱 버전 ' + JSON.stringify(home.foot));

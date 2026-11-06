@@ -133,6 +133,8 @@ public final class AlarmStore {
      * '확인'만 따로 적어 두어, 앱이 그 루틴 단계를 '했어요'로 옮긴다.
      */
     static synchronized void confirm(Context c, JSONObject alarm, boolean ok) {
+        // 시험판 69(결정 사안 s10): 시험 기록 — '확인' · '5분 뒤'를 누른 시각(제목 없음). 묶음이 없는 일정 알람도 센다
+        BxTestLog.add(c, ok ? "ok" : "snooze", alarm);
         String series = alarm == null ? "" : alarm.optString("series", "");
         if (series.isEmpty()) return;
         long now = System.currentTimeMillis();

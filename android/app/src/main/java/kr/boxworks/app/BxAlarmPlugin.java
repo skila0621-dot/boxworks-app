@@ -155,6 +155,25 @@ public class BxAlarmPlugin extends Plugin {
         call.resolve(r);
     }
 
+    /** 시험판 69(결정 사안 s10): 시험 기록(휴대폰 안). events: 울림 · 확인 · 5분 뒤 · 지나간 알람(제목 없음), installedAt: 처음 설치한 시각 */
+    @PluginMethod
+    public void testLog(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            r.put("events", new JSArray(BxTestLog.load(getContext()).toString()));
+        } catch (Exception e) {
+            r.put("events", new JSArray());
+        }
+        r.put("installedAt", BxTestLog.installedAt(getContext()));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void testLogClear(PluginCall call) {
+        BxTestLog.clear(getContext());
+        call.resolve();
+    }
+
     /** 휴대폰 설정 화면을 연다: exact(정확한 알람), fullscreen(잠금 화면 알람), notifications, battery(앱 정보 → 배터리), app */
     @PluginMethod
     public void openSettings(PluginCall call) {

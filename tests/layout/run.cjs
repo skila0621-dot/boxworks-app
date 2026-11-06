@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const OUT = path.resolve(arg('out', path.join(__dirname, 'out')));
-const GATE = ['tap', 'cover', 'cut', 'col', 'colx', 'nan', 'icon', 'gap', 'ink', 'low', 'big', 'midword', 'time24', 'time12', 'comp', 'fit', 'mid', 'lab', 'error'];
+const GATE = ['tap', 'cover', 'cut', 'col', 'colx', 'nan', 'icon', 'gap', 'ink', 'low', 'big', 'midword', 'time24', 'time12', 'comp', 'fit', 'mid', 'lab', 'inputfs', 'boxpad', 'error'];
 // 큰 글자(시험판 63): 휴대폰 글꼴 크기를 키운 사람(1.3배)도 잘림 · 겹침 없이. 폭이 가장 좁은 360 · 라이트에서만 한 번 더 잰다(두 시각 표시 모두)
 const BIG = 1.3;
 

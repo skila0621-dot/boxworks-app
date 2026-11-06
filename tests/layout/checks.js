@@ -11,6 +11,8 @@
 //  + time12(24시간 표시일 때 오전 · 오후가 붙은 시각 — 시각 표시 설정을 따르지 않는 글, 시험판 58)
 //  + low(명암 대비: 글자 4.5:1 · 큰 글자 3:1, 카드 위 카드처럼 겹친 바탕까지 섞어서, 시험판 63)
 //  + big(휴대폰 글꼴 1.3배에서 잘림 · 겹침 — run.cjs가 폭 360 · 라이트에서 글자를 키워 한 번 더 잰다, 시험판 63)
+//  + inputfs(글을 적는 칸의 글자 · 안내 글이 본문 16 한 가지인지 — 대표 11/6 13:03, 시험판 69)
+//  + boxpad(목록 상자의 첫 줄 위 = 마지막 것 아래 — 선택실 5 · 5번 B, 시험판 69)
 // 결과: [{k, p(자리), t(글), ...}] — 하나라도 있으면 시험판을 내지 않는다
 module.exports = function audit(opts){
   opts = opts || {};
@@ -399,6 +401,54 @@ module.exports = function audit(opts){
       if (!drawn(x)) continue;
       const q = x.getBoundingClientRect(), d = (q.top + q.bottom) / 2 - cy;
       if (Math.abs(d) > 2) out.push({k: 'mid', p: path(x), t: txt(row).slice(0, 20), d: Math.round(d * 10) / 10});
+    }
+  }
+  // inputfs: 글을 적는 칸(한 줄 · 여러 줄)의 글자와 안내 글은 모두 본문 한 가지(:root --in-fs, 16)
+  //   (대표 11/6 13:03 '입력부분에 폰트 사이즈가 너무 크게 기입된다' — 일정 제목 · 루틴 이름 칸이 20 굵게였음, 시험판 69)
+  {
+    const want = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--in-fs')) || 16;
+    for (const e of all) {
+      if (!e.matches('input:not([type]),input[type=text],input[type=search],input[type=email],input[type=tel],input[type=url],input[type=number],textarea')) continue;
+      const f = parseFloat(cs(e).fontSize), ph = e.placeholder ? parseFloat(getComputedStyle(e, '::placeholder').fontSize) || f : f;
+      if (Math.abs(f - want) > 0.1 || Math.abs(ph - want) > 0.1) out.push({k: 'inputfs', p: path(e), t: (e.value || e.placeholder || '').slice(0, 20), fs: f, ph, want});
+    }
+  }
+  // boxpad: 목록 상자(바탕 · 둥근 모서리 16 이상, 안에 목록 줄)는 첫 줄 위 = 마지막 것 아래(2px 안)
+  //   (선택실 5 · 5번 B '위아래 같게 12', 대표 11/6 12:21 — 한 줄만 있으면 아래가 비어 보였음, 시험판 69)
+  {
+    const ROWS = '.row,.bx-arow,.bx-mm-row,.menu-row,.set-row,.rt-item,.bx-er';
+    const bg = c => !!c && c !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(c);
+    for (const e of all) {
+      if (e.closest('#sheet-root .scrim.bx-ctx')) continue;   // 누른 자리 메뉴는 창 모양 규칙(D-34)
+      const s = cs(e), r = e.getBoundingClientRect();
+      if (r.width < W * 0.6 || /fixed/.test(s.position)) continue;
+      let top = r.top, bot = r.bottom;
+      const rr = q => parseFloat(q.borderTopLeftRadius) >= 16 && parseFloat(q.borderBottomLeftRadius) >= 16;   // 네 모서리가 둥근 상자만(아래 창 · 페이지는 아님)
+      let box = bg(s.backgroundColor) && rr(s);
+      if (!box) { const b = getComputedStyle(e, '::before'); if (b.content !== 'none' && b.position === 'absolute' && bg(b.backgroundColor) && rr(b)) { top = r.top + (parseFloat(b.top) || 0); bot = r.bottom - (parseFloat(b.bottom) || 0); box = true; } }
+      if (!box || bot - top < 40 || !e.querySelector(ROWS)) continue;
+      // 상자 안 글 · 단추가 든 것(흐름 안에 있는 것만): 가장 위 · 가장 아래
+      let mt = Infinity, mb = -Infinity;
+      // 화면 밖으로 이어진 부분도 함께(그려진 것이면): 상자가 길어 아래가 화면 밖이어도 마지막 줄을 잰다
+      const drawn = x => { const q = x.getBoundingClientRect(); return q.width > 0.5 && q.height > 0.5 && !hidden(x); };
+      for (const x of e.querySelectorAll('*')) {
+        if (x.closest('svg') && x.tagName.toLowerCase() !== 'svg') continue;
+        if (!drawn(x)) continue;
+        const q = cs(x); if (/absolute|fixed/.test(q.position)) continue;
+        let p = x.parentElement, out2 = false; for (; p && p !== e; p = p.parentElement) if (/absolute|fixed/.test(cs(p).position)) { out2 = true; break; } if (out2) continue;
+        const qq = x.getBoundingClientRect(); if (qq.bottom <= top + 0.5 || qq.top >= bot - 0.5) continue;
+        // 글 · 단추 · 줄 · 그림, 그리고 바탕이나 테가 보이는 작은 상자(안에 든 카드 · 입력 칸 테두리까지가 내용)
+        const boxy = bg(q.backgroundColor) || parseFloat(q.borderTopWidth) >= 1 && q.borderTopStyle !== 'none' && bg(q.borderTopColor) || parseFloat(q.borderBottomWidth) >= 1 && q.borderBottomStyle !== 'none' && bg(q.borderBottomColor);
+        if (!(ownText(x) || isTap(x) || boxy || x.matches(ROWS + ',img,svg,input,textarea'))) continue;
+        mt = Math.min(mt, qq.top); mb = Math.max(mb, qq.bottom);
+      }
+      if (!isFinite(mt)) continue;
+      // 줄은 줄 테두리(줄 안 위아래 여백 포함)로 잰다: 첫 줄 · 마지막 줄
+      const rows = Array.from(e.querySelectorAll(ROWS)).filter(x => drawn(x) && x.getBoundingClientRect().top >= top - 0.5 && x.getBoundingClientRect().bottom <= bot + 0.5);
+      if (rows.length) { mt = Math.min(mt, rows[0].getBoundingClientRect().top); mb = Math.max(mb, rows[rows.length - 1].getBoundingClientRect().bottom); }
+      const dt = mt - top, db = bot - mb;
+      if (dt < 0 || db < 0) continue;
+      if (Math.abs(dt - db) > 2) out.push({k: 'boxpad', p: path(e), t: txt(e).slice(0, 16), top: Math.round(dt * 10) / 10, bottom: Math.round(db * 10) / 10});
     }
   }
   return out;

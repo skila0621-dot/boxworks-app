@@ -160,7 +160,7 @@ window.BX_alarmPlan = function(days){
         pt: isLeave ? (loud ? '출발할 시간 · ' + nm : '출발할 시간') : a.routine ? a.title : (loud ? nm : '곧 출발'),
         ps: isLeave ? (loud ? bxT(it.start) + ' 도착' : '일정 내용은 잠금을 풀면 보여요') : a.sub,
         pg: a.routine ? (loud ? String(a.group) : String(a.group).split(' · ')[0]) : '일정',
-        lv: a.ring === 'short' ? lvS : lvR, ring: a.ring === 'short' ? 'short' : 'must', ok: a.ok || undefined, say: a.say});
+        lv: a.ring === 'short' ? lvS : lvR, ring: a.ring === 'short' ? 'short' : 'must', ok: a.ok || undefined, say: a.say, first: a.first || undefined});
     });
     tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
@@ -215,6 +215,8 @@ window.BX_alarmPlan = function(days){
           a.pt = a.title; a.ps = sub; a.pg = rt.name || '루틴'; a.lv = must ? lvR : lvS; a.ring = must ? 'must' : 'short';
           if (r.leave) a.ok = '다 했어요';
           if (!j && !bowl) { a.rid = rt.id; a.ds = ds; a.leave = leaveAt; a.steps = steps; }
+          // 시험판 69(결정 사안 s10): 시험 기록이 '준비 시작 알람 → 시작까지'를 재는 첫 단계(다시 알림도 같은 묶음)
+          if (!i && !bowl) a.first = true;
           if (bowl) { a.sound = 'bowl'; a.bowl = rt.bowl || bxBowlType(); }
           // 시험판 67(결정 사안 s05): 이름 읽어 주기를 켠 루틴은 울릴 때 '씻기, 출발까지 25분'을 휴대폰 목소리로(다시 알림도). 잠금 화면 글과 같은 말만(일정 제목 · 장소 없음)
           if (rt.say && !bowl) a.say = (r.leave ? '출발할 시간' : r.name) + (left != null && !r.leave ? ', 출발까지 ' + left + '분' : '');

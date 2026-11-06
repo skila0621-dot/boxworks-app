@@ -15,6 +15,8 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         JSONObject o = AlarmNotify.fromIntent(intent);
         AlarmStore.remove(context, o.optString("id"));
+        // 시험판 69(결정 사안 s10): 시험 기록 — 울린 시각과 예약 시각만(제목 없음)
+        BxTestLog.add(context, "fire", o);
         boolean unlocked = AlarmStore.unlocked(context);
         String kind = o.optString("kind");
         if (o.optString("sound").startsWith("bowl")) {

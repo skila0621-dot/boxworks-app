@@ -20,6 +20,11 @@ export default [
   { sel: '.chk', n: 2 }, { sel: '.chk::after' }, { sel: '.chk svg.i' }, { sel: '.chk:hover', n: 2 }, { sel: '.row.done .chk' }, { sel: '.row.late .chk', n: 2 },
   // 스위치
   { sel: '.tog' }, { sel: '.tog i' }, { sel: '.tog[aria-checked="true"]' }, { sel: '.tog[aria-checked="true"] i' },
+  // 입력 칸 글자(시험판 69, 대표 11/6 13:03): 크기는 공통 값 --in-fs(16) 하나, 제목 칸은 굵기 600
+  { sel: '.title-in', set: { 'font-size': 'var(--in-fs)', 'font-weight': '600' } },
+  { sel: '.stepper input', n: 2, set: { 'font-size': 'var(--in-fs)' } },
+  // 목록 상자 위아래 같게(선택실 5 · 5번 B, 시험판 69): 주 보기 오늘 칸 위 10 · 아래 6 → 12 · 12
+  { sel: '.day-g.is-today', set: { 'padding': '12px var(--card-pad)' } },
   // 아이콘 선 굵기는 공통 값 하나로
   { sel: 'svg.i', set: { 'stroke-width': 'var(--ic-sw,1.8)' } }
 ];

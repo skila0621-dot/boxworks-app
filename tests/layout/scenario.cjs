@@ -154,10 +154,24 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
     if (await p.evaluate(() => { const b = document.querySelector('[data-act="bx-med-stop"]'); if (b) b.click(); return !!b; })) { await p.waitForTimeout(500); await snap('명상 끝'); }
   });
   await tryDo('설정', async () => {
+    // 시험 기록(시험판 69): 긴 글이 나오도록 휴대폰 쪽 기록을 넣어 둔다(늦게 울림 · 꺼진 동안 지나감 · 5분 뒤 · 준비 시작 → 시작)
+    await p.evaluate(() => {
+      const H = 36e5, D = 864e5, t0 = Date.parse('2026-11-01T07:00:00+09:00'), ev = [];
+      for (let i = 0; i < 14; i++) {
+        const at = t0 - i * D, s = 'a' + i;
+        ev.push({ t: at + (i % 4 ? 20000 : 2 * H + 15 * 60000), e: 'fire', k: 'routine', lv: 'alarm', at, s, f: 1 });
+        ev.push({ t: at + (i % 4 ? 20000 : 2 * H + 15 * 60000) + (i % 3 + 1) * 11 * 60000, e: i % 2 ? 'snooze' : 'ok', k: 'routine', lv: 'alarm', at, s, f: 1 });
+      }
+      ev.push({ t: t0 - 3 * D, e: 'missed', n: 12 });
+      window.__tl = ev; window.__tlInst = Date.parse('2026-10-18T21:47:00+09:00');
+      try { localStorage.setItem('bx:days', JSON.stringify(['2026-10-18', '2026-10-19', '2026-10-23', '2026-10-24', '2026-10-28', '2026-11-01', '2026-11-02'])); } catch (e) { /* 없음 */ }
+    });
     await more(); await p.locator('#sheet-root button', { hasText: '설정' }).last().click(); await p.waitForTimeout(600); await snap('설정');
     const groups = await p.evaluate(() => Array.from(document.querySelectorAll('[data-bxset]')).filter(e => e.getBoundingClientRect().height > 0).map(e => e.dataset.bxset));
     for (const g of groups) await tryDo('설정 ' + g, async () => {
       await p.click('[data-bxset="' + g + '"]'); await snap('설정 › ' + g);
+      // 시험 기록: 처음 보낼 때 한 번 뜨는 창(들어 있는 것 · 들어가지 않는 것, 시험판 69)
+      if (g === 'test' && await tap('[data-act="bx-tl-send"]')) { await snap('시험 기록 보내기 처음'); await p.evaluate(() => window.BX_back && window.BX_back()); await p.waitForTimeout(400); }
       const subs = await p.evaluate(g => Array.from(document.querySelectorAll('[data-bxset]')).filter(e => e.getBoundingClientRect().height > 0 && e.dataset.bxset.startsWith(g + '/')).map(e => e.dataset.bxset), g);
       for (const s of subs) await tryDo('설정 ' + s, async () => { await p.click('[data-bxset="' + s + '"]'); await snap('설정 › ' + s); await p.click('.bx-set-back'); await p.waitForTimeout(400); });
       await p.click('.bx-set-back'); await p.waitForTimeout(400);

@@ -123,7 +123,9 @@ function tvAlarms(it){
     else { title = r.name; sub = (p.travel ? '출발까지 ' : '시작까지 ') + left + '분'; next = nx ? bxT(nx.at) + ' ' + (nx.leave ? '출발' : nx.name) : bxT(it.start) + ' ' + (it.title || ''); }
     // 시험판 67(결정 사안 s05): 붙인 준비 루틴이 이름 읽어 주기를 켰으면 단계 · 출발도 읽어 줌(일정 제목은 읽지 않음)
     const say = p.rt && p.rt.say && !r.pre ? (r.leave ? '출발할 시간' : r.name + ', ' + sub) : undefined;
-    return {id: r.id, at: r.at.getTime(), title, sub, next, say, routine: !!p.rt, pre: !!r.pre, ring: r.ring === 'short' ? 'short' : 'must', ok: r.leave && p.rt ? '다 했어요' : '',
+    // 시험판 69(결정 사안 s10): 붙인 준비 루틴의 첫 단계 = 준비 시작(시험 기록이 '알람 → 시작까지'를 잼)
+    const first = !!p.rt && !r.pre && !r.leave && al.findIndex(x => !x.pre && !x.leave) === i;
+    return {id: r.id, at: r.at.getTime(), title, sub, next, say, first, routine: !!p.rt, pre: !!r.pre, ring: r.ring === 'short' ? 'short' : 'must', ok: r.leave && p.rt ? '다 했어요' : '',
       group: p.rt ? p.rt.name + ' · ' + (it.title || '') : '일정', from: p.start.getTime(), to: end.getTime()};
   });
 }

@@ -51,7 +51,10 @@ async function openApp({ now = NOW, data = null, perms = null, speech = true, so
         status: async () => window.__perm,
         requestNotifications: async () => window.__perm,
         confirmed: async () => ({ done: {} }),
-        local: async () => ({}), cancelLocal: async () => ({}), bowl: async () => {}, test: async () => ({}), openSettings: async () => ({})
+        local: async () => ({}), cancelLocal: async () => ({}), bowl: async () => {}, test: async () => ({}), openSettings: async () => ({}),
+        // 시험 기록(시험판 69): 휴대폰 쪽 기록은 window.__tl(울림 · 누름 · 꺼진 동안 지나감), 설치한 때는 window.__tlInst
+        testLog: async () => ({ events: window.__tl || [], installedAt: window.__tlInst || 0 }),
+        testLogClear: async () => { window.__tl = []; return {}; }
       },
       // 위젯 단추로 앱이 열리는 것(시험판 36): window.__wl[이름](자료)로 흉내 낸다('speak' · 'add' · 'open' · 'memo')
       // keyboard: 위젯 ✎ 메모로 열 때 키보드 올리기(시험판 41) — 부른 횟수를 window.__kb에

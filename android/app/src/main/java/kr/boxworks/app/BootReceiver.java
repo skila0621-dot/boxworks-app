@@ -24,6 +24,8 @@ public class BootReceiver extends BroadcastReceiver {
         // 꺼져 있는 동안 지나간 알람은 말없이 버리지 않고 한 장으로 알린다
         if (boot || Intent.ACTION_TIME_CHANGED.equals(action)) {
             int missed = AlarmStore.takeMissed(context, MISSED_WITHIN_MS);
+            // 시험판 69(결정 사안 s10): 시험 기록 — 꺼진 동안 지나간 알람 수
+            if (missed > 0) BxTestLog.add(context, "missed", null, missed);
             if (missed > 0) {
                 AlarmNotify.showInfo(context, MISSED_ID, "지나간 알람 " + missed + "개",
                     "휴대폰이 꺼져 있거나 시간이 바뀌는 동안 울리지 못한 알람이 있어요. " + AlarmNotify.appName(context) + "에서 확인해 주세요.");

@@ -82,8 +82,18 @@ module.exports = async function () {
     // 시험판 60(대표 11/5 22:03): 말하기가 아이콘만 · 제목 옆 색 동그라미가 빠져 칸이 넓어졌다 → 360에서도 긴 예시. 짧은 예시는 더 좁은 화면(폴드 바깥 화면 280)에서
     await p.setViewportSize({ width: 360, height: 844 }); await p.waitForTimeout(400);
     c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 내일 오후 3시 치과', '새 일정 제목 칸(360): 칸이 넓어져 긴 예시');
+    // 시험판 69: 입력 칸 글자가 16(전 20)이라 280에서도 긴 예시가 들어간다. 짧은 예시는 그보다 좁을 때(230)
     await p.setViewportSize({ width: 280, height: 700 }); await p.waitForTimeout(400);
-    c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 오후 3시 치과', '새 일정 제목 칸(280): 칸에 안 들어가면 짧은 예시');
+    c.eq(await p.evaluate(() => document.querySelector('#f-title').placeholder), '예) 내일 오후 3시 치과', '새 일정 제목 칸(280): 입력 칸 글자 16이라 긴 예시도 들어감');
+    // 긴 예시는 안 들어가고 짧은 예시는 들어가는 폭을 찾아(280에서 4씩 줄이며) 그 폭에서 짧은 예시인지 본다
+    let fit = null;
+    for (let w = 276; w >= 200 && !fit; w -= 4) {
+      await p.setViewportSize({ width: w, height: 700 }); await p.waitForTimeout(250);
+      // 안내 글은 안내 글 모양(::placeholder 굵기 · 자간)으로 잰다(앱 v53.js와 같게)
+      const f = await p.evaluate(() => { const i = document.querySelector('#f-title'), cs = getComputedStyle(i), ps = getComputedStyle(i, '::placeholder'), cv = document.createElement('canvas').getContext('2d'); cv.font = ps.fontWeight + ' ' + ps.fontSize + ' ' + ps.fontFamily; const room = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ls = parseFloat(ps.letterSpacing) || 0, need = t => cv.measureText(t).width + ls * t.length; return { ph: i.placeholder, longFits: need('예) 내일 오후 3시 치과') <= room, shortFits: need('예) 오후 3시 치과') <= room }; });
+      if (!f.longFits && f.shortFits) fit = Object.assign({ w }, f);
+    }
+    c.ok(fit && fit.ph === '예) 오후 3시 치과', '새 일정 제목 칸: 긴 예시가 안 들어가는 폭이면 짧은 예시 ' + JSON.stringify(fit));
     await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(400);
     c.ok(await p.evaluate(() => (() => { const i = document.querySelector('#f-title'), cs = getComputedStyle(i), cv = document.createElement('canvas').getContext('2d'); cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; return cv.measureText(i.placeholder).width <= i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1; })()), '다시 넓어져도 예시가 칸에 다 들어감');
     await back();

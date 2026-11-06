@@ -20,7 +20,7 @@ function ttList(){
 }
 // 시험판 40: 시간표의 기간 밖이면(끝남 · 시작 전) 그날 수업이 없는 것으로(알림 · 위젯 · 아침 요약 · 홈 모두)
 function ttOn(e, ds){ return e.on !== false && Array.isArray(e.days) && e.days.includes(parseYmd(ds).getDay()) && !ttSkipped(e, ds) && (typeof bxTtActive !== 'function' || bxTtActive(e, ds)); }
-// 휴강(그날만) 켜고 끄기: 시간표 화면의 길게 누른 줄 · 홈 수업 줄의 누른 자리 메뉴(시험판 60)가 같은 것을 쓴다
+// 휴강(그 날짜 하루) 켜고 끄기: 시간표 화면의 길게 누른 줄 · 홈 수업 줄의 누른 자리 메뉴(시험판 60)가 같은 것을 쓴다
 function ttToggleOff(e, nd){
   const doc = getDoc(e.id); if (!doc) return;
   const keep = JSON.parse(JSON.stringify(doc)), sk = Object.assign({}, doc.skip || {}), lim = ymd(addDays(parseYmd(M.today), -14));

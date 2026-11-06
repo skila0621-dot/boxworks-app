@@ -6,14 +6,37 @@
      쓰는 곳: 일정 줄 · 칩(flow.js bxItemMenu) · 루틴 탭(v32.js bxRtMenu) · 캘린더 칩(v39.js bxCalChipMenu) · 아래 넷
    2번 줄마다 옵션: '이대로 정하기'가 눌려 있지 않아 선택실의 추천 칩대로(앱에 이미 있는 기능만)
      홈 루틴 줄: 오늘은 쉬기 · 오늘은 하기 · 수정 / 수업 줄: 휴강(그날만) · 수정 / 메모 줄: 수정 · 일정으로 만들기 · 삭제 /
-     캘린더 날짜 칸: 이날 새 일정 · 이날 말로 넣기 */
+     캘린더 날짜 칸: 이날 새 일정 · 이날 말로 넣기
+   시험판 69(선택실 5 · 2번, 대표가 11/6 오전 2:26 칩을 고쳐 '이대로 정하기' — 그동안 넣지 못했던 것): 날짜 칸은 이날 새 일정 · 이날 메모(말로 넣기 뺌),
+     루틴 줄 · 수업 줄에 삭제(맨 끝 빨간 글 · 되돌리기). 메모 "수업줄의 그날만 이라는 표현이 이상합니다" → '휴강'(오른쪽에 날짜) */
 let bxCtxObs = null;
+/* 시험판 69: 메뉴가 뜨는 사이 화면이 다시 그려져 누른 칸이 새 칸으로 바뀌면(캘린더 날짜 칸에서 가끔) 같은 칸을 다시 찾는다.
+   전에는 바뀐 칸을 못 찾아 메뉴가 아래 창으로 떴다(와이어프레임 10판 '날짜 칸 꾹 누르기') */
+const BX_CTX_ATTRS = ['data-date', 'data-id', 'data-rid', 'data-bxmm', 'data-tt'];
+function bxCtxKey(el){
+  if (!el || !el.getAttribute) return null;
+  const own = BX_CTX_ATTRS.find(a => el.getAttribute(a));
+  if (own) return {a: own, v: el.getAttribute(own), cls: el.classList[0] || ''};
+  const d = el.querySelector && el.querySelector(BX_CTX_ATTRS.map(a => '[' + a + ']').join(','));
+  const a = d && BX_CTX_ATTRS.find(x => d.getAttribute(x));
+  return a ? {a, v: d.getAttribute(a), cls: d.classList[0] || '', up: el.classList[0] || ''} : null;
+}
+function bxCtxFind(k){
+  if (!k || !window.CSS || !CSS.escape) return null;
+  const e = Array.from(document.querySelectorAll((k.cls ? '.' + CSS.escape(k.cls) : '') + '[' + k.a + '="' + CSS.escape(k.v) + '"]'))
+    .find(x => !x.closest('#sheet-root') && x.getBoundingClientRect().height > 0);
+  return e ? (k.up && e.closest('.' + CSS.escape(k.up))) || e : null;
+}
 function bxCtxPlace(anchor){
   const sc = document.querySelector('#sheet-root > .scrim'), sh = sc && sc.querySelector('.sheet');
-  if (!sh || !anchor || !anchor.isConnected || !window.BX_APP) return;
+  if (!sh || !anchor || !window.BX_APP) return;
+  const key = bxCtxKey(anchor);
+  if (!anchor.isConnected) anchor = bxCtxFind(key);
+  if (!anchor) return;
   sc.classList.add('bx-ctx'); sh.classList.add('bx-ctx');
   const place = () => {
-    if (!sh.isConnected || !anchor.isConnected) return;
+    if (!sh.isConnected) return;
+    if (!anchor.isConnected) { const n = bxCtxFind(key); if (!n) return; anchor = n; }
     const r = anchor.getBoundingClientRect(), W = innerWidth, H = innerHeight;
     let sp = sc.querySelector(':scope > .bx-spot');
     if (!sp) { sp = document.createElement('div'); sp.className = 'bx-spot'; sp.setAttribute('aria-hidden', 'true'); sc.prepend(sp); }
@@ -73,10 +96,12 @@ function bxRtRowMenu(rid, anchor){
   const s = rtToday(rt), hol = typeof bxHolOff === 'function' && bxHolOff(rt, M.today);
   const day = hol || s.skip ? ['run', ICON.playC, '오늘은 하기', hol ? bxHolNote(M.today).replace(/^오늘은 /, '').replace(/\.$/, '') : '알람도 다시 울려요']
     : s.finished ? null : ['skip', ICON.pauseC, '오늘은 쉬기', '오늘 알람이 울리지 않아요'];
-  bxCtxMenu(rt.name || '루틴', [['edit', ICON.edit, '수정', ''], day], act => {
+  bxCtxMenu(rt.name || '루틴', [['edit', ICON.edit, '수정', ''], day, ['del', ICON.trash, '삭제', '', true]], act => {
     if (act === 'edit') { openRoutine(rid); return; }
     if (act === 'skip') { rtSkip(rid, true); return; }
-    if (act === 'run') { if (hol) bxHolRunOn(rt); else rtSkip(rid, false); }
+    if (act === 'run') { if (hol) bxHolRunOn(rt); else rtSkip(rid, false); return; }
+    // 루틴 탭의 누른 자리 메뉴 삭제(v32.js)와 같은 일
+    if (act === 'del') { record([rid]); removeDoc(rid); M = buildModel(); render(); toast((rt.name || '루틴') + bxJosaUl(rt.name || '루틴') + ' 삭제했어요.', [['되돌리기', doUndo]]); }
   }, anchor);
 }
 bxLongPress('.row.rowc[data-rid] .row-main', el => { const row = el.closest('.row'); if (row && row.dataset.rid) bxRtRowMenu(row.dataset.rid, row); });
@@ -85,9 +110,11 @@ bxLongPress('.row.rowc[data-rid] .row-main', el => { const row = el.closest('.ro
 function bxTtRowMenu(id, anchor){
   const e = typeof ttList === 'function' && ttList().find(x => x.id === id); if (!e) return;
   const ds = S.view === 'today' ? homeViewDate() : isDate(S.selDate) ? S.selDate : M.today, off = ttSkipped(e, ds);
-  bxCtxMenu(e.name || '수업', [['edit', ICON.edit, '수정', ''], ['off', ICON.calOff, off ? '휴강 취소' : '휴강(그날만)', fmtMD(ds)]], act => {
+  bxCtxMenu(e.name || '수업', [['edit', ICON.edit, '수정', ''], ['off', ICON.calOff, off ? '휴강 취소' : '휴강', fmtMD(ds)], ['del', ICON.trash, '삭제', '시간표에서 빼요', true]], act => {
     if (act === 'edit') { ttOpen(id); return; }
-    if (act === 'off') { ttToggleOff(e, ds); render(); }
+    if (act === 'off') { ttToggleOff(e, ds); render(); return; }
+    // 수업 고치기 창의 삭제(timetable.js tt-del)와 같은 일
+    if (act === 'del') { const keep = getDoc(id); if (!keep) return; removeDoc(id); render(); toast('시간표에서 삭제했어요', [['되돌리기', () => writeDoc(id, keep)]]); }
   }, anchor);
 }
 
@@ -102,12 +129,12 @@ function bxMemoMenu(id, anchor){
 }
 bxLongPress('.bx-mm-row[data-bxmm]', el => bxMemoMenu(el.dataset.bxmm, el));
 
-// 캘린더 날짜 칸: 이날 새 일정 · 이날 말로 넣기(마이크가 있는 휴대폰만)
+// 캘린더 날짜 칸: 이날 새 일정 · 이날 메모(메모 기능을 켰을 때). 말로 넣기는 새 일정 창 맨 위 마이크(시험판 69, 선택실 5 · 2번)
 function bxDayMenu(ds, anchor){
   if (!isDate(ds)) return;
-  bxCtxMenu(fmtMD(ds), [['new', ICON.plus, '이날 새 일정', fmtMD(ds)], window.BX_HAS_MIC ? ['say', ICON.mic, '이날 말로 넣기', ''] : null], act => {
+  bxCtxMenu(fmtMD(ds), [['new', ICON.plus, '이날 새 일정', fmtMD(ds)], typeof bxMemoOn === 'function' && bxMemoOn() ? ['memo', ICON.memo, '이날 메모', ''] : null], act => {
     if (act === 'new') window.BX_newOn(ds, false);
-    else if (act === 'say') window.BX_newOn(ds, true);
+    else if (act === 'memo') bxMemoNew({ds});
   }, anchor);
 }
 bxLongPress('.cal .cell[data-date]', el => bxDayMenu(el.dataset.date, el));
