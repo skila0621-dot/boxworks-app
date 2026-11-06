@@ -3004,7 +3004,10 @@ function checkAlarms(){
     if (a.rid) return rtAlarmHtml(a);
     const d = getDoc(a.id);
     return '<div class="alarm" data-key="' + esc(a.key) + '"><div class="alarm-h">' + ICON.bell + '일정 알림</div><div class="alarm-t">' + (esc(d.title) || '(제목 없음)') + '</div><div class="alarm-w">' + esc(relDay(d.date, ymd(new Date())) + ' ' + timeText(d)) + (d.location ? ' · ' + esc(d.location) : '') + '</div>' +
-      '<div class="alarm-a"><button type="button" class="btn sm primary" data-alarm="done">완료</button><button type="button" class="btn sm" data-alarm="10">10분 뒤</button><button type="button" class="btn sm" data-alarm="60">1시간 뒤</button><button type="button" class="btn sm" data-alarm="open">열기</button><button type="button" class="btn sm" data-alarm="close">닫기</button></div></div>';
+      '<div class="alarm-a"><button type="button" class="btn sm primary" data-alarm="done">완료</button><button type="button" class="btn sm" data-alarm="10">10분 뒤</button><button type="button" class="btn sm" data-alarm="60">1시간 뒤</button><button type="button" class="btn sm" data-alarm="open">열기</button>' +
+      // 시험판 72(결정 사안 d20261106-maplook C): 장소가 있으면 '지도'(휴대폰 지도 앱, v44.js bxOpenMap · data-bxmapq)
+      (window.BX_APP && d.location && String(d.location).trim() ? '<button type="button" class="btn sm" data-bxmapq="' + esc(String(d.location).trim()) + '" aria-label="지도 앱에서 ' + esc(String(d.location).trim()) + ' 찾기">' + ICON.pin + '지도</button>' : '') +
+      '<button type="button" class="btn sm" data-alarm="close">닫기</button></div></div>';
   }).join('');
   document.title = (alarms.length ? '(' + alarms.length + ') ' : '') + '박스웍스 스케줄러';
 }

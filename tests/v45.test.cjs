@@ -1,6 +1,6 @@
 // 시험판 45: 다른 입력 창도 시험판 44 일정 창과 같은 삼성 방식(대표 11/4 1:24 · 1:34 · 1:51 · 1:53)
 // 수업 추가 · 수정(줄 목록, 장소 · 시간표 · 알림 페이지), 휴대폰 캘린더 일정 창(알림 · 출발·준비 페이지), 루틴 고치기(알림 방식 · 기준 페이지)
-const { openApp, settings, checker } = require('./harness.cjs');
+const { openApp, reloadUntil, settings, checker } = require('./harness.cjs');
 
 const old = '2026-10-29T00:00:00.000Z';
 function seed() {
@@ -118,7 +118,7 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.evaluate(pc => { localStorage.setItem('bx:pcal', JSON.stringify({ on: true })); localStorage.setItem('bx:pcache', JSON.stringify(pc)); }, pcache);
-    await p.reload(); await p.waitForFunction(() => window.BX_T && document.querySelector('.dock')); await p.waitForTimeout(700);
+    await reloadUntil(p, '[data-act="edit"][data-id^="pc_78"]'); await p.waitForTimeout(200);
     await p.waitForSelector('[data-act="edit"][data-id^="pc_78"]', { state: 'attached' }); await p.evaluate(() => document.querySelector('[data-act="edit"][data-id^="pc_78"]').click()); await p.waitForTimeout(500);
     const pr = await p.evaluate(() => ({ rows: Array.from(document.querySelectorAll('.bx-pc45 > .bx-er')).map(r => r.textContent.trim()), picks: Array.from(document.querySelectorAll('#sheet-b .pick')).filter(e => e.getBoundingClientRect().height > 0).length }));
     c.eq(pr, { rows: ['10분 전', '출발·준비'], picks: 0 }, '휴대폰 캘린더 일정 창: 알림 · 출발·준비 두 줄(고르는 칩을 펼쳐 두지 않음)');

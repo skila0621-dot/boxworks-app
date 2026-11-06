@@ -171,6 +171,12 @@ html.bx-app :where(.row.rowc .rc-sub){display:block;flex:0 1 auto;min-width:0;ov
 html.bx-app :where(.row.rowc .rc-sub:empty){display:none}
 html.bx-app :where(.row.rowc .rc-sub.go,.row.rowc .rc-sub.live,.row.rowc .rc-sub.nx){color:var(--accent-text);font-weight:700}
 html.bx-app :where(.row.rowc .rc-sub.warn){color:var(--warn-ink);font-weight:600}
+/* 시험판 72(maplook B): 둘째 줄 맨 앞 장소 = 보라 밑줄(누르면 휴대폰 지도 앱). 자리가 모자라면 장소만 줄어든다(…).
+   상태(출발 시각 · 남은 시간)는 줄지 않는다 — 줄어드는 비율(1000 : 1)로 나누면 상태도 0.1px쯤 줄어 '오후 2:30 출…'이 됐다(폭 384 정렬 점검 사진) */
+html.bx-app :where(.row.rowc .rc-sub.rc-ls){display:flex;align-items:baseline}
+html.bx-app :where(.row.rowc .rc-sub.rc-ls > .rc-st){flex:none;white-space:pre}
+html.bx-app :where(.row.rowc .rc-loc){flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent-text);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+html.bx-app :where(.row.rowc.past) .rc-loc{color:var(--ink-3)}
 html.bx-app :where(.row.rowc .rc-att){flex:none;display:inline-flex;align-items:center;gap:2px;font-size:13px;color:var(--ink-3)}
 html.bx-app :where(.row.rowc .rc-att) svg.i{width:14px;height:14px}
 html.bx-app :where(.row.rowc > .chk){flex:none}

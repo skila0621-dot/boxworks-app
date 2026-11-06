@@ -53,8 +53,20 @@ function bxRcItem(row, it, o){
   else if (pulse) { sub = esc(txt(pulse)); cls = 'live'; }
   else if (go) { sub = esc(go.t + ' ' + go.s); cls = 'go'; }
   else if (span) { sub = esc(txt(span)); }
-  else if (it.location) { sub = esc(String(it.location).trim()); }
-  if (date) sub = esc(date) + (sub ? ' · ' + sub : '');
+  // 시험판 72(결정 사안 d20261106-maplook B · 선택실 9 · 2번 B): 장소가 있으면 둘째 줄 맨 앞에 장소(보라 밑줄) + 상태 하나.
+  // 장소 글자를 누르면 휴대폰 지도 앱(v44.js bxOpenMap · data-bxmapq), 줄의 나머지를 누르면 지금처럼 일정 창. 끝낸 일정은 글자만(누르지 않음).
+  // 자리가 모자라면 장소가 먼저 줄어든다(…) — 상태(출발 시각 등)는 끝까지 보이게(rc-ls · rc-st, app.css).
+  // 상태가 없으면 rc-lo(장소만) — 다음 일정이면 v30.js가 그 뒤에 남은 시간을 붙인다
+  const loc = String(it.location || '').replace(/\s+/g, ' ').trim();
+  if (loc && !it.done) {
+    const l = esc(loc), only = !sub;
+    sub = (date ? '<span class="rc-st">' + esc(date) + ' · </span>' : '') + '<span class="rc-loc" role="link" data-bxmapq="' + l + '" aria-label="지도 앱에서 ' + l + ' 찾기">' + l + '</span>' +
+      (sub ? '<span class="rc-st"> · ' + sub + '</span>' : '');
+    cls = (cls ? cls + ' ' : '') + 'rc-ls' + (only ? ' rc-lo' : '');
+  } else {
+    if (loc && !sub) sub = '<span class="rc-loc0">' + esc(loc) + '</span>';
+    if (date) sub = esc(date) + (sub ? ' · ' + sub : '');
+  }
   bxRcShape(row, 'it', sub, cls, att ? '<span class="meta rc-att bx-att-m">' + att.innerHTML + '</span>' : '', !!late && !it.done);
 }
 const bxRowHtml49 = rowHtml;

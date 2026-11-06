@@ -393,9 +393,12 @@ function bxItemMenu(id, el){
   const pc = !!it.pc || /^pc_/.test(id);
   const row = (act, icon, label, sub, warn) => '<button type="button" class="menu-row' + (warn ? ' bx-im-del' : '') + '" data-bx-im="' + act + '"><span class="mi">' + icon + '</span><span class="ml">' + label + '</span>' + (sub ? '<span class="mv">' + esc(sub) + '</span>' : '') + '</button>';
   const when = (isDate(it.date) ? relDay(it.date, M.today) + ' ' : '') + timeText(it);
+  // 시험판 72(maplook B): 장소가 있으면 수정 다음에 '지도에서 찾기'(줄의 장소 글자가 작아 누르기 어려울 때 · 화면 읽기)
+  const loc = String(it.location || '').trim();
   openSheet({title: it.title || '(제목 없음)', draw: () => setSheet(
     '<p class="p small" style="margin:-6px 0 10px">' + esc(when) + (it.location ? ' · ' + esc(it.location) : '') + '</p><div class="menu">' +
     row('edit', ICON.edit, pc ? '알림 · 이동 시간 수정' : '수정', '') +
+    (loc ? row('map', ICON.pin, '지도에서 찾기', '') : '') +
     (pc ? '' : row('done', ICON.checkC, it.done ? '완료 취소' : '완료', '') +
       row('tmr', ICON.clock, '내일로 미루기', fmtMD(ymd(addDays(parseYmd(M.today), 1))) + (it.start ? ' ' + bxT(it.start) : '')) +
       row('del', ICON.trash, '삭제', '휴지통에 30일 보관', true)) +
@@ -429,6 +432,7 @@ document.addEventListener('click', ev => {
     if (/^pc_/.test(id) && el) { bxIlpAt = 0; el.click(); } else openEdit(id);
     return;
   }
+  if (op === 'map') { bxOpenMap(String(it.location || '').trim()); return; }
   if (op === 'done') { toggleDone(id); return; }
   if (op === 'del') { softDelete(id); return; }
   if (op === 'tmr') {

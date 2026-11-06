@@ -311,6 +311,7 @@ final class AlarmNotify {
             .setContentText(all ? body : pubSub(c, o))
             .addAction(0, okLabel(o), actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+        mapAction(c, pub, o, false);
         NotificationCompat.Builder b = new NotificationCompat.Builder(c, ch)
             .setSmallIcon(R.drawable.ic_stat_bx)
             .setContentTitle(title)
@@ -325,6 +326,7 @@ final class AlarmNotify {
             .setContentIntent(openPi)
             .addAction(0, okLabel(o), actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+        mapAction(c, b, o, false);
         // 지난 일정 알림이 알림창에 쌓이지 않게 6시간 뒤 저절로 지운다('알람이 곧 끝나요'는 남긴다)
         if (!"bx_renew".equals(id)) b.setTimeoutAfter(6 * 3600 * 1000L);
         try {
@@ -383,6 +385,7 @@ final class AlarmNotify {
             .setTimeoutAfter("routine".equals(o.optString("kind")) ? 90 * 60 * 1000L : 3 * 3600 * 1000L)
             .addAction(0, okLabel(o), actionPi(c, "ok", o))
             .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+        mapAction(c, b, o, true);
         if (live) {
             // 위에서 내려오는 작은 알림이라도 눈에 띄게 파란 바탕(서비스 알림만 색을 입힐 수 있다, 대표 지적 11/3 '알람이 너무 작다').
             // 알림을 밀어 지우면 소리도 멈춘다
@@ -392,14 +395,15 @@ final class AlarmNotify {
         }
         if (!all) {
             // 잠금 화면에 대신 보이는 글: 루틴은 '씻기 · 출발까지 30분', 일정은 '일정 알림 · 잠금을 풀면 보여요'
-            b.setPublicVersion(new NotificationCompat.Builder(c, CHANNEL_PRIVATE)
+            NotificationCompat.Builder pv = new NotificationCompat.Builder(c, CHANNEL_PRIVATE)
                 .setSmallIcon(R.drawable.ic_stat_bx)
                 .setContentTitle(pubTitle(c, o))
                 .setContentText(pubSub(c, o))
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .addAction(0, okLabel(o), actionPi(c, "ok", o))
-                .addAction(0, "5분 뒤", actionPi(c, "snooze", o))
-                .build());
+                .addAction(0, "5분 뒤", actionPi(c, "snooze", o));
+            mapAction(c, pv, o, true);
+            b.setPublicVersion(pv.build());
         }
         Notification n = b.build();
         // 휴대폰을 쓰는 중이면 전체 화면 대신 위에서 내려오는 알림만 떠서 소리가 한 번으로 끝났다(문제점 점검 기술 3).
@@ -481,6 +485,36 @@ final class AlarmNotify {
         return ok.isEmpty() ? "확인" : ok;
     }
 
+    /** 휴대폰 지도 앱(geo:)으로 장소 찾기 */
+    static Intent mapIntent(String q) {
+        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(q)));
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        return i;
+    }
+
+    /**
+     * 시험판 72(결정 사안 d20261106-maplook C): 장소가 있는 출발 · 일정 알림의 '지도'(화면이 정한 map = 장소 글).
+     * 꼭 울림 알람은 알람 화면을 거쳐 울림을 멈추고 확인한 뒤 잠금을 풀고 지도, 그 밖은 지도 앱으로 바로(잠금 화면이면 잠금을 푼 뒤 열림).
+     * 단추 이름만 '지도'라 잠금 화면에 장소 글은 보이지 않는다
+     */
+    static void mapAction(Context c, NotificationCompat.Builder b, JSONObject o, boolean viaAlarm) {
+        String q = o.optString("map", "").trim();
+        if (q.isEmpty()) return;
+        String id = o.optString("id");
+        Intent i;
+        if (viaAlarm) {
+            i = new Intent(c, AlarmActivity.class);
+            i.setAction("kr.boxworks.app.MAP." + id);
+            i.putExtra(AlarmStore.EXTRA_JSON, o.toString());
+            i.putExtra(AlarmActivity.EXTRA_MAP, true);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        } else {
+            i = mapIntent(q);
+        }
+        b.addAction(0, "지도", PendingIntent.getActivity(c, notifId(id) + 3, i,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+    }
+
     /**
      * 시험판 52(대표 11/4 16:58, D-25): 루틴 '짧게 한 번' 단계. 위에서 내려오는 알림 한 장, 단추 없음, 1분 뒤 알림창에서 저절로 사라진다
      * (알림창에는 루틴 진행 알림 한 장만 남게). 채널은 소리 · 진동 없이: 소리 · 진동은 ShortChime이 한 번 낸다(무음에서도 들리게).
@@ -530,6 +564,8 @@ final class AlarmNotify {
             .setAutoCancel(true)
             .setTimeoutAfter(60 * 1000L)
             .setContentIntent(openPi);
+        // 시험판 72: 출발 10분 전(장소가 있으면)만 '지도' 단추 하나. 루틴 단계는 그대로 단추 없음
+        mapAction(c, b, o, false);
         try {
             NotificationManagerCompat.from(c).notify(notifId(id), b.build());
         } catch (SecurityException ignored) {

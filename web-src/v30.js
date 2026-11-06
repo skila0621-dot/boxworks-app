@@ -59,6 +59,11 @@ function bxTag(el, txt){
   // 목록 줄 C: 둘째 줄이 비어 있을 때만 그 자리에 남은 시간('1시간 5분 뒤')
   if (el.classList.contains('rowc')) {
     const body = el.querySelector('.row-body'), has = el.querySelector('.rc-sub');
+    // 시험판 72: 둘째 줄이 장소뿐이면(rc-lo, v49.js) 장소 뒤에 남은 시간('강남역 · 1시간 5분 뒤')
+    if (body && has && has.classList.contains('rc-lo')) {
+      const st = document.createElement('span'); st.className = 'rc-st'; st.textContent = ' · ' + String(txt).replace(/^다음 · /, '');
+      has.classList.remove('rc-lo'); has.classList.add('nx'); has.appendChild(st); return;
+    }
     if (!body || (has && has.textContent.trim())) return;
     let meta = body.querySelector(':scope > .row-meta'); if (!meta) { meta = document.createElement('span'); meta.className = 'row-meta'; body.appendChild(meta); }
     const sub = has || document.createElement('span'); sub.className = 'meta rc-sub nx'; sub.textContent = String(txt).replace(/^다음 · /, '');

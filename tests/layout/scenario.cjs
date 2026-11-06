@@ -194,6 +194,8 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
   await tryDo('도움말', async () => { await closeAll(); await p.click('.ab-guide'); await snap('도움말'); await closeAll(); });
   await tryDo('루틴 꾹', async () => { await dock('routines'); if (await longPress('.rt-item .rt-open[data-rid="rt_w"]')) await snap('루틴 꾹 누르기'); await closeAll(); });
   await tryDo('일정 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row-main[data-id="it_2"]')) await snap('일정 꾹 누르기'); await closeAll(); });
+  // 시험판 72(maplook B): 장소가 있는 일정은 메뉴에 수정 다음 '지도에서 찾기'
+  await tryDo('장소 일정 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row-main[data-id="it_1"]')) await snap('장소 있는 일정 꾹 누르기'); await closeAll(); });
   // 시험판 60(선택실 5 · 1번 B · 2번): 누른 자리 메뉴 — 종일 줄(시험판 61부터, 전에는 시간 미지정 줄) · 루틴 줄 · 수업 줄 · 메모 줄 · 캘린더 날짜 칸
   await tryDo('종일 줄 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row .row-main[data-id="it_3"]')) await snap('종일 줄 꾹 누르기'); await closeAll(); });
   await tryDo('루틴 줄 꾹', async () => { await dock('today'); if (await longPress('#tcard2 .row.rowc[data-rid] .row-main')) await snap('루틴 줄 꾹 누르기'); await closeAll(); });
@@ -257,6 +259,8 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
     errs.push(...app.errors); await app.close();
   });
   await tryDo('앱 안 알림', async () => { await open({ now: '2026-11-02T07:01:00+09:00', data: data(), wait: 1500 }); await snap('앱 안 알림 카드'); errs.push(...app.errors); await app.close(); });
+  // 시험판 72(maplook C): 앱 안 일정 알림 카드 — 장소가 있으면 '지도'(치과 10분 전 알림 오후 2:50)
+  await tryDo('앱 안 일정 알림', async () => { await open({ now: '2026-11-02T14:51:00+09:00', data: data(), wait: 1500 }); await snap('앱 안 일정 알림 카드'); errs.push(...app.errors); await app.close(); });
   return errs;
 };
 module.exports.data = data;

@@ -1,17 +1,17 @@
 {
- "trial": 71,
+ "trial": 72,
  "screens": {
   "홈": {
-   "h": "8c675043b4537c64|d0a126ff38327132",
+   "h": "8c675043b4537c64|1db20cbd39adfd81",
    "ht": "8c675043b4537c64",
-   "hb": "d0a126ff38327132",
+   "hb": "1db20cbd39adfd81",
    "key": "s1kr4bnb",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 0,
-   "prev": 63,
-   "prevBottom": false
+   "prev": 69,
+   "prevBottom": true
   },
   "단추 견본": {
    "h": "050f74d2ae378c41|5994c9164084d3bb",
@@ -38,16 +38,16 @@
    "prevBottom": true
   },
   "홈 지난 일 펼침": {
-   "h": "2f783d381d27a07f|87ec5aa88972ad5d",
+   "h": "2f783d381d27a07f|2238cfa63bcc14be",
    "ht": "2f783d381d27a07f",
-   "hb": "87ec5aa88972ad5d",
+   "hb": "2238cfa63bcc14be",
    "key": "s1bg32tv",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 3,
-   "prev": 63,
-   "prevBottom": false
+   "prev": 69,
+   "prevBottom": true
   },
   "홈 다음 날": {
    "h": "0b8e0afbbcceac18|cb40cfe3230ad130",
@@ -62,28 +62,28 @@
    "prevBottom": false
   },
   "확인 필요": {
-   "h": "3299007e0f67139d|0c5ac5df91c482f6",
+   "h": "3299007e0f67139d|c7741b6e9dcba462",
    "ht": "3299007e0f67139d",
-   "hb": "0c5ac5df91c482f6",
+   "hb": "c7741b6e9dcba462",
    "key": "s1ttrxww",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 5,
-   "prev": 63,
-   "prevBottom": false
+   "prev": 69,
+   "prevBottom": true
   },
   "새 일정 창": {
-   "h": "5fe82a00388174b2|975ca1091cba0671",
+   "h": "5fe82a00388174b2|30f2255560288768",
    "ht": "5fe82a00388174b2",
-   "hb": "975ca1091cba0671",
+   "hb": "30f2255560288768",
    "key": "s91lp8p",
-   "since": 71,
-   "img": 71,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 6,
-   "prev": 69,
-   "prevBottom": false
+   "prev": 71,
+   "prevBottom": true
   },
   "새 일정 자세히 펼침": {
    "h": "b274c97fb017ebab|8e58226ffe62219e",
@@ -169,16 +169,16 @@
    "prevBottom": false
   },
   "일정 수정 창": {
-   "h": "d67645cebdb5bfbc|2849343cb237518b",
+   "h": "d67645cebdb5bfbc|15ab19cb1e2c2e38",
    "ht": "d67645cebdb5bfbc",
-   "hb": "2849343cb237518b",
+   "hb": "15ab19cb1e2c2e38",
    "key": "snece5i",
-   "since": 71,
-   "img": 71,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 25,
-   "prev": 69,
-   "prevBottom": false
+   "prev": 71,
+   "prevBottom": true
   },
   "일정 수정 자세히 펼침": {
    "h": "03eb719168e4def9|6d064cedbc728a67",
@@ -288,39 +288,39 @@
    "prevBottom": false
   },
   "캘린더 주": {
-   "h": "5bfcc8fbadd071fc|009ed0c6fda9026f",
-   "ht": "5bfcc8fbadd071fc",
-   "hb": "009ed0c6fda9026f",
+   "h": "60d1a2c69e932412|ab2debd01b72b960",
+   "ht": "60d1a2c69e932412",
+   "hb": "ab2debd01b72b960",
    "key": "s1gjrpzj",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 38,
-   "prev": 63,
+   "prev": 69,
    "prevBottom": false
   },
   "캘린더 일": {
-   "h": "010f476bc618d37d|e1b014573ed822d4",
-   "ht": "010f476bc618d37d",
-   "hb": "e1b014573ed822d4",
+   "h": "84c9bd0af579d221|5ee7533c40ffeea0",
+   "ht": "84c9bd0af579d221",
+   "hb": "5ee7533c40ffeea0",
    "key": "sh23r9r",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 39,
-   "prev": 63,
+   "prev": 69,
    "prevBottom": false
   },
   "날짜 창": {
-   "h": "d7c70bfcb589e11a|70dbab277e4120e6",
-   "ht": "d7c70bfcb589e11a",
-   "hb": "70dbab277e4120e6",
+   "h": "04b7ca69e67ae4db|ab0d7e93c181a9b9",
+   "ht": "04b7ca69e67ae4db",
+   "hb": "ab0d7e93c181a9b9",
    "key": "sosbzle",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 40,
-   "prev": 64,
+   "prev": 69,
    "prevBottom": false
   },
   "캘린더 목록": {
@@ -790,28 +790,28 @@
    "prevBottom": false
   },
   "찾기": {
-   "h": "7350046a9857302a|38ee9094300b3d66",
-   "ht": "7350046a9857302a",
-   "hb": "38ee9094300b3d66",
+   "h": "fab281fda50ce7c0|893e9ab914817700",
+   "ht": "fab281fda50ce7c0",
+   "hb": "893e9ab914817700",
    "key": "skol683",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 82,
-   "prev": 65,
+   "prev": 69,
    "prevBottom": false
   },
   "도움말": {
-   "h": "a31b09c5d879fff3|a7c2fe95aa54a53a",
+   "h": "a31b09c5d879fff3|59ab9a6f4bbe1d5b",
    "ht": "a31b09c5d879fff3",
-   "hb": "a7c2fe95aa54a53a",
+   "hb": "59ab9a6f4bbe1d5b",
    "key": "s3h0cxn",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 83,
-   "prev": 68,
-   "prevBottom": false
+   "prev": 69,
+   "prevBottom": true
   },
   "루틴 꾹 누르기": {
    "h": "834023b27fe8faee|dcf8cc5e299d94ac",
@@ -826,51 +826,51 @@
    "prevBottom": false
   },
   "일정 꾹 누르기": {
-   "h": "c342462ee97b0863|8273686978d519b6",
-   "ht": "c342462ee97b0863",
-   "hb": "8273686978d519b6",
+   "h": "8a616b5b8586115d|01234defba0deecf",
+   "ht": "8a616b5b8586115d",
+   "hb": "01234defba0deecf",
    "key": "s12vbo19",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 85,
-   "prev": 63,
-   "prevBottom": true
+   "prev": 69,
+   "prevBottom": false
   },
   "루틴 줄 꾹 누르기": {
-   "h": "ae6a9c231a63466e|010cb9aa59bbc10d",
-   "ht": "ae6a9c231a63466e",
-   "hb": "010cb9aa59bbc10d",
+   "h": "a97830513b2d67b5|1dcc332814cf2200",
+   "ht": "a97830513b2d67b5",
+   "hb": "1dcc332814cf2200",
    "key": "sm0ncqi",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
-   "order": 87,
-   "prev": 63,
+   "order": 88,
+   "prev": 69,
    "prevBottom": false
   },
   "수업 줄 꾹 누르기": {
-   "h": "b93f12717c2af3c3|086806bd6aa410ed",
-   "ht": "b93f12717c2af3c3",
-   "hb": "086806bd6aa410ed",
+   "h": "5458bb2a3f00061c|effadd5d9aa8b906",
+   "ht": "5458bb2a3f00061c",
+   "hb": "effadd5d9aa8b906",
    "key": "s142psvp",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
-   "order": 88,
-   "prev": 63,
+   "order": 89,
+   "prev": 69,
    "prevBottom": false
   },
   "메모 줄 꾹 누르기": {
-   "h": "bb019fe4305679bf|f905ca69724db0e5",
-   "ht": "bb019fe4305679bf",
-   "hb": "f905ca69724db0e5",
+   "h": "020a07029d9e1d3e|0e982ed93def0143",
+   "ht": "020a07029d9e1d3e",
+   "hb": "0e982ed93def0143",
    "key": "s1kaljia",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
-   "order": 89,
-   "prev": 63,
+   "order": 90,
+   "prev": 69,
    "prevBottom": false
   },
   "날짜 칸 꾹 누르기": {
@@ -881,7 +881,7 @@
    "since": 69,
    "img": 69,
    "scrolls": true,
-   "order": 90,
+   "order": 91,
    "prev": 68,
    "prevBottom": false
   },
@@ -893,7 +893,7 @@
    "since": 68,
    "img": 68,
    "scrolls": true,
-   "order": 91,
+   "order": 92,
    "prev": 63,
    "prevBottom": false
   },
@@ -905,7 +905,7 @@
    "since": 62,
    "img": 62,
    "scrolls": false,
-   "order": 92,
+   "order": 93,
    "prev": 59,
    "prevBottom": false
   },
@@ -917,7 +917,7 @@
    "since": 59,
    "img": 59,
    "scrolls": false,
-   "order": 93,
+   "order": 94,
    "seed": true
   },
   "시간표 도우미": {
@@ -928,7 +928,7 @@
    "since": 59,
    "img": 59,
    "scrolls": false,
-   "order": 94,
+   "order": 95,
    "seed": true
   },
   "알람 꺼짐 줄": {
@@ -939,7 +939,7 @@
    "since": 59,
    "img": 59,
    "scrolls": true,
-   "order": 95,
+   "order": 96,
    "seed": true
   },
   "알람 허락 화면": {
@@ -950,7 +950,7 @@
    "since": 59,
    "img": 59,
    "scrolls": true,
-   "order": 96,
+   "order": 97,
    "seed": true
   },
   "짧은 홈": {
@@ -961,7 +961,7 @@
    "since": 69,
    "img": 69,
    "scrolls": true,
-   "order": 97,
+   "order": 98,
    "prev": 63,
    "prevBottom": false
   },
@@ -973,7 +973,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 98,
+   "order": 99,
    "prev": 62,
    "prevBottom": false
   },
@@ -985,33 +985,33 @@
    "since": 69,
    "img": 69,
    "scrolls": true,
-   "order": 104,
+   "order": 105,
    "prev": 63,
    "prevBottom": false
   },
   "종일 줄 꾹 누르기": {
-   "h": "9b2e079c93a0a4cf|06cb252e3df0fce7",
-   "ht": "9b2e079c93a0a4cf",
+   "h": "8419e39e27dcbc9b|06cb252e3df0fce7",
+   "ht": "8419e39e27dcbc9b",
    "hb": "06cb252e3df0fce7",
    "key": "s1gsr53f",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
-   "order": 86,
-   "prev": 63,
+   "order": 87,
+   "prev": 69,
    "prevBottom": false
   },
   "말하기 듣는 중": {
-   "h": "bffa3c944eb425e0|93e4d0eff5ee1298",
+   "h": "bffa3c944eb425e0|3d0f6fbaae489e91",
    "ht": "bffa3c944eb425e0",
-   "hb": "93e4d0eff5ee1298",
+   "hb": "3d0f6fbaae489e91",
    "key": "scduca5",
-   "since": 71,
-   "img": 71,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 24,
-   "prev": 69,
-   "prevBottom": false
+   "prev": 71,
+   "prevBottom": true
   },
   "알림 페이지 알림 글": {
    "h": "a9e41d54da2c8d22",
@@ -1025,28 +1025,28 @@
    "isNew": true
   },
   "홈 돌아온 날": {
-   "h": "434930000c6e8f6c|36777fa1a3f283a2",
+   "h": "434930000c6e8f6c|6dd3039da98a2052",
    "ht": "434930000c6e8f6c",
-   "hb": "36777fa1a3f283a2",
+   "hb": "6dd3039da98a2052",
    "key": "snlxiif",
-   "since": 69,
-   "img": 69,
-   "scrolls": true,
-   "order": 99,
-   "prev": 66,
-   "prevBottom": false
-  },
-  "홈 돌아온 날 오늘부터 시작": {
-   "h": "f61093b2afba063b|7a6b3f5cefc8659f",
-   "ht": "f61093b2afba063b",
-   "hb": "7a6b3f5cefc8659f",
-   "key": "s1w7717g",
-   "since": 69,
-   "img": 69,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 100,
-   "prev": 66,
-   "prevBottom": false
+   "prev": 69,
+   "prevBottom": true
+  },
+  "홈 돌아온 날 오늘부터 시작": {
+   "h": "f61093b2afba063b|34640668b947c9b4",
+   "ht": "f61093b2afba063b",
+   "hb": "34640668b947c9b4",
+   "key": "s1w7717g",
+   "since": 72,
+   "img": 72,
+   "scrolls": true,
+   "order": 101,
+   "prev": 69,
+   "prevBottom": true
   },
   "설정 test": {
    "h": "08ce57f8bba40211|7554c0e2014b7569",
@@ -1104,15 +1104,16 @@
    "isNew": true
   },
   "새 일정 적은 뒤": {
-   "h": "1184ca24acaa2464|c0a70411218b408e",
+   "h": "1184ca24acaa2464|c2985e31f7f695d4",
    "ht": "1184ca24acaa2464",
-   "hb": "c0a70411218b408e",
+   "hb": "c2985e31f7f695d4",
    "key": "s89v3lf",
-   "since": 71,
-   "img": 71,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 17,
-   "isNew": true
+   "prev": 71,
+   "prevBottom": true
   },
   "새 일정 적은 뒤 더 보기": {
    "h": "23a75148c0d520c5|f3b99746f7e9e3d8",
@@ -1137,15 +1138,16 @@
    "isNew": true
   },
   "새 일정 칩 보기": {
-   "h": "9435253826dcd92b|36b94193bd9d32d5",
+   "h": "9435253826dcd92b|49adc6198ffa7a6a",
    "ht": "9435253826dcd92b",
-   "hb": "36b94193bd9d32d5",
+   "hb": "49adc6198ffa7a6a",
    "key": "s1h5etlf",
-   "since": 71,
-   "img": 71,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
    "order": 20,
-   "isNew": true
+   "prev": 71,
+   "prevBottom": true
   },
   "새 일정 칩 보기 더 보기": {
    "h": "e8f57db44210de2a|1fd16fda43eeba9a",
@@ -1203,15 +1205,16 @@
    "isNew": true
   },
   "휴대폰 캘린더 일정 창": {
-   "h": "78f96eaaeb2893ed|df087d2e8b6b41c3",
+   "h": "78f96eaaeb2893ed|6de13ef2c1d08c35",
    "ht": "78f96eaaeb2893ed",
-   "hb": "df087d2e8b6b41c3",
+   "hb": "6de13ef2c1d08c35",
    "key": "s1p3ku6p",
-   "since": 71,
-   "img": 71,
+   "since": 72,
+   "img": 72,
    "scrolls": true,
-   "order": 101,
-   "isNew": true
+   "order": 102,
+   "prev": 71,
+   "prevBottom": true
   },
   "휴대폰 캘린더 일정 알림": {
    "h": "1d68179ace756016",
@@ -1221,7 +1224,7 @@
    "since": 71,
    "img": 71,
    "scrolls": false,
-   "order": 102,
+   "order": 103,
    "isNew": true
   },
   "휴대폰 캘린더 일정 출발 준비": {
@@ -1232,10 +1235,32 @@
    "since": 71,
    "img": 71,
    "scrolls": false,
-   "order": 103,
+   "order": 104,
+   "isNew": true
+  },
+  "장소 있는 일정 꾹 누르기": {
+   "h": "fd7dd6d4d33de917|d4e5b0248f741e49",
+   "ht": "fd7dd6d4d33de917",
+   "hb": "d4e5b0248f741e49",
+   "key": "s18lj640",
+   "since": 72,
+   "img": 72,
+   "scrolls": true,
+   "order": 86,
+   "isNew": true
+  },
+  "앱 안 일정 알림 카드": {
+   "h": "3c39060ac74f349f|9551373adfde6b5f",
+   "ht": "3c39060ac74f349f",
+   "hb": "9551373adfde6b5f",
+   "key": "s7v29y7",
+   "since": 72,
+   "img": 72,
+   "scrolls": true,
+   "order": 106,
    "isNew": true
   }
  },
- "trialPrev": 69,
- "at": "2026-11-06T07:55:51.533Z"
+ "trialPrev": 71,
+ "at": "2026-11-06T10:06:13.733Z"
 }

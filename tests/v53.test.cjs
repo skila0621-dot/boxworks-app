@@ -54,8 +54,15 @@ module.exports = async function () {
     c.eq(await p.evaluate(() => getComputedStyle(document.body).wordBreak), 'keep-all', '앱 전체 줄 바꿈은 낱말 단위');
     c.eq(await p.evaluate(midword), [], '홈(390): 낱말 가운데에서 꺾인 줄 없음');
     // 시험판 56(목록 줄 C): 둘째 줄 하나(.rc-sub)는 …이 보이는 칸
-    const pl = await p.evaluate(() => { const e = Array.from(document.querySelectorAll('.row.rowc .rc-sub')).find(x => /연세바른치과|출발/.test(x.textContent)); const cs = e && getComputedStyle(e); return e && [cs.display, cs.textOverflow, cs.whiteSpace]; });
-    c.eq(pl, ['block', 'ellipsis', 'nowrap'], '홈 줄 둘째 줄: … 이 보이는 칸(flex 칸이면 글자가 반쯤 잘림)');
+    // 시험판 72: 장소가 있으면 둘째 줄은 flex(장소만 줄고 … · 상태 칸은 줄지 않음) — 그때는 글이 모두 칸 안에 있다(맨 글이 flex 칸에 있으면 반쯤 잘림)
+    const pl = await p.evaluate(() => {
+      const e = Array.from(document.querySelectorAll('.row.rowc .rc-sub')).find(x => /연세바른치과|출발/.test(x.textContent)); if (!e) return null;
+      const cs = getComputedStyle(e), cut = k => { const s = getComputedStyle(k); return s.overflow === 'hidden' && s.textOverflow === 'ellipsis' && /nowrap|pre/.test(s.whiteSpace); };
+      if (cs.display !== 'flex') return { ok: cs.display === 'block' && cs.textOverflow === 'ellipsis' && cs.whiteSpace === 'nowrap', d: cs.display };
+      const bare = Array.from(e.childNodes).some(n => n.nodeType === 3 && n.textContent.trim());
+      return { ok: !bare && e.children.length > 0 && Array.from(e.children).every(k => k.classList.contains('rc-st') ? getComputedStyle(k).flexShrink === '0' : cut(k)), d: 'flex', bare, kids: Array.from(e.children).map(k => k.className) };
+    });
+    c.ok(pl && pl.ok, '홈 줄 둘째 줄: … 이 보이는 칸(flex면 칸마다 …, 맨 글 없음) ' + JSON.stringify(pl));
     c.eq(await p.evaluate(() => (document.querySelector('.bx-mm-inp') || {}).placeholder), '떠오른 것을 적거나 말해요', '홈 메모 칸 안내 글(384 폭에서도 칸 안)');
 
     await p.click('[data-act="bx-past"]'); await p.waitForTimeout(400);

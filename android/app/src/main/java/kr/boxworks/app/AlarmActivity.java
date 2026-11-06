@@ -44,6 +44,8 @@ import org.json.JSONObject;
 public class AlarmActivity extends Activity {
     private static WeakReference<AlarmActivity> current = new WeakReference<>(null);
     private static final long RING_MS = 60 * 1000L;
+    /** 시험판 72: 알림의 '지도'(꼭 울림 알람)로 이 화면이 열렸을 때 — 울리지 않고 바로 확인 + 지도 */
+    static final String EXTRA_MAP = "kr.boxworks.app.MAP";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Ringtone ringtone;
@@ -141,8 +143,9 @@ public class AlarmActivity extends Activity {
         current = new WeakReference<>(this);
         alarm = AlarmNotify.fromIntent(getIntent());
         setContentView(buildUi());
-        ring();
         handler.postDelayed(lockWatch, 1000);
+        if (getIntent().getBooleanExtra(EXTRA_MAP, false)) { mapNow(); return; }
+        ring();
     }
 
     @Override
@@ -158,7 +161,51 @@ public class AlarmActivity extends Activity {
         if (!alarm.optString("id").isEmpty() && !alarm.optString("id").equals(inId) && !sameSeries) waiting.addFirst(alarm);
         alarm = incoming;
         setContentView(buildUi());
+        if (intent.getBooleanExtra(EXTRA_MAP, false)) { mapNow(); return; }
         ring();
+    }
+
+    /** 지금 알람을 확인으로 친다(확인 · 지도 단추). 다음 알람은 부르는 쪽이 보여 준다 */
+    private void confirmNow() {
+        AlarmStore.confirm(this, alarm, true);
+        // 아침 루틴 첫 알람이면 확인한 직후 아침 보고를 띄운다
+        if (alarm.optJSONObject("report") != null) AlarmNotify.showReport(this, alarm.optJSONObject("report"));
+        AlarmNotify.dismiss(this, alarm.optString("id"));
+        dropSeries(alarm.optString("series", ""));
+        if (AlarmStore.unlocked(this)) {
+            RoutineOngoing.post(this);
+            BxWidgetProvider.refreshAll(this);
+        }
+    }
+
+    /**
+     * 시험판 72(결정 사안 d20261106-maplook C): '지도' — 확인으로 치고(울림을 멈춤) 잠금을 푼 뒤 휴대폰 지도 앱(geo:)으로 장소를 찾는다.
+     * 잠금 풀기를 그만두면 지도는 열지 않는다. 함께 울린 알람이 있으면 그다음에 보여 준다
+     */
+    private void mapNow() {
+        final String q = alarm.optString("map", "").trim();
+        AlarmRingService.stop(this);
+        handler.removeCallbacks(stopper);
+        stopRinging();
+        confirmNow();
+        if (q.isEmpty()) { showNext(); return; }
+        final Runnable go = () -> {
+            try { startActivity(AlarmNotify.mapIntent(q)); } catch (Exception ignored) { }
+            showNext();
+        };
+        android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        if (km != null && km.isKeyguardLocked() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            km.requestDismissKeyguard(this, new android.app.KeyguardManager.KeyguardDismissCallback() {
+                @Override
+                public void onDismissSucceeded() { go.run(); }
+                @Override
+                public void onDismissCancelled() { showNext(); }
+                @Override
+                public void onDismissError() { go.run(); }
+            });
+        } else {
+            go.run();
+        }
     }
 
     @Override
@@ -281,20 +328,15 @@ public class AlarmActivity extends Activity {
         Button ok = button(AlarmNotify.okLabel(alarm), Color.WHITE, 0xFF1C1C1C, 0, dp(32));
         ok.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         ok.setOnClickListener(v -> {
-            AlarmStore.confirm(this, alarm, true);
-            // 아침 루틴 첫 알람이면 확인한 직후 아침 보고를 띄운다
-            if (alarm.optJSONObject("report") != null) AlarmNotify.showReport(this, alarm.optJSONObject("report"));
-            AlarmNotify.dismiss(this, alarm.optString("id"));
-            dropSeries(alarm.optString("series", ""));
-            if (AlarmStore.unlocked(this)) {
-                RoutineOngoing.post(this);
-                BxWidgetProvider.refreshAll(this);
-            }
+            confirmNow();
             showNext();
         });
         root.addView(ok, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)));
 
-        Button snooze = button("5분 뒤 · 같은 소리로 다시", Color.TRANSPARENT, Color.WHITE, 0xFF4A505D, dp(26));
+        // 시험판 72(결정 사안 d20261106-maplook C): 장소가 있는 출발 알람은 아래 줄을 '5분 뒤 다시 | 지도' 두 칸으로.
+        // 장소 글은 보이지 않고 단추 이름만(잠금 화면 '표시 안 함'이면 잠금을 푼 뒤에 보임)
+        String mapQ = none ? "" : alarm.optString("map", "").trim();
+        Button snooze = button(mapQ.isEmpty() ? "5분 뒤 · 같은 소리로 다시" : "5분 뒤 다시", Color.TRANSPARENT, Color.WHITE, 0xFF4A505D, dp(26));
         snooze.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         snooze.setOnClickListener(v -> {
             AlarmStore.confirm(this, alarm, false);
@@ -305,7 +347,21 @@ public class AlarmActivity extends Activity {
         });
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(52));
         slp.topMargin = dp(12);
-        root.addView(snooze, slp);
+        if (mapQ.isEmpty()) {
+            root.addView(snooze, slp);
+        } else {
+            LinearLayout pair = new LinearLayout(this);
+            pair.setOrientation(LinearLayout.HORIZONTAL);
+            pair.addView(snooze, new LinearLayout.LayoutParams(0, dp(52), 1f));
+            Button map = button("지도", Color.TRANSPARENT, Color.WHITE, 0xFF4A505D, dp(26));
+            map.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            map.setContentDescription("지도 앱에서 장소 찾기");
+            map.setOnClickListener(v -> mapNow());
+            LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(0, dp(52), 1f);
+            mlp.setMarginStart(dp(12));
+            pair.addView(map, mlp);
+            root.addView(pair, slp);
+        }
         return root;
     }
 

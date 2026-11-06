@@ -95,6 +95,8 @@ module.exports = async function () {
   {
     const app = await openWith({ width: 360, seen: '2026-11-03' });
     try {
+      // 한 장이 그려질 때까지(가끔 늦게 그려져 빈 목록을 잼, 시험판 72 전체 시험)
+      await app.page.waitForSelector('#tcard2 .bx-ret .btn', { timeout: 8000 }).catch(() => {});
       const bb = await app.page.evaluate(() => Array.from(document.querySelectorAll('#tcard2 .bx-ret .btn')).map(b => [b.scrollWidth <= b.clientWidth + 1, Math.round(b.getBoundingClientRect().height)]));
       c.ok(bb.length === 2 && bb.every(x => x[0] && x[1] >= 48), '폭 360: 단추 글이 넘치지 않음 ' + JSON.stringify(bb));
     } catch (e) { c.ok(false, '폭 360: ' + (e && e.stack || e)); }

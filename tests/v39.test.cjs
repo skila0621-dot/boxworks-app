@@ -1,6 +1,6 @@
 // 시험판 39: 여러 날 일정(달력 막대 · 홈 '2/3일째' 줄 · 확인 필요로 묻지 않음 · 알림은 첫날만), 분류 → 캘린더(칩 · 홈에 보이기 · 이 일정 색 · 새 일정의 기본 · 삭제),
 // 말로 넣기 날짜 범위, 휴대폰 캘린더 여러 날 일정은 하나로(대표 결정 11/3 21:4x~21:51, 결정 기록 D-15)
-const { openApp, settings, checker } = require('./harness.cjs');
+const { openApp, reloadUntil, settings, checker } = require('./harness.cjs');
 
 const old = '2026-10-29T00:00:00.000Z';
 const cat = (id, name, color, order, extra) => [id, Object.assign({ type: 'category', name, color, order, createdAt: old }, extra || {})];
@@ -198,7 +198,7 @@ module.exports = async function () {
   try {
     const p = app.page;
     await p.evaluate(pc => { localStorage.setItem('bx:pcal', JSON.stringify({ on: true })); localStorage.setItem('bx:pcache', JSON.stringify(pc)); }, pcache);
-    await p.reload(); await p.waitForFunction(() => window.BX_T && document.querySelector('.dock')); await p.waitForTimeout(600);
+    await reloadUntil(p, () => window.BX_T && window.BX_T.fn.pcTitles('2026-11-04').length > 0); await p.waitForTimeout(100);
     await p.click('.dock [data-view="month"]'); await p.waitForTimeout(600);
     const pb = await p.evaluate(() => Array.from(document.querySelectorAll('.cal .c-bar.pc')).map(b => [b.closest('.cell').dataset.date, b.textContent.trim(), b.style.getPropertyValue('--n')]));
     c.eq(pb, [['2026-11-04', '가족 여행', '3']], '휴대폰 캘린더 여러 날 종일 일정: 하나의 막대(조각나지 않음)');

@@ -21,7 +21,7 @@ module.exports = async function () {
       sub: (r.querySelector('.rc-sub') || {}).textContent || '', go: !!(r.querySelector('.rc-sub.go')), next: r.classList.contains('bx-next'),
       box: !!r.querySelector('.bx-r49-go'), bg: getComputedStyle(r).backgroundColor })));
     const r1 = rows.find(r => r.title === '노동부 방문'), r2 = rows.find(r => r.title === '저녁 약속');
-    c.ok(r1 && JSON.stringify(r1.t) === '["오후 3:00","오후 4:00"]' && r1.sub === '오후 2:40 출발' && r1.go && r1.next && !r1.box, "홈 줄 C: 시작 · 끝 | 제목 + '오후 2:40 출발'(장소보다 먼저) " + JSON.stringify(r1));
+    c.ok(r1 && JSON.stringify(r1.t) === '["오후 3:00","오후 4:00"]' && r1.sub === '롯데마트 옆 고용복지센터 · 오후 2:40 출발' && r1.go && r1.next && !r1.box, "홈 줄 C: 시작 · 끝 | 제목 + 장소 · '오후 2:40 출발'(시험판 72: 장소 + 상태 하나) " + JSON.stringify(r1));
     c.ok(r2 && r2.sub === '강남역 2번 출구' && !r2.go, '출발 시각이 없는 일정은 둘째 줄에 장소 ' + JSON.stringify(r2));
     c.ok(r1 && r1.bg !== 'rgba(0, 0, 0, 0)' && r2 && r2.bg === 'rgba(0, 0, 0, 0)', '다음 일정 하나만 연보라 바탕 ' + JSON.stringify([r1 && r1.bg, r2 && r2.bg]));
     // (2) 일정 창: 아래 '취소 | 저장', 위 × 숨김. 제목 옆 색 동그라미는 시험판 60에서 뺌(대표 11/5 22:03, 캘린더 · 색은 '자세히')

@@ -119,6 +119,23 @@ async function ready(page) {
   await page.waitForTimeout(500);
 }
 
+/**
+ * 다시 연 뒤 보여야 할 것이 생길 때까지 — 3번까지 다시 연다(시험판 72). 휴대폰 캘린더 사본을 넣고 다시 열면 가끔 그것이 그려지지 않아
+ * 시험이 30초 기다리다 멈췄다(v39 · v45, 혼자 돌리면 통과). 시험판 71 정렬 점검의 같은 멈춤은 다시 열지 않는 쪽으로 고침.
+ * want: 선택자(붙어 있으면 됨) 또는 페이지에서 참이 되면 되는 함수
+ */
+async function reloadUntil(page, want, tries = 3) {
+  for (let i = 0; i < tries; i++) {
+    await page.reload(); await ready(page);
+    try {
+      if (typeof want === 'function') await page.waitForFunction(want, null, { timeout: 6000 });
+      else await page.waitForSelector(want, { state: 'attached', timeout: 6000 });
+      return true;
+    } catch (e) { /* 한 번 더 다시 연다 */ }
+  }
+  return false;
+}
+
 /** 간단한 확인 도구: 실패를 모아 두었다가 끝에 한꺼번에 알린다 */
 function checker(name) {
   const fails = [];
@@ -129,4 +146,4 @@ function checker(name) {
   return { ok, eq, done };
 }
 
-module.exports = { ROOT, NOW, openApp, ready, settings, checker, ymdOf, hmOf };
+module.exports = { ROOT, NOW, openApp, ready, reloadUntil, settings, checker, ymdOf, hmOf };

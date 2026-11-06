@@ -68,7 +68,7 @@ module.exports = async function () {
       oneLine: Array.from(document.querySelectorAll('#tcard2 .row-time b')).filter(b => b.getBoundingClientRect().height).every(b => b.getBoundingClientRect().height < 26)
     }));
     c.eq(home.now, '지금 오후 1:55', "'지금' 줄: 지금 오후 1:55");
-    c.ok(home.rows.some(r => JSON.stringify(r) === '["오후 3:00","오후 4:00","오후 2:40 출발"]') && home.rows.some(r => JSON.stringify(r) === '["오후 6:30","오후 8:00"]') && home.oneLine, '홈 줄: 시작 · 끝 · 출발 모두 오전 · 오후, 시작 시각은 한 줄 ' + JSON.stringify(home));
+    c.ok(home.rows.some(r => JSON.stringify(r) === '["오후 3:00","오후 4:00","롯데마트 옆 고용복지센터 · 오후 2:40 출발"]') && home.rows.some(r => JSON.stringify(r) === '["오후 6:30","오후 8:00"]') && home.oneLine, '홈 줄: 시작 · 끝 · 출발 모두 오전 · 오후, 시작 시각은 한 줄 ' + JSON.stringify(home));
     c.eq(await bare24(p), [], '홈: 오전 · 오후 없는 시각 없음');
     c.eq(await p.evaluate(() => Array.from(document.querySelectorAll('.bx-mm-row > .bx-mm-t')).filter(e => e.getBoundingClientRect().height).map(e => e.textContent)).then(a => a.slice(0, 2)), ['오전 9:05', '오후 1:40'], '오늘의 메모: 적은 시각도 오전 · 오후');
     c.eq(await offScale(p), [], '홈: 글자 크기는 6단계만');

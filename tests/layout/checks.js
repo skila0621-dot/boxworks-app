@@ -23,7 +23,8 @@ module.exports = function audit(opts){
   const name = x => x.tagName.toLowerCase() + (x.id ? '#' + x.id : '') + (typeof x.className === 'string' && x.className.trim() ? '.' + x.className.trim().split(/\s+/).slice(0, 2).join('.') : '');
   const path = e => { const a = []; for (let x = e; x && x !== document.body && a.length < 3; x = x.parentElement) a.unshift(name(x)); return a.join('>'); };
   const txt = e => (e.textContent || e.getAttribute && (e.getAttribute('aria-label') || '') || '').replace(/\s+/g, ' ').trim().slice(0, 30);
-  const hidden = e => { for (let x = e; x; x = x.parentElement) { if (x.hidden) return true; const s = cs(x); if (s.display === 'none' || s.visibility === 'hidden' || +s.opacity <= 0.05) return true; } return false; };
+  // 사라지는 중인 토스트(.bx-out, 0.2초 뒤 지워짐 · motion.js bxToastGone)는 재지 않는다: 흐려지는 동안 색이 섞여 대비가 낮게 잡혔다(시험판 72 게이트 '명상을 끝냈어요')
+  const hidden = e => { for (let x = e; x; x = x.parentElement) { if (x.hidden || (x.classList && x.classList.contains('bx-out'))) return true; const s = cs(x); if (s.display === 'none' || s.visibility === 'hidden' || +s.opacity <= 0.05) return true; } return false; };
   let all = Array.from(document.body.querySelectorAll('*')).filter(e => !e.closest('svg,script,style,#bx-splash,template') && vis(e) && !hidden(e));
   // 화면을 덮는 층(창 · 페이지 · 처음 화면)이 열려 있으면 그 밑은 누를 수 없다 → 맨 위 층 안만 잰다(알림 글처럼 그 위에 뜬 것은 함께)
   const big = all.filter(e => { const q = cs(e).position; if (q !== 'fixed' && q !== 'absolute') return false; const r = e.getBoundingClientRect(); return r.width * r.height >= W * H * 0.45; });

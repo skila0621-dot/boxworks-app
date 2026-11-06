@@ -149,6 +149,8 @@ window.BX_alarmPlan = function(days){
     // 시험판 65(결정 사안 s07 · 정할 것 2번): 크게 울리는 일정(사용자가 알림 페이지에서 켬, 알림이 있을 때만)은
     // 사전 알림도 알람처럼(잠금 화면 알람 · 끌 때까지), 잠금 화면에 제목이 보인다(장소는 그대로 잠금을 풀면). 설정 '표시 안 함'이면 그대로 가림(휴대폰 쪽)
     const loud = !!it.loud && remList(it.remind).length > 0, nm = it.title || '(제목 없음)';
+    // 시험판 72(결정 사안 d20261106-maplook C): 장소가 있으면 출발 10분 전 · 출발할 시간 · 일정 알림에 '지도'(휴대폰 지도 앱, 잠금을 풀어야 열림). 장소 글은 잠금 화면에 보이지 않는다
+    const loc = String(it.location || '').replace(/\\s+/g, ' ').trim();
     tvs.forEach(a => {
       if (a.at <= now || a.at > until) return;
       if (a.pre && inRt(a.at)) return;
@@ -160,7 +162,8 @@ window.BX_alarmPlan = function(days){
         pt: isLeave ? (loud ? '출발할 시간 · ' + nm : '출발할 시간') : a.routine ? a.title : (loud ? nm : '곧 출발'),
         ps: isLeave ? (loud ? bxT(it.start) + ' 도착' : '일정 내용은 잠금을 풀면 보여요') : a.sub,
         pg: a.routine ? (loud ? String(a.group) : String(a.group).split(' · ')[0]) : '일정',
-        lv: a.ring === 'short' ? lvS : lvR, ring: a.ring === 'short' ? 'short' : 'must', ok: a.ok || undefined, say: a.say, first: a.first || undefined});
+        lv: a.ring === 'short' ? lvS : lvR, ring: a.ring === 'short' ? 'short' : 'must', ok: a.ok || undefined, say: a.say, first: a.first || undefined,
+        map: loc && (isLeave || a.pre) ? loc : undefined});
     });
     tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
@@ -170,6 +173,7 @@ window.BX_alarmPlan = function(days){
         sub: when + (it.location ? ' · ' + it.location : ''), body: when + (it.location ? ' · ' + it.location : ''),
         pt: loud ? nm : '일정 알림', ps: loud ? lead : lead + ' · 잠금을 풀면 보여요', pg: '일정', lv: loud ? 'alarm' : lvI};
       if (loud) ai.loud = true;
+      if (loc) ai.map = loc;
       out.push(ai); if (ai.lv === 'notice') nagOf(ai);
     });
   });
