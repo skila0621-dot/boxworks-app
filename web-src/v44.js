@@ -39,7 +39,9 @@ function bxEdList(){
   const tTxt = t0 ? bxT(t0) + (t1 ? ' ~ ' + bxT(t1) : '') : '하루 종일';
   const cur = remList(fRem()), def = bxRemDef(F.timed);
   const rs = !cur.length && !F.remAdv ? 'none' : cur.length === 1 && cur[0] === def && !F.remAdv ? 'def' : 'own';
-  const remNote = rs === 'def' ? '기본값 ' + remLabel(def) + ' · 설정 › 알림에서 바꿔요' : rs === 'own' ? (cur.length > 1 ? '알림 ' + cur.length + '개 · ' + cur.map(remLabel).join(', ') : cur.length ? remLabel(cur[0]) : '알림 페이지에서 정해요') : '알림 없이 저장해요';
+  // 크게 울리기(시험판 65): 알림이 있으면 종에 소리 결 · 글 끝에 '크게 울려요'(설정 안내 대신)
+  const loud = !!F.loud && cur.length > 0;
+  const remNote = rs === 'def' ? '기본값 ' + remLabel(def) + (loud ? ' · 크게 울려요' : ' · 설정 › 알림에서 바꿔요') : rs === 'own' ? (cur.length > 1 ? '알림 ' + cur.length + '개 · ' + cur.map(remLabel).join(', ') : cur.length ? remLabel(cur[0]) : '알림 페이지에서 정해요') + (loud ? ' · 크게 울려요' : '') : '알림 없이 저장해요';
   const cat = F.categoryId ? M.catMap.get(F.categoryId) : null;
   const catDot = cat ? '<i class="dot" style="--c:' + (F.color || catColor(cat.id)) + '"></i>' : '';
   const note = (F.note || '').split('\n').map(s => s.trim()).filter(Boolean)[0] || '';
@@ -52,7 +54,7 @@ function bxEdList(){
     bxEdRow('date', ICON.cal, dTxt, true, multi ? '날짜(여러 날)' : '날짜') +
     bxEdRow('time', ICON.clock, tTxt, true, '시간') +
     bxEdRow('more', ICON.pin, F.location || '장소', !!F.location, '장소', 'loc') +
-    '<div class="bx-er bx-er-rem"><span class="bx-er-ic" aria-hidden="true">' + ICON.bell + '</span><div class="bx-rem3"><div class="seg" role="group" aria-label="알림">' +
+    '<div class="bx-er bx-er-rem' + (loud ? ' loud' : '') + '"><span class="bx-er-ic" aria-hidden="true">' + (loud ? ICON.bellRing : ICON.bell) + '</span><div class="bx-rem3"><div class="seg" role="group" aria-label="알림">' +
       '<button type="button" data-bxrem3="none" aria-pressed="' + (rs === 'none') + '">없음</button>' +
       '<button type="button" data-bxrem3="def" aria-pressed="' + (rs === 'def') + '">기본값</button>' +
       '<button type="button" data-bxrem3="own" data-fpanel="rem" aria-pressed="' + (rs === 'own') + '">직접</button></div>' +
@@ -148,8 +150,7 @@ function bxEpSync(){
   pan.querySelectorAll('.bx-wc').forEach(c => { if (c._bxPlace) c._bxPlace(); });
   document.documentElement.classList.add('bx-ep-on');
   if (k === 'loc') { if (pg.dataset.loc0 !== '1') { bxEpLoc0 = (F.location || '').trim(); pg.dataset.loc0 = '1'; } bxEpPlaces(); }
-  // 알림 페이지: 스위치 줄은 삼성처럼 '사용 중 · 사용 안 함'(위 제목이 이미 '알림')
-  if (k === 'rem') { const sw = pan.querySelector('.bx-swrow'), sp = sw && sw.querySelector('span'), tg = sw && sw.querySelector('.tog'); if (sp && tg) { const on = tg.getAttribute('aria-checked') === 'true'; sp.textContent = on ? '사용 중' : '사용 안 함'; sw.classList.toggle('on', on); } }
+  // 알림 페이지 스위치 줄의 '사용 중 · 사용 안 함'은 그리는 곳(v30.js bxRemQuick)에서 정한다(시험판 65)
   // 캘린더 페이지: '없음' → '캘린더 없음'
   if (k === 'cat') { const nb = pan.querySelector('#f-cat > .picks .pick[data-fcat=""]'); if (nb && nb.textContent.trim() === '없음') nb.textContent = '캘린더 없음'; }
 }

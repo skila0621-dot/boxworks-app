@@ -113,7 +113,9 @@ function pcItems(settings){
         remind: ov.remind != null ? ov.remind : !cfg.alarm ? '' : timed ? remNorm(settings.defaultRemind, true, start) : remNorm(settings.defaultRemindDay, false),
         travel, prep: timed ? (ov.prep !== undefined ? ov.prep : pf && pf.id) || null : null, prepOut: !!(pf && !pf.id),
         // 시험판 62: 이 일정만 바꾼 준비 단계 시간 · 알람 켜고 끄기(travel.js tvPlan)
-        prepMin: timed && ov.prepMin ? ov.prepMin : null, prepRing: timed && ov.prepRing ? ov.prepRing : null, done: !!ov.done, doneAt: ov.doneAt || null, slips: 0, createdAt: '', updatedAt: ''});
+        prepMin: timed && ov.prepMin ? ov.prepMin : null, prepRing: timed && ov.prepRing ? ov.prepRing : null,
+        // 시험판 65: 크게 울리기(이 일정만 알람처럼 · 잠금 화면에 제목)
+        loud: !!ov.loud, done: !!ov.done, doneAt: ov.doneAt || null, slips: 0, createdAt: '', updatedAt: ''});
     });
   });
   return out;
@@ -206,12 +208,13 @@ document.addEventListener('click', ev => {
     else pcOpen(it.id);
     return;
   }
-  const sid = SH && $('#sheet-b') && (t.closest('[data-pcrem],[data-pctv],[data-pcprep],[data-act="pc-done"],[data-act="pc-open-app"]'));
+  const sid = SH && $('#sheet-b') && (t.closest('[data-pcrem],[data-pcloud],[data-pctv],[data-pcprep],[data-act="pc-done"],[data-act="pc-open-app"]'));
   if (sid) {
     ev.preventDefault(); ev.stopPropagation();
     const idEl = $('#sheet-f [data-act="pc-done"]'), id = idEl ? idEl.dataset.id : null;
     const it = id ? M.items.find(i => i.id === id) : null; if (!it) return;
     if (sid.dataset.pcrem != null) pcSetOv(it.pcKey, {remind: sid.dataset.pcrem});
+    else if (sid.dataset.pcloud != null) pcSetOv(it.pcKey, {loud: sid.dataset.pcloud === '1'});
     else if (sid.dataset.pctv != null) { const v = +sid.dataset.pctv || 0; pcSetOv(it.pcKey, {travel: v}); if (v) tvRemember(it.title, it.location, v); }
     else if (sid.dataset.pcprep != null) { const v = sid.dataset.pcprep, o = tvOwnLeft(it.prepMin, it.prepRing); tvPcSave = false; pcSetOv(it.pcKey, {prep: v === 'new' ? tvEnsureOut() : v || null, prepMin: null, prepRing: Object.keys(o.pr).length ? o.pr : null}); }
     else if (sid.dataset.act === 'pc-done') { pcSetOv(it.pcKey, {done: !it.done, doneAt: it.done ? null : nowIso()}); closeSheet(); toast(it.done ? '완료를 취소했어요.' : '완료로 표시했어요 · ' + it.title); return; }

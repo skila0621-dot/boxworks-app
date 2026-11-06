@@ -209,10 +209,24 @@ function bxRemQuick(){
   // 시험판 37(대표 지적 11/3 18:12): 꺼져 있어도 켜면 무엇이 들어가는지(기본값) 보여 준다. 시간 없는 일정은 시간을 정하면 들어갈 값도
   const defNote = on ? '' : '<p class="p small bx-rem-def">켜면 <b>' + esc(remLabel(bxRemDef(F.timed))) + '</b>' +
     (F.timed ? '' : ' · 시간을 정하면 <b>' + esc(remLabel(bxRemDef(true))) + '</b>') + ' · 기본값은 설정 › 알림에서</p>';
-  return '<div class="bx-swrow"><span>알림</span><button type="button" class="tog" role="switch" aria-checked="' + on + '" aria-label="알림" data-bx-remsw="1"><i></i></button></div>' + defNote +
+  // 알림 페이지의 스위치 줄은 삼성처럼 '사용 중 · 사용 안 함'(위 제목이 이미 '알림'). 스위치를 누를 때마다 다시 그리므로 여기서 정한다
+  // (전에는 페이지를 열 때만 바꿔 써서, 페이지 안에서 켜고 끄면 '알림'으로 돌아갔다 — 시험판 65)
+  return '<div class="bx-swrow' + (on ? ' on' : '') + '"><span>' + (on ? '사용 중' : '사용 안 함') + '</span><button type="button" class="tog" role="switch" aria-checked="' + on + '" aria-label="알림" data-bx-remsw="1"><i></i></button></div>' + defNote +
     (on ? '<div class="picks bx-rem-q" role="group" aria-label="알림">' + opts.map(o => '<button type="button" class="pick" data-bx-rem="' + o[0] + '" aria-pressed="' + (!cust && one === o[0]) + '">' + o[1] + '</button>').join('') +
       '<button type="button" class="pick" data-bx-rem="adv" aria-pressed="' + cust + '">' + (cust && cur.length ? esc(cur.length > 1 ? '알림 ' + cur.length + '개' : remLabel(cur[0])) : '직접 입력') + '</button></div>' : '');
 }
+/* 시험판 65(결정 사안 s07 · 정할 것 2번 '사람과의 약속 알림'): 이 일정만 크게 울리기 — 알람처럼 끌 때까지(잠금 화면 알람),
+   잠금 화면에 제목도. 사용자가 켤 때만(제목 · 장소로 약속인지 짐작하지 않음). 알림을 켰을 때 알림 페이지 맨 아래 상자 한 줄 */
+function bxRemLoud(){
+  if (!window.BX_APP || !F || !remList(fRem()).length) return '';
+  return '<div class="bx-swrow bx-loud"><span><b>크게 울리기</b><small>알람처럼 끌 때까지 울려요 · 잠금 화면에 제목이 보여요</small></span>' + bxSwitch('data-bxloud', !!F.loud, '크게 울리기') + '</div>';
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('#f-rem [data-bxloud]'); if (!b || !window.BX_APP || !F) return;
+  ev.preventDefault(); ev.stopPropagation();
+  F.loud = b.dataset.bxloud === '1';
+  drawFRem();
+}, true);
 document.addEventListener('click', ev => {
   const sw = ev.target.closest && ev.target.closest('[data-bx-remsw]');
   const b = !sw && ev.target.closest && ev.target.closest('[data-bx-rem]');

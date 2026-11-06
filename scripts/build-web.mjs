@@ -146,6 +146,9 @@ window.BX_alarmPlan = function(days){
   M.items.forEach(it => {
     if (it.done || it.deletedAt) return;
     const tvs = tvAlarms(it);
+    // 시험판 65(결정 사안 s07 · 정할 것 2번): 크게 울리는 일정(사용자가 알림 페이지에서 켬, 알림이 있을 때만)은
+    // 사전 알림도 알람처럼(잠금 화면 알람 · 끌 때까지), 잠금 화면에 제목이 보인다(장소는 그대로 잠금을 풀면). 설정 '표시 안 함'이면 그대로 가림(휴대폰 쪽)
+    const loud = !!it.loud && remList(it.remind).length > 0, nm = it.title || '(제목 없음)';
     tvs.forEach(a => {
       if (a.at <= now || a.at > until) return;
       if (a.pre && inRt(a.at)) return;
@@ -154,16 +157,20 @@ window.BX_alarmPlan = function(days){
       if (isLeave && rtLeaveNear(a.at)) return;
       out.push({id: 'iv_' + it.id + '_' + a.id + '_' + a.at, at: a.at, kind: a.routine ? 'routine' : 'item', group: a.group, title: a.title, sub: a.sub,
         body: a.sub, from: a.routine ? a.from : 0, to: a.routine ? a.to : 0, next: a.next,
-        pt: isLeave ? '출발할 시간' : a.routine ? a.title : '곧 출발', ps: isLeave ? '일정 내용은 잠금을 풀면 보여요' : a.sub, pg: a.routine ? String(a.group).split(' · ')[0] : '일정',
+        pt: isLeave ? (loud ? '출발할 시간 · ' + nm : '출발할 시간') : a.routine ? a.title : (loud ? nm : '곧 출발'),
+        ps: isLeave ? (loud ? bxT(it.start) + ' 도착' : '일정 내용은 잠금을 풀면 보여요') : a.sub,
+        pg: a.routine ? (loud ? String(a.group) : String(a.group).split(' · ')[0]) : '일정',
         lv: a.ring === 'short' ? lvS : lvR, ring: a.ring === 'short' ? 'short' : 'must', ok: a.ok || undefined});
     });
     tvRemTimes(it, tvs).forEach(r => {
       const t = r.getTime(); if (t <= now || t > until) return;
       const when = relDay(it.date, ymd(new Date(t))) + ' ' + timeText(it);
-      const ai = {id: 'i_' + it.id + '_' + t, at: t, kind: 'item', group: '일정', title: it.title || '(제목 없음)',
+      const lead = bxLeadText(it.start ? at(it.date, it.start).getTime() - t : null, relDay(it.date, ymd(new Date(t))));
+      const ai = {id: 'i_' + it.id + '_' + t, at: t, kind: 'item', group: '일정', title: nm,
         sub: when + (it.location ? ' · ' + it.location : ''), body: when + (it.location ? ' · ' + it.location : ''),
-        pt: '일정 알림', ps: bxLeadText(it.start ? at(it.date, it.start).getTime() - t : null, relDay(it.date, ymd(new Date(t)))) + ' · 잠금을 풀면 보여요', pg: '일정', lv: lvI};
-      out.push(ai); if (lvI === 'notice') nagOf(ai);
+        pt: loud ? nm : '일정 알림', ps: loud ? lead : lead + ' · 잠금을 풀면 보여요', pg: '일정', lv: loud ? 'alarm' : lvI};
+      if (loud) ai.loud = true;
+      out.push(ai); if (ai.lv === 'notice') nagOf(ai);
     });
   });
   const reps = [];

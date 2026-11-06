@@ -877,6 +877,8 @@ html.is-dark svg.ico-sun{display:block}
 /* toasts & alarms */
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + 12px);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(520px,calc(100% - 32px));pointer-events:none}
 html.locked #toasts{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto}
+/* 전체 화면 페이지(‹ 이름 · 완료)가 열린 동안은 아래에(안드로이드 알림 글 자리): 위에 뜨면 페이지 머리의 이름 · ‹ · 완료를 가렸다(시험판 65). 페이지 아래에는 떠 있는 단추가 없다 */
+html.locked:has(.bx-ep) #toasts{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 24px)}
 .toast{pointer-events:auto;display:flex;align-items:center;gap:6px;min-height:48px;background:var(--ink);color:var(--bg);border-radius:14px;padding:6px 6px 6px 16px;box-shadow:var(--shadow);font-size:14.5px;font-weight:600;line-height:1.35;max-width:100%;animation:rise .18s ease-out}
 .toast span{flex:1;min-width:0}
 .toast button{height:36px;padding:0 10px;border-radius:10px;color:var(--bg);font-weight:800;white-space:nowrap;line-height:1;text-decoration:underline;text-underline-offset:3px}
@@ -2517,10 +2519,10 @@ function openEdit(id, preset){
   if (id) {
     const it = getDoc(id); if (!it) return;
     // remT / remD: the reminder used when the item has a time / has no time (kept apart so toggling keeps each choice)
-    F = {mode: 'edit', id, title: it.title || '', date: it.date, timed: !!it.start, start: it.start || defStart(it.date), end: it.end || '', categoryId: it.categoryId || null, remT: remNorm(it.remind, true), remD: remNorm(it.remind, false), remCustom: false, location: it.location || '', note: it.note || '', extra: !!(it.location || it.note), done: !!it.done};
+    F = {mode: 'edit', id, title: it.title || '', date: it.date, timed: !!it.start, start: it.start || defStart(it.date), end: it.end || '', categoryId: it.categoryId || null, remT: remNorm(it.remind, true), remD: remNorm(it.remind, false), remCustom: false, location: it.location || '', note: it.note || '', loud: !!it.loud, extra: !!(it.location || it.note), done: !!it.done};
   } else {
     const date = preset.date || M.today;
-    F = {mode: 'new', title: '', date, timed: false, start: defStart(date), end: '', categoryId: null, remT: remNorm(M.settings.defaultRemind, true), remD: remNorm(M.settings.defaultRemindDay, false), remCustom: false, location: '', note: '', extra: false, touchedDate: !!preset.date, touchedTime: false, parsed: null, err: ''};
+    F = {mode: 'new', title: '', date, timed: false, start: defStart(date), end: '', categoryId: null, remT: remNorm(M.settings.defaultRemind, true), remD: remNorm(M.settings.defaultRemindDay, false), remCustom: false, location: '', note: '', loud: false, extra: false, touchedDate: !!preset.date, touchedTime: false, parsed: null, err: ''};
   }
   openSheet({title: F.mode === 'new' ? '새 일정' : '일정 수정', draw: drawEdit, refresh: null});
   if (F.mode === 'new') { const t = $('#f-title'); if (t) t.focus(); }
@@ -2663,6 +2665,8 @@ function saveEdit(){
   const remind = remNorm(start ? F.remT : F.remD, !!start, start);
   const fields = {title, date: F.date, start, end, categoryId: F.categoryId || null, remind, location: (F.location || '').trim(), note: F.note || ''};
   const when = relDay(F.date, ymd(new Date())) + (start ? ' ' + start : '');
+  // 크게 울리기(시험판 65): 알림이 있을 때만. 새 일정은 켰을 때만 적는다
+  if (F.loud && remind) fields.loud = true; else if (F.mode === 'edit') fields.loud = false;
   if (F.mode === 'new') {
     const id = rid('i_');
     record([id]);

@@ -1152,6 +1152,8 @@ html.bx-app .bx-late-ok{margin:0 calc(-1 * var(--card-pad));padding:0 var(--card
 #toasts .toast.bx-out{animation:bxSink .2s cubic-bezier(.4,0,1,1) forwards}
 html.locked #toasts .toast{animation:bxDrop .26s cubic-bezier(.2,.8,.2,1)}
 html.locked #toasts .toast.bx-out{animation:bxLift .2s cubic-bezier(.4,0,1,1) forwards}
+html.locked:has(.bx-ep) #toasts .toast{animation:bxRise .26s cubic-bezier(.2,.8,.2,1)}
+html.locked:has(.bx-ep) #toasts .toast.bx-out{animation:bxSink .2s cubic-bezier(.4,0,1,1) forwards}
 .bx-ghost{pointer-events:none!important}
 .bx-ghost.bx-ghost-sheet{animation:bxFadeOut .22s ease-in forwards}
 .bx-ghost.bx-ghost-sheet .sheet{animation:bxSheetDown .22s cubic-bezier(.4,0,1,1) forwards}
@@ -1403,7 +1405,8 @@ html.bx-app .bx-ep{position:fixed;inset:0;z-index:85;display:flex;flex-direction
 .bx-app .bx-ep-h h2{flex:1;min-width:0;margin:0;font-size:20px;font-weight:700;color:var(--ink)}
 html.bx-app .bx-ep-ok{flex:none;height:44px;padding:0 16px;border:0;border-radius:22px;background:transparent;color:var(--accent-text);font:inherit;font-size:16px;font-weight:700}
 .bx-app .bx-ep-ok:active{background:var(--accent-soft)}
-.bx-app .bx-ep-b{flex:1;overflow-y:auto;padding:4px 12px 32px;-webkit-overflow-scrolling:touch;--sunk:var(--bx-card-in,var(--sunk))}
+/* 아래 여백 88: 페이지가 열린 동안 아래에 뜨는 알림 글(아래 24 + 높이 48) 위로 마지막 줄을 밀어 올릴 수 있게(시험판 65) */
+.bx-app .bx-ep-b{flex:1;overflow-y:auto;padding:4px 12px 88px;-webkit-overflow-scrolling:touch;--sunk:var(--bx-card-in,var(--sunk))}
 /* 넓은 화면(가로로 편 폴드 · 태블릿): 페이지 내용은 일정 창 너비(560)만큼 가운데에 */
 @media (min-width:600px){
   html.bx-app .bx-ep-h,html.bx-app .bx-ep-b > *{width:100%;max-width:560px;margin-left:auto;margin-right:auto}
@@ -1440,6 +1443,14 @@ html.bx-app .bx-ep .bx-fcol-row{background:var(--card-bg);border-radius:26px;pad
 .bx-app .bx-ep .bx-swrow,.bx-app .bx-ep .bx-fmulti{margin:0;background:var(--card-bg);border-radius:26px;padding:0 20px}
 .bx-ep .bx-swrow{display:flex;align-items:center;justify-content:space-between;min-height:60px;font-size:16px;font-weight:500}
 .bx-ep .bx-swrow.on > span{color:var(--accent-text)}
+/* 크게 울리기(시험판 65): 알림 페이지 맨 아래 상자 한 줄 — 이름 아래 작은 설명, 스위치는 오른쪽 가운데 */
+.bx-ep .bx-swrow.bx-loud{gap:16px;min-height:72px;padding-top:12px;padding-bottom:12px}
+.bx-ep .bx-swrow.bx-loud > span{display:flex;flex-direction:column;gap:3px;min-width:0;color:var(--ink)}
+.bx-ep .bx-swrow.bx-loud > span b{font-size:16px;font-weight:500}
+.bx-ep .bx-swrow.bx-loud > span small{font-size:13px;font-weight:400;line-height:1.4;color:var(--ink-3)}
+.bx-ep .bx-swrow.bx-loud > .tog{flex:none}
+/* 크게 울리는 일정의 일정 창 알림 줄: 종에 소리 결(보라) */
+.bx-er.bx-er-rem.loud > .bx-er-ic{color:var(--accent-text)}
 .bx-ep .bx-fmulti .set-row{min-height:60px;padding:0;font-size:16px;font-weight:500}
 html.bx-app .bx-ep .bx-fend{padding:0 0 16px}
 /* 알림 '직접 입력'(여러 개 · 정한 시각) */

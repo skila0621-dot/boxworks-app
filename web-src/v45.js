@@ -191,7 +191,7 @@ function bxPc45Go(it){
   const p = it.start ? tvPlan(it) : null;
   return p ? (p.travel ? bxT(p.leave) + ' 출발' : '준비 ' + bxT(p.start) + '부터') : +it.travel ? '이동 ' + tvMinText(+it.travel) : '';
 }
-function bxPc45Rem(it){ const r = remList(it.remind)[0] || ''; return r ? remLabel(r) : ''; }
+function bxPc45Rem(it){ const r = remList(it.remind)[0] || ''; return r ? remLabel(r) + (it.loud ? ' · 크게 울려요' : '') : ''; }
 function bxPc45PageHtml(k, it){
   const timed = !!it.start;
   const pick = (attr, v, cur, label) => '<button type="button" class="pick" ' + attr + '="' + esc(v) + '" aria-pressed="' + (cur === v) + '">' + label + '</button>';
@@ -200,7 +200,9 @@ function bxPc45PageHtml(k, it){
     const opts = (timed ? REMIND_TIMED : REMIND_DAY).slice(0, timed ? 6 : 5);
     if (remCur && !opts.some(o => o[0] === remCur)) opts.push([remCur, remLabel(remCur)]);
     return '<div class="picks bx-pc45-list" role="radiogroup" aria-label="알림">' + opts.map(o => pick('data-pcrem', o[0], remCur, o[1])).join('') + '</div>' +
-      '<p class="p small bx-ep-note">휴대폰 캘린더 앱의 알림과는 따로 울려요. ' + esc(window.BX_NAME) + '에서만 바뀌어요.</p>';
+      '<p class="p small bx-ep-note">휴대폰 캘린더 앱의 알림과는 따로 울려요. ' + esc(window.BX_NAME) + '에서만 바뀌어요.</p>' +
+      // 시험판 65: 크게 울리기(새 일정 창 알림 페이지와 같은 상자 한 줄). 알림이 있을 때만
+      (remCur ? '<div class="bx-swrow bx-loud"><span><b>크게 울리기</b><small>알람처럼 끌 때까지 울려요 · 잠금 화면에 제목이 보여요</small></span>' + bxSwitch('data-pcloud', !!it.loud, '크게 울리기') + '</div>' : '');
   }
   const tvv = +it.travel || 0, tvs = [0].concat(TV_PICKS.includes(tvv) || !tvv ? [] : [tvv]).concat(TV_PICKS);
   const curPrep = it.prep || (it.prepOut ? 'new' : '');
@@ -221,7 +223,7 @@ pcDraw = function(id){
     '<p class="pc-when tnum">' + (it.endDate && it.endDate > it.date ? esc(bxRangeLabel(it.date, it.endDate)) + ' · ' + (timed ? esc(bxT(it.start)) + ' 시작' + (it.end ? ' · ' + esc(bxT(it.end)) + ' 끝' : '') : bxSpanN(it) + '일간') : esc(fmtMD(it.date)) + ' · ' + (timed ? esc(bxTR(it.start, it.end)) : '종일')) + '</p>' +
     (it.location ? '<p class="pc-loc">' + ICON.pin + esc(it.location) + '</p>' : '') +
     (it.note ? '<p class="pc-note">' + esc(it.note.slice(0, 300)) + (it.note.length > 300 ? '…' : '') + '</p>' : '') +
-    '<div class="bx-ed bx-pc45" role="group" aria-label="' + esc(window.BX_NAME) + '에서 정하는 것">' + row('rem', ICON.bell, rem || '알림', !!rem, '알림') +
+    '<div class="bx-ed bx-pc45" role="group" aria-label="' + esc(window.BX_NAME) + '에서 정하는 것">' + row('rem', rem && it.loud ? ICON.bellRing : ICON.bell, rem || '알림', !!rem, '알림') +
       (timed ? row('go', ICON.depart, go || '출발·준비', !!go, '출발·준비') : '') + '</div>' +
     '<p class="p small pc-ro">제목·날짜·시간은 휴대폰 캘린더 앱에서 고쳐요. ' + esc(window.BX_NAME) + '에서는 읽기만 해요.</p>';
   setSheet(body, '<button type="button" class="btn grow" data-act="pc-open-app" data-id="' + esc(id) + '">' + ICON.cal + '캘린더 앱에서 열기</button>' +

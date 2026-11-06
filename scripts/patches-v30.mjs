@@ -37,7 +37,7 @@ export default [
   {
     name: "일정 알림: 고르는 칸 규칙(규칙 11, D-10) — 정시·10분 전·1시간 전(시간 없는 일정은 당일 오전 9시·전날 오후 9시) + 직접 입력, '알림 없이'는 아래 글자 단추",
     find: "function drawFRem(){\n  drawFChips();\n  const el = $('#f-rem'); if (!el) return;",
-    replace: "function drawFRem(){\n  drawFChips();\n  const el0 = $('#f-rem'); if (!el0) return;\n  if (window.BX_APP && !F.remAdv) { el0.innerHTML = bxRemQuick(); return; }\n  // 직접 입력: 칩 줄 바로 아래에 예전의 자세한 칸(여러 개·정한 시각)\n  let el = el0; if (window.BX_APP) { el0.innerHTML = bxRemQuick() + '<div class=\"bx-rem-adv\"></div>'; el = el0.querySelector('.bx-rem-adv'); }"
+    replace: "function drawFRem(){\n  drawFChips();\n  const el0 = $('#f-rem'); if (!el0) return;\n  if (window.BX_APP && !F.remAdv) { el0.innerHTML = bxRemQuick() + bxRemLoud(); return; }\n  // 직접 입력: 칩 줄 바로 아래에 예전의 자세한 칸(여러 개·정한 시각). 크게 울리기(시험판 65)는 늘 맨 아래\n  let el = el0; if (window.BX_APP) { el0.innerHTML = bxRemQuick() + '<div class=\"bx-rem-adv\"></div>' + bxRemLoud(); el = el0.querySelector('.bx-rem-adv'); }"
   },
   {
     name: '└ 마이크 단추가 예문을 받는다(말하기를 누르면 듣는 동안 예문 두 개, 대표 11/2 밤)',

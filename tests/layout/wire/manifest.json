@@ -1,5 +1,5 @@
 {
- "trial": 64,
+ "trial": 65,
  "screens": {
   "홈": {
    "h": "5bca39469f87ebe7|c7681efce602122f",
@@ -192,27 +192,27 @@
    "prevBottom": false
   },
   "일정 수정 창": {
-   "h": "97f047a5ab6291ea|a510df0e401180d5",
-   "ht": "97f047a5ab6291ea",
-   "hb": "a510df0e401180d5",
+   "h": "7c31e710497ad313|832649e3dbf7c34a",
+   "ht": "7c31e710497ad313",
+   "hb": "832649e3dbf7c34a",
    "key": "snece5i",
-   "since": 63,
-   "img": 63,
+   "since": 65,
+   "img": 65,
    "scrolls": true,
-   "order": 17,
-   "prev": 61,
+   "order": 18,
+   "prev": 63,
    "prevBottom": false
   },
   "일정 수정 자세히 펼침": {
-   "h": "c864389e806a5f63|a510df0e401180d5",
-   "ht": "c864389e806a5f63",
-   "hb": "a510df0e401180d5",
+   "h": "328b59edcac39bbd|832649e3dbf7c34a",
+   "ht": "328b59edcac39bbd",
+   "hb": "832649e3dbf7c34a",
    "key": "s8knkkz",
-   "since": 63,
-   "img": 63,
+   "since": 65,
+   "img": 65,
    "scrolls": true,
-   "order": 18,
-   "prev": 61,
+   "order": 19,
+   "prev": 63,
    "prevBottom": false
   },
   "일정 수정 날짜": {
@@ -223,7 +223,7 @@
    "since": 63,
    "img": 63,
    "scrolls": false,
-   "order": 19,
+   "order": 20,
    "prev": 59,
    "prevBottom": false
   },
@@ -235,7 +235,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 20,
+   "order": 21,
    "prev": 62,
    "prevBottom": false
   },
@@ -247,33 +247,33 @@
    "since": 63,
    "img": 63,
    "scrolls": false,
-   "order": 21,
-   "prev": 59,
-   "prevBottom": false
-  },
-  "일정 수정 직접": {
-   "h": "0b99365feab08e3b",
-   "ht": "0b99365feab08e3b",
-   "hb": null,
-   "key": "s1kzjggh",
-   "since": 63,
-   "img": 63,
-   "scrolls": false,
    "order": 22,
    "prev": 59,
    "prevBottom": false
   },
-  "일정 수정 출발 준비": {
-   "h": "6aa94e0704c2fe90|f5ba99ecff83f574",
-   "ht": "6aa94e0704c2fe90",
-   "hb": "f5ba99ecff83f574",
-   "key": "s1ddb6sp",
-   "since": 63,
-   "img": 63,
-   "scrolls": true,
+  "일정 수정 직접": {
+   "h": "d11203e5dafed6fc",
+   "ht": "d11203e5dafed6fc",
+   "hb": null,
+   "key": "s1kzjggh",
+   "since": 65,
+   "img": 65,
+   "scrolls": false,
    "order": 23,
-   "prev": 62,
+   "prev": 63,
    "prevBottom": false
+  },
+  "일정 수정 출발 준비": {
+   "h": "6aa94e0704c2fe90|321ea769cb1e8f61",
+   "ht": "6aa94e0704c2fe90",
+   "hb": "321ea769cb1e8f61",
+   "key": "s1ddb6sp",
+   "since": 65,
+   "img": 65,
+   "scrolls": true,
+   "order": 24,
+   "prev": 63,
+   "prevBottom": true
   },
   "일정 수정 캘린더": {
    "h": "db5ddb156c532292",
@@ -283,7 +283,7 @@
    "since": 63,
    "img": 63,
    "scrolls": false,
-   "order": 24,
+   "order": 25,
    "prev": 59,
    "prevBottom": false
   },
@@ -295,7 +295,7 @@
    "since": 59,
    "img": 59,
    "scrolls": false,
-   "order": 25,
+   "order": 26,
    "seed": true
   },
   "일정 수정 사진 파일": {
@@ -306,21 +306,21 @@
    "since": 63,
    "img": 63,
    "scrolls": false,
-   "order": 26,
+   "order": 27,
    "prev": 59,
    "prevBottom": false
   },
   "출발 준비 새 루틴 고름": {
-   "h": "4bd3a4dd66aff137|194e09f57e0dee46",
+   "h": "4bd3a4dd66aff137|ab23b30ed6fcbe43",
    "ht": "4bd3a4dd66aff137",
-   "hb": "194e09f57e0dee46",
+   "hb": "ab23b30ed6fcbe43",
    "key": "s69d0v7",
-   "since": 63,
-   "img": 63,
+   "since": 65,
+   "img": 65,
    "scrolls": true,
-   "order": 27,
-   "prev": 62,
-   "prevBottom": false
+   "order": 28,
+   "prev": 63,
+   "prevBottom": true
   },
   "캘린더 월": {
    "h": "fc1df4c25da847e7|4f7c3e6801dfea49",
@@ -330,7 +330,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 28,
+   "order": 29,
    "prev": 62,
    "prevBottom": false
   },
@@ -342,7 +342,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 29,
+   "order": 30,
    "prev": 62,
    "prevBottom": false
   },
@@ -354,7 +354,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 30,
+   "order": 31,
    "prev": 62,
    "prevBottom": false
   },
@@ -366,7 +366,7 @@
    "since": 64,
    "img": 64,
    "scrolls": true,
-   "order": 31,
+   "order": 32,
    "prev": 63,
    "prevBottom": false
   },
@@ -378,7 +378,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 32,
+   "order": 33,
    "prev": 59,
    "prevBottom": false
   },
@@ -390,7 +390,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 33,
+   "order": 34,
    "prev": 59,
    "prevBottom": false
   },
@@ -402,7 +402,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 34,
+   "order": 35,
    "prev": 62,
    "prevBottom": false
   },
@@ -414,7 +414,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 35,
+   "order": 36,
    "prev": 59,
    "prevBottom": false
   },
@@ -426,7 +426,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 36,
+   "order": 37,
    "prev": 62,
    "prevBottom": false
   },
@@ -438,7 +438,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 37,
+   "order": 38,
    "prev": 59,
    "prevBottom": false
   },
@@ -450,7 +450,7 @@
    "since": 59,
    "img": 59,
    "scrolls": false,
-   "order": 38,
+   "order": 39,
    "seed": true
   },
   "수업 추가 알림": {
@@ -461,7 +461,7 @@
    "since": 63,
    "img": 63,
    "scrolls": false,
-   "order": 39,
+   "order": 40,
    "prev": 59,
    "prevBottom": false
   },
@@ -473,7 +473,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 40,
+   "order": 41,
    "prev": 59,
    "prevBottom": false
   },
@@ -485,7 +485,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 41,
+   "order": 42,
    "prev": 59,
    "prevBottom": false
   },
@@ -497,7 +497,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 42,
+   "order": 43,
    "prev": 59,
    "prevBottom": false
   },
@@ -509,7 +509,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 43,
+   "order": 44,
    "prev": 62,
    "prevBottom": false
   },
@@ -521,7 +521,7 @@
    "since": 64,
    "img": 64,
    "scrolls": true,
-   "order": 44,
+   "order": 45,
    "prev": 63,
    "prevBottom": false
   },
@@ -533,7 +533,7 @@
    "since": 63,
    "img": 63,
    "scrolls": false,
-   "order": 45,
+   "order": 46,
    "prev": 59,
    "prevBottom": false
   },
@@ -545,7 +545,7 @@
    "since": 63,
    "img": 63,
    "scrolls": false,
-   "order": 46,
+   "order": 47,
    "prev": 59,
    "prevBottom": false
   },
@@ -557,7 +557,7 @@
    "since": 59,
    "img": 59,
    "scrolls": false,
-   "order": 47,
+   "order": 48,
    "seed": true
   },
   "새 루틴": {
@@ -568,7 +568,7 @@
    "since": 64,
    "img": 64,
    "scrolls": true,
-   "order": 48,
+   "order": 49,
    "prev": 63,
    "prevBottom": false
   },
@@ -580,7 +580,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 49,
+   "order": 50,
    "prev": 62,
    "prevBottom": false
   },
@@ -592,7 +592,7 @@
    "since": 63,
    "img": 63,
    "scrolls": false,
-   "order": 50,
+   "order": 51,
    "prev": 59,
    "prevBottom": false
   },
@@ -604,7 +604,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 51,
+   "order": 52,
    "prev": 60,
    "prevBottom": false
   },
@@ -616,7 +616,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 52,
+   "order": 53,
    "prev": 62,
    "prevBottom": false
   },
@@ -628,7 +628,7 @@
    "since": 64,
    "img": 64,
    "scrolls": true,
-   "order": 53,
+   "order": 54,
    "prev": 63,
    "prevBottom": false
   },
@@ -640,7 +640,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 54,
+   "order": 55,
    "prev": 60,
    "prevBottom": false
   },
@@ -652,21 +652,21 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 55,
+   "order": 56,
    "prev": 62,
    "prevBottom": false
   },
   "명상 소리와 호흡": {
-   "h": "128384fa99c29f26|a531780cb8e17a96",
+   "h": "128384fa99c29f26|076758d5d755ca24",
    "ht": "128384fa99c29f26",
-   "hb": "a531780cb8e17a96",
+   "hb": "076758d5d755ca24",
    "key": "s1t9u72",
-   "since": 63,
-   "img": 63,
+   "since": 65,
+   "img": 65,
    "scrolls": true,
-   "order": 56,
-   "prev": 59,
-   "prevBottom": false
+   "order": 57,
+   "prev": 63,
+   "prevBottom": true
   },
   "명상 진행 중": {
    "h": "17c7f4b859f721c7|630fe537ca2821c0",
@@ -676,7 +676,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 57,
+   "order": 58,
    "prev": 62,
    "prevBottom": false
   },
@@ -688,7 +688,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 58,
+   "order": 59,
    "prev": 62,
    "prevBottom": false
   },
@@ -700,7 +700,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 59,
+   "order": 60,
    "prev": 62,
    "prevBottom": false
   },
@@ -712,7 +712,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 60,
+   "order": 61,
    "prev": 62,
    "prevBottom": false
   },
@@ -724,7 +724,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 61,
+   "order": 62,
    "prev": 62,
    "prevBottom": false
   },
@@ -736,7 +736,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 62,
+   "order": 63,
    "prev": 62,
    "prevBottom": false
   },
@@ -748,7 +748,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 63,
+   "order": 64,
    "prev": 62,
    "prevBottom": false
   },
@@ -760,7 +760,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 64,
+   "order": 65,
    "prev": 62,
    "prevBottom": false
   },
@@ -772,7 +772,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 65,
+   "order": 66,
    "prev": 62,
    "prevBottom": false
   },
@@ -784,7 +784,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 66,
+   "order": 67,
    "prev": 62,
    "prevBottom": false
   },
@@ -796,20 +796,20 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 67,
+   "order": 68,
    "prev": 62,
    "prevBottom": false
   },
   "설정 alarm lock": {
-   "h": "25ad8ce23bd23a83|ac35d7b657e04e39",
-   "ht": "25ad8ce23bd23a83",
-   "hb": "ac35d7b657e04e39",
+   "h": "50ed1bdf19209320|1e91c7985fd39c19",
+   "ht": "50ed1bdf19209320",
+   "hb": "1e91c7985fd39c19",
    "key": "s1txt4fi",
-   "since": 63,
-   "img": 63,
+   "since": 65,
+   "img": 65,
    "scrolls": true,
-   "order": 68,
-   "prev": 62,
+   "order": 69,
+   "prev": 63,
    "prevBottom": false
   },
   "설정 data": {
@@ -820,7 +820,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 69,
+   "order": 70,
    "prev": 62,
    "prevBottom": false
   },
@@ -832,32 +832,32 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 70,
+   "order": 71,
    "prev": 62,
    "prevBottom": false
   },
   "찾기": {
-   "h": "defe0b494d6fd2c3|817917a3a5e97b84",
+   "h": "defe0b494d6fd2c3|0fc1087e6139175c",
    "ht": "defe0b494d6fd2c3",
-   "hb": "817917a3a5e97b84",
+   "hb": "0fc1087e6139175c",
    "key": "skol683",
-   "since": 63,
-   "img": 63,
-   "scrolls": true,
-   "order": 71,
-   "prev": 61,
-   "prevBottom": false
-  },
-  "도움말": {
-   "h": "7e79f5f55f101ad1|de0fc019085d8fc8",
-   "ht": "7e79f5f55f101ad1",
-   "hb": "de0fc019085d8fc8",
-   "key": "s3h0cxn",
-   "since": 63,
-   "img": 63,
+   "since": 65,
+   "img": 65,
    "scrolls": true,
    "order": 72,
-   "prev": 61,
+   "prev": 63,
+   "prevBottom": true
+  },
+  "도움말": {
+   "h": "7e79f5f55f101ad1|e55b1770ed47283e",
+   "ht": "7e79f5f55f101ad1",
+   "hb": "e55b1770ed47283e",
+   "key": "s3h0cxn",
+   "since": 65,
+   "img": 65,
+   "scrolls": true,
+   "order": 73,
+   "prev": 63,
    "prevBottom": true
   },
   "루틴 꾹 누르기": {
@@ -868,7 +868,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 73,
+   "order": 74,
    "prev": 62,
    "prevBottom": false
   },
@@ -880,7 +880,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 74,
+   "order": 75,
    "prev": 62,
    "prevBottom": false
   },
@@ -892,7 +892,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 76,
+   "order": 77,
    "prev": 62,
    "prevBottom": false
   },
@@ -904,7 +904,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 77,
+   "order": 78,
    "prev": 62,
    "prevBottom": false
   },
@@ -916,7 +916,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 78,
+   "order": 79,
    "prev": 62,
    "prevBottom": false
   },
@@ -928,7 +928,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 79,
+   "order": 80,
    "prev": 62,
    "prevBottom": false
   },
@@ -940,7 +940,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 80,
+   "order": 81,
    "prev": 62,
    "prevBottom": false
   },
@@ -952,7 +952,7 @@
    "since": 62,
    "img": 62,
    "scrolls": false,
-   "order": 81,
+   "order": 82,
    "prev": 59,
    "prevBottom": false
   },
@@ -964,7 +964,7 @@
    "since": 59,
    "img": 59,
    "scrolls": false,
-   "order": 82,
+   "order": 83,
    "seed": true
   },
   "시간표 도우미": {
@@ -975,7 +975,7 @@
    "since": 59,
    "img": 59,
    "scrolls": false,
-   "order": 83,
+   "order": 84,
    "seed": true
   },
   "알람 꺼짐 줄": {
@@ -986,7 +986,7 @@
    "since": 59,
    "img": 59,
    "scrolls": true,
-   "order": 84,
+   "order": 85,
    "seed": true
   },
   "알람 허락 화면": {
@@ -997,7 +997,7 @@
    "since": 59,
    "img": 59,
    "scrolls": true,
-   "order": 85,
+   "order": 86,
    "seed": true
   },
   "짧은 홈": {
@@ -1008,7 +1008,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 86,
+   "order": 87,
    "prev": 62,
    "prevBottom": false
   },
@@ -1020,7 +1020,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 87,
+   "order": 88,
    "prev": 62,
    "prevBottom": false
   },
@@ -1032,7 +1032,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 88,
+   "order": 89,
    "prev": 62,
    "prevBottom": false
   },
@@ -1044,7 +1044,7 @@
    "since": 63,
    "img": 63,
    "scrolls": true,
-   "order": 75,
+   "order": 76,
    "prev": 62,
    "prevBottom": false
   },
@@ -1056,10 +1056,21 @@
    "since": 64,
    "img": 64,
    "scrolls": true,
+   "order": 17,
+   "isNew": true
+  },
+  "알림 페이지 알림 글": {
+   "h": "a9e41d54da2c8d22",
+   "ht": "a9e41d54da2c8d22",
+   "hb": null,
+   "key": "s1kuwdrn",
+   "since": 65,
+   "img": 65,
+   "scrolls": false,
    "order": 16,
    "isNew": true
   }
  },
- "trialPrev": 63,
- "at": "2026-11-05T23:40:36.237Z"
+ "trialPrev": 64,
+ "at": "2026-11-06T00:31:04.867Z"
 }

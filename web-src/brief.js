@@ -51,7 +51,8 @@ function bxReportSetHtml(){
     (cfg.on ? '<div class="bx-setsub"><span class="p small">아침 루틴이 있는 날은 루틴 첫 알람을 확인한 직후에 와요</span>' + bxTimeChip('bx-rep-t', cfg.at, '아침에 일정 받는 시각') + '</div>' : '');
 }
 /* 잠금 화면에 보여 줄 것(대표 결정 10/31: 개인 일정은 잠금 화면에 보이지 않게) */
-const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요'], ['title', '일정 제목', () => '“치과 · ' + bxT('14:30') + ' 출발”처럼 제목도 보여요'], ['none', '표시 안 함', '알람도 “' + window.BX_NAME + ' 알람”으로만 보여요']];
+// 시험판 65(결정 사안 s07): 크게 울리는 일정은 '알람만'에서도 제목이 보인다
+const BX_LOCK = [['alarm', '알람만', '“씻기 · 출발까지 30분”. 일정 제목·장소는 잠금을 풀면 보여요(크게 울리는 일정은 제목도)'], ['title', '일정 제목', () => '“치과 · ' + bxT('14:30') + ' 출발”처럼 제목도 보여요'], ['none', '표시 안 함', '알람도 “' + window.BX_NAME + ' 알람”으로만 보여요']];
 function bxLockMode(){ const m = M && M.settings && M.settings.bxLock; return m === 'title' || m === 'none' ? m : 'alarm'; }
 window.BX_lockMode = bxLockMode;
 function bxLockSetHtml(){

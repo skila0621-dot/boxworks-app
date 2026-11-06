@@ -13,7 +13,7 @@ function data(extra = {}) {
     ['settings', S],
     ['c_w', { type: 'category', name: '회사 · 프로젝트 일정 (팀 공유)', color: '#2a78d6', order: 0, createdAt: old }],
     ['c_p', { type: 'category', name: '개인', color: '#1baf7a', order: 1, createdAt: old }],
-    ['it_1', { type: 'item', title: '치과 정기 검진과 스케일링 예약', date: day(0), start: '15:00', end: '16:00', remind: '10', location: '서울 강남구 연세바른치과 3층', travel: 30, categoryId: 'c_p', createdAt: old, updatedAt: old }],
+    ['it_1', { type: 'item', title: '치과 정기 검진과 스케일링 예약', date: day(0), start: '15:00', end: '16:00', remind: '10', loud: true, location: '서울 강남구 연세바른치과 3층', travel: 30, categoryId: 'c_p', createdAt: old, updatedAt: old }],
     ['it_2', { type: 'item', title: '보고서 마감', date: day(0), start: '10:00', end: '12:30', remind: '60', categoryId: 'c_w', createdAt: old, updatedAt: old }],
     ['it_3', { type: 'item', title: '장보기', date: day(0), createdAt: old, updatedAt: old }],
     ['it_4', { type: 'item', title: '은행 서류 내기', date: day(-1), start: '11:00', createdAt: old, updatedAt: old }],
@@ -79,6 +79,12 @@ module.exports = async function scenario({ W, theme, state, fail, only, clock })
   const moreOpen = async () => { await p.evaluate(() => { const b = document.querySelector('#sheet-root [data-bxmore]'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }); await p.waitForTimeout(250); };
   const edPages = async label => { await moreOpen(); await snap(label + ' · 자세히 펼침'); await clickAll('#sheet-root .bx-er[data-fpanel], #sheet-root [data-fpanel="date"], #sheet-root [data-fpanel="time"], #sheet-root [data-bxrem3="own"]', '#bx-ep [data-bxep="back"]', label); };
   await tryDo('새 일정', async () => { await closeAll(); await p.click('.bx-fab'); await snap('새 일정 창'); await edPages('새 일정'); await closeAll(); });
+  // 시험판 65: 전체 화면 페이지가 열린 동안의 알림 글(아래에 뜸 — 위에 뜨면 페이지 머리 ‹ · 이름 · 완료를 가렸다). 폭 360에서도 가장 긴 글 하나
+  await tryDo('알림 페이지 · 알림 글', async () => { await closeAll(); await p.click('.bx-fab'); await p.waitForTimeout(400);
+    if (await tap('#sheet-root [data-bxrem3="own"]')) { await p.waitForTimeout(400); await p.evaluate(() => window.BX_toast('‘개인’ 캘린더를 뺐어요 · 알림은 그대로 울려요', [['되돌리기', () => {}]])); await p.waitForTimeout(400); await snap('알림 페이지 · 알림 글'); }
+    // 알림 글은 이 장면에서만(다음 장면 사진에 남지 않게)
+    await p.evaluate(() => { const t = document.getElementById('toasts'); if (t) t.innerHTML = ''; });
+    await closeAll(); });
   // 시험판 64(선택실 6 B): 말하는 동안 '듣는 중' 막대 — 마이크 고리 · 들은 글 · 예문 · 끝(휴대폰이 듣기를 끝내지 않는 동안, 소리 크기 0.6)
   await tryDo('말하기 듣는 중', async () => { await closeAll(); await p.click('.bx-fab'); await p.waitForTimeout(400);
     await p.evaluate(() => { const sp = window.Capacitor.Plugins.BxSpeech; if (!sp) return; window.__spL = {}; window.__spWas = [sp.addListener, sp.listenLong];
