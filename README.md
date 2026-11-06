@@ -123,6 +123,7 @@ cd android && ./gradlew assembleDebug
 - **메모 줄(시험판 60, 4번 B)**: [메모 아이콘 | 시각 | 글] — 목록 줄 C와 같은 칸(`bxMemoRowHtml`, app.css '메모 줄'). 홈 · 날짜 창 · 메모 화면 · 찾기가 같은 줄. `colx`가 메모 줄도 본다
 - **말하기 단추(시험판 60)**: 어디서나 마이크 아이콘만(이름은 화면 읽기용 '말하기'), 작은 단추 높이의 정사각. 줄 칸의 주 단추면 보라, 옆에 '추가'가 있으면 회색
 - **와이어프레임(실제 화면, 시험판 60~)**: `node tests/layout/run.cjs --widths 384 --themes light --clocks 12 --snap DIR` 뒤 `node tests/layout/wire.cjs --snap DIR --out PAGE`. 화면 모양 지문을 지난 시험판과 비교해 바뀐 화면만 '시험판 N에서 바뀜'(지문은 tests/layout/wire/manifest.json). 통합관리실이 PAGE를 와이어프레임 페이지(https://claude.ai/artifact/HLEcxvt2jVk5DjVCvUbcdx)로 올린다. 사진은 바뀐 화면 것만 새로 올리고(PAGE/upload.json), 전에 올린 사진은 그 페이지에 남아 있다
+- **와이어프레임 수정 지시(11/6~)**: 와이어프레임은 만든 화면을 보고 고칠 것을 지시하는 곳이다(검토실 = 시안 보고 결정, 청음실 = 듣고 결정). 사진을 누르면 크게 열리고, 고칠 곳을 누르면 번호 핀 + 메모가 페이지 db `notes`에 저장된다(주인만 읽고 씀). 시험판을 만들 때마다 통합관리실이 `notes`를 읽어(status `open`) 고치고, 고친 것은 `status: "done"` · `doneIn`(시험판) · `doneNote`(무엇을 바꿨는지 한 줄) · `doneAt`으로 바꾼다. 하지 않기로 할 것은 혼자 정하지 않고 결정 사안으로 올린다(대표가 정하면 `status: "drop"`). 대표가 '안 고쳐졌어요 · 다시 열기'를 누르면 다시 `open`(reopenedAt)이 된다. 같은 시험판을 다시 만들면(`--trial` 같음) 전 시험판 번호 · 전후 짝은 그대로 둔다
 
 ## 그 밖의 기능 · 시간 바퀴 · 출발·준비 단계 ± (시험판 62)
 
