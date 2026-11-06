@@ -233,6 +233,11 @@ public class AlarmActivity extends Activity {
             TextView more = text("함께 울린 알람 " + waiting.size() + "개가 더 있어요 · 확인하면 이어서 보여 줘요", 13, 0xFFFFD27A, true);
             root.addView(more, wrap(6));
         }
+        // 시험판 70(대표 11/6 14:39 '아이콘과 게이지 위치를 중앙에, 간격을 조금 더 띄워, 게이지는 조금 더 굵게'):
+        // 아이콘 ~ 다음 단계 묶음을 시계 줄과 단추 사이 가운데에(위아래 빈 곳을 같게). 화면이 낮은 휴대폰(700dp 아래)은 간격을 전처럼
+        boolean roomy = getResources().getDisplayMetrics().heightPixels / getResources().getDisplayMetrics().density >= 700;
+        View spaceTop = new View(this);
+        root.addView(spaceTop, new LinearLayout.LayoutParams(1, 0, 1f));
 
         FrameLayout circle = new FrameLayout(this);
         GradientDrawable bg = new GradientDrawable();
@@ -247,27 +252,30 @@ public class AlarmActivity extends Activity {
         icon.setImageResource(iconRes != 0 ? iconRes : R.drawable.ic_alarm_bell);
         circle.addView(icon, new FrameLayout.LayoutParams(dp(56), dp(56), Gravity.CENTER));
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(120), dp(120));
-        clp.topMargin = dp(18);
+        clp.topMargin = dp(roomy ? 8 : 18);
         clp.gravity = Gravity.CENTER_HORIZONTAL;
         root.addView(circle, clp);
 
         String title = hide ? AlarmNotify.pubTitle(this, alarm) : alarm.optString("title", "");
         TextView t = text(title.isEmpty() ? AlarmNotify.appName(this) + " 알람" : title, 28, Color.WHITE, true);
         t.setMaxLines(2);
-        root.addView(t, wrap(16));
+        root.addView(t, wrap(roomy ? 24 : 16));
 
         String sub = hide ? AlarmNotify.pubSub(this, alarm) : alarm.optString("sub", alarm.optString("body", ""));
-        if (!sub.isEmpty()) root.addView(text(sub, 20, 0xFFE4E6EA, false), wrap(8));
+        if (!sub.isEmpty()) root.addView(text(sub, 20, 0xFFE4E6EA, false), wrap(roomy ? 10 : 8));
 
         long from = alarm.optLong("from", 0), to = alarm.optLong("to", 0);
-        if (!none && from > 0 && to > from) root.addView(progress(from, to, now, accent), wrap(18));
+        if (!none && from > 0 && to > from) root.addView(progress(from, to, now, accent), wrap(roomy ? 30 : 18));
 
         String next = none || (hide && !routine) ? "" : alarm.optString("next", "");
-        if (!next.isEmpty()) root.addView(text("다음 " + next, 14, 0xFFA9ADB6, false), wrap(14));
+        if (!next.isEmpty()) root.addView(text("다음 " + next, 14, 0xFFA9ADB6, false), wrap(roomy ? 18 : 14));
         if (alarm.optJSONObject("report") != null) root.addView(text(hide ? "확인하면 오늘 일정 알림이 와요 · 잠금을 풀면 보여요" : "확인하면 오늘 일정 알림이 와요", 13, 0xFFA9ADB6, false), wrap(10));
 
         View spacer = new View(this);
         root.addView(spacer, new LinearLayout.LayoutParams(1, 0, 1f));
+        // 단추 바로 위에 붙지 않게 아래 빈 곳에 최소 여백
+        View gap = new View(this);
+        root.addView(gap, new LinearLayout.LayoutParams(1, dp(roomy ? 24 : 12)));
 
         // 출발은 '다 했어요'(대표 11/4 16:58 "출근 직전에 '다 했다' 누르면 될 일", 시험판 52)
         Button ok = button(AlarmNotify.okLabel(alarm), Color.WHITE, 0xFF1C1C1C, 0, dp(32));
@@ -304,20 +312,22 @@ public class AlarmActivity extends Activity {
     private View progress(long from, long to, long now, int accent) {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
-        int width = dp(300);
+        // 게이지: 굵기 10 → 14(시험판 70, 대표 11/6 14:39 '조금 더 굵게'), 화면이 좁으면 양옆 여백 안에서
+        int width = Math.min(dp(300), getResources().getDisplayMetrics().widthPixels - dp(48));
+        int thick = dp(14);
         FrameLayout bar = new FrameLayout(this);
         GradientDrawable track = new GradientDrawable();
         track.setColor(0xFF3A3F4B);
-        track.setCornerRadius(dp(5));
+        track.setCornerRadius(thick / 2f);
         bar.setBackground(track);
         float f = Math.max(0f, Math.min(1f, (now - from) / (float) (to - from)));
         View fill = new View(this);
         GradientDrawable fd = new GradientDrawable();
         fd.setColor(0xFFA98BFA); // 어두운 바탕 위 막대는 밝은 보라
-        fd.setCornerRadius(dp(5));
+        fd.setCornerRadius(thick / 2f);
         fill.setBackground(fd);
-        bar.addView(fill, new FrameLayout.LayoutParams(Math.max(dp(10), Math.round(width * f)), dp(10)));
-        box.addView(bar, new LinearLayout.LayoutParams(width, dp(10)));
+        bar.addView(fill, new FrameLayout.LayoutParams(Math.max(thick, Math.round(width * f)), thick));
+        box.addView(bar, new LinearLayout.LayoutParams(width, thick));
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.HORIZONTAL);
         TextView a = text(hm(from), 13, 0xFFA9ADB6, false);
@@ -327,7 +337,7 @@ public class AlarmActivity extends Activity {
         labels.addView(a, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         labels.addView(b, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.WRAP_CONTENT);
-        llp.topMargin = dp(6);
+        llp.topMargin = dp(8);
         box.addView(labels, llp);
         return box;
     }
